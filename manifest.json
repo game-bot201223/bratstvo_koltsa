@@ -1,0 +1,21 @@
+{
+  "name": "Сердце Мора — Enhanced Edition",
+  "short_name": "Сердце Мора",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0d0518",
+  "theme_color": "#0d0518",
+  "icons": [
+    {
+      "src": "tre.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "tre.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
