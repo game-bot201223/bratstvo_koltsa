@@ -207,6 +207,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .feedItem{font-size:11px;opacity:.90;line-height:1.35;padding:8px 10px;border-radius:14px;border:1px solid var(--line);background:var(--glass2)}
  .feedItem{background:rgba(255,255,255,.10)}
 
+ /* Friends */
  .friendsPanel{margin:10px 14px 12px; flex:0 0 auto;}
  .friendsBody{padding:12px 14px;}
  .friendsRow{display:flex;gap:10px;overflow:auto;scroll-snap-type:x mandatory;touch-action:pan-x;-webkit-overflow-scrolling:touch;}
@@ -220,15 +221,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .friendName{font-weight:900;letter-spacing:1px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
  .friendMeta{font-size:11px;opacity:.75;line-height:1.25}
 
-/* Bottom dock */
-.bottomStack{margin-top:auto;display:flex;flex-direction:column;}
- .dock{
-   padding:10px 12px calc(10px + env(safe-area-inset-bottom));
-  background:var(--sheet0);
-   backdrop-filter: blur(16px);
+ /* Bottom dock */
+ .bottomStack{margin-top:auto;display:flex;flex-direction:column;}
+ .dock{padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--sheet0);backdrop-filter: blur(16px);}
+ .dockRow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;}
+ .dockRow .dockBtn{padding:0;border-radius:50%;aspect-ratio:1/1;overflow:hidden;min-width:0;}
+ .dockRow .dockBtn img{display:block;width:100%;height:100%;object-fit:cover;}
+ @media (max-width: 380px){
+  .dock{padding:8px 10px calc(8px + env(safe-area-inset-bottom));}
+  .dockRow{gap:6px;}
  }
-.dockRow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;}
-.btn{
+
+ .btn{
   border:none;
   border-radius:999px;
   padding:10px 10px;
@@ -244,9 +248,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   font-weight:900;
   letter-spacing:1px;
   font-size:12px;
-}
-.btn:active{transform:translateY(1px)}
-.btnSmall{font-size:11px;padding:9px 10px;opacity:.95}
+ }
+ .btn:active{transform:translateY(1px)}
+ .btnSmall{font-size:11px;padding:9px 10px;opacity:.95}
 
  .diceTitle{display:flex; align-items:center; justify-content:center; gap:10px; letter-spacing:4px; font-weight:900; font-size:14px; opacity:.92; margin-top:2px;}
  .diceTitle .ico{font-size:18px;}
@@ -499,12 +503,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="bottomStack">
       <div class="dock">
         <div class="dockRow">
-          <button class="btn" id="btnDistricts">🗺️ Районы</button>
-          <button class="btn" id="btnArena">⚔️ Арена</button>
-          <button class="btn" id="btnBoss">👹 Боссы</button>
-          <button class="btn" id="btnDice">🎲 Кости</button>
-          <button class="btn" id="btnTop">🏆 Топ</button>
-          <button class="btn" id="btnClans">🏰 Кланы</button>
+          <button class="btn dockBtn" id="btnDistricts" aria-label="Районы"><img src="районы.jpg" alt=""></button>
+          <button class="btn dockBtn" id="btnArena" aria-label="Арена"><img src="арена.jpg" alt=""></button>
+          <button class="btn dockBtn" id="btnBoss" aria-label="Боссы"><img src="боссы.jpg" alt=""></button>
+          <button class="btn dockBtn" id="btnDice" aria-label="Кости"><img src="кости.jpg" alt=""></button>
+          <button class="btn dockBtn" id="btnTop" aria-label="Топ"><img src="топ.jpg" alt=""></button>
+          <button class="btn dockBtn" id="btnClans" aria-label="Кланы"><img src="кланы.jpg" alt=""></button>
         </div>
       </div>
 
