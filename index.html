@@ -279,8 +279,23 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .districtTag{font-size:10px;letter-spacing:2px;font-weight:900;opacity:.75;text-align:right;white-space:nowrap;}
 
  .districtLeftCol{width:168px;flex:0 0 auto;display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
- .districtActions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start;}
- .districtBtn{font-size:10px;padding:7px 9px;letter-spacing:1px;}
+ .districtActions{display:flex;flex-direction:column;gap:6px;flex-wrap:nowrap;justify-content:flex-start;width:100%;}
+ .districtBtn{font-size:10px;padding:7px 9px;letter-spacing:1px;width:100%;}
+
+ #mDistricts .sheetBody{overflow-x:hidden;}
+ #districtList{max-width:100%;}
+ #districtList .card{max-width:100%; box-sizing:border-box; overflow:hidden;}
+ .districtCardGrid{display:grid; grid-template-columns:168px 1fr; gap:10px; align-items:start;}
+ .districtCardRight{min-width:0;}
+ .districtCardTop{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
+ .districtCardBadge{flex:0 0 auto;}
+ @media (max-width: 420px){
+   .districtCardGrid{grid-template-columns:1fr;}
+   .districtLeftCol{width:100%;}
+   .districtActions{width:100%;}
+   .districtCardTop{flex-wrap:wrap;}
+   .districtCardBadge{margin-top:8px;}
+ }
 
  .bossFightHero{display:flex;align-items:center;justify-content:space-between;gap:12px;}
  .bossFightBig{width:180px;height:180px;border-radius:34px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:78px;flex:0 0 auto;}
@@ -291,6 +306,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .toothBtn .tm{font-size:9px; opacity:.82; margin-top:2px; letter-spacing:1px; color:rgba(255,255,255,.92)}
  .toothBtn.ready{border-color: rgba(217,70,239,.95); box-shadow: 0 0 0 2px rgba(217,70,239,.18) inset, 0 0 22px rgba(217,70,239,.35), 0 10px 26px rgba(0,0,0,.45);}
  .toothBtn.ready .tm{opacity:1;}
+
+ #bossToothBtn{border-color: rgba(255,255,255,.55); color: rgba(255,255,255,.92);}
+ #bossToothBtn.ready{border-color: rgba(255,255,255,.95); box-shadow: 0 0 0 2px rgba(255,255,255,.18) inset, 0 0 22px rgba(255,255,255,.35), 0 10px 26px rgba(0,0,0,.45);}
+
+ .bossAtkBtn{font-size:9px !important; padding:5px 7px !important; letter-spacing:1px; min-height:28px;}
 
 /* Modals */
 .overlay{position:fixed;inset:0;background:rgba(45,30,18,.22);backdrop-filter: blur(10px);display:none;z-index:4900;}
@@ -1218,6 +1238,39 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           state.districtBizDaily.claimed[c4k] = now();
         }
       }
+
+      // district holder / day leader daily gold rewards (UTC 00:00)
+      try {
+        const you = String(state.playerName||'PLAYER').trim().toUpperCase();
+        for (let id=0; id<12; id++){
+          const fk = 'D'+String(id);
+
+          // holder reward +50 🪙
+          const holderKey = 'HOLDG_'+fk;
+          if (!state.districtBizDaily.claimed[holderKey]){
+            const top = (state.districtFearLeaders && state.districtFearLeaders[fk]) ? state.districtFearLeaders[fk] : null;
+            const nm = top && top.name ? String(top.name).trim().toUpperCase() : '';
+            if (nm && nm === you){
+              state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + 50);
+              addGoldSum += 50;
+              state.districtBizDaily.claimed[holderKey] = now();
+            }
+          }
+
+          // day leader reward +30 🪙
+          const dayKey2 = 'DAYG_'+fk;
+          if (!state.districtBizDaily.claimed[dayKey2]){
+            const box = (state.districtDailyFear && state.districtDailyFear.day===dayKey && state.districtDailyFear.byDistrict) ? state.districtDailyFear.byDistrict : null;
+            const cur = box && box[fk] ? box[fk] : null;
+            const nm2 = cur && cur.name ? String(cur.name).trim().toUpperCase() : '';
+            if (nm2 && nm2 === you){
+              state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + 30);
+              addGoldSum += 30;
+              state.districtBizDaily.claimed[dayKey2] = now();
+            }
+          }
+        }
+      } catch (e) {}
 
       if (addFearSum>0 || addGoldSum>0){
         save();
@@ -4259,10 +4312,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '<div style="margin-top:6px; display:flex; flex-direction:column; gap:6px">'
         + (dead
             ? (hasPending
-                ? '<button class="btn btnMini" data-boss-claim="'+b.id+'">ЗАБРАТЬ НАГРАДУ</button>'
-                : '<button class="btn btnMini" data-boss-attack="'+b.id+'" style="opacity:.75" disabled>НАПАСТЬ</button>'
+                ? '<button class="btn btnMini bossAtkBtn" data-boss-claim="'+b.id+'">ЗАБРАТЬ НАГРАДУ</button>'
+                : '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:.75" disabled>НАПАСТЬ</button>'
               )
-            : '<button class="btn btnMini" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
+            : '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
           )
         + '</div>'
         + '</div>'
@@ -4598,9 +4651,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const prevOk = districtPrevCleared(idx);
       const lockTxt = (!prevOk) ? 'Чтобы перейти в этот район — пройди предыдущий' : '';
       html += '<div class="card">'
-        + '<div class="row" style="align-items:flex-start; '+(unlocked?'':'opacity:.55; filter:grayscale(1);')+'">'
-        + '<div style="min-width:0; flex:1">'
-        + '<div style="display:flex; gap:10px; align-items:flex-start">'
+        + '<div class="districtCardGrid" style="'+(unlocked?'':'opacity:.55; filter:grayscale(1);')+'">'
         + '<div class="districtLeftCol">'
         + '<div style="width:168px; height:168px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:linear-gradient(145deg, rgba(255,255,255,.14), rgba(0,0,0,.10)); display:flex; align-items:center; justify-content:center; font-weight:900; letter-spacing:2px; opacity:.88">IMG</div>'
         + '<div class="districtActions">'
@@ -4608,10 +4659,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '<button class="btn btnSmall districtBtn" data-db="'+(i-1)+'" '+(unlocked?'':'disabled')+'>БИЗНЕС</button>'
         + '</div>'
         + '</div>'
-        + '<div style="min-width:0; flex:1">'
+        + '<div class="districtCardRight">'
+        + '<div class="districtCardTop">'
+        + '<div style="min-width:0">'
         + '<div class="k">'+name.toUpperCase()+'</div>'
         + '<div style="margin-top:6px; font-size:12px; opacity:.8; line-height:1.35">Заданий: '+(data[i-1].tasks ? data[i-1].tasks.length : 0)+'</div>'
         + (lockTxt ? ('<div style="margin-top:6px; font-size:12px; line-height:1.35; font-weight:900; color:rgba(248,113,113,.95)">'+lockTxt+'</div>') : '')
+        + '</div>'
+        + '<div class="districtCardBadge">'
+        + '<div class="badge" style="padding:8px 10px"> '+fmt4(fear)+'</div>'
+        + '</div>'
+        + '</div>'
         + '<div class="districtStack">'
         + '<div style="min-width:0">'
         + '<div class="districtNick">'+String(topName).toUpperCase()+'</div>'
@@ -4632,10 +4690,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '</div>'
         + '</div>'
         + '</div>'
-        + '</div>'
-        + '</div>'
-        + '<div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end">'
-        + '<div class="badge" style="padding:8px 10px"> '+fmt4(fear)+'</div>'
         + '</div>'
         + '</div>'
         + '</div>';
