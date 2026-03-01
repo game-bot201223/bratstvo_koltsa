@@ -4038,12 +4038,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (d){
         const energy = Math.floor(state.energy||0);
         let h = '';
-        h += '<div style="background:rgba(210,190,156,.96); color:rgba(45,30,18,.98); border:1px solid rgba(45,30,18,.35); border-radius:16px; padding:12px; box-shadow: 0 18px 45px rgba(0,0,0,.25);">';
+        h += '<div style="background:rgba(210,190,156,.96); color:rgba(45,30,18,.98); border:1px solid rgba(45,30,18,.35); border-radius:16px; padding:12px; box-shadow: 0 18px 45px rgba(0,0,0,.25); max-width:100%; overflow-x:hidden; box-sizing:border-box;">';
         h += '<div style="font-weight:900; letter-spacing:2px; font-size:12px; opacity:.95">'+nm.toUpperCase()+'</div>';
         h += '<div style="margin-top:6px; font-size:12px; opacity:.85; line-height:1.35">Ты кошмаришь район. Выбирай задание и выполняй за ⚡ энергию.</div>';
         h += '<div style="margin-top:10px; border-top:1px solid rgba(45,30,18,.25)"></div>';
 
-        h += '<div style="margin-top:10px; display:grid; grid-template-columns: 1fr 120px 120px 140px; gap:8px; align-items:center; font-size:11px; letter-spacing:2px; font-weight:900; opacity:.85">'
+        h += '<div style="margin-top:10px; display:grid; grid-template-columns: minmax(0,1fr) 92px 62px 112px; gap:8px; align-items:center; font-size:11px; letter-spacing:2px; font-weight:900; opacity:.85">'
           + '<div>ЗАДАНИЕ</div><div style="text-align:center">НАГРАДА</div><div style="text-align:center">ТРЕБ.</div><div style="text-align:right"> </div>'
           + '</div>';
 
@@ -4054,13 +4054,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const done = cnt >= meta.max;
           const locked = districtTaskLocked(i, k, tasks.length);
           const can = (!done) && (!locked) && (energy >= meta.cost);
-          const btnTxt = done ? 'ГОТОВО' : (locked ? 'НЕДОСТУПНО' : ('Выполнить за '+meta.cost+' ⚡'));
+          const btnTxt = done ? 'ГОТОВО' : (locked ? 'НЕДОСТУПНО' : 'ВЫПОЛНИТЬ');
           const btnStyle = 'height:34px; padding:0 12px; border-radius:999px; font-weight:900; letter-spacing:1px; border:1px solid rgba(255,255,255,.35);' + (can ? ' background:linear-gradient(180deg, rgba(37,99,235,.98), rgba(30,64,175,.98)); color:rgba(255,255,255,.98); box-shadow: 0 10px 22px rgba(30,64,175,.25), inset 0 1px 0 rgba(255,255,255,.18);' : ' background:rgba(120,120,120,.45); color:rgba(255,255,255,.92); opacity:.75;');
           const pct = meta.max>0 ? clamp((cnt/meta.max)*100, 0, 100) : 0;
           h += '<div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(45,30,18,.18)"></div>';
-          h += '<div style="display:grid; grid-template-columns: 1fr 120px 120px 140px; gap:8px; align-items:center; '+(locked ? 'opacity:.45; filter:grayscale(1);' : '')+'">';
+          h += '<div style="display:grid; grid-template-columns: minmax(0,1fr) 92px 62px 112px; gap:8px; align-items:center; '+(locked ? 'opacity:.45; filter:grayscale(1);' : '')+'">';
           h += '<div style="min-width:0">'
-            + '<div style="font-size:12px; line-height:1.25; font-weight:900; opacity:.95">'+tasks[k]+'</div>'
+            + '<div style="font-size:12px; line-height:1.25; font-weight:900; opacity:.95; overflow:hidden; text-overflow:ellipsis;">'+tasks[k]+'</div>'
             + '<div style="margin-top:6px; display:flex; align-items:center; gap:8px">'
             + '<div style="flex:1; height:8px; border-radius:999px; border:1px solid rgba(45,30,18,.28); background:rgba(255,255,255,.55); overflow:hidden">'
             + '<div style="height:100%; width:'+pct.toFixed(2)+'%; background:linear-gradient(90deg, rgba(187,36,36,.92), rgba(122,26,26,.92))"></div>'
@@ -4068,10 +4068,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             + '<div style="font-size:11px; font-weight:900; opacity:.78; white-space:nowrap">'+cnt+'/'+meta.max+'</div>'
             + '</div>'
             + '</div>';
-          h += '<div style="text-align:center; font-size:12px; font-weight:900; opacity:.95">'+(meta.fear ? ('😱 '+fmt4(meta.fear)) : ('🪙 '+fmt4(meta.gold)))+'<div style="font-size:10px; opacity:.8; margin-top:2px">+ '+meta.xp+' XP</div></div>';
+          h += '<div style="text-align:center; font-size:12px; font-weight:900; opacity:.95; overflow:hidden">'+(meta.fear ? ('😱 '+fmt4(meta.fear)) : ('🪙 '+fmt4(meta.gold)))+'<div style="font-size:10px; opacity:.8; margin-top:2px">+ '+meta.xp+' XP</div></div>';
           h += '<div style="text-align:center; font-size:12px; font-weight:900; opacity:.95">⚡ '+meta.cost+'</div>';
           h += '<div style="text-align:right">'
-            + '<button class="btn btnSmall" style="'+btnStyle+'" data-dtask="'+i+':'+k+'" '+(can ? '' : 'disabled')+'>'+btnTxt+'</button>'
+            + '<button class="btn btnSmall" style="'+btnStyle+' max-width:100%; width:112px; padding:0 10px;" data-dtask="'+i+':'+k+'" '+(can ? '' : 'disabled')+'>'+btnTxt+'</button>'
             + '</div>';
           h += '</div>';
         }
