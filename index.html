@@ -264,7 +264,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .dicePrimary{ margin-top:24px; padding:14px 16px; font-size:12px; letter-spacing:4px; width:min(320px, 76%); margin-left:auto; margin-right:auto; display:block; }
 
  .bossRow{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:flex-start;}
- .bossMini{width:140px;height:140px;border-radius:26px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));display:flex;align-items:center;justify-content:center;font-size:56px;}
+ .bossMini{width:140px;height:140px;border-radius:26px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:56px;}
   .bossName{font-weight:900;letter-spacing:2px;line-height:1.15;}
   .bossSub{font-size:11px;opacity:.75;margin-top:4px;}
   .bossReward{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
@@ -272,7 +272,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .bossWinnerNm{font-size:12px;letter-spacing:1px;opacity:.9;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
 
  .bossFightHero{display:flex;align-items:center;justify-content:space-between;gap:12px;}
- .bossFightBig{width:180px;height:180px;border-radius:34px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));display:flex;align-items:center;justify-content:center;font-size:78px;flex:0 0 auto;}
+ .bossFightBig{width:180px;height:180px;border-radius:34px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:78px;flex:0 0 auto;}
  .bossFightMeta{min-width:0;flex:1;}
 
  .toothBtn{position:relative; width:44px; height:40px; border-radius:14px; border:1px solid rgba(251,191,36,.55); background:linear-gradient(180deg, rgba(251,191,36,.24) 0%, rgba(42,30,20,.70) 100%); color:rgba(251,191,36,.95); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; box-shadow: 0 10px 26px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);}
@@ -1560,13 +1560,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   ];
 
   const BOSSES = [
-    { id:1, name:'Фёдор', emoji:'🦈', maxHP:1000, reward:{ xp:50, morin:100, gold:0 } },
-    { id:2, name:'Гиви', emoji:'🧨', maxHP:5000, reward:{ xp:100, morin:300, gold:0 } },
-    { id:3, name:'Логоваз', emoji:'🦴', maxHP:10000, reward:{ xp:200, morin:500, gold:0 } },
-    { id:4, name:'Теодед', emoji:'🪓', maxHP:30000, reward:{ xp:300, morin:1500, gold:0 } },
-    { id:5, name:'Фара', emoji:'🔥', maxHP:70000, reward:{ xp:700, morin:3500, gold:0 } },
+    { id:1, name:'Фёдор', emoji:'🦈', img:'фёдор.png', maxHP:1000, reward:{ xp:50, morin:100, gold:0 } },
+    { id:2, name:'Гиви', emoji:'🧨', img:'гиви.png', maxHP:5000, reward:{ xp:100, morin:300, gold:0 } },
+    { id:3, name:'Логоваз', emoji:'🦴', img:'логоваз.png', maxHP:10000, reward:{ xp:200, morin:500, gold:0 } },
+    { id:4, name:'Теодед', emoji:'🪓', img:'теодед.png', maxHP:30000, reward:{ xp:300, morin:1500, gold:0 } },
+    { id:5, name:'Фарамир', emoji:'🔥', img:'фарамир.png', maxHP:70000, reward:{ xp:700, morin:3500, gold:0 } },
     { id:6, name:'Паучиха', emoji:'🕷️', maxHP:150000, reward:{ xp:1500, morin:7500, gold:0 } },
-    { id:7, name:'Боря Мем', emoji:'🌪️', maxHP:300000, reward:{ xp:3000, morin:15000, gold:0 } },
+    { id:7, name:'Боря Мем', emoji:'🌪️', img:'борямем.png', maxHP:300000, reward:{ xp:3000, morin:15000, gold:0 } },
     { id:8, name:'Сарумян', emoji:'🧿', maxHP:500000, reward:{ xp:5000, morin:25000, gold:0 } },
     { id:9, name:'Дроворуб', emoji:'🪵', maxHP:1000000, reward:{ xp:10000, morin:0, gold:50000 } },
     { id:10, name:'Пендальф', emoji:'🧙', maxHP:2000000, reward:{ xp:20000, morin:0, gold:100000 } },
@@ -3348,7 +3348,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e) {}
 
-    $('bfEmoji').textContent = b.emoji;
+    try {
+      const pic = $('bfEmoji');
+      if (pic){
+        if (b.img){
+          pic.textContent = '';
+          pic.style.backgroundImage = 'url("'+encodeURI(String(b.img))+'")';
+        } else {
+          pic.textContent = b.emoji;
+          pic.style.backgroundImage = '';
+        }
+      }
+    } catch (e0) {}
     $('bfName').textContent = b.name;
     $('bfHp').textContent = 'HP ' + (parseInt(f.hp||0,10)||0) + ' / ' + b.maxHP;
     const left = Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now());
@@ -3540,7 +3551,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function bfShowResult(bossId, win){
     const b = BOSSES.find(x=>x.id===bossId);
     if (!b) return;
-    $('bfrEmoji').textContent = b.emoji;
+    try {
+      const pic = $('bfrEmoji');
+      if (pic){
+        if (b.img){
+          pic.textContent = '';
+          pic.style.backgroundImage = 'url("'+encodeURI(String(b.img))+'")';
+        } else {
+          pic.textContent = b.emoji;
+          pic.style.backgroundImage = '';
+        }
+      }
+    } catch (e0) {}
     $('bfrName').textContent = b.name;
     $('bfrTitle').textContent = win ? 'БОСС ПОВЕРЖЕН' : 'ПОРАЖЕНИЕ';
     $('bfrOutcome').textContent = win ? 'БОСС ПОВЕРЖЕН' : 'ПОРАЖЕНИЕ';
@@ -3895,7 +3917,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '<div class="bossWinnerNm">'+lwName+'</div>'
         + '<div style="height:10px"></div>'
         + '<div class="bossRow">'
-        + '<div class="bossMini">'+b.emoji+'</div>'
+        + '<div class="bossMini" style="'+(b.img?('background-image:url(\''+encodeURI(String(b.img))+'\');'):'')+'">'+(b.img?'':b.emoji)+'</div>'
         + '<div style="min-width:0">'
         + '<div class="bossName">'+b.name+'</div>'
         + '<div class="bossSub">'+(dead ? ('ПОВЕРЖЕН · HP 0 / '+b.maxHP) : ('HP '+hp+' / '+b.maxHP))+lockText+'</div>'
