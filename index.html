@@ -278,24 +278,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .districtFear{font-size:12px;font-weight:900;opacity:.92;white-space:nowrap;}
  .districtTag{font-size:10px;letter-spacing:2px;font-weight:900;opacity:.75;text-align:right;white-space:nowrap;}
 
- .districtLeftCol{width:168px;flex:0 0 auto;display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
+ .districtLeftCol{width:140px;flex:0 0 auto;display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
  .districtActions{display:flex;flex-direction:column;gap:6px;flex-wrap:nowrap;justify-content:flex-start;width:100%;}
  .districtBtn{font-size:10px;padding:7px 9px;letter-spacing:1px;width:100%;}
 
  #mDistricts .sheetBody{overflow-x:hidden;}
  #districtList{max-width:100%;}
  #districtList .card{max-width:100%; box-sizing:border-box; overflow:hidden;}
- .districtCardGrid{display:grid; grid-template-columns:168px 1fr; gap:10px; align-items:start;}
+ .districtCardGrid{display:grid; grid-template-columns:140px 1fr; gap:10px; align-items:start;}
  .districtCardRight{min-width:0;}
  .districtCardTop{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
  .districtCardBadge{flex:0 0 auto;}
- @media (max-width: 420px){
-   .districtCardGrid{grid-template-columns:1fr;}
-   .districtLeftCol{width:100%;}
-   .districtActions{width:100%;}
-   .districtCardTop{flex-wrap:wrap;}
-   .districtCardBadge{margin-top:8px;}
- }
 
  .bossFightHero{display:flex;align-items:center;justify-content:space-between;gap:12px;}
  .bossFightBig{width:180px;height:180px;border-radius:34px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:78px;flex:0 0 auto;}
@@ -4653,7 +4646,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       html += '<div class="card">'
         + '<div class="districtCardGrid" style="'+(unlocked?'':'opacity:.55; filter:grayscale(1);')+'">'
         + '<div class="districtLeftCol">'
-        + '<div style="width:168px; height:168px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:linear-gradient(145deg, rgba(255,255,255,.14), rgba(0,0,0,.10)); display:flex; align-items:center; justify-content:center; font-weight:900; letter-spacing:2px; opacity:.88">IMG</div>'
+        + '<div style="width:140px; height:140px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:linear-gradient(145deg, rgba(255,255,255,.14), rgba(0,0,0,.10)); display:flex; align-items:center; justify-content:center; font-weight:900; letter-spacing:2px; opacity:.88">IMG</div>'
         + '<div class="districtActions">'
         + '<button class="btn btnSmall districtBtn" data-dn="'+(i-1)+'" '+(unlocked?'':'disabled')+'>'+ (unlocked ? 'КОШМАРИТЬ' : 'ЗАКРЫТО') +'</button>'
         + '<button class="btn btnSmall districtBtn" data-db="'+(i-1)+'" '+(unlocked?'':'disabled')+'>БИЗНЕС</button>'
