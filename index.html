@@ -33,12 +33,12 @@
   --energy:#22d3ee;
   --gold:#fbbf24;
   --silver:#e2e8f0;
-  --morin:#d946ef;
+  --tooth:#d946ef;
   --win:#34d399;
   --lose:#fb7185;
   --r:18px;
   --r2:14px;
-  --shadow:0 18px 42px rgba(0,0,0,.55);
+   --shadow:0 18px 42px rgba(0,0,0,.55);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;}
@@ -91,7 +91,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .pill strong{font-weight:900;letter-spacing:1px;}
 
 .xp{
-  margin-top:3px;
+  margin-top:0px;
   position:relative;
   height:22px;
   border-radius:999px;
@@ -146,8 +146,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .tile{border-radius:12px;border:1px solid rgba(32,22,14,.24);background:rgba(255,255,255,.10);padding:5px 5px;min-height:40px;display:flex;flex-direction:column;justify-content:center;gap:3px;}
 .tile .k{font-size:10px;opacity:.78;letter-spacing:2px}
 .tile .v{font-weight:900;letter-spacing:1px;font-size:9px;}
-.tile.gold,.tile.silver,.tile.morin{align-items:center;text-align:center;}
-.tile.gold .v,.tile.silver .v,.tile.morin .v{font-size:14px;line-height:1;}
+ .tile.gold,.tile.silver,.tile.tooth{align-items:center;text-align:center;}
+.tile.gold .v,.tile.silver .v,.tile.tooth .v{font-size:14px;line-height:1;}
 .tile.shop{padding:8px;}
 .tile.shop .k{margin-bottom:2px;}
 .tile.shop{padding:6px;}
@@ -271,14 +271,25 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .bossWinnerTop{font-size:11px;letter-spacing:1px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
  .bossWinnerNm{font-size:12px;letter-spacing:1px;opacity:.9;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
 
+ .districtStack{margin-top:8px;display:flex;flex-direction:column;gap:10px;}
+ .districtNick{font-size:11px;font-weight:900;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+ .districtStatBox{border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:10px;background:rgba(0,0,0,.10);}
+ .districtStatRow{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;}
+ .districtFear{font-size:12px;font-weight:900;opacity:.92;white-space:nowrap;}
+ .districtTag{font-size:10px;letter-spacing:2px;font-weight:900;opacity:.75;text-align:right;white-space:nowrap;}
+
+ .districtLeftCol{width:168px;flex:0 0 auto;display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
+ .districtActions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start;}
+ .districtBtn{font-size:10px;padding:7px 9px;letter-spacing:1px;}
+
  .bossFightHero{display:flex;align-items:center;justify-content:space-between;gap:12px;}
  .bossFightBig{width:180px;height:180px;border-radius:34px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:78px;flex:0 0 auto;}
  .bossFightMeta{min-width:0;flex:1;}
 
- .toothBtn{position:relative; width:44px; height:40px; border-radius:14px; border:1px solid rgba(251,191,36,.55); background:linear-gradient(180deg, rgba(251,191,36,.24) 0%, rgba(42,30,20,.70) 100%); color:rgba(251,191,36,.95); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; box-shadow: 0 10px 26px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);}
+ .toothBtn{position:relative; width:44px; height:40px; border-radius:14px; border:1px solid rgba(217,70,239,.55); background:linear-gradient(180deg, rgba(217,70,239,.24) 0%, rgba(42,30,20,.70) 100%); color:rgba(217,70,239,.95); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; box-shadow: 0 10px 26px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);}
  .toothBtn .ico{font-size:18px;}
  .toothBtn .tm{font-size:9px; opacity:.82; margin-top:2px; letter-spacing:1px; color:rgba(255,255,255,.92)}
- .toothBtn.ready{border-color: rgba(251,191,36,.95); box-shadow: 0 0 0 2px rgba(251,191,36,.18) inset, 0 0 22px rgba(251,191,36,.35), 0 10px 26px rgba(0,0,0,.45);}
+ .toothBtn.ready{border-color: rgba(217,70,239,.95); box-shadow: 0 0 0 2px rgba(217,70,239,.18) inset, 0 0 22px rgba(217,70,239,.35), 0 10px 26px rgba(0,0,0,.45);}
  .toothBtn.ready .tm{opacity:1;}
 
 /* Modals */
@@ -422,7 +433,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .toast.show{opacity:1;transform:translateY(0)}
 .toast.win{border-color:rgba(52,211,153,.35)}
 .toast.lose{border-color:rgba(251,113,133,.35)}
-.toast.morin{border-color:rgba(217,70,239,.35)}
+ .toast.tooth{border-color:rgba(217,70,239,.35)}
 .toast.gold{border-color:rgba(251,191,36,.35)}
 
 @media (max-width:420px){
@@ -466,7 +477,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="heroGrid">
       <div class="tile gold" id="tileGold"><div class="v">🪙 <span id="gold">0</span></div></div>
       <div class="tile silver" id="tileSilver"><div class="v">🥈 <span id="silver">0</span></div></div>
-      <div class="tile morin" id="tileMorin"><div class="v">🦷 <span id="morin">0</span></div></div>
+      <div class="tile tooth" id="tileTooth"><div class="v">🦷 <span id="tooth">0</span></div></div>
       <div class="tile shop" id="tileShop"><button class="shopIconBtn" id="shopBtn" aria-label="Магазин"></button></div>
     </div>
   </div>
@@ -613,7 +624,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       </div>
 
       <div class="card" style="margin-top:10px;" id="arenaSectionGym">
-        <div class="row"><div class="k">СПОРТЗАЛ</div><div style="display:flex; align-items:center; gap:8px;"><div class="k">ПИТОМЕЦ +</div><div class="badge" id="gymPetBonus">0%</div></div></div>
+        <div class="row"><div class="k">СПОРТЗАЛ</div><div style="display:flex; align-items:center; gap:8px;"><div class="k">ПИТОМЕЦ + БИЗНЕСЫ =</div><div class="badge" id="gymPetBonus">0%</div></div></div>
         <div id="gymList"></div>
 
         <div class="card" style="margin-top:8px;" id="arenaPetShopWrap">
@@ -899,10 +910,26 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetHead">
       <button class="iconBtn" data-close="mDistricts">‹</button>
       <div class="title">РАЙОНЫ</div>
-      <div style="width:44px"></div>
+      <button class="toothBtn" id="bizRewardBtn" type="button"><div class="ico">🏪</div><div class="tm" id="bizRewardTimer">00:00</div></button>
     </div>
     <div class="sheetBody">
       <div style="margin:10px; display:flex; flex-direction:column; gap:10px;" id="districtList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal modalMini" id="mDistrictBiz" role="dialog" aria-modal="true">
+  <div class="sheet sheetMini">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mDistrictBiz">‹</button>
+      <div class="title" id="dbTitle">БИЗНЕС</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody">
+      <div class="card">
+        <div class="row"><div class="k">РАЙОН</div><div class="badge" id="dbDistrict">—</div></div>
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;" id="dbList">—</div>
+      </div>
     </div>
   </div>
 </div>
@@ -1007,7 +1034,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <div class="row"><div style="min-width:0">4×5</div><div class="badge">Кольцо на босса «Паучиха»</div></div>
           <div class="row"><div style="min-width:0">4×6</div><div class="badge">Кольцо на босса «Сарумян»</div></div>
         </div>
-        <div style="margin-top:10px; font-size:11px; opacity:.75; line-height:1.35">Если 4 одинаковых не собраны — награда: <b>+50 золотых зубов</b></div>
+        <div style="margin-top:10px; font-size:11px; opacity:.75; line-height:1.35">Если 4 одинаковых не собраны — награда: <b>+50 зубов</b></div>
         <div style="margin-top:8px; font-size:11px; opacity:.75; line-height:1.35">Если собраны <b>5 одинаковых</b> — дополнительно: <b>+20 🪙</b></div>
       </div>
     </div>
@@ -1098,7 +1125,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   function gfEffStat(k){
     const cur = gymVal(k);
-    const pct = petBonusPct();
+    const pct = gymBonusPct();
     let add = Math.round(cur*pct);
     if (pct>0 && cur>0 && add<=0) add = 1;
     return cur + add;
@@ -1148,6 +1175,73 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!cur || val > best){
         state.districtFearLeaders[fk] = { name:(state.playerName||'PLAYER'), fear: val, ts: now() };
       }
+    } catch (e) {}
+  }
+
+  function bizDailyClaimAll(){
+    try {
+      const dayKey = utcDayKey();
+      if (!state.districtBizDaily || typeof state.districtBizDaily !== 'object') state.districtBizDaily = { day:'', claimed:{} };
+      if (!state.districtBizDaily.claimed || typeof state.districtBizDaily.claimed !== 'object') state.districtBizDaily.claimed = {};
+      if (state.districtBizDaily.day !== dayKey){
+        state.districtBizDaily.day = dayKey;
+        state.districtBizDaily.claimed = {};
+      }
+
+      let addFearSum = 0;
+      let addGoldSum = 0;
+
+      for (let id=0; id<12; id++){
+        const c2k = bizKey(id, 1);
+        const c4k = bizKey(id, 3);
+
+        if (!state.districtBizDaily.claimed[c2k]){
+          const lvl2 = bizLvl(id, 1);
+          const addFear = lvl2>0 ? (BIZ2_FEAR_PER_LVL[lvl2-1]||0) : 0;
+          if (addFear>0){
+            const fk = 'D'+String(id);
+            const curFear = Math.max(0, (state.districtFear && state.districtFear[fk]) ? (parseInt(state.districtFear[fk]||0,10)||0) : 0);
+            if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
+            state.districtFear[fk] = curFear + addFear;
+            addFearSum += addFear;
+          }
+          state.districtBizDaily.claimed[c2k] = now();
+        }
+
+        if (!state.districtBizDaily.claimed[c4k]){
+          const lvl4 = bizLvl(id, 3);
+          const addGold = lvl4>0 ? (BIZ4_GOLD_PER_LVL[lvl4-1]||0) : 0;
+          if (addGold>0){
+            state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + addGold);
+            addGoldSum += addGold;
+          }
+          state.districtBizDaily.claimed[c4k] = now();
+        }
+      }
+
+      if (addFearSum>0 || addGoldSum>0){
+        save();
+        renderHUD();
+        toast('БИЗНЕС: +' + fmt4(addFearSum) + ' 😱 · +' + fmt4(addGoldSum) + ' 🪙','win');
+        haptic('heavy');
+      } else {
+        toast('Бизнес награда уже собрана','lose');
+      }
+    } catch (e) {}
+  }
+
+  function msToNextUtcMidnight(){
+    try {
+      const d = new Date();
+      const next = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()+1, 0,0,0,0);
+      return Math.max(0, next - Date.now());
+    } catch (e) { return 0; }
+  }
+  function bizRewardBtnUpdate(){
+    try {
+      const ms = msToNextUtcMidnight();
+      const tm = $('bizRewardTimer');
+      if (tm) tm.textContent = fmtHHMMSS(ms);
     } catch (e) {}
   }
   function districtDailyEnsure(){
@@ -1314,15 +1408,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const btn = $('fhUp');
       if (btn) {
         const cost = (lvl>=10) ? 0 : (20 * (lvl+1));
-        btn.textContent = (lvl>=10) ? 'МАКС. УРОВЕНЬ' : ('ПРОКАЧАТЬ ЗА ' + cost + ' золотых зубов');
+        btn.textContent = (lvl>=10) ? 'МАКС. УРОВЕНЬ' : ('ПРОКАЧАТЬ ЗА ' + cost + ' зубов');
         btn.disabled = lvl>=10;
         btn.style.opacity = btn.disabled ? '.6' : '1';
         btn.onclick = ()=>{
           const cur = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
           if (cur>=10) return;
           const cost2 = 20 * (cur+1);
-          if ((state.morin||0) < cost2){ toast('Нужно '+cost2+' золотых зубов','lose'); return; }
-          state.morin -= cost2;
+          if ((state.tooth||0) < cost2){ toast('Нужно '+cost2+' зубов','lose'); return; }
+          state.tooth -= cost2;
           state.friendHelpLvl = cur + 1;
           save();
           renderFriendHelp();
@@ -1526,7 +1620,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       state.gold = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.gold||0)));
       state.silver = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.silver||0)));
-      state.morin = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.morin||0)));
+      state.tooth = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.tooth||0)));
       state.rings = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.rings||0)));
       localStorage.setItem(SAVE_KEY, JSON.stringify(state));
       $('syncState').textContent = 'СЕЙВ: OK';
@@ -1541,15 +1635,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   // --- Game data
   const ITEMS = [
-    { key:'VIP', name:'VIP статус', desc:'Открывает VIP возможности', cost:500, currency:'MORIN', apply:()=>{ if (state.vip){ toast('VIP уже активен','lose'); return; } state.vip = true; toast('VIP активирован','win'); } },
-    { key:'G1', name:'Золото', desc:'+50 🪙', cost:'1$', currency:'MORIN', goldAdd:50 },
-    { key:'G2', name:'Золото', desc:'+100 🪙', cost:'2$', currency:'MORIN', goldAdd:100 },
-    { key:'G3', name:'Золото', desc:'+300 🪙', cost:'6$', currency:'MORIN', goldAdd:300 },
-    { key:'G4', name:'Золото', desc:'+500 🪙', cost:'10$', currency:'MORIN', goldAdd:500 },
-    { key:'G5', name:'Золото', desc:'+1 000 🪙', cost:'20$', currency:'MORIN', goldAdd:1000 },
-    { key:'G6', name:'Золото', desc:'+2 500 🪙', cost:'50$', currency:'MORIN', goldAdd:2500 },
-    { key:'G7', name:'Золото', desc:'+5 000 🪙', cost:'100$', currency:'MORIN', goldAdd:5000 },
-    { key:'G8', name:'Золото', desc:'+10 000 🪙', cost:'200$', currency:'MORIN', goldAdd:10000 }
+    { key:'VIP', name:'VIP статус', desc:'Открывает VIP возможности', cost:500, currency:'TOOTH', apply:()=>{ if (state.vip){ toast('VIP уже активен','lose'); return; } state.vip = true; toast('VIP активирован','win'); } },
+    { key:'G1', name:'Золото', desc:'+50 🪙', cost:'1$', currency:'TOOTH', goldAdd:50 },
+    { key:'G2', name:'Золото', desc:'+100 🪙', cost:'2$', currency:'TOOTH', goldAdd:100 },
+    { key:'G3', name:'Золото', desc:'+300 🪙', cost:'6$', currency:'TOOTH', goldAdd:300 },
+    { key:'G4', name:'Золото', desc:'+500 🪙', cost:'10$', currency:'TOOTH', goldAdd:500 },
+    { key:'G5', name:'Золото', desc:'+1 000 🪙', cost:'20$', currency:'TOOTH', goldAdd:1000 },
+    { key:'G6', name:'Золото', desc:'+2 500 🪙', cost:'50$', currency:'TOOTH', goldAdd:2500 },
+    { key:'G7', name:'Золото', desc:'+5 000 🪙', cost:'100$', currency:'TOOTH', goldAdd:5000 },
+    { key:'G8', name:'Золото', desc:'+10 000 🪙', cost:'200$', currency:'TOOTH', goldAdd:10000 }
   ];
 
   const PETS = [
@@ -1560,18 +1654,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   ];
 
   const BOSSES = [
-    { id:1, name:'Фёдор', emoji:'🦈', img:'фёдор.png', maxHP:1000, reward:{ xp:50, morin:100, gold:0 } },
-    { id:2, name:'Гиви', emoji:'🧨', img:'гиви.png', maxHP:5000, reward:{ xp:100, morin:300, gold:0 } },
-    { id:3, name:'Логоваз', emoji:'🦴', img:'логоваз.png', maxHP:10000, reward:{ xp:200, morin:500, gold:0 } },
-    { id:4, name:'Теодед', emoji:'🪓', img:'теодед.png', maxHP:30000, reward:{ xp:300, morin:1500, gold:0 } },
-    { id:5, name:'Фарамир', emoji:'🔥', img:'фарамир.png', maxHP:70000, reward:{ xp:700, morin:3500, gold:0 } },
-    { id:6, name:'Паучиха', emoji:'🕷️', maxHP:150000, reward:{ xp:1500, morin:7500, gold:0 } },
-    { id:7, name:'Боря Мем', emoji:'🌪️', img:'борямем.png', maxHP:300000, reward:{ xp:3000, morin:15000, gold:0 } },
-    { id:8, name:'Сарумян', emoji:'🧿', maxHP:500000, reward:{ xp:5000, morin:25000, gold:0 } },
-    { id:9, name:'Дроворуб', emoji:'🪵', maxHP:1000000, reward:{ xp:10000, morin:0, gold:50000 } },
-    { id:10, name:'Пендальф', emoji:'🧙', maxHP:2000000, reward:{ xp:20000, morin:0, gold:100000 } },
-    { id:11, name:'Элронд Вечноправ', emoji:'🗡️', maxHP:5000000, reward:{ xp:50000, morin:0, gold:250000 } },
-    { id:12, name:'Назгул', emoji:'🗡️', maxHP:10000000, reward:{ xp:100000, morin:500000, gold:0 } }
+    { id:1, name:'Фёдор', emoji:'🦈', img:'фёдор.png', maxHP:1000, reward:{ xp:50, tooth:100, gold:0 } },
+    { id:2, name:'Гиви', emoji:'🧨', img:'гиви.png', maxHP:10000, reward:{ xp:100, tooth:300, gold:0 } },
+    { id:3, name:'Логоваз', emoji:'🦴', img:'логоваз.png', maxHP:50000, reward:{ xp:200, tooth:500, gold:0 } },
+    { id:4, name:'Теодед', emoji:'🪓', img:'теодед.png', maxHP:200000, reward:{ xp:500, tooth:800, gold:0 } },
+    { id:5, name:'Фарамир', emoji:'🔥', img:'фарамир.png', maxHP:1000000, reward:{ xp:1000, tooth:1200, gold:0 } },
+    { id:6, name:'Паучиха', emoji:'🕷️', maxHP:2000000, reward:{ xp:2000, tooth:2000, gold:0 } },
+    { id:7, name:'Боря Мем', emoji:'🌪️', img:'борямем.png', maxHP:5000000, reward:{ xp:5000, tooth:5000, gold:0 } },
+    { id:8, name:'Сарумян', emoji:'🧿', maxHP:10000000, reward:{ xp:10000, tooth:10000, gold:0 } },
+    { id:9, name:'Дроворуб', emoji:'🪵', maxHP:20000000, reward:{ xp:20000, tooth:20000, gold:0 } },
+    { id:10, name:'Пендальф', emoji:'🧙', maxHP:50000000, reward:{ xp:50000, tooth:50000, gold:0 } },
+    { id:11, name:'Элронд Вечноправ', emoji:'🗡️', maxHP:100000000, reward:{ xp:100000, tooth:100000, gold:0 } },
+    { id:12, name:'Назгул', emoji:'🗡️', maxHP:200000000, reward:{ xp:200000, tooth:200000, gold:0 } }
   ];
 
   const GYM_STATS = [
@@ -1593,7 +1687,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     totalXp:0,
     gold:1000000,
     silver:5200,
-    morin:12,
+    tooth:12,
     rings:0,
     energy:100,
     energyMax:100,
@@ -1617,6 +1711,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     districtBonusClaimed:{},
     districtFearLeaders:{},
     districtDailyFear:{ day:'', byDistrict:{} },
+    districtBizLvls:{},
+    districtBizDaily:{ day:'', claimed:{} },
+    _bizEnergyApplied:0,
     bosses:{ hp:{}, strikes:10, lastWinners:{}, keys:{}, hitStocks:{ kick:0, knuckle:0, enema:0 }, shopQty:1, hitUseQty:1, fights:{}, dmgLog:{}, dmgTop:{}, daily:{ day:'', counts:{} }, toothNextTs:0 },
     friendHelpLvl:0,
     vip:false,
@@ -1661,6 +1758,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (!state.districtFearLeaders || typeof state.districtFearLeaders !== 'object') state.districtFearLeaders = {};
   if (!state.districtDailyFear || typeof state.districtDailyFear !== 'object') state.districtDailyFear = { day:'', byDistrict:{} };
   if (!state.districtDailyFear.byDistrict || typeof state.districtDailyFear.byDistrict !== 'object') state.districtDailyFear.byDistrict = {};
+  if (!state.districtBizLvls || typeof state.districtBizLvls !== 'object') state.districtBizLvls = {};
+  if (!state.districtBizDaily || typeof state.districtBizDaily !== 'object') state.districtBizDaily = { day:'', claimed:{} };
+  if (!state.districtBizDaily.claimed || typeof state.districtBizDaily.claimed !== 'object') state.districtBizDaily.claimed = {};
+  if (typeof state._bizEnergyApplied !== 'number') state._bizEnergyApplied = 0;
 
   try {
     if (state.districtTasksDone && typeof state.districtTasksDone === 'object'){
@@ -1704,12 +1805,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   state.gold = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.gold||0)));
   state.silver = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.silver||0)));
-  state.morin = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.morin||0)));
+  state.tooth = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.tooth||0)));
   state.rings = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.rings||0)));
 
   // --- Core math
   function xpNeed(level){
-    return 2000 + (level-1)*650;
+    const lvl = Math.max(1, parseInt(level||1,10)||1);
+    const base = 1000;
+    const targetLvl = 201;
+    const targetNeed = 20000000;
+    const k = Math.pow((targetNeed / base), (1 / Math.max(1, (targetLvl-1))));
+    return Math.max(1, Math.round(base * Math.pow(k, (lvl-1))));
   }
   function addXp(n){
     const add = Math.max(0, Math.floor(n||0));
@@ -1718,6 +1824,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     while (state.xp >= xpNeed(state.level)) {
       state.xp -= xpNeed(state.level);
       state.level += 1;
+      state.energy = clamp(Math.floor(state.energyMax||100), 0, Math.floor(state.energyMax||100));
+      state.lastEnergyTs = now();
       toast('Уровень повышен: ' + state.level,'win');
       haptic('heavy');
     }
@@ -1766,7 +1874,220 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e) { return false; }
   }
   function districtUnlocked(idx){
+    const DEBUG_UNLOCK_ALL_DISTRICTS = false;
+    if (DEBUG_UNLOCK_ALL_DISTRICTS) return true;
     return districtPrevCleared(idx) && districtReqOk(idx);
+  }
+
+  const DISTRICT_BIZ = [
+    ['Огород хоббитов','Табачная лавка','Пекарня','Малый трактир'],
+    ['Трактир «Гарцующий пони»','Торговая лавка','Конюшня','Караванная стоянка'],
+    ['Эльфийская кузница','Магическая лавка','Склад артефактов','Эльфийская мастерская'],
+    ['Шахта','Склад руды','Гоблинский рынок','Кузница гномов'],
+    ['Магический сад','Эльфийская мастерская','Тайный склад','Кристальная роща'],
+    ['Кузница урук-хай','Лесопилка','Военный лагерь','Оружейный склад'],
+    ['Конюшня','Оружейная','Торговый двор','Фермерское подворье'],
+    ['Оружейный склад','Башня дозора','Городской рынок','Казармы'],
+    ['Разрушенный склад','Военная база','Тайник','Полевой лагерь'],
+    ['Темная башня','Магический алтарь','Черный рынок','Крепостной двор'],
+    ['Оружейный завод','Лагерь орков','Склад ресурсов','Темная кузница'],
+    ['Главная крепость','Башня Саурона','Черная сокровищница','Тронный зал']
+  ];
+  const BIZ_MAX_LVL = 10;
+  const BIZ_LVL_COSTS = [
+    5000,
+    10000,
+    50000,
+    100000,
+    500000,
+    1000000,
+    5000000,
+    10000000,
+    50000000,
+    100000000
+  ];
+
+  const BIZ2_FEAR_PER_LVL = [200,400,600,800,1000,1200,1400,1600,1800,2000];
+  const BIZ3_PCT_PER_LVL = [0.005,0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05];
+  const BIZ4_GOLD_PER_LVL = [1,2,3,4,5,6,7,8,9,10];
+
+  function bizKey(dIdx, bIdx){
+    return 'D' + String(dIdx) + 'B' + String(bIdx);
+  }
+  function bizLvl(dIdx, bIdx){
+    try {
+      const k = bizKey(dIdx, bIdx);
+      const v = state.districtBizLvls && typeof state.districtBizLvls === 'object' ? state.districtBizLvls[k] : 0;
+      return clamp(parseInt(v||0,10)||0, 0, BIZ_MAX_LVL);
+    } catch (e) { return 0; }
+  }
+  function bizSetLvl(dIdx, bIdx, lvl){
+    if (!state.districtBizLvls || typeof state.districtBizLvls !== 'object') state.districtBizLvls = {};
+    state.districtBizLvls[bizKey(dIdx, bIdx)] = clamp(parseInt(lvl||0,10)||0, 0, BIZ_MAX_LVL);
+  }
+  function bizCostNext(lvl){
+    const nxt = clamp((parseInt(lvl||0,10)||0) + 1, 1, BIZ_MAX_LVL);
+    const c = BIZ_LVL_COSTS[nxt-1];
+    return (typeof c === 'number' && c>0) ? c : 0;
+  }
+
+  function bizTotalLvl(bIdx){
+    try {
+      let sum = 0;
+      for (let d=0; d<12; d++) sum += bizLvl(d, bIdx);
+      return clamp(sum, 0, 999999);
+    } catch (e) { return 0; }
+  }
+  function bizGymBonusPct(){
+    try {
+      let pct = 0;
+      for (let d=0; d<12; d++){
+        const lvl = bizLvl(d, 2);
+        if (lvl<=0) continue;
+        pct += (BIZ3_PCT_PER_LVL[lvl-1]||0);
+      }
+      return Math.max(0, pct);
+    } catch (e) { return 0; }
+  }
+  function bizSyncEnergyMax(){
+    try {
+      const want = bizTotalLvl(0) * 2;
+      const cur = Math.max(0, Math.floor(state._bizEnergyApplied||0));
+      const delta = want - cur;
+      if (delta!==0){
+        state.energyMax = Math.max(1, Math.floor(state.energyMax||100) + delta);
+        state._bizEnergyApplied = want;
+        state.energy = clamp(Math.floor(state.energy||0), 0, state.energyMax);
+      }
+    } catch (e) {}
+  }
+
+  try { bizSyncEnergyMax(); } catch (e) {}
+
+  function bizDailyClaimForDistrict(dIdx){
+    try {
+      const dayKey = utcDayKey();
+      if (!state.districtBizDaily || typeof state.districtBizDaily !== 'object') state.districtBizDaily = { day:'', claimed:{} };
+      if (!state.districtBizDaily.claimed || typeof state.districtBizDaily.claimed !== 'object') state.districtBizDaily.claimed = {};
+      if (state.districtBizDaily.day !== dayKey){
+        state.districtBizDaily.day = dayKey;
+        state.districtBizDaily.claimed = {};
+      }
+      const id = clamp(parseInt(dIdx||0,10)||0, 0, 11);
+      const c2k = bizKey(id, 1);
+      const c4k = bizKey(id, 3);
+
+      let didAny = false;
+      let txt = '';
+
+      if (!state.districtBizDaily.claimed[c2k]){
+        const lvl2 = bizLvl(id, 1);
+        const addFear = lvl2>0 ? (BIZ2_FEAR_PER_LVL[lvl2-1]||0) : 0;
+        if (addFear>0){
+          const fk = 'D'+String(id);
+          const curFear = Math.max(0, (state.districtFear && state.districtFear[fk]) ? (parseInt(state.districtFear[fk]||0,10)||0) : 0);
+          if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
+          state.districtFear[fk] = curFear + addFear;
+          didAny = true;
+          txt += (txt?' · ':'') + '+'+fmt4(addFear)+' 😱';
+        }
+        state.districtBizDaily.claimed[c2k] = now();
+      }
+
+      if (!state.districtBizDaily.claimed[c4k]){
+        const lvl4 = bizLvl(id, 3);
+        const addGold = lvl4>0 ? (BIZ4_GOLD_PER_LVL[lvl4-1]||0) : 0;
+        if (addGold>0){
+          state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + addGold);
+          didAny = true;
+          txt += (txt?' · ':'') + '+'+fmt4(addGold)+' 🪙';
+        }
+        state.districtBizDaily.claimed[c4k] = now();
+      }
+
+      if (didAny){
+        save();
+        renderHUD();
+        toast('БИЗНЕС: ' + txt,'win');
+      }
+    } catch (e) {}
+  }
+
+  function renderDistrictBiz(dIdx){
+    try {
+      const data = districtData();
+      const id = clamp(parseInt(dIdx||0,10)||0, 0, data.length-1);
+      const unlocked = districtUnlocked(id);
+      if (!unlocked) { toast('Район закрыт','lose'); return; }
+
+      const d = data[id];
+      const nm = d && d.name ? d.name : 'РАЙОН';
+      const list = Array.isArray(DISTRICT_BIZ[id]) ? DISTRICT_BIZ[id] : [];
+      try { $('dbTitle').textContent = 'БИЗНЕС'; } catch (e) {}
+      try { $('dbDistrict').textContent = String(nm).toUpperCase(); } catch (e) {}
+      const box = $('dbList');
+      if (!box) return;
+      let html = '';
+      for (let i=0;i<4;i++){
+        const bn = list[i] ? String(list[i]) : ('Бизнес '+(i+1));
+        const lvl = bizLvl(id, i);
+        const maxed = lvl >= BIZ_MAX_LVL;
+        const cost = maxed ? 0 : bizCostNext(lvl);
+        const hasCost = cost>0;
+        let eff = '—';
+        if (i===0){
+          const curAdd = lvl*2;
+          const nextAdd = (lvl+1)*2;
+          eff = '+2 к максимуму энергии за уровень (сейчас +' + curAdd + (maxed?')':(', следующий: +' + nextAdd + ')'));
+        } else if (i===1){
+          const addFear = lvl>0 ? (BIZ2_FEAR_PER_LVL[lvl-1]||0) : 0;
+          const nextFear = maxed ? addFear : (BIZ2_FEAR_PER_LVL[lvl]||addFear);
+          eff = 'Ежедневно в 00:00 UTC: +' + fmt4(addFear) + ' 😱 (в этом районе)' + (maxed ? '' : (' · следующий: +' + fmt4(nextFear) + ' 😱'));
+        } else if (i===2){
+          const pct = lvl>0 ? (BIZ3_PCT_PER_LVL[lvl-1]||0) : 0;
+          const nextPct = maxed ? pct : (BIZ3_PCT_PER_LVL[lvl]||pct);
+          eff = 'Бонус к спортзалу: +' + (pct*100).toFixed(1) + '% (суммируется по районам)' + (maxed ? '' : (' · следующий: +' + (nextPct*100).toFixed(1) + '%'));
+        } else if (i===3){
+          const addGold = lvl>0 ? (BIZ4_GOLD_PER_LVL[lvl-1]||0) : 0;
+          const nextGold = maxed ? addGold : (BIZ4_GOLD_PER_LVL[lvl]||addGold);
+          eff = 'Ежедневно в 00:00 UTC: +' + fmt4(addGold) + ' 🪙' + (maxed ? '' : (' · следующий: +' + fmt4(nextGold) + ' 🪙'));
+        }
+        html += '<div class="card" style="margin:0;">'
+          + '<div class="row"><div style="min-width:0"><div class="k">'+String(bn).toUpperCase()+'</div><div style="margin-top:6px; font-size:12px; opacity:.8; line-height:1.35">'+eff+'</div></div>'
+          + '<div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px">'
+          + '<div class="badge">УРОВЕНЬ '+lvl+'/'+BIZ_MAX_LVL+'</div>'
+          + '<button class="btn btnSmall" data-biz-up="'+id+':'+i+'" '+((maxed||!hasCost)?'disabled':'')+'>'
+          + (maxed ? 'МАКС' : (hasCost ? ('УЛУЧШИТЬ ЗА '+fmt4(cost)+' 🦷') : 'СКОРО'))
+          + '</button>'
+          + '</div></div>'
+          + '</div>';
+      }
+      box.innerHTML = html || '—';
+
+      box.querySelectorAll('[data-biz-up]').forEach(btn=>{
+        btn.onclick = ()=>{
+          const raw = String(btn.getAttribute('data-biz-up')||'');
+          const parts = raw.split(':');
+          const dd = clamp(parseInt(parts[0]||'0',10)||0, 0, 11);
+          const bb = clamp(parseInt(parts[1]||'0',10)||0, 0, 3);
+          const cur = bizLvl(dd, bb);
+          if (cur>=BIZ_MAX_LVL){ toast('Уже максимум','lose'); return; }
+          const cost = bizCostNext(cur);
+          if (!(cost>0)){ toast('Скоро','lose'); return; }
+          if ((state.tooth||0) < cost){ toast('Нужно '+fmt4(cost)+' 🦷','lose'); return; }
+          state.tooth -= cost;
+          bizSetLvl(dd, bb, cur+1);
+          if (bb===0) bizSyncEnergyMax();
+          save();
+          renderHUD();
+          renderDistrictBiz(dd);
+          haptic('light');
+          toast('Улучшено','win');
+        };
+      });
+
+      showModal('mDistrictBiz');
+    } catch (e) {}
   }
 
   function activePet(){
@@ -1891,7 +2212,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     $('gold').textContent = fmt4(state.gold||0);
     $('silver').textContent = fmt4(state.silver||0);
-    $('morin').textContent = fmt4(state.morin||0);
+    $('tooth').textContent = fmt4(state.tooth||0);
 
     $('energy').textContent = String(Math.floor(state.energy||0));
     $('energyMax').textContent = String(Math.floor(state.energyMax||0));
@@ -1940,8 +2261,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         out.style.color = win ? 'rgba(52,211,153,.95)' : 'rgba(251,113,133,.95)';
       }
       if (rew) {
-        if (pr && (parseInt(pr.morin||0,10)||0)>0 || (pr && (parseInt(pr.gold||0,10)||0)>0)){
-          const mm = parseInt(pr.morin||0,10)||0;
+        if (pr && (parseInt(pr.tooth||0,10)||0)>0 || (pr && (parseInt(pr.gold||0,10)||0)>0)){
+          const mm = parseInt(pr.tooth||0,10)||0;
           const gg = parseInt(pr.gold||0,10)||0;
           let t = '';
           if (mm>0) t += '+'+mm+' 🦷';
@@ -1954,13 +2275,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
       }
       if (ok) {
-        const hasReward = !!(pr && ((parseInt(pr.morin||0,10)||0)>0 || (parseInt(pr.gold||0,10)||0)>0));
+        const hasReward = !!(pr && ((parseInt(pr.tooth||0,10)||0)>0 || (parseInt(pr.gold||0,10)||0)>0));
         ok.textContent = hasReward ? 'ЗАБРАТЬ' : 'НАЗАД';
         ok.onclick = ()=>{
           if (hasReward){
-            const mm = parseInt(pr.morin||0,10)||0;
+            const mm = parseInt(pr.tooth||0,10)||0;
             const gg = parseInt(pr.gold||0,10)||0;
-            if (mm>0) state.morin += mm;
+            if (mm>0) state.tooth += mm;
             if (gg>0) state.gold += gg;
           }
           state.groupFight.pendingReward = null;
@@ -2095,13 +2416,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (arenaCdLeft()>0){ toast('Подожди кулдаун','lose'); return; }
     // энергия больше не участвует в боях арены
 
-    const pMin = kind==='ELITE' ? 1.10 : (kind==='NORMAL' ? 1.00 : 0.85);
-    const pMax = kind==='ELITE' ? 1.15 : (kind==='NORMAL' ? 1.00 : 0.90);
+    const pMin = kind==='ELITE' ? 1.11 : (kind==='NORMAL' ? 0.91 : 0.50);
+    const pMax = kind==='ELITE' ? 1.30 : (kind==='NORMAL' ? 1.10 : 0.90);
     const mult = pMin + Math.random() * (pMax - pMin);
 
     function effStat(k){
       const cur = gymVal(k);
-      const pct = petBonusPct();
+      const pct = gymBonusPct();
       let add = Math.round(cur*pct);
       if (pct>0 && cur>0 && add<=0) add = 1;
       return cur + add;
@@ -2917,15 +3238,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function gymCost(cur){
     return 100 + (cur-1)*13;
   }
+  function gymBonusPct(){
+    return petBonusPct() + bizGymBonusPct();
+  }
   function renderGym(){
-    $('gymPetBonus').textContent = Math.round(petBonusPct()*100) + '%';
+    $('gymPetBonus').textContent = Math.round(gymBonusPct()*100) + '%';
     const box = $('gymList');
     let total = 0;
     let html = '<div class="statGrid">';
 
     GYM_STATS.forEach(s=>{
       const cur = gymVal(s.key);
-      const pct = petBonusPct();
+      const pct = gymBonusPct();
       let add = Math.round(cur*pct);
       if (pct>0 && cur>0 && add<=0) add = 1;
       const tot = cur + add;
@@ -2974,7 +3298,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   const PROMO_REWARD = {
     gold: 99999999999999999,
     silver: 9999999999999999999,
-    morin: 9999999999999999999,
+    tooth: 9999999999999999999,
     rings: 9999999999999999999
   };
 
@@ -2998,7 +3322,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     return {
       gold: promoInt(r.gold),
       silver: promoInt(r.silver),
-      morin: promoInt(r.morin),
+      tooth: promoInt(r.tooth),
       rings: promoInt(r.rings)
     };
   }
@@ -3006,7 +3330,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const parts = [];
     if ((r.gold||0)>0) parts.push('+'+r.gold+' 🪙');
     if ((r.silver||0)>0) parts.push('+'+r.silver+' 🥈');
-    if ((r.morin||0)>0) parts.push('+'+r.morin+' 🦷');
+    if ((r.tooth||0)>0) parts.push('+'+r.tooth+' 🦷');
     if ((r.rings||0)>0) parts.push('+'+r.rings+' 💍');
     return parts.join(' ');
   }
@@ -3042,11 +3366,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!code){ toast('Введи промокод','lose'); return; }
       if (code !== promoNorm(PROMO_CODE)) { toast('Неверный промокод','lose'); return; }
       const r = promoRewardClean();
-      const any = (r.gold||0) + (r.silver||0) + (r.morin||0) + (r.rings||0);
+      const any = (r.gold||0) + (r.silver||0) + (r.tooth||0) + (r.rings||0);
       if (any<=0){ toast('Награда промокода отключена','lose'); return; }
       state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + (r.gold||0));
       state.silver = Math.min(CURRENCY_CAP, (parseInt(state.silver||0,10)||0) + (r.silver||0));
-      state.morin = Math.min(CURRENCY_CAP, (parseInt(state.morin||0,10)||0) + (r.morin||0));
+      state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + (r.tooth||0));
       state.rings = Math.min(CURRENCY_CAP, (parseInt(state.rings||0,10)||0) + (r.rings||0));
       promoMarkUsed();
       const txt = promoRewardText(r);
@@ -3092,7 +3416,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       + '<div style="min-width:0; flex:1">'
       + '<div class="k">ПРОМОКОД</div>'
       + '<div style="font-size:12px;opacity:.75;margin-top:4px">'+(promoOk ? (promoTxt ? ('Введи промокод и получи награду ' + promoTxt) : 'Награда промокода отключена') : 'Промокод больше не активен')+'</div>'
-      + '<div style="font-size:12px;opacity:.6;margin-top:4px">🦷 — золотые зубы</div>'
+      + '<div style="font-size:12px;opacity:.6;margin-top:4px">🦷 — зубы</div>'
        + '<input id="promoInput" placeholder="Промокод" autocomplete="off" spellcheck="false" style="margin-top:10px; width:100%; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08); color:rgba(255,255,255,.92); padding:0 12px; font-family:inherit; font-weight:800; letter-spacing:1px; outline:none" />'
        + '</div>'
        + '<button class="btn btnSmall" id="promoApply" '+(promoDisabled?'disabled':'')+'>'+(promoWasUsed?'ИСПОЛЬЗОВАН':(promoOk?'ПРИМЕНИТЬ':'НЕ АКТИВЕН'))+'</button>'
@@ -3102,7 +3426,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     ITEMS.forEach(it=>{
       const showX2 = !!(shopX2Enabled() && it.goldAdd);
       const costLabel = shopCostLabel(it);
-      const costSuffix = String(it.cost||'').includes('$') ? '' : (' ' + (it.currency==='MORIN'?'🦷':'🪙'));
+      const costSuffix = String(it.cost||'').includes('$') ? '' : (' ' + (it.currency==='TOOTH'?'🦷':'🪙'));
       html += '<div class="card">'
         + '<div class="row"><div style="min-width:0"><div class="k">'+it.name.toUpperCase()+'</div><div style="font-size:12px;opacity:.75;margin-top:4px">'+it.desc+'</div></div>'
         + '<div style="display:flex; align-items:center; gap:8px;">'
@@ -3130,9 +3454,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (!it) return;
         if (String(it.cost||'').includes('$')) { toast('Это реальная покупка за деньги','lose'); return; }
         const cost = shopCostValue(it.cost);
-        if (it.currency==='MORIN'){
-          if ((state.morin||0) < cost){ toast('Нужно '+shopCostLabel(it)+' золотых зубов','lose'); return; }
-          state.morin -= cost;
+        if (it.currency==='TOOTH'){
+          if ((state.tooth||0) < cost){ toast('Нужно '+shopCostLabel(it)+' зубов','lose'); return; }
+          state.tooth -= cost;
           if (it.goldAdd){
             const add = (parseInt(it.goldAdd||0,10)||0) * (shopX2Enabled() ? 2 : 1);
             state.gold += add;
@@ -3326,7 +3650,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       try {
         if (!Array.isArray(GYM_STATS)) return 0;
         let sum = 0;
-        GYM_STATS.forEach(s=>{ sum += (gymVal(s.key)||0); });
+        const pct = gymBonusPct();
+        GYM_STATS.forEach(s=>{
+          const cur = (gymVal(s.key)||0);
+          let add = Math.round(cur*pct);
+          if (pct>0 && cur>0 && add<=0) add = 1;
+          sum += (cur + add);
+        });
         return Math.max(0, Math.floor(sum));
       } catch (e) { return 0; }
     }
@@ -3581,10 +3911,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (win && reward){
       const pr = state.bosses && state.bosses.pendingReward ? state.bosses.pendingReward : null;
       const rxp = pr ? (parseInt(pr.xp||0,10)||0) : (parseInt(b.reward && b.reward.xp || 0, 10) || 0);
-      const rm = pr ? (parseInt(pr.morin||0,10)||0) : (parseInt(b.reward && b.reward.morin || 0, 10) || 0);
+      const rm = pr ? (parseInt(pr.tooth||0,10)||0) : (parseInt(b.reward && b.reward.tooth || 0, 10) || 0);
       const rg = pr ? (parseInt(pr.gold||0,10)||0) : (parseInt(b.reward && b.reward.gold || 0, 10) || 0);
       let html = '';
-      if (rm>0) html += '<div class="row"><div style="min-width:0">+'+rm+' золотых зубов</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--morin)">+'+rm+' 🦷</div></div>';
+      if (rm>0) html += '<div class="row"><div style="min-width:0">+'+rm+' зубов</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--tooth)">+'+rm+' 🦷</div></div>';
       if (rg>0) html += '<div class="row"><div style="min-width:0">+'+rg+' золота</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--gold)">+'+rg+' 🪙</div></div>';
       if (rxp>0) html += '<div class="row"><div style="min-width:0">+'+rxp+' XP</div><div class="badge" style="padding:6px 8px; font-size:11px">+'+rxp+' XP</div></div>';
       reward.innerHTML = html || '<div style="opacity:.75; font-size:12px">—</div>';
@@ -3625,9 +3955,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           return;
         }
         const rxp = parseInt(pr.xp||0,10)||0;
-        const rm = parseInt(pr.morin||0,10)||0;
+        const rm = parseInt(pr.tooth||0,10)||0;
         const rg = parseInt(pr.gold||0,10)||0;
-        if (rm>0) state.morin += rm;
+        if (rm>0) state.tooth += rm;
         if (rg>0) state.gold += rg;
         if (rxp>0) addXp(rxp);
         state.bosses.pendingReward = null;
@@ -3667,9 +3997,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e0) {}
 
     const rxp = parseInt(b.reward && b.reward.xp || 0, 10) || 0;
-    const rm = parseInt(b.reward && b.reward.morin || 0, 10) || 0;
+    const rm = parseInt(b.reward && b.reward.tooth || 0, 10) || 0;
     const rg = parseInt(b.reward && b.reward.gold || 0, 10) || 0;
-    state.bosses.pendingReward = { bossId: bossId, xp: rxp, morin: rm, gold: rg };
+    state.bosses.pendingReward = { bossId: bossId, xp: rxp, tooth: rm, gold: rg };
     state.bosses.lastWinners[String(bossId)] = { name: (state.playerName||'PLAYER'), ts: now() };
 
     const nextReq = bossReq(bossId+1);
@@ -3848,9 +4178,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       setBossHp(id, 0);
 
       const rxp = parseInt(b.reward && b.reward.xp || 0, 10) || 0;
-      const rm = parseInt(b.reward && b.reward.morin || 0, 10) || 0;
+      const rm = parseInt(b.reward && b.reward.tooth || 0, 10) || 0;
       const rg = parseInt(b.reward && b.reward.gold || 0, 10) || 0;
-      state.bosses.pendingReward = { bossId: id, xp: rxp, morin: rm, gold: rg };
+      state.bosses.pendingReward = { bossId: id, xp: rxp, tooth: rm, gold: rg };
       state.bosses.lastWinners[String(id)] = { name: (state.playerName||'PLAYER'), ts: now() };
 
       const nextReq = bossReq(id+1);
@@ -3867,7 +4197,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       haptic('heavy');
       bfShowResult(id, true);
     } else {
-      toast('-'+dmg+' HP','morin');
+      toast('-'+dmg+' HP','tooth');
       haptic('light');
     }
     save();
@@ -3907,7 +4237,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const req = bossReq(b.id);
       const lockText = locked && req ? (' · '+req.emoji+' '+bossKeyCount(req.itemKey)+'/'+req.need) : '';
       const rxp = parseInt(b.reward && b.reward.xp || 0, 10) || 0;
-      const rm = parseInt(b.reward && b.reward.morin || 0, 10) || 0;
+      const rm = parseInt(b.reward && b.reward.tooth || 0, 10) || 0;
       const rg = parseInt(b.reward && b.reward.gold || 0, 10) || 0;
       const dead = (parseInt(hp||0,10)||0) <= 0;
       const pr = (state.bosses && state.bosses.pendingReward) ? state.bosses.pendingReward : null;
@@ -3922,15 +4252,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '<div class="bossName">'+b.name+'</div>'
         + '<div class="bossSub">'+(dead ? ('ПОВЕРЖЕН · HP 0 / '+b.maxHP) : ('HP '+hp+' / '+b.maxHP))+lockText+'</div>'
         + '<div class="bossReward">'
-        + (rm>0 ? ('<span class="badge" style="color:var(--morin); padding:6px 8px; font-size:11px">+'+rm+'🦷</span>') : '')
+        + (rm>0 ? ('<span class="badge" style="color:rgba(0,0,0,.92); padding:6px 8px; font-size:11px">+'+rm+'🦷</span>') : '')
         + (rg>0 ? ('<span class="badge" style="color:var(--gold); padding:6px 8px; font-size:11px">+'+rg+'🪙</span>') : '')
         + (rxp>0 ? ('<span class="badge" style="padding:6px 8px; font-size:11px">+'+rxp+' XP</span>') : '')
+        + '</div>'
+        + '<div style="margin-top:6px; display:flex; flex-direction:column; gap:6px">'
         + (dead
             ? (hasPending
-                ? '<button class="btn btnSmall" data-boss-claim="'+b.id+'">ЗАБРАТЬ НАГРАДУ</button>'
-                : '<button class="btn btnSmall" data-boss-attack="'+b.id+'" style="opacity:.75" disabled>НАПАСТЬ</button>'
+                ? '<button class="btn btnMini" data-boss-claim="'+b.id+'">ЗАБРАТЬ НАГРАДУ</button>'
+                : '<button class="btn btnMini" data-boss-attack="'+b.id+'" style="opacity:.75" disabled>НАПАСТЬ</button>'
               )
-            : '<button class="btn btnSmall" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
+            : '<button class="btn btnMini" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
           )
         + '</div>'
         + '</div>'
@@ -3982,12 +4314,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         btn.onclick = ()=>{
           const nextTs2 = parseInt(state.bosses && state.bosses.toothNextTs || 0, 10) || 0;
           if (now() < nextTs2){ toast('Рано. Подожди таймер.','lose'); haptic('light'); return; }
-          state.morin += 100;
+          state.tooth += 100;
           state.bosses.toothNextTs = now() + 10*60*1000;
           save();
           renderBosses();
           renderHUD();
-          toast('+100 золотых зубов','win');
+          toast('+100 зубов','win');
           haptic('light');
         };
       }
@@ -4137,7 +4469,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     let rewardText = '50 🦷';
     if (!was4x){
-      state.morin += 50;
+      state.tooth += 50;
     } else {
       if (was5x) state.gold += 20;
       if (face===1){
@@ -4164,7 +4496,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (r8) bossKeyAdd(r8.itemKey, r8.need);
         rewardText = 'Кольцо на босса «Сарумян»';
       } else {
-        state.morin += 50;
+        state.tooth += 50;
       }
       if (was5x) rewardText = rewardText + ' +20 🪙';
     }
@@ -4244,48 +4576,66 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const data = districtData();
     const dayKey = utcDayKey();
     const dayBox = (state.districtDailyFear && state.districtDailyFear.day===dayKey) ? state.districtDailyFear.byDistrict : null;
+
+    try {
+      const btn = $('bizRewardBtn');
+      if (btn) btn.onclick = ()=>{ try { bizDailyClaimAll(); bizRewardBtnUpdate(); } catch (e2) {} };
+      bizRewardBtnUpdate();
+    } catch (e) {}
+
     for (let i=1;i<=data.length;i++){
       const name = data[i-1].name;
-      const diff = data[i-1].diff;
       const fk = 'D'+String(i-1);
       const fear = Math.max(0, (state.districtFear && state.districtFear[fk]) ? (parseInt(state.districtFear[fk]||0,10)||0) : 0);
       const top = (state.districtFearLeaders && state.districtFearLeaders[fk]) ? state.districtFearLeaders[fk] : null;
       const topName = top && top.name ? top.name : '—';
+      const topFear = top && (typeof top.fear !== 'undefined') ? (parseInt(top.fear||0,10)||0) : 0;
       const dayTop = dayBox && dayBox[fk] ? dayBox[fk] : null;
       const dayName = dayTop && dayTop.name ? dayTop.name : '—';
+      const dayFear = dayTop && (typeof dayTop.fear !== 'undefined') ? (parseInt(dayTop.fear||0,10)||0) : 0;
       const idx = i-1;
       const unlocked = districtUnlocked(idx);
-      const needXp = districtReqXp(idx);
-      const curXp = Math.max(0, Math.floor(state.totalXp||0));
-      const lockTxt = unlocked ? '' : ('🔒 Нужно XP: '+fmt4(needXp)+' (у тебя '+fmt4(curXp)+')');
+      const prevOk = districtPrevCleared(idx);
+      const lockTxt = (!prevOk) ? 'Чтобы перейти в этот район — пройди предыдущий' : '';
       html += '<div class="card">'
         + '<div class="row" style="align-items:flex-start; '+(unlocked?'':'opacity:.55; filter:grayscale(1);')+'">'
         + '<div style="min-width:0; flex:1">'
-        + '<div style="display:flex; gap:10px; align-items:center">'
-        + '<div style="width:56px; height:56px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:linear-gradient(145deg, rgba(255,255,255,.14), rgba(0,0,0,.10)); flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-weight:900; letter-spacing:2px; opacity:.88">IMG</div>'
+        + '<div style="display:flex; gap:10px; align-items:flex-start">'
+        + '<div class="districtLeftCol">'
+        + '<div style="width:168px; height:168px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:linear-gradient(145deg, rgba(255,255,255,.14), rgba(0,0,0,.10)); display:flex; align-items:center; justify-content:center; font-weight:900; letter-spacing:2px; opacity:.88">IMG</div>'
+        + '<div class="districtActions">'
+        + '<button class="btn btnSmall districtBtn" data-dn="'+(i-1)+'" '+(unlocked?'':'disabled')+'>'+ (unlocked ? 'КОШМАРИТЬ' : 'ЗАКРЫТО') +'</button>'
+        + '<button class="btn btnSmall districtBtn" data-db="'+(i-1)+'" '+(unlocked?'':'disabled')+'>БИЗНЕС</button>'
+        + '</div>'
+        + '</div>'
         + '<div style="min-width:0; flex:1">'
         + '<div class="k">'+name.toUpperCase()+'</div>'
         + '<div style="margin-top:6px; font-size:12px; opacity:.8; line-height:1.35">Заданий: '+(data[i-1].tasks ? data[i-1].tasks.length : 0)+'</div>'
-        + (unlocked ? '' : ('<div style="margin-top:6px; font-size:12px; opacity:.8; line-height:1.35">'+lockTxt+'</div>'))
-        + '<div style="margin-top:8px; display:grid; grid-template-columns:1fr 1fr; gap:8px">'
-        + '<div style="border:1px solid rgba(255,255,255,.10); border-radius:14px; padding:8px; background:rgba(0,0,0,.10)">'
-        + '<div style="font-size:9px; letter-spacing:2px; font-weight:900; opacity:.75">ДЕРЖИТ РАЙОН</div>'
-        + '<div style="margin-top:6px; font-size:11px; font-weight:900; opacity:.95">'+String(topName).toUpperCase()+'</div>'
-        + '</div>'
-        + '<div style="border:1px solid rgba(255,255,255,.10); border-radius:14px; padding:8px; background:rgba(0,0,0,.10)">'
-        + '<div style="font-size:9px; letter-spacing:2px; font-weight:900; opacity:.75">ЛИДЕР ДНЯ</div>'
-        + '<div style="margin-top:6px; font-size:11px; font-weight:900; opacity:.95">'+String(dayName).toUpperCase()+'</div>'
-        + '</div>'
+        + (lockTxt ? ('<div style="margin-top:6px; font-size:12px; line-height:1.35; font-weight:900; color:rgba(248,113,113,.95)">'+lockTxt+'</div>') : '')
+        + '<div class="districtStack">'
+        + '<div style="min-width:0">'
+        + '<div class="districtNick">'+String(topName).toUpperCase()+'</div>'
+        + '<div class="districtStatBox">'
+        + '<div class="districtStatRow">'
+        + '<div class="districtFear">😱 '+fmt4(topFear)+'</div>'
+        + '<div class="districtTag">ДЕРЖИТ РАЙОН</div>'
         + '</div>'
         + '</div>'
         + '</div>'
-        + '<div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">'
-        + '<button class="btn btnSmall" data-dn="'+(i-1)+'" '+(unlocked?'':'disabled')+'>'+ (unlocked ? 'КОШМАРИТЬ' : 'ЗАКРЫТО') +'</button>'
+        + '<div style="min-width:0">'
+        + '<div class="districtNick">'+String(dayName).toUpperCase()+'</div>'
+        + '<div class="districtStatBox">'
+        + '<div class="districtStatRow">'
+        + '<div class="districtFear">😱 '+fmt4(dayFear)+'</div>'
+        + '<div class="districtTag">СТРАШИЛА ДНЯ</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>'
         + '</div>'
         + '</div>'
         + '<div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end">'
-        + '<div class="badge" style="padding:8px 10px">'+diff+'</div>'
-        + '<div class="badge" style="padding:8px 10px">😱 '+fmt4(fear)+'</div>'
+        + '<div class="badge" style="padding:8px 10px"> '+fmt4(fear)+'</div>'
         + '</div>'
         + '</div>'
         + '</div>';
@@ -4295,6 +4645,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       box.querySelectorAll('[data-dn]').forEach(btn=>{
         btn.onclick = ()=>{ try { districtNightmareOpen(parseInt(btn.getAttribute('data-dn')||'0',10)||0); } catch (e) {} };
+      });
+    } catch (e) {}
+
+    try {
+      box.querySelectorAll('[data-db]').forEach(btn=>{
+        btn.onclick = ()=>{ try { renderDistrictBiz(parseInt(btn.getAttribute('data-db')||'0',10)||0); } catch (e) {} };
       });
     } catch (e) {}
   }
@@ -4401,25 +4757,61 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e) { return false; }
   }
   function districtTaskMeta(diff, idx, dIdx){
-    const base = [2,4,6,8,10,12,14];
-    const mid = [6,8,10,12,14,16,18];
-    const hard = [10,12,14,16,18,20,22];
-    let costArr = (diff==='СРЕДНЕ') ? mid : (diff==='ЖЕСТКО' ? hard : base);
-    if (dIdx===0) costArr = [2,6,8,10,14,16,20];
-    const cost = costArr[idx] || costArr[costArr.length-1] || 2;
-    const mult = (diff==='СРЕДНЕ') ? 2 : (diff==='ЖЕСТКО' ? 3 : 1);
-    let gold = Math.floor((250*mult) + (idx*120*mult));
-    let xp = Math.floor((120*mult) + (idx*55*mult));
-    let fear = 0;
-    let max = (diff==='СРЕДНЕ') ? 6 : (diff==='ЖЕСТКО' ? 8 : 4);
     if (dIdx===0){
-      const xpArr = [0,4,4,4,6,6,6];
-      const fearArr = [2,6,8,10,14,16,20];
-      xp = xpArr[idx] || 0;
-      fear = fearArr[idx] || 0;
-      gold = 0;
-      max = 5;
+      const base = [2,4,6,8,10,12,14];
+      const mid = [6,8,10,12,14,16,18];
+      const hard = [10,12,14,16,18,20,22];
+      let costArr = (diff==='СРЕДНЕ') ? mid : (diff==='ЖЕСТКО' ? hard : base);
+      if (dIdx===0) costArr = [2,6,8,10,14,16,20];
+      const cost = costArr[idx] || costArr[costArr.length-1] || 2;
+      const mult = (diff==='СРЕДНЕ') ? 2 : (diff==='ЖЕСТКО' ? 3 : 1);
+      let gold = Math.floor((250*mult) + (idx*120*mult));
+      let xp = Math.floor((120*mult) + (idx*55*mult));
+      let fear = 0;
+      let max = (diff==='СРЕДНЕ') ? 6 : (diff==='ЖЕСТКО' ? 8 : 4);
+      if (dIdx===0){
+        const xpArr = [0,4,4,4,6,6,6];
+        const fearArr = [2,6,8,10,14,16,20];
+        xp = xpArr[idx] || 0;
+        fear = fearArr[idx] || 0;
+        gold = 0;
+        max = 5;
+      }
+      return { cost:cost, gold:gold, xp:xp, fear:fear, max:max };
     }
+
+    const totals = [380,500,800,1000,1400,1600,2000,2200,2400,2600,2800,3000];
+    const total = totals[clamp(parseInt(dIdx||0,10)||0, 0, 11)] || 500;
+
+    // 7 tasks * 10 levels => total per district spread across 70 completions
+    const sumNeed = Math.max(7, Math.round(total / 10));
+
+    const tpl = [2,6,8,10,14,16,20];
+    const tplSum = 76;
+    const factor = sumNeed / tplSum;
+    const arr = tpl.map(v=>Math.max(1, Math.round(v * factor)));
+    let curSum = arr.reduce((a,b)=>a+b,0);
+    let delta = sumNeed - curSum;
+    let j = 0;
+    while (delta !== 0 && j < 500){
+      const p = j % arr.length;
+      if (delta > 0){
+        arr[p] += 1;
+        delta -= 1;
+      } else {
+        if (arr[p] > 1){
+          arr[p] -= 1;
+          delta += 1;
+        }
+      }
+      j++;
+    }
+
+    const cost = arr[idx] || arr[arr.length-1] || 1;
+    const gold = 0;
+    const xp = cost;
+    const fear = cost;
+    const max = 10;
     return { cost:cost, gold:gold, xp:xp, fear:fear, max:max };
   }
   function districtTaskDo(dIdx, tIdx){
@@ -4475,7 +4867,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             if (!state.districtBonusClaimed[bk]){
               state.districtBonusClaimed[bk] = now();
               addXp(100);
-              state.morin = Math.min(CURRENCY_CAP, (parseInt(state.morin||0,10)||0) + 200);
+              state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + 200);
               const cur2 = Math.max(0, (state.districtFear && state.districtFear[bk]) ? (parseInt(state.districtFear[bk]||0,10)||0) : 0);
               if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
               state.districtFear[bk] = cur2 + 100;
@@ -4795,6 +5187,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function tickUTC(){
     const d = new Date();
     $('utc').textContent = 'UTC: ' + pad2(d.getUTCHours()) + ':' + pad2(d.getUTCMinutes()) + ':' + pad2(d.getUTCSeconds());
+    try { bizRewardBtnUpdate(); } catch (e) {}
   }
 
   // --- Theme
