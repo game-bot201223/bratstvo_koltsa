@@ -92,6 +92,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
 .xp{
   margin-top:0px;
+  margin-bottom:6px;
   position:relative;
   height:22px;
   border-radius:999px;
@@ -176,14 +177,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   background-size:18px 18px;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='white' fill-opacity='0.92' d='M6 7h15l-1.5 8.5a2 2 0 0 1-2 1.5H9a2 2 0 0 1-2-1.6L5.3 4H2V2h4a1 1 0 0 1 .97.76L7.4 5H22v2H6.6l.4 2z'/%3E%3Cpath fill='white' fill-opacity='0.92' d='M9 22a2 2 0 1 1 0-4a2 2 0 0 1 0 4zm10 0a2 2 0 1 1 0-4a2 2 0 0 1 0 4z'/%3E%3C/svg%3E");
 }
-.statGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px;}
+.statGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:10px;}
  .statTile{border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.10);padding:8px;min-height:64px;display:flex;flex-direction:column;gap:5px;}
 .statTile .stK{font-size:10px;letter-spacing:2px;opacity:.78;}
 .statTile .stV{font-weight:900;letter-spacing:1px;font-size:12px;}
 .statTile .stMeta{font-size:10px;opacity:.72;line-height:1.25;}
 .statTile .stBtn{margin-top:auto;}
 
-.petRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;}
+ #arenaSectionGym .statGrid{gap:4px;margin-top:8px;}
+ #arenaSectionGym .statTile{padding:7px;min-height:60px;gap:4px;}
+ #arenaSectionGym .statTile .stK{font-size:9px;letter-spacing:1.6px;}
+ #arenaSectionGym .statTile .stV{font-size:12px;}
+ #arenaSectionGym .statTile .stMeta{font-size:9.5px;line-height:1.2;}
+
+ .petRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;}
  .petCard{border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.10);padding:8px;display:flex;flex-direction:column;gap:6px;min-height:96px;}
 .petCard .pTop{display:flex;align-items:center;justify-content:center;}
 .petCard .petPic{position:relative;width:100%;aspect-ratio:1/1;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.16);display:flex;align-items:center;justify-content:center;overflow:hidden;}
@@ -473,7 +480,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="name" id="nameBtn">
         <div style="opacity:.9">👑</div>
         <div class="nameCol">
-          <div class="nameLine"><span id="playerName">PLAYER</span><div class="lvl" id="playerLevel">УР. 1</div></div>
+          <div class="nameLine"><span id="playerName">PLAYER</span><div class="lvl" id="playerLevel">1</div></div>
           <div class="utcRow"><span class="utcMini" id="utc">00:00</span><span class="utcTag">UTC</span></div>
         </div>
       </div>
@@ -515,7 +522,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="feed friendsPanel">
         <div class="feedHead">
           <div class="t">БРАТВА ОНЛАЙН</div>
-          <button class="btn btnSmall" id="inviteBtn">+ ДРУГ</button>
+          <button class="btn btnSmall" id="inviteBtn">+ БРАТОК</button>
         </div>
         <div class="friendsBody">
           <div class="friendsRow" id="friendsRow"></div>
@@ -987,7 +994,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   <div class="sheet sheetMini">
     <div class="sheetHead">
       <button class="iconBtn" data-close="mFriendHelp">‹</button>
-      <div class="title">ПОМОЩЬ ДРУЗЕЙ</div>
+      <div class="title">ПОМОЩЬ БРАТВЫ</div>
       <div style="width:44px"></div>
     </div>
     <div class="sheetBody">
@@ -1759,6 +1766,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     districtTaskCounts:{},
     districtFear:{},
     districtBonusClaimed:{},
+    districtClearedEver:{},
     districtFearLeaders:{},
     districtDailyFear:{ day:'', byDistrict:{} },
     districtBizLvls:{},
@@ -1805,6 +1813,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (!state.districtTaskCounts || typeof state.districtTaskCounts !== 'object') state.districtTaskCounts = {};
   if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
   if (!state.districtBonusClaimed || typeof state.districtBonusClaimed !== 'object') state.districtBonusClaimed = {};
+  if (!state.districtClearedEver || typeof state.districtClearedEver !== 'object') state.districtClearedEver = {};
   if (!state.districtFearLeaders || typeof state.districtFearLeaders !== 'object') state.districtFearLeaders = {};
   if (!state.districtDailyFear || typeof state.districtDailyFear !== 'object') state.districtDailyFear = { day:'', byDistrict:{} };
   if (!state.districtDailyFear.byDistrict || typeof state.districtDailyFear.byDistrict !== 'object') state.districtDailyFear.byDistrict = {};
@@ -1904,6 +1913,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const i = clamp(parseInt(idx||0,10)||0, 0, 11);
       if (i<=0) return true;
       const prev = i-1;
+      const bk = 'D'+String(prev);
+      if (state.districtClearedEver && state.districtClearedEver[bk]) return true;
       const data = districtData();
       const d = data[prev];
       if (!d) return true;
@@ -1923,10 +1934,70 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return cur >= need;
     } catch (e) { return false; }
   }
+  const DEBUG_UNLOCK_ALL_DISTRICTS = true;
   function districtUnlocked(idx){
-    const DEBUG_UNLOCK_ALL_DISTRICTS = false;
     if (DEBUG_UNLOCK_ALL_DISTRICTS) return true;
     return districtPrevCleared(idx) && districtReqOk(idx);
+  }
+
+  function districtAllTasksDone(dIdx){
+    try {
+      const data = districtData();
+      const d = data[dIdx];
+      if (!d) return false;
+      const tasks = Array.isArray(d.tasks) ? d.tasks : [];
+      return tasks.every((t, ti)=>{
+        const m = districtTaskMeta(d.diff, ti, dIdx);
+        const k = districtTaskKey(dIdx, ti);
+        const c = Math.max(0, (state.districtTaskCounts && state.districtTaskCounts[k]) ? (parseInt(state.districtTaskCounts[k]||0,10)||0) : 0);
+        return c >= m.max;
+      });
+    } catch (e) { return false; }
+  }
+  function districtResetTasks(dIdx){
+    try {
+      const data = districtData();
+      const d = data[dIdx];
+      if (!d) return;
+      const tasks = Array.isArray(d.tasks) ? d.tasks : [];
+      if (!state.districtTaskCounts || typeof state.districtTaskCounts !== 'object') state.districtTaskCounts = {};
+      tasks.forEach((t, ti)=>{
+        const k = districtTaskKey(dIdx, ti);
+        state.districtTaskCounts[k] = 0;
+      });
+    } catch (e) {}
+  }
+
+  function districtCompletionAutoReward(dIdx){
+    try {
+      const id = clamp(parseInt(dIdx||0,10)||0, 0, 11);
+      if (!districtAllTasksDone(id)) return;
+      const mult = (id + 1) * 100;
+      const bk = 'D'+String(id);
+
+      addXp(mult);
+      state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + mult);
+
+      const curFear = Math.max(0, (state.districtFear && state.districtFear[bk]) ? (parseInt(state.districtFear[bk]||0,10)||0) : 0);
+      if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
+      state.districtFear[bk] = curFear + mult;
+
+      try {
+        if (!state.districtClearedEver || typeof state.districtClearedEver !== 'object') state.districtClearedEver = {};
+        state.districtClearedEver[bk] = now();
+      } catch (e0) {}
+
+      try {
+        districtFearLeaderUpdate(id);
+        districtDailyFearAdd(id, mult);
+      } catch (e1) {}
+
+      districtResetTasks(id);
+
+      toast('НАГРАДА: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱','win');
+      feedAdd('Награда района: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱','SYS');
+      haptic('heavy');
+    } catch (e) {}
   }
 
   const DISTRICT_BIZ = [
@@ -3318,7 +3389,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     html += '<div class="statTile" style="border-color:rgba(192,132,252,.22)">'
       + '<div class="stK">СТАТИСТИКА</div>'
       + '<div class="stV">'+wins+' / '+losses+'</div>'
-      + '<div class="stMeta">Победы / Поражения<br>Σ характеристик: '+total+'</div>'
+      + '<div class="stMeta">Победы / Поражения<br>Общие характеристики:<br><span style="font-weight:900">'+total+'</span></div>'
       + '</div>';
 
     html += '</div>';
@@ -3530,24 +3601,36 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   // --- Bosses (simple)
   const BOSS_KEY_CHAIN = [
-    { key:'pass', name:'Пропуск', emoji:'🎟️', price: 10 },
-    { key:'key', name:'Ключ', emoji:'🗝️', price: 20 },
-    { key:'sigil', name:'Печать', emoji:'🔰', price: 35 },
-    { key:'gem', name:'Камень', emoji:'💠', price: 55 },
-    { key:'rune', name:'Руна', emoji:'🔷', price: 80 },
-    { key:'claw', name:'Коготь', emoji:'🦴', price: 110 },
-    { key:'mask', name:'Маска', emoji:'🎭', price: 150 },
-    { key:'crown', name:'Корона', emoji:'👑', price: 200 },
-    { key:'hour', name:'Песок', emoji:'⌛', price: 260 },
-    { key:'star', name:'Звезда', emoji:'⭐', price: 340 }
+    { key:'pass', name:'Пропуск', emoji:'🟥', price: 10 },
+    { key:'key', name:'Ключ', emoji:'🟨', price: 20 },
+    { key:'sigil', name:'Печать', emoji:'🟧', price: 35 },
+    { key:'gem', name:'Камень', emoji:'🟩', price: 55 },
+    { key:'rune', name:'Руна', emoji:'🟦', price: 80 },
+    { key:'claw', name:'Коготь', emoji:'🟪', price: 110 },
+    { key:'mask', name:'Маска', emoji:' 🟫', price: 150 },
+    { key:'crown', name:'Корона', emoji:'⬛', price: 200 },
+    { key:'hour', name:'Песок', emoji:'⬜', price: 260 },
+    { key:'star', name:'Звезда', emoji:'🔴', price: 340 }
   ];
 
   function bossReq(id){
     if (id<=1) return null;
-    const idx = id-2;
-    const it = BOSS_KEY_CHAIN[idx] || null;
-    if (!it) return null;
-    return { itemKey: it.key, itemName: it.name, emoji: it.emoji, need: 3, price: it.price };
+    const passPriceByBossId = {
+      2: 2,
+      3: 4,
+      4: 8,
+      5: 20,
+      6: 40,
+      7: 80,
+      8: 150,
+      9: 300,
+      10: 600,
+      11: 1000,
+      12: 2000
+    };
+    const price = passPriceByBossId[id];
+    if (typeof price !== 'number') return null;
+    return { itemKey: 'pass'+id, itemName: 'Пропуск (босс '+id+')', emoji: '🎟️', need: 3, price: price };
   }
 
   function bossRingStrikePrice(bossId){
@@ -4275,8 +4358,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const box = $('bossList');
     let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
     html += '<div class="card">'
-      + '<div class="row"><div style="min-width:0"><div class="k">НАВЫК</div><div style="font-size:12px;opacity:.75;margin-top:4px">Помощь друзей</div></div>'
-      + '<button class="btn btnSmall" id="friendHelpOpen">ПОМОЩЬ ДРУЗЕЙ</button></div>'
+      + '<div class="row"><div style="min-width:0"><div class="k">НАВЫК</div><div style="font-size:12px;opacity:.75;margin-top:4px">Помощь братвы</div></div>'
+      + '<button class="btn btnSmall" id="friendHelpOpen">ПОМОЩЬ БРАТВЫ</button></div>'
       + '</div>';
     BOSSES.forEach(b=>{
       const hp = bossHp(b.id);
@@ -4636,7 +4719,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     for (let i=1;i<=data.length;i++){
       const name = data[i-1].name;
       const fk = 'D'+String(i-1);
-      const fear = Math.max(0, (state.districtFear && state.districtFear[fk]) ? (parseInt(state.districtFear[fk]||0,10)||0) : 0);
+      const you = String(state.playerName||'PLAYER').trim().toUpperCase();
+      const dailyRec = dayBox && dayBox[fk] ? dayBox[fk] : null;
+      const dailyNm = dailyRec && dailyRec.name ? String(dailyRec.name).trim().toUpperCase() : '';
+      const fear = (dailyNm && dailyNm === you) ? Math.max(0, (parseInt(dailyRec.fear||0,10)||0)) : 0;
       const top = (state.districtFearLeaders && state.districtFearLeaders[fk]) ? state.districtFearLeaders[fk] : null;
       const topName = top && top.name ? top.name : '—';
       const topFear = top && (typeof top.fear !== 'undefined') ? (parseInt(top.fear||0,10)||0) : 0;
@@ -4646,7 +4732,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const idx = i-1;
       const unlocked = districtUnlocked(idx);
       const prevOk = districtPrevCleared(idx);
-      const lockTxt = (!prevOk) ? 'Чтобы перейти в этот район — пройди предыдущий' : '';
+      const lockTxt = (DEBUG_UNLOCK_ALL_DISTRICTS ? '' : ((!prevOk) ? 'Чтобы перейти в этот район — пройди предыдущий' : ''));
       html += '<div class="card">'
         + '<div class="districtCardGrid" style="'+(unlocked?'':'opacity:.55; filter:grayscale(1);')+'">'
         + '<div class="districtLeftCol">'
@@ -4669,27 +4755,29 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '</div>'
         + '<div class="districtStack">'
         + '<div style="min-width:0">'
-        + '<div class="districtNick">'+String(topName).toUpperCase()+'</div>'
-        + '<div class="districtStatBox">'
+        + '<div class="districtTag" style="text-align:left">ДЕРЖИТ РАЙОН</div>'
+        + '<div class="districtNick" style="margin-top:4px">'+String(topName).toUpperCase()+'</div>'
+        + '<div class="districtStatBox" style="margin-top:6px">'
         + '<div class="districtStatRow">'
         + '<div class="districtFear">😱 '+fmt4(topFear)+'</div>'
-        + '<div class="districtTag">ДЕРЖИТ РАЙОН</div>'
         + '</div>'
         + '</div>'
         + '</div>'
         + '<div style="min-width:0">'
-        + '<div class="districtNick">'+String(dayName).toUpperCase()+'</div>'
-        + '<div class="districtStatBox">'
+        + '<div class="districtTag" style="text-align:left">СТРАШИЛА ДНЯ</div>'
+        + '<div class="districtNick" style="margin-top:4px">'+String(dayName).toUpperCase()+'</div>'
+        + '<div class="districtStatBox" style="margin-top:6px">'
         + '<div class="districtStatRow">'
         + '<div class="districtFear">😱 '+fmt4(dayFear)+'</div>'
-        + '<div class="districtTag">СТРАШИЛА ДНЯ</div>'
         + '</div>'
         + '</div>'
         + '</div>'
         + '</div>'
         + '</div>'
         + '</div>'
-        + '</div>';
+        + '</div>'
+        + '</div>'
+;
     }
     box.innerHTML = html;
 
@@ -4727,7 +4815,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const d = $('dnDesc');
       const b = $('dnDiff');
       if (t) t.textContent = nm.toUpperCase();
-      if (b) b.textContent = diff;
+      if (b) b.textContent = '';
       if (d){
         const energy = Math.floor(state.energy||0);
         let h = '';
@@ -4782,6 +4870,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             } catch (e2) {} };
           });
         } catch (e3) {}
+
       }
     } catch (e) {}
   }
@@ -4905,27 +4994,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       } catch (e2) {}
 
       try {
-        if (dIdx===0){
-          const allOk = tasks.every((t, ii)=>{
-            const m = districtTaskMeta(d.diff, ii, dIdx);
-            const k = districtTaskKey(dIdx, ii);
-            const c = Math.max(0, (state.districtTaskCounts && state.districtTaskCounts[k]) ? (parseInt(state.districtTaskCounts[k]||0,10)||0) : 0);
-            return c >= m.max;
-          });
-          if (allOk){
-            const bk = 'D'+String(dIdx);
-            if (!state.districtBonusClaimed || typeof state.districtBonusClaimed !== 'object') state.districtBonusClaimed = {};
-            if (!state.districtBonusClaimed[bk]){
-              state.districtBonusClaimed[bk] = now();
-              addXp(100);
-              state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + 200);
-              const cur2 = Math.max(0, (state.districtFear && state.districtFear[bk]) ? (parseInt(state.districtFear[bk]||0,10)||0) : 0);
-              if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
-              state.districtFear[bk] = cur2 + 100;
-              toast('БОНУС: +100 XP, +200 🦷, +100 😱','win');
-              feedAdd('Бонус района: +100 XP, +200 🦷, +100 😱','SYS');
-            }
-          }
+        const allOk = districtAllTasksDone(dIdx);
+        if (allOk){
+          const bk = 'D'+String(dIdx);
+          if (!state.districtClearedEver || typeof state.districtClearedEver !== 'object') state.districtClearedEver = {};
+          if (!state.districtClearedEver[bk]) state.districtClearedEver[bk] = now();
+          districtCompletionAutoReward(dIdx);
         }
       } catch (e3) {}
 
