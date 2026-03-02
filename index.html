@@ -1958,7 +1958,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!base) throw new Error('no_supabase_url');
     const url = base + '/functions/v1/' + encodeURIComponent(fnName);
     const initData = tgInitData();
-    __lastCloudFn = String(fnName||'');
+    try {
+      let extra = '';
+      if (payload && typeof payload === 'object') {
+        if (payload.clan_id) extra = ' cid=' + String(payload.clan_id);
+        else if (payload.id) extra = ' id=' + String(payload.id);
+      }
+      __lastCloudFn = String(fnName||'') + extra;
+    } catch (e0) { __lastCloudFn = String(fnName||''); }
     const resp = await fetch(url, {
       method: 'POST',
       headers: {
