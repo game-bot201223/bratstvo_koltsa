@@ -1088,7 +1088,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   <div class="sheet sheetMini">
     <div class="sheetHead">
       <button class="iconBtn" data-close="mFriendHelp">‹</button>
-      <div class="title">ПОМОЩЬ БРАТВЫ</div>
+      <div class="title">ПОМОЩЬ БРАТКОВ</div>
       <div style="width:44px"></div>
     </div>
     <div class="sheetBody">
@@ -1845,9 +1845,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Storage
   const SAVE_KEY = 'mora_mobile_save_v2';
   const CURRENCY_CAP = 999999999999;
-  const BUILD_ID = '2026-03-02_23-55';
+  const BUILD_ID = '2026-03-02_23-59';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
-  const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
+  const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   let __srvDirty = false;
   let __srvSendT = 0;
   let __srvLastSent = 0;
@@ -2876,7 +2876,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const row = $('friendsRow');
     if (!row) return;
     row.innerHTML = '';
-    const list = (state.friends||[]);
+    const list = (Array.isArray(state.friends) ? state.friends.slice() : []);
+    try {
+      const c = clanGetMyClan();
+      const mem = (c && Array.isArray(c.members)) ? c.members : [];
+      if (c && mem.length){
+        mem.forEach(nm=>{
+          try {
+            const n = String(nm||'').trim();
+            if (!n) return;
+            if (n === String(state.playerName||'')) return;
+            const exists = list.some(x=>String(x && x.name || '').trim().toUpperCase() === n.toUpperCase());
+            if (exists) return;
+            const mm = (c.memberMeta && c.memberMeta[n]) ? c.memberMeta[n] : clanGuessMemberMeta(n);
+            list.push({ name:n, lvl: parseInt(mm && mm.lvl || 1,10)||1, power: parseInt(mm && mm.stats || mm && mm.power || 0,10)||0, online:true, _clan:true });
+          } catch (e2) {}
+        });
+      }
+    } catch (e) {}
     if (!list.length){
       const d = document.createElement('div');
       d.className = 'friendCard';
@@ -2913,6 +2930,23 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const badge = $('topBrosBadge');
       if (!box || !badge) return;
       const list = Array.isArray(state.friends) ? state.friends.slice() : [];
+      try {
+        const c = clanGetMyClan();
+        const mem = (c && Array.isArray(c.members)) ? c.members : [];
+        if (c && mem.length){
+          mem.forEach(nm=>{
+            try {
+              const n = String(nm||'').trim();
+              if (!n) return;
+              if (n === String(state.playerName||'')) return;
+              const exists = list.some(x=>String(x && x.name || '').trim().toUpperCase() === n.toUpperCase());
+              if (exists) return;
+              const mm = (c.memberMeta && c.memberMeta[n]) ? c.memberMeta[n] : clanGuessMemberMeta(n);
+              list.push({ name:n, lvl: parseInt(mm && mm.lvl || 1,10)||1, power: parseInt(mm && mm.stats || mm && mm.power || 0,10)||0, online:true, _clan:true });
+            } catch (e2) {}
+          });
+        }
+      } catch (e0) {}
       const sorted = list.slice().sort((a,b)=>{
         const al = parseInt(a && a.lvl || 1,10)||1;
         const bl = parseInt(b && b.lvl || 1,10)||1;
@@ -5294,8 +5328,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const box = $('bossList');
     let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
     html += '<div class="card">'
-      + '<div class="row"><div style="min-width:0"><div class="k">НАВЫК</div><div style="font-size:12px;opacity:.75;margin-top:4px">Помощь братвы</div></div>'
-      + '<button class="btn btnSmall" id="friendHelpOpen">ПОМОЩЬ БРАТВЫ</button></div>'
+      + '<div class="row"><div style="min-width:0"><div class="k">НАВЫК</div><div style="font-size:12px;opacity:.75;margin-top:4px">Помощь братков</div></div>'
+      + '<button class="btn btnSmall" id="friendHelpOpen">ПОМОЩЬ БРАТКОВ</button></div>'
       + '</div>';
     BOSSES.forEach(b=>{
       const hp = bossHp(b.id);
