@@ -1965,7 +1965,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Storage
   const SAVE_KEY = 'mora_mobile_save_v2';
   const CURRENCY_CAP = 999999999999;
-  const BUILD_ID = '2026-03-03_00-54';
+  const BUILD_ID = '2026-03-03_01-16';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   let __srvDirty = false;
@@ -2204,6 +2204,54 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
     try { __lastCloudErr = ''; dbgUpdate(); } catch (e3) {}
     return j;
+  }
+
+  let __bossFightsPullTs = 0;
+  async function bossFightsCloudPull(){
+    try {
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+      const initData = tgInitData();
+      if (!initData) return;
+      const r = await sbFnCall('boss_fights_list', { initData });
+      const fights = (r && Array.isArray(r.fights)) ? r.fights : [];
+      if (!state.bosses) state.bosses = Object.assign({}, defaults.bosses);
+      if (!state.bosses.cloud || typeof state.bosses.cloud !== 'object') state.bosses.cloud = {};
+      const next = {};
+      fights.forEach(f=>{
+        try {
+          const bid = parseInt(f && f.boss_id || 0, 10) || 0;
+          if (!bid) return;
+          next[String(bid)] = {
+            hp: Math.max(0, Math.floor(parseInt(f && f.hp || 0, 10) || 0)),
+            max_hp: Math.max(0, Math.floor(parseInt(f && f.max_hp || 0, 10) || 0)),
+            expires_at: f && f.expires_at ? String(f.expires_at) : '',
+            reward_claimed: !!(f && f.reward_claimed)
+          };
+        } catch (e0) {}
+      });
+      state.bosses.cloud = next;
+      save();
+    } catch (e) {}
+  }
+  async function bossFightsCloudPullMaybe(){
+    try {
+      const t = now();
+      if (__bossFightsPullTs && (t - __bossFightsPullTs) < 2500) return;
+      __bossFightsPullTs = t;
+      await bossFightsCloudPull();
+    } catch (e) {}
+  }
+  async function bossFightHitCloud(bossId, dmg){
+    try {
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return null;
+      return await sbFnCall('boss_fight_hit', { initData: tgInitData(), boss_id: bossId, dmg: dmg });
+    } catch (e) { return null; }
+  }
+  async function bossFightClaimCloud(bossId){
+    try {
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return null;
+      return await sbFnCall('boss_fight_claim', { initData: tgInitData(), boss_id: bossId });
+    } catch (e) { return null; }
   }
 
   function cloudStateSnapshot(s){
@@ -4961,17 +5009,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       ff.lastFriendTs = now();
       const dmg = bossHitDmg(14, 50);
       const real = Math.min(parseInt(ff.hp||0,10)||0, dmg);
-      ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real);
-      bfSetFight(bossId, ff);
-      bfLogPush(bossId, state.playerName||'PLAYER', real);
-      bfTopAdd(bossId, state.playerName||'PLAYER', real);
-      clanAddBossDamage(real, state.playerName||'PLAYER');
-      try { bossHelpSend(bossId, real); } catch (e0) {}
-      bfCheckWin(bossId);
-      save();
-      if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
-      renderAll();
-      haptic('light');
+      bossFightHitCloud(bossId, real).then((r)=>{
+        try {
+          const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+          if (fhp!==null) ff.hp = Math.max(0, fhp);
+          else ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real);
+        } catch (e1) { ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real); }
+        bfSetFight(bossId, ff);
+        bfLogPush(bossId, state.playerName||'PLAYER', real);
+        bfTopAdd(bossId, state.playerName||'PLAYER', real);
+        clanAddBossDamage(real, state.playerName||'PLAYER');
+        try { bossHelpSend(bossId, real); } catch (e0) {}
+        bfCheckWin(bossId);
+        try { bossFightsCloudPullMaybe(); } catch (e2) {}
+        save();
+        if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
+        renderAll();
+        haptic('light');
+      }).catch(()=>{});
     };
 
     function doTokenHit(kind){
@@ -5000,17 +5055,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const one = (kind==='kick') ? bossHitDmg(10, 70) : ((kind==='knuckle') ? bossHitDmg(7, 85) : bossHitDmg(4, 100));
       const dmg = Math.max(1, one) * q;
       const real = Math.min(parseInt(ff.hp||0,10)||0, dmg);
-      ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real);
-      bfSetFight(bossId, ff);
-      bfLogPush(bossId, state.playerName||'PLAYER', real);
-      bfTopAdd(bossId, state.playerName||'PLAYER', real);
-      clanAddBossDamage(real);
-      try { bossHelpSend(bossId, real); } catch (e0) {}
-      bfCheckWin(bossId);
-      save();
-      if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
-      renderAll();
-      haptic('light');
+      bossFightHitCloud(bossId, real).then((r)=>{
+        try {
+          const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+          if (fhp!==null) ff.hp = Math.max(0, fhp);
+          else ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real);
+        } catch (e1) { ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real); }
+        bfSetFight(bossId, ff);
+        bfLogPush(bossId, state.playerName||'PLAYER', real);
+        bfTopAdd(bossId, state.playerName||'PLAYER', real);
+        clanAddBossDamage(real);
+        try { bossHelpSend(bossId, real); } catch (e0) {}
+        bfCheckWin(bossId);
+        try { bossFightsCloudPullMaybe(); } catch (e2) {}
+        save();
+        if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
+        renderAll();
+        haptic('light');
+      }).catch(()=>{});
     }
 
     hitBtn1.onclick = ()=>doTokenHit('kick');
@@ -5153,33 +5215,39 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     if (claimBtn){
       claimBtn.onclick = ()=>{
-        const pr = state.bosses && state.bosses.pendingReward ? state.bosses.pendingReward : null;
-        if (!pr || (parseInt(pr.bossId||0,10)||0) !== bossId){
-          hideModal('mBossFightRes');
-          openScreen('mBoss');
-          renderBosses();
-          haptic('light');
-          return;
-        }
-        const rxp = parseInt(pr.xp||0,10)||0;
-        const rm = parseInt(pr.tooth||0,10)||0;
-        const rg = parseInt(pr.gold||0,10)||0;
-        if (rm>0) state.tooth += rm;
-        if (rg>0) state.gold += rg;
-        if (rxp>0) addXp(rxp);
-        state.bosses.pendingReward = null;
+        bossFightClaimCloud(bossId).then((r)=>{
+          try {
+            if (!(r && r.ok && r.can_claim)) { toast('Нельзя забрать награду','lose'); return; }
+            const rew = r && r.reward ? r.reward : null;
+            const rxp = rew ? (parseInt(rew.xp||0,10)||0) : 0;
+            const rm = rew ? (parseInt(rew.tooth||0,10)||0) : 0;
+            const rg = rew ? (parseInt(rew.gold||0,10)||0) : 0;
+            if (rm>0) state.tooth += rm;
+            if (rg>0) state.gold += rg;
+            if (rxp>0) addXp(rxp);
+            state.bosses.pendingReward = null;
 
-        try {
-          const b2 = BOSSES.find(x=>x.id===bossId);
-          if (b2) setBossHp(bossId, b2.maxHP);
-        } catch (e) {}
+            try {
+              const nextReq = bossReq(bossId+1);
+              if (nextReq){
+                bossKeyAdd(nextReq.itemKey, nextReq.need);
+                feedAdd('Добыто: '+nextReq.need+'× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS');
+              }
+            } catch (e5) {}
 
-        save();
-        hideModal('mBossFightRes');
-        openScreen('mBoss');
-        renderBosses();
-        renderAll();
-        haptic('heavy');
+            try { if (state.bosses && state.bosses.cloud && state.bosses.cloud[String(bossId)]) delete state.bosses.cloud[String(bossId)]; } catch (e3) {}
+            try {
+              const b2 = BOSSES.find(x=>x.id===bossId);
+              if (b2) setBossHp(bossId, b2.maxHP);
+            } catch (e4) {}
+            save();
+            hideModal('mBossFightRes');
+            openScreen('mBoss');
+            renderBosses();
+            renderAll();
+            haptic('heavy');
+          } catch (e2) { toast('Не удалось забрать награду','lose'); }
+        }).catch(()=>toast('Не удалось забрать награду','lose'));
       };
     }
   }
@@ -5390,43 +5458,42 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const raw = Math.max(1, 50 + stat);
     const dmg = raw;
     const hp = bossHp(id);
-    const nh = Math.max(0, hp - dmg);
-    setBossHp(id, nh);
-    feedAdd('Ты ударил босса: '+b.name+' -'+dmg, 'BOSS');
-    if (nh<=0){
-      setBossHp(id, 0);
-
-      const rxp = parseInt(b.reward && b.reward.xp || 0, 10) || 0;
-      const rm = parseInt(b.reward && b.reward.tooth || 0, 10) || 0;
-      const rg = parseInt(b.reward && b.reward.gold || 0, 10) || 0;
-      state.bosses.pendingReward = { bossId: id, xp: rxp, tooth: rm, gold: rg };
-      state.bosses.lastWinners[String(id)] = { name: (state.playerName||'PLAYER'), ts: now() };
-
-      const nextReq = bossReq(id+1);
-      if (nextReq){
-        bossKeyAdd(nextReq.itemKey, nextReq.need);
-        feedAdd('Добыто: '+nextReq.need+'× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS');
+    const real = Math.min(parseInt(hp||0,10)||0, dmg);
+    bossFightHitCloud(id, real).then((r)=>{
+      try {
+        const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+        if (fhp!==null) {
+          if (!state.bosses.cloud) state.bosses.cloud = {};
+          state.bosses.cloud[String(id)] = Object.assign({}, (state.bosses.cloud[String(id)]||{}), { hp: fhp, max_hp: b.maxHP });
+        }
+      } catch (e0) {}
+      feedAdd('Ты ударил босса: '+b.name+' -'+real, 'BOSS');
+      try { bossFightsCloudPullMaybe(); } catch (e1) {}
+      save();
+      renderAll();
+      if ((parseInt(bossHp(id)||0,10)||0) <= 0) {
+        toast('БОСС ПОВЕРЖЕН. Забери награду.','win');
+        haptic('heavy');
+      } else {
+        toast('-'+real+' HP','tooth');
+        haptic('light');
       }
-
-      state.bosses.activeFightId = 0;
-      try { if (state.bosses && state.bosses.fights) delete state.bosses.fights[String(id)]; } catch (e) {}
-
-      feedAdd('Босс повержен! Награда доступна.', 'BOSS');
-      toast('БОСС ПОВЕРЖЕН','win');
-      haptic('heavy');
-      bfShowResult(id, true);
-    } else {
-      toast('-'+dmg+' HP','tooth');
-      haptic('light');
-    }
-    save();
-    renderAll();
+    }).catch(()=>{
+      toast('СЕРВЕР: ERR','lose');
+    });
   }
 
   function bossHp(id){
     const b = BOSSES.find(x=>x.id===id);
     const max = b ? b.maxHP : 0;
     const k = String(id);
+    try {
+      const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[k];
+      if (cc && typeof cc === 'object' && typeof cc.hp !== 'undefined') {
+        const chp = parseInt(cc.hp||0,10);
+        if (!isNaN(chp) && chp>=0) return Math.min(max||chp, chp);
+      }
+    } catch (e0) {}
     const has = !!(state.bosses && state.bosses.hp && Object.prototype.hasOwnProperty.call(state.bosses.hp, k));
     const raw = has ? state.bosses.hp[k] : max;
     const cur = parseInt(raw,10);
@@ -5441,6 +5508,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     state.bosses.hp[String(id)] = Math.max(0, Math.floor(hp||0));
   }
   function renderBosses(){
+    try { bossFightsCloudPullMaybe().catch(()=>{}); } catch (e0) {}
     const box = $('bossList');
     let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
     html += '<div class="card">'
@@ -5459,8 +5527,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const rm = parseInt(b.reward && b.reward.tooth || 0, 10) || 0;
       const rg = parseInt(b.reward && b.reward.gold || 0, 10) || 0;
       const dead = (parseInt(hp||0,10)||0) <= 0;
-      const pr = (state.bosses && state.bosses.pendingReward) ? state.bosses.pendingReward : null;
-      const hasPending = !!(pr && (parseInt(pr.bossId||0,10)||0) === b.id);
+      const hasPending = dead;
       html += '<div class="card">'
         + '<div class="bossWinnerTop">ПОСЛЕДНИЙ ПОБЕДИТЕЛЬ</div>'
         + '<div class="bossWinnerNm">'+lwName+'</div>'
@@ -5510,8 +5577,37 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       btn.onclick = ()=>{
         const id = parseInt(btn.getAttribute('data-boss-claim')||'0',10)||0;
         if (!id) return;
-        bfShowResult(id, true);
-        haptic('light');
+        bossFightClaimCloud(id).then((r)=>{
+          try {
+            if (!(r && r.ok && r.can_claim)) { toast('Нельзя забрать награду','lose'); return; }
+            const rew = r && r.reward ? r.reward : null;
+            const rxp = rew ? (parseInt(rew.xp||0,10)||0) : 0;
+            const rm = rew ? (parseInt(rew.tooth||0,10)||0) : 0;
+            const rg = rew ? (parseInt(rew.gold||0,10)||0) : 0;
+            if (rm>0) state.tooth += rm;
+            if (rg>0) state.gold += rg;
+            if (rxp>0) addXp(rxp);
+
+            try {
+              const nextReq = bossReq(id+1);
+              if (nextReq){
+                bossKeyAdd(nextReq.itemKey, nextReq.need);
+                feedAdd('Добыто: '+nextReq.need+'× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS');
+              }
+            } catch (e5) {}
+
+            try { if (state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)]) delete state.bosses.cloud[String(id)]; } catch (e3) {}
+            try {
+              const b2 = BOSSES.find(x=>x.id===id);
+              if (b2) setBossHp(id, b2.maxHP);
+            } catch (e4) {}
+            save();
+            renderBosses();
+            renderHUD();
+            toast('Награда получена','win');
+            haptic('heavy');
+          } catch (e2) { toast('Не удалось забрать награду','lose'); }
+        }).catch(()=>toast('Не удалось забрать награду','lose'));
       };
     });
 
