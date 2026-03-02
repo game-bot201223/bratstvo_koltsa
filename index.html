@@ -1238,7 +1238,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e) { return 0; }
   }
 
-  function bossHelpApplyEvent(bossId, fromName, dmg){
+  function bossHelpApplyEvent(bossId, fromName, dmg, clanId){
     try {
       const bid = parseInt(bossId||0,10)||0;
       if (!bid) return;
@@ -1256,8 +1256,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!want) return;
 
       const isFriend = Array.isArray(state.friends) && state.friends.some(x=>String(x && x.name || '').trim().toUpperCase() === String(nm).toUpperCase());
-      const myClan = clanGetMyClan();
-      const isClan = !!(myClan && Array.isArray(myClan.members) && myClan.members.some(x=>String(x||'').trim().toUpperCase() === String(nm).toUpperCase()));
+      const myClanId = clanFindMyClanId();
+      const evClan = String(clanId||'').trim().toUpperCase();
+      const isClan = !!(myClanId && evClan && String(myClanId).trim().toUpperCase() === evClan);
 
       let remain = 0;
       if (isFriend) remain = bossHelpCapRemainFriend(b, f, nm);
@@ -1290,7 +1291,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const r = await sbFnCall('boss_help_pull', { initData: tgInitData(), limit: 30 });
       const ev = (r && r.events && Array.isArray(r.events)) ? r.events : [];
       ev.forEach(e=>{
-        try { bossHelpApplyEvent(e && e.boss_id, e && e.from_name, e && e.dmg); } catch (e2) {}
+        try { bossHelpApplyEvent(e && e.boss_id, e && e.from_name, e && e.dmg, e && e.clan_id); } catch (e2) {}
       });
     } catch (e) {}
   }
@@ -1954,7 +1955,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Storage
   const SAVE_KEY = 'mora_mobile_save_v2';
   const CURRENCY_CAP = 999999999999;
-  const BUILD_ID = '2026-03-03_00-12';
+  const BUILD_ID = '2026-03-03_00-41';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   let __srvDirty = false;
