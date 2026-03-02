@@ -1,0 +1,12 @@
+{
+  "name": "Братство Конца — Mobile TG Edition",
+  "short_name": "Братство Конца",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "description": "Telegram WebApp + PWA версия игры Братство Конца",
+  "categories": ["games"],
+  "background_color": "#0d0518",
+  "theme_color": "#0d0518"
+}
