@@ -1961,8 +1961,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       let extra = '';
       if (payload && typeof payload === 'object') {
-        if (payload.clan_id) extra = ' cid=' + String(payload.clan_id);
-        else if (payload.id) extra = ' id=' + String(payload.id);
+        if (Object.prototype.hasOwnProperty.call(payload, 'clan_id')) extra = ' cid=' + String(payload.clan_id);
+        else if (Object.prototype.hasOwnProperty.call(payload, 'id')) extra = ' id=' + String(payload.id);
       }
       __lastCloudFn = String(fnName||'') + extra;
     } catch (e0) { __lastCloudFn = String(fnName||''); }
