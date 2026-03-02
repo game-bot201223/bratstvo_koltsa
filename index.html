@@ -521,8 +521,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
       <div class="feed friendsPanel">
         <div class="feedHead">
-          <div class="t">БРАТВА ОНЛАЙН</div>
-          <button class="btn btnSmall" id="inviteBtn">+ БРАТОК</button>
+          <div class="t">ТОП БРАТКОВ</div>
+          <button class="btn btnSmall" id="openTopBros">ТОП</button>
         </div>
         <div class="friendsBody">
           <div class="friendsRow" id="friendsRow"></div>
@@ -906,10 +906,84 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div class="row"><div class="k">ТВОЙ КЛАН</div><div class="badge" id="clanStatus">—</div></div>
         <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.35" id="clanDesc">—</div>
         <button class="btn" style="margin-top:12px;" id="clanCreate">СОЗДАТЬ КЛАН ЗА 1000 🪙</button>
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btnSmall" id="clanSetDeputy" style="display:none;">ЗАМЕСТИТЕЛЬ</button>
+          <button class="btn btnSmall" id="clanSetFilters" style="display:none;">ФИЛЬТР</button>
+          <button class="btn btnSmall" id="clanTopOpen" style="display:none;">ТОП</button>
+          <button class="btn btnSmall" id="clanChatOpen" style="display:none;">ЧАТ</button>
+          <button class="btn btnSmall" id="clanTransfer" style="display:none;">ПЕРЕДАТЬ</button>
+          <button class="btn btnSmall" id="clanDelete" style="display:none; opacity:.9">УДАЛИТЬ</button>
+          <button class="btn btnSmall" id="clanLeave" style="display:none;">ВЫЙТИ</button>
+        </div>
       </div>
       <div class="card" style="margin-top:12px;">
-        <div class="row"><div class="k">СКОРО</div></div>
-        <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.35">Рейтинги кланов, задания и чат появятся в следующей версии.</div>
+        <div class="row"><div class="k">ЗАЯВКИ</div><div class="badge" id="clanAppsBadge">—</div></div>
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="clanAppsList">—</div>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <div class="row"><div class="k">СПИСОК КЛАНОВ</div><div class="badge" id="clanListBadge">—</div></div>
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="clanList">—</div>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <div class="row"><div class="k">БАНК КЛАНА</div><div class="badge" style="color:var(--gold)" id="clanBankGold">—</div></div>
+        <button class="btn" style="margin-top:12px;" id="clanBankAdd">ВНЕСТИ 🪙</button>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <div class="row"><div class="k">ЛОГИ КЛАНА</div><div class="badge" id="clanLogBadge">—</div></div>
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="clanLogList">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Top Brothers (Home) -->
+<div class="modal modalPage" id="mTopBros" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mTopBros">‹</button>
+      <div class="title">ТОП БРАТКОВ</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody">
+      <div class="card">
+        <div class="row"><div class="k">СПИСОК</div><div class="badge" id="topBrosBadge">—</div></div>
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="topBrosList">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Clan Top -->
+<div class="modal modalPage" id="mClanTop" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mClanTop">‹</button>
+      <div class="title">ТОП КЛАНА</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody">
+      <div class="card">
+        <div class="row"><div class="k">УЧАСТНИКИ</div><div class="badge" id="clanTopBadgeFull">—</div></div>
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="clanTopMembersFull">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Clan Chat -->
+<div class="modal modalPage" id="mClanChat" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mClanChat">‹</button>
+      <div class="title">ЧАТ КЛАНА</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody">
+      <div class="card">
+        <div class="row"><div class="k">СООБЩЕНИЯ</div><div class="badge" id="clanChatBadgeFull">—</div></div>
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px; overflow-y:auto; max-height:60vh; padding-right:4px;" id="clanChatListFull">—</div>
+        <button class="btn" style="margin-top:12px;" id="clanChatSendFull">НАПИСАТЬ</button>
       </div>
     </div>
   </div>
@@ -1024,6 +1098,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <button class="btn btnSmall" id="top100Lvl">УРОВЕНЬ</button>
           <button class="btn btnSmall" id="top100Wealth">ХАРАКТЕРИСТИКИ</button>
           <button class="btn btnSmall" id="top100Boss">БОССЫ</button>
+          <button class="btn btnSmall" id="top100Clans">КЛАНЫ</button>
         </div>
         <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="top100List"></div>
       </div>
@@ -1760,7 +1835,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     gf1010:{ joined:false, startTs:0, costPaid:0, gathered:0, matchId:'', fight:{ round:1, turnLeft:10, myTarget:'', targets:[], log:[] } },
     diceGame:{ active:false, rolls:0, max:10, dice:[1,1,1,1,1] },
     consumables:{ med:0, nade:0 },
-    clan:{ id:'', name:'', owner:'', createdTs:0 },
+    clan:{ id:'', name:'', owner:'', createdTs:0, role:'', deputy:'', joinedTs:0 },
+    clansDb:{ nextId:1, order:[], clans:{}, myApps:{} },
     promoUsedCodes:{},
     districtTasksDone:{},
     districtTaskCounts:{},
@@ -1809,6 +1885,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (typeof state.clan.id !== 'string') state.clan.id = '';
   if (typeof state.clan.name !== 'string') state.clan.name = '';
   if (typeof state.clan.owner !== 'string') state.clan.owner = '';
+  if (typeof state.clan.role !== 'string') state.clan.role = '';
+  if (typeof state.clan.deputy !== 'string') state.clan.deputy = '';
+  if (typeof state.clan.joinedTs !== 'number') state.clan.joinedTs = 0;
+  if (!state.clansDb) state.clansDb = Object.assign({}, defaults.clansDb);
+  if (typeof state.clansDb.nextId !== 'number') state.clansDb.nextId = 1;
+  if (!Array.isArray(state.clansDb.order)) state.clansDb.order = [];
+  if (!state.clansDb.clans || typeof state.clansDb.clans !== 'object') state.clansDb.clans = {};
+  if (!state.clansDb.myApps || typeof state.clansDb.myApps !== 'object') state.clansDb.myApps = {};
   if (!state.districtTasksDone || typeof state.districtTasksDone !== 'object') state.districtTasksDone = {};
   if (!state.districtTaskCounts || typeof state.districtTaskCounts !== 'object') state.districtTaskCounts = {};
   if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
@@ -2358,17 +2442,126 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       row.appendChild(d);
       return;
     }
-    list.forEach(f=>{
+    const sorted = list.slice().sort((a,b)=>{
+      const al = parseInt(a && a.lvl || 1,10)||1;
+      const bl = parseInt(b && b.lvl || 1,10)||1;
+      if (bl !== al) return bl - al;
+      const ap = parseInt(a && a.power || 0,10)||0;
+      const bp = parseInt(b && b.power || 0,10)||0;
+      return bp - ap;
+    }).slice(0, 20);
+
+    sorted.forEach((f, idx)=>{
       const c = document.createElement('div');
       c.className = 'friendCard';
       const on = !!f.online;
+      const medal = idx===0 ? '🥇' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
       c.innerHTML = ''
-        + '<div class="friendTop"><div class="friendName">'+String(f.name||'Друг')+'</div><div class="dot '+(on?'on':'')+'"></div></div>'
-        + '<div class="friendMeta">Ур. '+(f.lvl||1)+' • Сила '+(f.power||0)+'</div>'
-        + '<div class="friendMeta">'+(on?'В сети':'Не в сети')+'</div>';
-      c.onclick = ()=>{ toast((f.name||'Друг') + (on?' онлайн':' оффлайн')); haptic('light'); };
+        + '<div class="friendTop"><div class="friendName">'+(medal?('<span style="margin-right:6px">'+medal+'</span>'):'')+String(f.name||'Друг')+'</div><div class="dot '+(on?'on':'')+'"></div></div>'
+        + '<div class="friendMeta">Ур. '+(f.lvl||1)+' • Сила '+(f.power||0)+'</div>';
+      c.onclick = ()=>{ toast('#'+(idx+1)+' ' + (f.name||'Друг') + ' · ур. ' + (f.lvl||1)); haptic('light'); };
       row.appendChild(c);
     });
+  }
+
+  function renderTopBrosModal(){
+    try {
+      const box = $('topBrosList');
+      const badge = $('topBrosBadge');
+      if (!box || !badge) return;
+      const list = Array.isArray(state.friends) ? state.friends.slice() : [];
+      const sorted = list.slice().sort((a,b)=>{
+        const al = parseInt(a && a.lvl || 1,10)||1;
+        const bl = parseInt(b && b.lvl || 1,10)||1;
+        if (bl !== al) return bl - al;
+        const ap = parseInt(a && a.power || 0,10)||0;
+        const bp = parseInt(b && b.power || 0,10)||0;
+        return bp - ap;
+      }).slice(0, 100);
+      badge.textContent = String(sorted.length);
+      box.innerHTML = sorted.length ? sorted.map((f,idx)=>{
+        const medal = idx===0 ? '🥇' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
+        const left = medal ? ('<div class="badge" style="padding:6px 8px; font-size:11px">'+medal+'</div>') : '';
+        const val = 'УР. '+(parseInt(f.lvl||1,10)||1);
+        return '<div class="row">'
+          + '<div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1">'
+          + left
+          + '<div style="min-width:0; font-size:12px; opacity:.9">#'+(idx+1)+' '+String(f.name||'—')+'</div>'
+          + '</div>'
+          + '<div class="badge" style="padding:6px 8px; font-size:11px">'+val+'</div>'
+          + '</div>';
+      }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+    } catch (e) {}
+  }
+
+  function renderClanTopModal(){
+    try {
+      const box = $('clanTopMembersFull');
+      const badge = $('clanTopBadgeFull');
+      if (!box || !badge) return;
+      const c = clanGetMyClan();
+      if (!c) {
+        badge.textContent = '—';
+        box.innerHTML = '<div style="opacity:.75; font-size:12px">—</div>';
+        return;
+      }
+      if (!c.memberMeta || typeof c.memberMeta !== 'object') c.memberMeta = {};
+      clanEnsureMemberMeta(c);
+      const mem = Array.isArray(c.members) ? c.members : [];
+      const rows = mem.map(nm=>{
+        const mm = (c.memberMeta && c.memberMeta[nm]) ? c.memberMeta[nm] : clanGuessMemberMeta(nm);
+        return { who: nm, lvl: parseInt(mm && mm.lvl || 1,10)||1, stats: parseInt(mm && mm.stats || 0,10)||0 };
+      }).sort((a,b)=>{
+        if (b.lvl !== a.lvl) return b.lvl - a.lvl;
+        return b.stats - a.stats;
+      }).slice(0, 100);
+      badge.textContent = String(rows.length);
+      box.innerHTML = rows.length ? rows.map((r,i)=>{
+        const badge2 = '<div class="badge" style="padding:6px 8px; font-size:11px">УР. '+r.lvl+'</div>';
+        return '<div class="row">'
+          + '<div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+String(r.who)+'</div>'
+          + badge2
+          + '</div>';
+      }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+    } catch (e) {}
+  }
+
+  function renderClanChatModal(){
+    try {
+      const box = $('clanChatListFull');
+      const badge = $('clanChatBadgeFull');
+      const send = $('clanChatSendFull');
+      if (!box || !badge || !send) return;
+      const c = clanGetMyClan();
+      if (!c) {
+        badge.textContent = '—';
+        box.innerHTML = '<div style="opacity:.75; font-size:12px">—</div>';
+        send.style.display = 'none';
+        return;
+      }
+      if (!Array.isArray(c.chat)) c.chat = [];
+      badge.textContent = String(c.chat.length);
+      const me = clanMyName();
+      const arr = c.chat.slice(-60);
+      box.innerHTML = arr.length ? arr.map(e=>{
+        const from = String(e && e.from || '—');
+        const txt = String(e && e.text || '');
+        const isMe = String(from) === String(me);
+        const wrap = 'display:flex; ' + (isMe ? 'justify-content:flex-end;' : 'justify-content:flex-start;');
+        const bubble = 'max-width:85%; padding:10px 12px; border-radius:14px; font-size:12px; line-height:1.35; '
+          + (isMe ? 'background:rgba(59,130,246,.20); border:1px solid rgba(59,130,246,.25); text-align:right;' : 'background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.10);');
+        const head = isMe ? '' : ('<div style="font-size:10px; opacity:.65; margin-bottom:4px">'+from+'</div>');
+        return '<div style="'+wrap+'">'
+          + '<div style="'+bubble+'">'
+          + head
+          + '<div>'+txt+'</div>'
+          + '</div>'
+          + '</div>';
+      }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+      try { box.scrollTop = box.scrollHeight; } catch (e2) {}
+      send.style.display = '';
+      send.onclick = ()=>{ clanChatSend(); renderClanChatModal(); };
+    } catch (e) {}
   }
 
   function gfShowBattleResult(win){
@@ -3773,6 +3966,130 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     bfSetFight(bossId, f);
   }
 
+  function clanAddBossDamage(dmg, who){
+    try {
+      const c = clanGetMyClan();
+      if (!c) return;
+      const add = Math.max(0, Math.floor(dmg||0));
+      if (add<=0) return;
+      c.totalBossDmg = (parseInt(c.totalBossDmg||0,10)||0) + add;
+      c.lvl = clanLevelFromDmg(c.totalBossDmg||0);
+      if (!c.bossDmgByMember || typeof c.bossDmgByMember !== 'object') c.bossDmgByMember = {};
+      const key = String(who||clanMyName()||'PLAYER');
+      c.bossDmgByMember[key] = (parseInt(c.bossDmgByMember[key]||0,10)||0) + add;
+    } catch (e) {}
+  }
+
+  function bfClanTick(bossId){
+    const b = BOSSES.find(x=>x.id===bossId);
+    if (!b) return;
+    const f = bfGetFight(bossId);
+    if (!f) return;
+    const myClan = clanGetMyClan();
+    if (!myClan) return;
+    const mem = Array.isArray(myClan.members) ? myClan.members : [];
+    if (mem.length<=1) return;
+
+    const step = 1000;
+    const diff = Math.max(0, now() - (parseInt(f.lastClanTs||0,10)||now()));
+    const turns = Math.min(30, Math.floor(diff/step));
+    if (turns<=0) return;
+    f.lastClanTs = (parseInt(f.lastClanTs||0,10)||now()) + turns*step;
+
+    if (!f.clanCap) f.clanCap = {};
+    const lvl = clamp(parseInt(myClan.lvl||1,10)||1, 1, 10);
+    const capPct = 0.04 + lvl*0.01;
+    const capPerMember = Math.floor(b.maxHP * capPct);
+    const maxMembersPerTurn = Math.min(12, Math.max(1, mem.length-1));
+    const helpers = mem
+      .filter(n=>String(n)!==clanMyName())
+      .slice(0, maxMembersPerTurn);
+
+    if (!helpers.length) { bfSetFight(bossId, f); return; }
+
+    for (let t=0;t<turns;t++){
+      helpers.forEach(nm=>{
+        const key = String(nm||'BRAT');
+        const used = parseInt((f.clanCap && f.clanCap[key])||0,10)||0;
+        if (used >= capPerMember) return;
+        const maxDmg = Math.max(1, Math.floor(b.maxHP*0.004));
+        const clanDmg = 1 + Math.floor(Math.random()*maxDmg);
+        const remain = Math.max(0, capPerMember - used);
+        const add = Math.min(clanDmg, remain);
+        if (add<=0) return;
+        f.clanCap[key] = used + add;
+        f.hp = Math.max(0, (parseInt(f.hp||0,10)||0) - add);
+        bfLogPush(bossId, key, add);
+        bfTopAdd(bossId, key, add);
+        clanAddBossDamage(add, key);
+      });
+    }
+    bfSetFight(bossId, f);
+  }
+
+  function bfInstantHelpDmg(bossId, f, b){
+    try {
+      if (!f || !b) return 0;
+      let total = 0;
+      const hp0 = parseInt(f.hp||0,10)||0;
+      if (hp0<=0) return 0;
+
+      // friends help
+      const friends = Array.isArray(state.friends) ? state.friends : [];
+      if (!f.friendCap) f.friendCap = {};
+      const frLvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
+      const frCapPct = 0.10 + frLvl*0.01;
+      const capPerFriend = Math.floor(b.maxHP * frCapPct);
+      friends.forEach(fr=>{
+        const nm = fr && fr.name ? String(fr.name) : 'FRIEND';
+        const used = parseInt((f.friendCap && f.friendCap[nm])||0,10)||0;
+        if (used >= capPerFriend) return;
+        if (!fr || !fr.online) return;
+        const maxDmg = Math.max(1, Math.floor(b.maxHP*0.01));
+        const friendDmg = 1 + Math.floor(Math.random()*maxDmg);
+        const remain = Math.max(0, capPerFriend - used);
+        const add = Math.min(friendDmg, remain);
+        if (add<=0) return;
+        f.friendCap[nm] = used + add;
+        total += add;
+        bfLogPush(bossId, nm, add);
+        bfTopAdd(bossId, nm, add);
+      });
+
+      // clan help
+      const myClan = clanGetMyClan();
+      if (myClan){
+        const mem = Array.isArray(myClan.members) ? myClan.members : [];
+        if (mem.length>1){
+          if (!f.clanCap) f.clanCap = {};
+          const clLvl = clamp(parseInt(myClan.lvl||1,10)||1, 1, 10);
+          const capPct = 0.04 + clLvl*0.01;
+          const capPerMember = Math.floor(b.maxHP * capPct);
+          mem.filter(n=>String(n)!==clanMyName()).forEach(nm=>{
+            const key = String(nm||'BRAT');
+            const used = parseInt((f.clanCap && f.clanCap[key])||0,10)||0;
+            if (used >= capPerMember) return;
+            const maxDmg = Math.max(1, Math.floor(b.maxHP*0.004));
+            const clanDmg = 1 + Math.floor(Math.random()*maxDmg);
+            const remain = Math.max(0, capPerMember - used);
+            const add = Math.min(clanDmg, remain);
+            if (add<=0) return;
+            f.clanCap[key] = used + add;
+            total += add;
+            bfLogPush(bossId, key, add);
+            bfTopAdd(bossId, key, add);
+            clanAddBossDamage(add, key);
+          });
+        }
+      }
+
+      const hp1 = parseInt(f.hp||0,10)||0;
+      const real = Math.min(hp1, Math.max(0, Math.floor(total)));
+      if (real>0) f.hp = Math.max(0, hp1 - real);
+      return real;
+    } catch (e) { return 0; }
+  }
+
   function bfRender(bossId){
     const b = BOSSES.find(x=>x.id===bossId);
     if (!b) return;
@@ -3800,16 +4117,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return raw;
     }
 
-    bfFriendTick(bossId);
-
-    // friends could finish the boss between renders
-    try {
-      const ff2 = bfGetFight(bossId);
-      if (ff2 && (parseInt(ff2.hp||0,10)||0) <= 0) {
-        bfCheckWin(bossId);
-        return;
-      }
-    } catch (e) {}
+    // NOTE: помощь уроном теперь применяется моментально при твоём ударе (см. bfInstantHelpDmg)
 
     try {
       const pic = $('bfEmoji');
@@ -3874,7 +4182,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const q2 = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
       hitBtn1.textContent = 'НОГОЙ ('+hk+') x'+q2;
       hitBtn2.textContent = 'КОСТЕТОМ ('+hn+') x'+q2;
-      hitBtn3.textContent = 'КЛИЗМОЙ ('+he+') x'+q2;
+      hitBtn3.textContent = 'КЛИЗМА ('+he+') x'+q2;
     } catch (e) {}
 
     if (!inTime && alive){
@@ -3901,9 +4209,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const dmg = bossHitDmg(14, 50);
       const real = Math.min(parseInt(ff.hp||0,10)||0, dmg);
       ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real);
+      const b2 = BOSSES.find(x=>x.id===bossId);
+      if (b2){
+        bfInstantHelpDmg(bossId, ff, b2);
+      }
       bfSetFight(bossId, ff);
       bfLogPush(bossId, state.playerName||'PLAYER', real);
       bfTopAdd(bossId, state.playerName||'PLAYER', real);
+      clanAddBossDamage(real, state.playerName||'PLAYER');
       bfCheckWin(bossId);
       save();
       if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
@@ -3912,11 +4225,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     };
 
     function doTokenHit(kind){
-      const ff = bfGetFight(bossId);
-      if (!ff) return;
-      const left2 = Math.max(0, (parseInt(ff.expiresTs||0,10)||0) - now());
-      if (left2<=0 || (parseInt(ff.hp||0,10)||0)<=0) return;
-      const hs2 = state.bosses.hitStocks || { kick:0, knuckle:0, enema:0 };
+      const f2 = bfEnsureFight(bossId);
+      if (!f2) return;
+      const hs = state.bosses.hitStocks || { kick:0, knuckle:0, enema:0 };
+      const hs2 = { kick: parseInt(hs.kick||0,10)||0, knuckle: parseInt(hs.knuckle||0,10)||0, enema: parseInt(hs.enema||0,10)||0 };
       const q = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
       if (kind==='kick'){
         if ((hs2.kick||0) < q){ toast('Нужно купить пинки','lose'); return; }
@@ -3937,9 +4249,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const dmg = Math.max(1, one) * q;
       const real = Math.min(parseInt(ff.hp||0,10)||0, dmg);
       ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real);
+      const b2 = BOSSES.find(x=>x.id===bossId);
+      if (b2){
+        bfInstantHelpDmg(bossId, ff, b2);
+      }
       bfSetFight(bossId, ff);
       bfLogPush(bossId, state.playerName||'PLAYER', real);
       bfTopAdd(bossId, state.playerName||'PLAYER', real);
+      clanAddBossDamage(real);
       bfCheckWin(bossId);
       save();
       if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
@@ -4047,6 +4364,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const rm = pr ? (parseInt(pr.tooth||0,10)||0) : (parseInt(b.reward && b.reward.tooth || 0, 10) || 0);
       const rg = pr ? (parseInt(pr.gold||0,10)||0) : (parseInt(b.reward && b.reward.gold || 0, 10) || 0);
       let html = '';
+      try {
+        const bp = pr ? (parseFloat(pr.clanBonusPct||0) || 0) : 0;
+        if (bp > 0) {
+          html += '<div class="row"><div style="min-width:0">Бонус клана</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--gold)">+'+Math.round(bp*100)+'%</div></div>';
+        }
+      } catch (e) {}
       if (rm>0) html += '<div class="row"><div style="min-width:0">+'+rm+' зубов</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--tooth)">+'+rm+' 🦷</div></div>';
       if (rg>0) html += '<div class="row"><div style="min-width:0">+'+rg+' золота</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--gold)">+'+rg+' 🪙</div></div>';
       if (rxp>0) html += '<div class="row"><div style="min-width:0">+'+rxp+' XP</div><div class="badge" style="padding:6px 8px; font-size:11px">+'+rxp+' XP</div></div>';
@@ -4132,7 +4455,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const rxp = parseInt(b.reward && b.reward.xp || 0, 10) || 0;
     const rm = parseInt(b.reward && b.reward.tooth || 0, 10) || 0;
     const rg = parseInt(b.reward && b.reward.gold || 0, 10) || 0;
-    state.bosses.pendingReward = { bossId: bossId, xp: rxp, tooth: rm, gold: rg };
+    let bonusPct = 0;
+    try {
+      const c = clanGetMyClan();
+      if (c){
+        const cl = Math.max(1, parseInt(c.lvl||1,10)||1);
+        bonusPct = Math.max(0, cl * 0.05);
+      }
+    } catch (e) {}
+    const rm2 = Math.floor(rm * (1 + bonusPct));
+    const rg2 = Math.floor(rg * (1 + bonusPct));
+    state.bosses.pendingReward = { bossId: bossId, xp: rxp, tooth: rm2, gold: rg2, clanBonusPct: bonusPct };
     state.bosses.lastWinners[String(bossId)] = { name: (state.playerName||'PLAYER'), ts: now() };
 
     const nextReq = bossReq(bossId+1);
@@ -4673,17 +5006,474 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if ($('mClans').classList.contains('show')) renderClans();
   }
 
+  function clanLevelFromDmg(dmg){
+    const d = Math.max(0, Math.floor(dmg||0));
+    const th = [
+      0,
+      1000000,
+      10000000,
+      100000000,
+      1000000000,
+      10000000000,
+      100000000000,
+      1000000000000,
+      10000000000000,
+      100000000000000
+    ];
+    let lvl = 1;
+    for (let i=1;i<th.length;i++){
+      if (d >= th[i]) lvl = i+1;
+    }
+    return clamp(lvl, 1, 10);
+  }
+  function clanDbSeed(){
+    try {
+      if (!state.clansDb || !state.clansDb.clans) return;
+      if (state.clansDb.order && state.clansDb.order.length) return;
+      const names = ['Стая', 'Дворовые', 'Север', 'Тень', 'Синдикат', 'Клык'];
+      for (let i=0;i<names.length;i++){
+        const id = 'CLN'+String(state.clansDb.nextId++);
+        const nm = names[i];
+        const leader = nm+' БОСС';
+        const mem = [leader];
+        const totalBossDmg = Math.floor(Math.random()*8000000);
+        state.clansDb.clans[id] = { id, name:nm, leader, deputy:'', members:mem, apps:[], createdTs: now(), totalBossDmg, lvl: clanLevelFromDmg(totalBossDmg), bossDmgByMember:{}, memberMeta:{}, log:[], bankGold:0, filters:{ minLvl:1, minStats:0 }, chat:[] };
+        state.clansDb.order.push(id);
+      }
+    } catch (e) {}
+  }
+  function clanGetMyClan(){
+    const cid = (state.clan && state.clan.id) ? String(state.clan.id) : '';
+    if (!cid) return null;
+    return (state.clansDb && state.clansDb.clans && state.clansDb.clans[cid]) ? state.clansDb.clans[cid] : null;
+  }
+  function clanMyName(){
+    return String(state.playerName||'PLAYER').trim().substring(0, 18) || 'PLAYER';
+  }
+  function clanMyRole(c){
+    const me = clanMyName();
+    if (!c) return '';
+    if (String(c.leader||'') === me) return 'leader';
+    if (String(c.deputy||'') === me) return 'deputy';
+    if (Array.isArray(c.members) && c.members.includes(me)) return 'member';
+    return '';
+  }
+  function clanCanManage(c){
+    const r = clanMyRole(c);
+    return r === 'leader' || r === 'deputy';
+  }
+
+  function clanStatsSum(){
+    try {
+      return GYM_STATS.reduce((a,s)=>a + (parseInt(state.gym && state.gym[s.key] || 1,10) || 1), 0);
+    } catch (e) { return 0; }
+  }
+
+  function clanEnsureMemberMeta(c){
+    try {
+      if (!c) return;
+      if (!c.memberMeta || typeof c.memberMeta !== 'object') c.memberMeta = {};
+      const me = clanMyName();
+      if (!c.memberMeta[me] || typeof c.memberMeta[me] !== 'object') c.memberMeta[me] = {};
+      c.memberMeta[me].lvl = parseInt(state.level||1,10)||1;
+      c.memberMeta[me].stats = clanStatsSum();
+    } catch (e) {}
+  }
+
+  function clanGuessMemberMeta(name){
+    try {
+      const nm = String(name||'').trim();
+      if (!nm) return { lvl:1, stats:0 };
+      if (nm === clanMyName()) return { lvl: parseInt(state.level||1,10)||1, stats: clanStatsSum() };
+      const fr = (Array.isArray(state.friends) ? state.friends : []).find(x=>x && String(x.name||'')===nm);
+      if (fr) return { lvl: parseInt(fr.lvl||1,10)||1, stats: parseInt(fr.power||0,10)||0 };
+      return { lvl:1, stats:0 };
+    } catch (e) { return { lvl:1, stats:0 }; }
+  }
+
+  function clanLog(clanObj, text){
+    try {
+      if (!clanObj) return;
+      if (!Array.isArray(clanObj.log)) clanObj.log = [];
+      clanObj.log.unshift({ ts: now(), text: String(text||'') });
+      if (clanObj.log.length > 50) clanObj.log = clanObj.log.slice(0,50);
+    } catch (e) {}
+  }
+  function clanApply(clanId){
+    try {
+      const id = String(clanId||'');
+      if (!id) return;
+      if (state.clan && state.clan.id){ toast('Ты уже в клане','lose'); return; }
+      const c = state.clansDb.clans[id];
+      if (!c) return;
+      const me = clanMyName();
+      if (Array.isArray(c.apps) && c.apps.includes(me)) { toast('Заявка уже отправлена','lose'); return; }
+
+      const minLvl = (c.filters && typeof c.filters.minLvl !== 'undefined') ? (parseInt(c.filters.minLvl||1,10)||1) : 1;
+      const minStats = (c.filters && typeof c.filters.minStats !== 'undefined') ? (parseInt(c.filters.minStats||0,10)||0) : 0;
+      const myLvl = parseInt(state.level||1,10)||1;
+      const myStats = clanStatsSum();
+      if (myLvl < minLvl) { toast('Нужен уровень: '+minLvl,'lose'); return; }
+      if (myStats < minStats) { toast('Нужны характеристики: '+fmt4(minStats),'lose'); return; }
+
+      if (!Array.isArray(c.apps)) c.apps = [];
+      c.apps.push(me);
+      state.clansDb.myApps[id] = now();
+      save();
+      renderClans();
+      toast('Заявка отправлена','win');
+      haptic('light');
+    } catch (e) { toast('Не удалось отправить заявку','lose'); }
+  }
+  function clanAccept(applicantName){
+    const c = clanGetMyClan();
+    if (!c) return;
+    if (!clanCanManage(c)) { toast('Только глава или зам','lose'); return; }
+    const nm = String(applicantName||'').trim().substring(0, 18);
+    if (!nm) return;
+    if (!Array.isArray(c.apps)) c.apps = [];
+    c.apps = c.apps.filter(x=>String(x)!==nm);
+    if (!Array.isArray(c.members)) c.members = [];
+    if (c.members.length >= 100){ toast('Лимит: 100 участников','lose'); save(); renderClans(); return; }
+    if (!c.members.includes(nm)) c.members.push(nm);
+
+    if (!c.memberMeta || typeof c.memberMeta !== 'object') c.memberMeta = {};
+    if (!c.memberMeta[nm] || typeof c.memberMeta[nm] !== 'object') c.memberMeta[nm] = {};
+    const mm = clanGuessMemberMeta(nm);
+    c.memberMeta[nm].lvl = mm.lvl;
+    c.memberMeta[nm].stats = mm.stats;
+
+    clanLog(c, 'Принят в клан: ' + nm + ' (принял: ' + clanMyName() + ')');
+    save();
+    renderClans();
+    toast('Принят: '+nm,'win');
+    haptic('light');
+  }
+  function clanReject(applicantName){
+    const c = clanGetMyClan();
+    if (!c) return;
+    if (!clanCanManage(c)) { toast('Только глава или зам','lose'); return; }
+    const nm = String(applicantName||'').trim().substring(0, 18);
+    if (!nm) return;
+    if (!Array.isArray(c.apps)) c.apps = [];
+    c.apps = c.apps.filter(x=>String(x)!==nm);
+    clanLog(c, 'Отклонена заявка: ' + nm + ' (отклонил: ' + clanMyName() + ')');
+    save();
+    renderClans();
+    toast('Отклонено','lose');
+    haptic('light');
+  }
+  function clanLeave(){
+    const c = clanGetMyClan();
+    if (!c) return;
+    const me = clanMyName();
+    const r = clanMyRole(c);
+    if (r === 'leader') { toast('Глава не может выйти','lose'); return; }
+    if (Array.isArray(c.members)) c.members = c.members.filter(x=>String(x)!==me);
+    if (String(c.deputy||'') === me) c.deputy = '';
+    clanLog(c, 'Вышел из клана: ' + me);
+    state.clan = Object.assign({}, defaults.clan);
+    save();
+    renderHUD();
+    renderClans();
+    toast('Ты вышел из клана','win');
+    haptic('light');
+  }
+  function clanSetDeputy(){
+    const c = clanGetMyClan();
+    if (!c) return;
+    if (clanMyRole(c) !== 'leader') { toast('Только глава','lose'); return; }
+    const mem = Array.isArray(c.members) ? c.members.slice() : [];
+    const pick = prompt('Имя заместителя (точно как в списке):', (mem[1]||''));
+    if (!pick) return;
+    const nm = String(pick).trim().substring(0, 18);
+    if (!mem.includes(nm)) { toast('Нет такого участника','lose'); return; }
+    if (nm === String(c.leader||'')) { toast('Глава не может быть замом','lose'); return; }
+    const prev = c.deputy ? String(c.deputy) : '';
+    c.deputy = nm;
+    clanLog(c, 'Смена зама: ' + (prev?prev:'—') + ' → ' + nm + ' (сделал: ' + clanMyName() + ')');
+    save();
+    renderClans();
+    toast('Назначен заместитель','win');
+    haptic('light');
+  }
+
+  function clanSetFilters(){
+    const c = clanGetMyClan();
+    if (!c) return;
+    if (!clanCanManage(c)) { toast('Только глава или зам','lose'); return; }
+    if (!c.filters || typeof c.filters !== 'object') c.filters = { minLvl:1, minStats:0 };
+    const curLvl = parseInt(c.filters.minLvl||1,10)||1;
+    const curStats = parseInt(c.filters.minStats||0,10)||0;
+    const p1 = prompt('Мин. уровень для заявки:', String(curLvl));
+    if (p1===null) return;
+    const p2 = prompt('Мин. общие характеристики для заявки:', String(curStats));
+    if (p2===null) return;
+    const nl = clamp(parseInt(p1||'1',10)||1, 1, 999);
+    const ns = Math.max(0, parseInt(p2||'0',10)||0);
+    c.filters.minLvl = nl;
+    c.filters.minStats = ns;
+    clanLog(c, 'Фильтр заявок: ур. '+nl+' / статы '+fmt4(ns)+' (изменил: ' + clanMyName() + ')');
+    save();
+    renderClans();
+    toast('Фильтр сохранён','win');
+    haptic('light');
+  }
+
+  function clanTransferLeader(){
+    const c = clanGetMyClan();
+    if (!c) return;
+    if (clanMyRole(c) !== 'leader') { toast('Только глава','lose'); return; }
+    const mem = Array.isArray(c.members) ? c.members.slice() : [];
+    const pick = prompt('Новый глава (точно как в списке):', (mem[1]||''));
+    if (!pick) return;
+    const nm = String(pick).trim().substring(0, 18);
+    if (!mem.includes(nm)) { toast('Нет такого участника','lose'); return; }
+    if (nm === String(c.leader||'')) { toast('Он уже глава','lose'); return; }
+    const prev = String(c.leader||'');
+    c.leader = nm;
+    if (String(c.deputy||'') === nm) c.deputy = '';
+    clanLog(c, 'Смена главы: ' + (prev?prev:'—') + ' → ' + nm);
+    if (state.clan && state.clan.id === c.id){
+      state.clan.role = clanMyRole(c);
+    }
+    save();
+    renderClans();
+    toast('Глава назначен','win');
+    haptic('medium');
+  }
+
+  function clanDelete(){
+    const c = clanGetMyClan();
+    if (!c) return;
+    if (clanMyRole(c) !== 'leader') { toast('Только глава','lose'); return; }
+    if (!confirm('Удалить клан навсегда?')) return;
+    const id = String(c.id||'');
+    delete state.clansDb.clans[id];
+    if (Array.isArray(state.clansDb.order)) state.clansDb.order = state.clansDb.order.filter(x=>String(x)!==id);
+    try {
+      if (state.clansDb.myApps && typeof state.clansDb.myApps === 'object') delete state.clansDb.myApps[id];
+    } catch (e) {}
+    state.clan = Object.assign({}, defaults.clan);
+    save();
+    renderHUD();
+    renderClans();
+    toast('Клан удалён','win');
+    haptic('heavy');
+  }
+
+  function clanBankAdd(){
+    const c = clanGetMyClan();
+    if (!c) return;
+    const pick = prompt('Сколько 🪙 внести в банк клана?', '100');
+    if (!pick) return;
+    const amt = Math.max(0, Math.floor(parseInt(pick||'0',10)||0));
+    if (amt<=0) return;
+    if ((state.gold||0) < amt) { toast('Не хватает 🪙','lose'); return; }
+    state.gold -= amt;
+    c.bankGold = (parseInt(c.bankGold||0,10)||0) + amt;
+    clanLog(c, 'Взнос в банк: ' + clanMyName() + ' +' + amt + ' 🪙');
+    save();
+    renderHUD();
+    renderClans();
+    toast('Внесено: '+amt+' 🪙','win');
+    haptic('light');
+  }
+
+  function clanChatSend(){
+    const c = clanGetMyClan();
+    if (!c) return;
+    const txt = prompt('Сообщение в чат:', '');
+    if (txt===null) return;
+    const msg = String(txt||'').trim().substring(0, 140);
+    if (!msg) return;
+    if (!Array.isArray(c.chat)) c.chat = [];
+    c.chat.push({ ts: now(), from: clanMyName(), text: msg });
+    if (c.chat.length > 60) c.chat = c.chat.slice(0,60);
+    save();
+    renderClans();
+    haptic('light');
+  }
+
   function renderClans(){
-    const c = state.clan || { id:'', name:'', owner:'', createdTs:0 };
-    const has = !!(c && c.id && c.name);
-    try { $('clanStatus').textContent = has ? ('🏰 ' + c.name) : 'НЕТ'; } catch (e) {}
-    try { $('clanDesc').textContent = has ? ('Создатель: ' + (c.owner||'—')) : 'Создай свой клан и собирай братву.'; } catch (e) {}
+    clanDbSeed();
+    const myClan = clanGetMyClan();
+    const has = !!(myClan && myClan.id);
+    const me = clanMyName();
+    try { $('clanStatus').textContent = has ? ('🏰 ' + myClan.name) : 'НЕТ'; } catch (e) {}
+    try {
+      if (!has){
+        $('clanDesc').textContent = 'Создай клан или подай заявку в клан.';
+      } else {
+        const lvl = clanLevelFromDmg(myClan.totalBossDmg||0);
+        myClan.lvl = lvl;
+        clanEnsureMemberMeta(myClan);
+        const r = clanMyRole(myClan);
+        const rTxt = (r==='leader') ? 'ГЛАВА' : (r==='deputy' ? 'ЗАМ' : 'УЧАСТНИК');
+        const deputy = myClan.deputy ? String(myClan.deputy) : '—';
+        const members = Array.isArray(myClan.members) ? myClan.members.length : 0;
+        if (!myClan.filters || typeof myClan.filters !== 'object') myClan.filters = { minLvl:1, minStats:0 };
+        const fl = parseInt(myClan.filters.minLvl||1,10)||1;
+        const fs = parseInt(myClan.filters.minStats||0,10)||0;
+        $('clanDesc').innerHTML = 'Уровень: <b>'+lvl+'</b><br>Урон по боссам: <b>'+fmt4(myClan.totalBossDmg||0)+'</b><br>Роль: <b>'+rTxt+'</b><br>Глава: <b>'+String(myClan.leader||'—')+'</b><br>Зам: <b>'+deputy+'</b><br>Участники: <b>'+members+'/100</b><br>Фильтр заявок: <b>УР. '+fl+'</b> · <b>'+fmt4(fs)+'</b>';
+      }
+    } catch (e) {}
+
     const btn = $('clanCreate');
     if (btn){
       btn.style.display = has ? 'none' : '';
       btn.disabled = (state.gold||0) < 1000;
       btn.style.opacity = btn.disabled ? '.55' : '1';
     }
+    try {
+      const sd = $('clanSetDeputy');
+      if (sd){
+        sd.style.display = (has && clanMyRole(myClan)==='leader') ? '' : 'none';
+        sd.onclick = ()=>clanSetDeputy();
+      }
+    } catch (e) {}
+
+    try {
+      const sf = $('clanSetFilters');
+      if (sf){
+        sf.style.display = (has && clanCanManage(myClan)) ? '' : 'none';
+        sf.onclick = ()=>clanSetFilters();
+      }
+    } catch (e) {}
+
+    try {
+      const tp = $('clanTopOpen');
+      if (tp){
+        tp.style.display = has ? '' : 'none';
+        tp.onclick = ()=>{ openScreen('mClanTop'); renderClanTopModal(); haptic('light'); };
+      }
+    } catch (e) {}
+
+    try {
+      const ch = $('clanChatOpen');
+      if (ch){
+        ch.style.display = has ? '' : 'none';
+        ch.onclick = ()=>{ openScreen('mClanChat'); renderClanChatModal(); haptic('light'); };
+      }
+    } catch (e) {}
+
+    try {
+      const tr = $('clanTransfer');
+      if (tr){
+        tr.style.display = (has && clanMyRole(myClan)==='leader') ? '' : 'none';
+        tr.onclick = ()=>clanTransferLeader();
+      }
+    } catch (e) {}
+
+    try {
+      const del = $('clanDelete');
+      if (del){
+        del.style.display = (has && clanMyRole(myClan)==='leader') ? '' : 'none';
+        del.onclick = ()=>clanDelete();
+      }
+    } catch (e) {}
+    try {
+      const lv = $('clanLeave');
+      if (lv){
+        lv.style.display = has ? '' : 'none';
+        lv.onclick = ()=>clanLeave();
+      }
+    } catch (e) {}
+
+    try {
+      const appsBox = $('clanAppsList');
+      const appsBadge = $('clanAppsBadge');
+      if (appsBox && appsBadge){
+        if (!has){
+          appsBadge.textContent = '—';
+          appsBox.innerHTML = '<div style="opacity:.75; font-size:12px">—</div>';
+        } else {
+          const apps = Array.isArray(myClan.apps) ? myClan.apps : [];
+          appsBadge.textContent = String(apps.length);
+          if (!apps.length){
+            appsBox.innerHTML = '<div style="opacity:.75; font-size:12px">—</div>';
+          } else {
+            const can = clanCanManage(myClan);
+            appsBox.innerHTML = apps.map(nm=>{
+              const btns = can ? ('<button class="btn btnMini" data-ca="'+encodeURIComponent(nm)+'">ПРИНЯТЬ</button>'
+                + '<button class="btn btnMini" data-cr="'+encodeURIComponent(nm)+'" style="opacity:.85">ОТКЛОН</button>') : '';
+              return '<div class="row">'
+                + '<div style="min-width:0; font-size:12px; opacity:.9">'+String(nm)+'</div>'
+                + '<div style="display:flex; gap:6px">'+btns+'</div>'
+                + '</div>';
+            }).join('');
+            appsBox.querySelectorAll('[data-ca]').forEach(b=>{
+              b.onclick = ()=>clanAccept(decodeURIComponent(b.getAttribute('data-ca')));
+            });
+            appsBox.querySelectorAll('[data-cr]').forEach(b=>{
+              b.onclick = ()=>clanReject(decodeURIComponent(b.getAttribute('data-cr')));
+            });
+          }
+        }
+      }
+    } catch (e) {}
+
+    try {
+      const listBox = $('clanList');
+      const listBadge = $('clanListBadge');
+      if (listBox && listBadge){
+        const ids = Array.isArray(state.clansDb.order) ? state.clansDb.order : [];
+        listBadge.textContent = String(ids.length);
+        listBox.innerHTML = ids.map(id=>{
+          const c = state.clansDb.clans[id];
+          if (!c) return '';
+          const lvl = clanLevelFromDmg(c.totalBossDmg||0);
+          c.lvl = lvl;
+          const members = Array.isArray(c.members) ? c.members.length : 0;
+          const apped = !!(state.clansDb.myApps && state.clansDb.myApps[id]);
+          const canApply = (!has && !apped);
+          const btn = canApply ? ('<button class="btn btnMini" data-clan-apply="'+id+'">ЗАЯВКА</button>') : (apped ? '<div class="badge" style="padding:6px 8px; font-size:11px">ЖДЁТ</div>' : '');
+          return '<div class="row">'
+            + '<div style="min-width:0">'
+            + '<div class="k">'+String(c.name).toUpperCase()+'</div>'
+            + '<div style="font-size:12px; opacity:.78; margin-top:4px">ЛВЛ '+lvl+' · Участники '+members+'/100 · Урон '+fmt4(c.totalBossDmg||0)+'</div>'
+            + '</div>'
+            + '<div>'+btn+'</div>'
+            + '</div>';
+        }).join('') || '<div style="opacity:.75; font-size:12px">—</div>';
+
+        listBox.querySelectorAll('[data-clan-apply]').forEach(b=>{
+          b.onclick = ()=>clanApply(b.getAttribute('data-clan-apply'));
+        });
+      }
+    } catch (e) {}
+
+    try {
+      const bank = $('clanBankGold');
+      const addBtn = $('clanBankAdd');
+      if (bank && addBtn){
+        if (!has){
+          bank.textContent = '—';
+          addBtn.style.display = 'none';
+        } else {
+          bank.textContent = String(parseInt(myClan.bankGold||0,10)||0) + ' 🪙';
+          addBtn.style.display = '';
+          addBtn.onclick = ()=>clanBankAdd();
+        }
+      }
+    } catch (e) {}
+
+    try {
+      const logBox = $('clanLogList');
+      const logBadge = $('clanLogBadge');
+      if (logBox && logBadge){
+        if (!has){
+          logBadge.textContent = '—';
+          logBox.innerHTML = '<div style="opacity:.75; font-size:12px">—</div>';
+        } else {
+          const arr = Array.isArray(myClan.log) ? myClan.log : [];
+          logBadge.textContent = String(arr.length);
+          logBox.innerHTML = arr.length ? arr.slice(0, 30).map(e=>{
+            return '<div style="font-size:12px; opacity:.9; line-height:1.35">'+String(e.text||'—')+'</div>';
+          }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+        }
+      }
+    } catch (e) {}
   }
   function clanCreate(){
     if (state.clan && state.clan.id){ toast('Ты уже в клане','lose'); return; }
@@ -4692,9 +5482,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!name) return;
     const nm = String(name).trim().substring(0, 18);
     if (!nm){ toast('Введите название','lose'); return; }
+    clanDbSeed();
     state.gold -= 1000;
-    const id = 'CL' + String(now()) + String(Math.floor(Math.random()*1000));
-    state.clan = { id:id, name:nm, owner:(state.playerName||'PLAYER'), createdTs: now() };
+    const id = 'CLN'+String(state.clansDb.nextId++);
+    const me = clanMyName();
+    const obj = { id:id, name:nm, leader: me, deputy:'', members:[me], apps:[], createdTs: now(), totalBossDmg:0, lvl:1, bossDmgByMember:{}, memberMeta:{}, log:[], bankGold:0, filters:{ minLvl:1, minStats:0 }, chat:[] };
+    clanEnsureMemberMeta(obj);
+    clanLog(obj, 'Клан создан');
+    state.clansDb.clans[id] = obj;
+    state.clansDb.order.unshift(id);
+    state.clan = { id:id, name:nm, owner: me, createdTs: now(), role:'leader', deputy:'', joinedTs: now() };
     save();
     renderHUD();
     renderClans();
@@ -5153,6 +5950,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     $('btnClans').onclick = ()=>{ openScreen('mClans'); renderClans(); haptic('light'); };
 
     try {
+      const ob = $('openTopBros');
+      if (ob) ob.onclick = ()=>{ openScreen('mTopBros'); renderTopBrosModal(); haptic('light'); };
+    } catch (e) {}
+
+    try {
       const cc = $('clanCreate');
       if (cc) cc.onclick = ()=>clanCreate();
     } catch (e) {}
@@ -5161,9 +5963,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const tl = $('top100Lvl');
       const tw = $('top100Wealth');
       const tb = $('top100Boss');
+      const tc = $('top100Clans');
       if (tl) tl.onclick = ()=>{ renderTop100('LVL'); haptic('light'); };
       if (tw) tw.onclick = ()=>{ renderTop100('WEALTH'); haptic('light'); };
       if (tb) tb.onclick = ()=>{ renderTop100('BOSS'); haptic('light'); };
+      if (tc) tc.onclick = ()=>{ renderTop100('CLANS'); haptic('light'); };
     } catch (e) {}
 
     try {
@@ -5240,19 +6044,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       haptic('light');
     };
 
-    $('inviteBtn').onclick = ()=>{
-      try {
-        const url = location.href;
-        const text = 'Сыграй со мной в «Братство Конца» в Telegram!';
-        const share = 'https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(text);
-        if (tg && tg.openTelegramLink) tg.openTelegramLink(share);
-        else if (tg && tg.openLink) tg.openLink(share);
-        else window.open(share, '_blank');
-        toast('Открываю приглашение…','gold');
-      } catch (e) {
-        toast('Не удалось открыть приглашение','lose');
+    try {
+      const it = $('inviteBtn');
+      if (it) {
+        it.onclick = ()=>{
+          try {
+            const url = location.href;
+            const text = 'Сыграй со мной в «Братство Конца» в Telegram!';
+            const share = 'https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(text);
+            if (tg && tg.openTelegramLink) tg.openTelegramLink(share);
+            else if (tg && tg.openLink) tg.openLink(share);
+            else window.open(share, '_blank');
+            toast('Открываю приглашение…','gold');
+          } catch (e) {
+            toast('Не удалось открыть приглашение','lose');
+          }
+        };
       }
-    };
+    } catch (e) {}
 
     $('setSound').onchange = (e)=>{ state.settings.sound = !!e.target.checked; save(); };
     $('setHaptics').onchange = (e)=>{ state.settings.haptics = !!e.target.checked; save(); };
@@ -5275,6 +6084,39 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const lvl = parseInt(state.level||1,10)||1;
     const stats = GYM_STATS.reduce((a,s)=>a + (parseInt(state.gym && state.gym[s.key] || 1,10) || 1), 0);
     const bossesWins = 0;
+
+    if (kind==='CLANS'){
+      try { clanDbSeed(); } catch (e0) {}
+      const ids = (state.clansDb && Array.isArray(state.clansDb.order)) ? state.clansDb.order.slice() : [];
+      const rows2 = ids.map(id=>{
+        const c = state.clansDb.clans && state.clansDb.clans[id] ? state.clansDb.clans[id] : null;
+        if (!c) return null;
+        const total = parseInt(c.totalBossDmg||0,10)||0;
+        const lvl2 = clanLevelFromDmg(total);
+        const members = Array.isArray(c.members) ? c.members.length : 0;
+        return { id, name:String(c.name||'—'), lvl:lvl2, dmg:total, members:members };
+      }).filter(Boolean);
+
+      const sorted2 = rows2.slice().sort((a,b)=>{
+        if (b.lvl !== a.lvl) return b.lvl - a.lvl;
+        return (b.dmg||0) - (a.dmg||0);
+      }).slice(0,100);
+
+      box.innerHTML = sorted2.map((r,idx)=>{
+        const medal = idx===0 ? '🥇' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
+        const mStyle = idx===0 ? 'color:var(--gold);' : (idx===1 ? 'color:rgba(226,232,240,.95);' : (idx===2 ? 'color:rgba(251,146,60,.95);' : ''));
+        const left = medal ? ('<div class="badge" style="padding:6px 8px; font-size:11px; '+mStyle+'">'+medal+'</div>') : '';
+        const val = 'ЛВЛ '+r.lvl+' · '+fmt4(r.dmg)+' · '+r.members+'/100';
+        return '<div class="row">'
+          + '<div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1">'
+          + left
+          + '<div style="min-width:0; font-size:12px; opacity:.9">#'+(idx+1)+' '+r.name+'</div>'
+          + '</div>'
+          + '<div class="badge" style="padding:6px 8px; font-size:11px">'+val+'</div>'
+          + '</div>';
+      }).join('') || '<div style="opacity:.75; font-size:12px">—</div>';
+      return;
+    }
 
     const rows = [];
     for (let i=1;i<=99;i++){
