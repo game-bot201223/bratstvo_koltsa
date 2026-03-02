@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mora-enhanced-v4';
+const CACHE_NAME = 'mora-enhanced-v5';
 
 const PRECACHE_URLS = [
   './',
