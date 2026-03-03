@@ -254,6 +254,39 @@ async function postgrestInsertEvents(
   })
 }
 
+async function postgrestGetUsedHelpDamage(
+  projectUrl: string,
+  serviceKey: string,
+  toTgId: string,
+  fromTgId: string,
+  bossId: number,
+  sinceIso: string,
+): Promise<number> {
+  try {
+    const url = projectUrl.replace(/\/$/, "") +
+      `/rest/v1/boss_help_events?to_tg_id=eq.${encodeURIComponent(toTgId)}` +
+      `&from_tg_id=eq.${encodeURIComponent(fromTgId)}` +
+      `&boss_id=eq.${encodeURIComponent(String(bossId))}` +
+      `&created_at=gte.${encodeURIComponent(sinceIso)}` +
+      `&select=dmg&limit=1000`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp.ok) return 0
+    const rows = await resp.json().catch(() => [])
+    if (!Array.isArray(rows) || !rows.length) return 0
+    let sum = 0
+    for (const r of rows) {
+      const v = safeInt((r as any)?.dmg, 0)
+      if (v > 0) sum += v
+    }
+    return Math.max(0, Math.floor(sum))
+  } catch (_e) {
+    return 0
+  }
+}
+
 async function postgrestApplyBossDamage(
   projectUrl: string,
   serviceKey: string,
@@ -449,6 +482,7 @@ Deno.serve(async (req: Request) => {
 
   const ts = new Date().toISOString()
   const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
+  const windowStartIso = new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()
 
   // Apply damage server-side immediately so recipient boss HP updates even if offline
   // Best-effort: failure here should not block logging events.
@@ -463,7 +497,9 @@ Deno.serve(async (req: Request) => {
           const lvl = clampInt(safeInt(lvlRaw, 0), 0, 10)
           const capPct = 0.10 + lvl * 0.01
           const cap = Math.max(0, Math.floor(def.max_hp * capPct))
-          applied = Math.max(0, Math.min(dmg, cap))
+          const used = await postgrestGetUsedHelpDamage(projectUrl, serviceKey, String(toTgId), senderTgId, bossId, windowStartIso)
+          const remain = Math.max(0, cap - Math.max(0, used))
+          applied = Math.max(0, Math.min(dmg, remain))
         } else {
           const lvlRaw = st && typeof st === "object" ? (st as any).friendHelpLvl : 0
           const lvl = clampInt(safeInt(lvlRaw, 0), 0, 10)
@@ -474,7 +510,13 @@ Deno.serve(async (req: Request) => {
       } catch (_e) {
         const capPct = 0.10
         const cap = Math.max(0, Math.floor(def.max_hp * capPct))
-        applied = Math.max(0, Math.min(dmg, cap))
+        if (clanId) {
+          const used = await postgrestGetUsedHelpDamage(projectUrl, serviceKey, String(toTgId), senderTgId, bossId, windowStartIso)
+          const remain = Math.max(0, cap - Math.max(0, used))
+          applied = Math.max(0, Math.min(dmg, remain))
+        } else {
+          applied = Math.max(0, Math.min(dmg, cap))
+        }
       }
 
       try {
