@@ -239,10 +239,10 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  const ok = !!(r as any).ok
-  const hpRaw = (r as any).hp
+  const ok = !!(r as any).r_ok
+  const hpRaw = (r as any).r_hp
   const hp = (hpRaw === null || typeof hpRaw === "undefined") ? null : Number(hpRaw)
-  const rewardClaimed = !!(r as any).reward_claimed
+  const rewardClaimed = !!(r as any).r_reward_claimed
 
   return new Response(JSON.stringify({ ok: true, can_claim: ok, hp, reward_claimed: rewardClaimed, reward: def.reward, boss: def }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },

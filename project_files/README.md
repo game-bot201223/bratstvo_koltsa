@@ -24,6 +24,8 @@
 - `../supabase/migrations/**` — SQL‑миграции (включая функции `apply_boss_damage_v2`, `claim_boss_reward` и таблицы `player_boss_fights`, `boss_help_events`, `players`, `clans` и т.д.).
 - `../supabase/remote-schema*.sql` — дампы схемы базы (для отладки/документации).
 
+**Полный аудит** (все файлы, цепочки вызовов, типичные проблемы) — см. корневой файл `../PROJECT_AUDIT.md`.
+
 ## Прочее
 
 - `../README.md` — корневой README репозитория.
