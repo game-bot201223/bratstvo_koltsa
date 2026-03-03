@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mora-enhanced-v6';
+const CACHE_NAME = 'mora-enhanced-v7';
 
 const PRECACHE_URLS = [
   './manifest.json'
@@ -46,12 +46,7 @@ self.addEventListener('fetch', (event) => {
 
   if (isNavigationRequest(request)) {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          return response;
-        })
+      fetch(request, { cache: 'no-store' })
         .catch(() => fetch('./index.html', { cache: 'no-store' }))
     );
     return;
