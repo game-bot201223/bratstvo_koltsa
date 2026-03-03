@@ -5713,11 +5713,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         toast('+1 атака','win');
         save();
 
-        // enter boss fight immediately, bypassing bossDailyCanStart/bossDailyInc
+        // enter boss fight: do not hide mBoss so stack stays valid and we don't land on main
         state.bosses.pendingAttackId = id;
-        hideModal('mBossAttack');
-        hideModal('mBoss');
         state.bosses.activeFightId = id;
+        hideModal('mBossAttack');
         showModal('mBossFight');
         bfEnsureFight(id);
         bfRender(id);
@@ -5730,6 +5729,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
 
     const table = $('baTable');
+    if (!state.bosses.keys) state.bosses.keys = {};
     let html = '';
     BOSSES.forEach(bb=>{
       if (bb.id<=1) return;
@@ -5766,7 +5766,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const id = parseInt(state.bosses.pendingAttackId||0,10)||0;
       if (!id) return;
       if (!bossHasAccess(id)) {
-        // No keys: open pass shop directly
         showModal('mBossAttack');
         renderBossPassShop(id);
         toast('Не хватает ключей','lose');
@@ -5789,9 +5788,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const have = bossKeyCount(rr.itemKey);
         state.bosses.keys[String(rr.itemKey)] = Math.max(0, have - rr.need);
       }
-      hideModal('mBossAttack');
-      hideModal('mBoss');
       state.bosses.activeFightId = id;
+      hideModal('mBossAttack');
       showModal('mBossFight');
       bfEnsureFight(id);
       bfRender(id);
