@@ -1999,6 +1999,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   let __srvLastSent = 0;
   let __srvEnabled = true;
   let __dbgOn = false;
+  let __dbgFreeze = false;
   let __lastCloudErr = '';
   let __lastCloudFn = '';
   let __lastCloudTs = 0;
@@ -2064,6 +2065,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }, 1000);
     } catch (e) {}
   }
+  try {
+    const elBossDbg = $('bfCloudDbg');
+    if (elBossDbg){
+      elBossDbg.onclick = ()=>{ __dbgFreeze = !__dbgFreeze; };
+    }
+  } catch (e0) {}
   function tgInitData(){
     try { return (tg && typeof tg.initData==='string') ? tg.initData : ''; } catch (e) { return ''; }
   }
@@ -2252,14 +2259,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e00) {}
     try {
-      let extra = '';
-      if (payload && typeof payload === 'object') {
-        if (Object.prototype.hasOwnProperty.call(payload, 'clan_id')) extra = ' cid=' + String(payload.clan_id);
-        else if (Object.prototype.hasOwnProperty.call(payload, 'id')) extra = ' id=' + String(payload.id);
+      if (!__dbgFreeze) {
+        let extra = '';
+        if (payload && typeof payload === 'object') {
+          if (Object.prototype.hasOwnProperty.call(payload, 'clan_id')) extra = ' cid=' + String(payload.clan_id);
+          else if (Object.prototype.hasOwnProperty.call(payload, 'id')) extra = ' id=' + String(payload.id);
+        }
+        __lastCloudFn = String(fnName||'') + extra;
       }
-      __lastCloudFn = String(fnName||'') + extra;
-    } catch (e0) { __lastCloudFn = String(fnName||''); }
-    try { __lastCloudTs = now(); } catch (e00) { __lastCloudTs = (new Date()).getTime(); }
+    } catch (e0) { if (!__dbgFreeze) __lastCloudFn = String(fnName||''); }
+    try { if (!__dbgFreeze) __lastCloudTs = now(); } catch (e00) { if (!__dbgFreeze) __lastCloudTs = (new Date()).getTime(); }
     const resp = await fetch(url, {
       method: 'POST',
       headers: {
@@ -2317,7 +2326,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (t) err = err + ':' + t.slice(0, 120);
         }
       } catch (e1) {}
-      try { __lastCloudErr = String(err||''); dbgUpdate(); } catch (e2) {}
+      try {
+        if (!__dbgFreeze) __lastCloudErr = String(err||'');
+        dbgUpdate();
+      } catch (e2) {}
       throw new Error(String(err));
     }
     // Do not clear __lastCloudErr on success so that the last error
