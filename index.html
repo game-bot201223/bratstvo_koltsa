@@ -137,19 +137,25 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .mainCharacter{
   flex:0 0 auto;
   min-height:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:0 8px 0;
+  display:block;
+  width:100%;
+  margin:0;
+  padding:0;
+  border-top:1px solid rgba(32,22,14,.25);
+  border-bottom:1px solid rgba(32,22,14,.25);
+  border-radius:0;
+  box-sizing:border-box;
 }
 .mainCharacter img{
   width:100%;
-  max-width:100%;
   height:auto;
-  max-height:28vh;
-  object-fit:contain;
-  pointer-events:none;
+  max-width:100%;
   display:block;
+  object-fit:contain;
+  object-position:center top;
+  pointer-events:none;
+  border-radius:0;
+  vertical-align:top;
 }
 .hero{
   margin:12px 14px 0;
@@ -5732,6 +5738,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
         state.bosses.pendingAttackId = id;
         state.bosses.activeFightId = id;
+        window.__ignoreOverlayClickOnce = true;
         showModal('mBossFight');
         hideModal('mBossAttack');
         bfEnsureFight(id);
@@ -5805,6 +5812,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         state.bosses.keys[String(rr.itemKey)] = Math.max(0, have - rr.need);
       }
       state.bosses.activeFightId = id;
+      window.__ignoreOverlayClickOnce = true;
       hideModal('mBossAttack');
       showModal('mBossFight');
       bfEnsureFight(id);
@@ -5877,10 +5885,46 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function setBossHp(id, hp){
     state.bosses.hp[String(id)] = Math.max(0, Math.floor(hp||0));
   }
+  function bossMechanicsStatus(){
+    try {
+      const hasUrl = !!String(SUPABASE_URL||'').trim();
+      const hasKey = !!String(SUPABASE_ANON_KEY||'').trim();
+      const init = tgInitData();
+      const hasTg = !!init;
+      const cloudOn = hasUrl && hasKey && hasTg;
+      const err = String(__lastCloudErr||'').trim();
+      const fn = String(__lastCloudFn||'').trim();
+      if (!hasTg) {
+        return 'TG initData: ОТСУТСТВУЕТ. Запусти игру из Telegram, а не из браузера.';
+      }
+      if (!hasUrl || !hasKey) {
+        return 'СЕРВЕР БОССОВ: НЕ НАСТРОЕН (нет URL или KEY).';
+      }
+      if (err) {
+        return 'СЕРВЕР БОССОВ: ОШИБКА\n' +
+          (fn ? ('Метод: ' + fn + '\n') : '') +
+          'Сообщение: ' + err;
+      }
+      if (cloudOn) {
+        return 'СЕРВЕР БОССОВ: OK (подключение есть, ошибок нет).';
+      }
+      return 'СЕРВЕР БОССОВ: ЛОКАЛЬНЫЙ РЕЖИМ.';
+    } catch (e) {
+      return '';
+    }
+  }
   function renderBosses(){
     try { bossFightsCloudPullMaybe().catch(()=>{}); } catch (e0) {}
     const box = $('bossList');
     let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+    const status = bossMechanicsStatus();
+    const statusHtml = status ? String(status).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
+    if (statusHtml){
+      html += '<div class="card">'
+        + '<div class="row"><div class="k">СТАТУС БОССОВ</div></div>'
+        + '<div style="margin-top:6px; font-size:11px; opacity:.8; white-space:pre-wrap; word-break:break-word;">'+statusHtml+'</div>'
+        + '</div>';
+    }
     html += '<div class="card">'
       + '<div class="row"><div style="min-width:0"><div class="k">НАВЫК</div><div style="font-size:12px;opacity:.75;margin-top:4px">Помощь братков</div></div>'
       + '<button class="btn btnSmall" id="friendHelpOpen">ПОМОЩЬ БРАТКОВ</button></div>'
@@ -7351,7 +7395,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e0) {}
 
-    $('overlay').onclick = ()=>hideTop();
+    $('overlay').onclick = ()=>{
+      if (window.__ignoreOverlayClickOnce) { window.__ignoreOverlayClickOnce = false; return; }
+      hideTop();
+    };
 
     $('settingsBtn').onclick = ()=>{ showModal('mSettings'); renderAll(); haptic('light'); };
     $('shopBtn').onclick = ()=>{ showModal('mShop'); renderShop(); haptic('light'); };
