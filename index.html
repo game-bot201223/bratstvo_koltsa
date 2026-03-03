@@ -134,6 +134,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   flex-direction:column;
   background:var(--paper);
 }
+.mainCharacter{
+  flex:1;
+  min-height:100px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px 8px;
+}
+.mainCharacter img{
+  max-width:100%;
+  max-height:28vh;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+  pointer-events:none;
+}
 .hero{
   margin:12px 14px 0;
   border-radius:var(--r);
@@ -527,6 +543,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   </div>
 
   <div class="main">
+    <div class="mainCharacter">
+      <img src="персонаж.png" alt="">
+    </div>
     <div class="bottomStack">
       <div class="dock">
         <div class="dockRow">
