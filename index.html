@@ -1990,7 +1990,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Storage
   const SAVE_KEY_BASE = 'mora_mobile_save_v2';
   const CURRENCY_CAP = 999999999999;
-  const BUILD_ID = '2026-03-03_07-38';
+  const BUILD_ID = '2026-03-03_07-48';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   let __srvDirty = false;
@@ -2000,6 +2000,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   let __dbgOn = false;
   let __lastCloudErr = '';
   let __lastCloudFn = '';
+  let __lastCloudTs = 0;
   function dbgText(){
     try {
       const id = tgInitData();
@@ -2011,7 +2012,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const url = String(SUPABASE_URL||'');
       const err = String(__lastCloudErr||'');
       const fn = String(__lastCloudFn||'');
-      return 'BUILD '+BUILD_ID+'\nTG '+(hasTg?'ON':'OFF')+' len '+String(id?String(id).length:0)+' hash '+(hasHash?'ON':'OFF')+' user '+(hasUser?'ON':'OFF')+'\nSB URL '+url+'\nSB KEY '+keyPrefix+'\nLAST '+(fn?fn+' ':'')+err;
+      let ago = '';
+      try {
+        if (__lastCloudTs) {
+          const s = Math.max(0, Math.floor((now() - (parseInt(__lastCloudTs||0,10)||0)) / 1000));
+          ago = ' · ' + String(s) + 's ago';
+        }
+      } catch (e0) {}
+      return 'BUILD '+BUILD_ID+'\nTG '+(hasTg?'ON':'OFF')+' len '+String(id?String(id).length:0)+' hash '+(hasHash?'ON':'OFF')+' user '+(hasUser?'ON':'OFF')+'\nSB URL '+url+'\nSB KEY '+keyPrefix+'\nLAST '+(fn?fn+' ':'')+err+(fn?ago:'');
     } catch (e) { return 'DEBUG '+BUILD_ID; }
   }
   function dbgUpdate(){
@@ -2026,6 +2034,19 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function dbgToggle(){
     __dbgOn = !__dbgOn;
     dbgUpdate();
+  }
+
+  let __dbgTickT = 0;
+  function dbgTickStart(){
+    try {
+      if (__dbgTickT) return;
+      __dbgTickT = setInterval(()=>{
+        try {
+          if (!__dbgOn) return;
+          dbgUpdate();
+        } catch (e0) {}
+      }, 1000);
+    } catch (e) {}
   }
   function tgInitData(){
     try { return (tg && typeof tg.initData==='string') ? tg.initData : ''; } catch (e) { return ''; }
@@ -2222,6 +2243,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
       __lastCloudFn = String(fnName||'') + extra;
     } catch (e0) { __lastCloudFn = String(fnName||''); }
+    try { __lastCloudTs = now(); } catch (e00) { __lastCloudTs = (new Date()).getTime(); }
     const resp = await fetch(url, {
       method: 'POST',
       headers: {
@@ -7577,6 +7599,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (ss){ ss.onclick = dbgToggle; ss.style.cursor = 'pointer'; }
       } catch (e0) {}
       try { dbgUpdate(); } catch (e01) {}
+      try { dbgTickStart(); } catch (e02) {}
       try {
         const id = tgInitData();
         if (!id) {
