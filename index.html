@@ -1967,7 +1967,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Storage
   const SAVE_KEY = 'mora_mobile_save_v2';
   const CURRENCY_CAP = 999999999999;
-  const BUILD_ID = '2026-03-03_03-26';
+  const BUILD_ID = '2026-03-03_03-33';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   let __srvDirty = false;
@@ -4920,6 +4920,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const f = bfEnsureFight(bossId);
     if (!f) { toast('Босс повержен. Забери награду.','lose'); return; }
 
+    try {
+      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+        const chp = bossHp(bossId);
+        f.hp = Math.max(0, parseInt(chp||0,10)||0);
+        bfSetFight(bossId, f);
+        if ((parseInt(f.hp||0,10)||0) <= 0) {
+          try { hideModal('mBfShop'); } catch (e0) {}
+          try { hideModal('mBossFight'); } catch (e1) {}
+          toast('Босс повержен. Забери награду.','lose');
+          return;
+        }
+      }
+    } catch (e00) {}
+
     function bossGymTotal(){
       try {
         if (!Array.isArray(GYM_STATS)) return 0;
@@ -5289,6 +5303,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   function bfCheckWin(bossId){
+    try {
+      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+        // Cloud mode: server controls win/reward. Do not grant local rewards.
+        return;
+      }
+    } catch (e00) {}
     const b = BOSSES.find(x=>x.id===bossId);
     if (!b) return;
     const f = bfGetFight(bossId);
@@ -5567,7 +5587,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const rm = parseInt(b.reward && b.reward.tooth || 0, 10) || 0;
       const rg = parseInt(b.reward && b.reward.gold || 0, 10) || 0;
       const dead = (parseInt(hp||0,10)||0) <= 0;
-      const hasPending = dead;
+      let canClaim = dead;
+      try {
+        if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+          const k = String(b.id);
+          const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[k];
+          canClaim = !!(cc && typeof cc === 'object' && (parseInt(cc.hp||0,10)||0) <= 0);
+        }
+      } catch (e0) {}
       html += '<div class="card">'
         + '<div class="bossWinnerTop">ПОСЛЕДНИЙ ПОБЕДИТЕЛЬ</div>'
         + '<div class="bossWinnerNm">'+lwName+'</div>'
@@ -5584,7 +5611,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '</div>'
         + '<div style="margin-top:6px; display:flex; flex-direction:column; gap:6px">'
         + (dead
-            ? (hasPending
+            ? (canClaim
                 ? '<button class="btn btnMini bossAtkBtn" data-boss-claim="'+b.id+'">ЗАБРАТЬ НАГРАДУ</button>'
                 : '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:.75" disabled>НАПАСТЬ</button>'
               )
