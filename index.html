@@ -137,10 +137,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .mainCharacter{
   flex:0 0 auto;
   min-height:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  margin:0 -14px 0;
+  display:block;
+  width:100%;
+  margin:0;
   padding:0;
   border-top:1px solid rgba(32,22,14,.25);
   border-bottom:1px solid rgba(32,22,14,.25);
@@ -149,13 +148,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 }
 .mainCharacter img{
   width:100%;
-  max-width:100%;
   height:auto;
-  max-height:28vh;
-  object-fit:contain;
-  pointer-events:none;
+  max-width:100%;
   display:block;
+  object-fit:contain;
+  object-position:center top;
+  pointer-events:none;
   border-radius:0;
+  vertical-align:top;
 }
 .hero{
   margin:12px 14px 0;
