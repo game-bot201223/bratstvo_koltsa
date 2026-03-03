@@ -140,7 +140,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:0 8px 0;
+  margin:0 -14px 0;
+  padding:0;
+  border-top:1px solid rgba(32,22,14,.25);
+  border-bottom:1px solid rgba(32,22,14,.25);
+  border-radius:0;
+  box-sizing:border-box;
 }
 .mainCharacter img{
   width:100%;
@@ -150,6 +155,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   object-fit:contain;
   pointer-events:none;
   display:block;
+  border-radius:0;
 }
 .hero{
   margin:12px 14px 0;
@@ -5732,6 +5738,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
         state.bosses.pendingAttackId = id;
         state.bosses.activeFightId = id;
+        window.__ignoreOverlayClickOnce = true;
         showModal('mBossFight');
         hideModal('mBossAttack');
         bfEnsureFight(id);
@@ -5805,6 +5812,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         state.bosses.keys[String(rr.itemKey)] = Math.max(0, have - rr.need);
       }
       state.bosses.activeFightId = id;
+      window.__ignoreOverlayClickOnce = true;
       hideModal('mBossAttack');
       showModal('mBossFight');
       bfEnsureFight(id);
@@ -7351,7 +7359,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e0) {}
 
-    $('overlay').onclick = ()=>hideTop();
+    $('overlay').onclick = ()=>{
+      if (window.__ignoreOverlayClickOnce) { window.__ignoreOverlayClickOnce = false; return; }
+      hideTop();
+    };
 
     $('settingsBtn').onclick = ()=>{ showModal('mSettings'); renderAll(); haptic('light'); };
     $('shopBtn').onclick = ()=>{ showModal('mShop'); renderShop(); haptic('light'); };
