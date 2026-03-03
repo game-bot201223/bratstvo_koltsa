@@ -67,7 +67,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
  /* Top HUD */
  .hud{
-   padding:12px 14px 10px;
+   padding:12px 14px 0;
   background:var(--sheet0);
   border-bottom:1px solid rgba(32,22,14,.26);
    backdrop-filter: blur(16px);
@@ -135,20 +135,21 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   background:var(--paper);
 }
 .mainCharacter{
-  flex:1;
-  min-height:100px;
+  flex:0 0 auto;
+  min-height:0;
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:12px 8px;
+  padding:0 8px 0;
 }
 .mainCharacter img{
+  width:100%;
   max-width:100%;
-  max-height:28vh;
-  width:auto;
   height:auto;
+  max-height:28vh;
   object-fit:contain;
   pointer-events:none;
+  display:block;
 }
 .hero{
   margin:12px 14px 0;
@@ -166,7 +167,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .timeCenter{margin:10px 14px 0;text-align:center;font-size:11px;letter-spacing:2px;opacity:.78;}
 .timeTop{padding:8px 14px 0;text-align:center;font-size:11px;letter-spacing:2px;opacity:.78;}
 
-.heroGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:0 8px 8px;}
+.heroGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:0 8px 0;}
  .tile{border-radius:12px;border:1px solid rgba(32,22,14,.24);background:rgba(255,255,255,.10);padding:5px 5px;min-height:40px;display:flex;flex-direction:column;justify-content:center;gap:3px;}
 .tile .k{font-size:10px;opacity:.78;letter-spacing:2px}
 .tile .v{font-weight:900;letter-spacing:1px;font-size:9px;}
@@ -252,7 +253,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .friendMeta{font-size:11px;opacity:.75;line-height:1.25}
 
  /* Bottom dock */
- .bottomStack{margin-top:auto;display:flex;flex-direction:column;}
+ .bottomStack{margin-top:0;display:flex;flex-direction:column;}
  .dock{padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--sheet0);backdrop-filter: blur(16px);}
  .dockRow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;}
  .dockRow .dockBtn{padding:0;border-radius:50%;aspect-ratio:1/1;overflow:hidden;min-width:0;}
