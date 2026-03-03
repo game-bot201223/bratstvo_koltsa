@@ -1761,14 +1761,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       $('fhPct').textContent = String(10 + lvl) + '%';
       const btn = $('fhUp');
       if (btn) {
-        const cost = (lvl>=10) ? 0 : (20 * (lvl+1));
+        const PRICES = [0, 50000, 1000000, 5000000, 10000000, 20000000, 50000000, 100000000, 200000000, 500000000, 1000000000];
+        const nextLvl = lvl + 1;
+        const cost = (lvl>=10) ? 0 : (PRICES[nextLvl] || 0);
         btn.textContent = (lvl>=10) ? 'МАКС. УРОВЕНЬ' : ('ПРОКАЧАТЬ ЗА ' + cost + ' зубов');
         btn.disabled = lvl>=10;
         btn.style.opacity = btn.disabled ? '.6' : '1';
         btn.onclick = ()=>{
           const cur = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
           if (cur>=10) return;
-          const cost2 = 20 * (cur+1);
+          const PRICES2 = [0, 50000, 1000000, 5000000, 10000000, 20000000, 50000000, 100000000, 200000000, 500000000, 1000000000];
+          const cost2 = (PRICES2[cur+1] || 0);
           if ((state.tooth||0) < cost2){ toast('Нужно '+cost2+' зубов','lose'); return; }
           state.tooth -= cost2;
           state.friendHelpLvl = cur + 1;
@@ -1967,7 +1970,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Storage
   const SAVE_KEY = 'mora_mobile_save_v2';
   const CURRENCY_CAP = 999999999999;
-  const BUILD_ID = '2026-03-03_03-33';
+  const BUILD_ID = '2026-03-03_03-41';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   let __srvDirty = false;
@@ -5253,6 +5256,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     if (claimBtn){
       claimBtn.onclick = ()=>{
+        try {
+          // Local mode: reward is granted only when you press claim.
+          if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) {
+            return bossLocalClaim(bossId);
+          }
+        } catch (e0) {}
         bossFightClaimCloud(bossId).then((r)=>{
           try {
             if (!(r && r.ok && r.can_claim)) {
@@ -5302,6 +5311,54 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
   }
 
+  function bossLocalClaim(bossId){
+    try {
+      const b = BOSSES.find(x=>x.id===bossId);
+      if (!b) return;
+      const pr = state.bosses && state.bosses.pendingReward;
+      if (!pr || (parseInt(pr.bossId||0,10)||0) !== bossId) {
+        toast('Нет награды','lose');
+        return;
+      }
+      if ((parseInt(bossHp(bossId)||0,10)||0) > 0) {
+        toast('Босс ещё жив','lose');
+        return;
+      }
+
+      const rxp = parseInt(pr.xp||0,10)||0;
+      const rm = parseInt(pr.tooth||0,10)||0;
+      const rg = parseInt(pr.gold||0,10)||0;
+      if (rm>0) state.tooth += rm;
+      if (rg>0) state.gold += rg;
+      if (rxp>0) addXp(rxp);
+
+      // give next boss keys only on claim
+      try {
+        const nextReq = bossReq(bossId+1);
+        if (nextReq){
+          bossKeyAdd(nextReq.itemKey, nextReq.need);
+          feedAdd('Добыто: '+nextReq.need+'× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS');
+        }
+      } catch (e5) {}
+
+      state.bosses.pendingReward = null;
+      try {
+        const b2 = BOSSES.find(x=>x.id===bossId);
+        if (b2) setBossHp(bossId, b2.maxHP);
+      } catch (e4) {}
+      save();
+      try { hideModal('mBossFightRes'); } catch (e1) {}
+      try { hideModal('mBossFight'); } catch (e2) {}
+      openScreen('mBoss');
+      renderBosses();
+      renderAll();
+      haptic('heavy');
+      toast('Награда получена','win');
+    } catch (e) {
+      toast('Не удалось забрать награду','lose');
+    }
+  }
+
   function bfCheckWin(bossId){
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
@@ -5344,12 +5401,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const rg2 = Math.floor(rg * (1 + bonusPct));
     state.bosses.pendingReward = { bossId: bossId, xp: rxp, tooth: rm2, gold: rg2, clanBonusPct: bonusPct };
     state.bosses.lastWinners[String(bossId)] = { name: (state.playerName||'PLAYER'), ts: now() };
-
-    const nextReq = bossReq(bossId+1);
-    if (nextReq){
-      bossKeyAdd(nextReq.itemKey, nextReq.need);
-      feedAdd('Добыто: '+nextReq.need+'× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS');
-    }
 
     feedAdd('Босс повержен! Награда доступна.', 'BOSS');
     toast('БОСС ПОВЕРЖЕН','win');
@@ -5633,7 +5684,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const id = parseInt(btn.getAttribute('data-boss-attack')||'0',10)||0;
         if (!id) return;
         if ((parseInt(bossHp(id)||0,10)||0) <= 0) { toast('Босс повержен. Забери награду.','lose'); return; }
-        if (!bossHasAccess(id)) { toast('Не хватает ключей','lose'); return; }
+        if (!bossHasAccess(id)) {
+          // No keys: open pass shop directly
+          showModal('mBossAttack');
+          renderBossAttackModal(id);
+          toast('Не хватает ключей — открыл магазин пропусков','lose');
+          haptic('light');
+          return;
+        }
         showModal('mBossAttack');
         renderBossAttackModal(id);
         haptic('light');
@@ -5644,6 +5702,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       btn.onclick = ()=>{
         const id = parseInt(btn.getAttribute('data-boss-claim')||'0',10)||0;
         if (!id) return;
+        try {
+          if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) {
+            return bossLocalClaim(id);
+          }
+        } catch (e0) {}
         bossFightClaimCloud(id).then((r)=>{
           try {
             if (!(r && r.ok && r.can_claim)) {
