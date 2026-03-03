@@ -459,7 +459,7 @@ Deno.serve(async (req: Request) => {
         const pr = await postgrestGetPlayer(projectUrl, serviceKey, String(toTgId))
         const st = pr && typeof pr === "object" ? (pr as any).state : null
         if (clanId) {
-          const capPct = 0.04 + clanLvl * 0.01
+          const capPct = 0.10
           const cap = Math.max(0, Math.floor(def.max_hp * capPct))
           applied = Math.max(0, Math.min(dmg, cap))
         } else {
@@ -470,7 +470,7 @@ Deno.serve(async (req: Request) => {
           applied = Math.max(0, Math.min(dmg, cap))
         }
       } catch (_e) {
-        const capPct = clanId ? (0.04 + clanLvl * 0.01) : 0.10
+        const capPct = clanId ? 0.10 : 0.10
         const cap = Math.max(0, Math.floor(def.max_hp * capPct))
         applied = Math.max(0, Math.min(dmg, cap))
       }
