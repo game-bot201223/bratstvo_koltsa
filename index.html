@@ -2686,6 +2686,27 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   };
 
   let state = Object.assign({}, defaults, load()||{});
+  // One-time авто-очистка багнутого лимита боссов,
+  // когда в сохранении дневные лимиты забиты, а побед по боссам ещё нет.
+  try {
+    const fixKey = SAVE_KEY_BASE + '_boss_daily_fix_v1';
+    const alreadyFixed = (typeof localStorage!=='undefined') ? localStorage.getItem(fixKey) : '1';
+    if (!alreadyFixed) {
+      if (state && state.bosses && state.bosses.daily && state.bosses.daily.counts){
+        const wins = parseInt(state.bosses.wins||0,10)||0;
+        const counts = state.bosses.daily.counts;
+        const totalCnt = Object.keys(counts).reduce((sum,k)=>{
+          const v = parseInt(counts[k]||0,10)||0;
+          return sum + (v>0 ? v : 0);
+        }, 0);
+        // Если побед по боссам ещё нет, но лимиты уже "съедены", считаем это старым сломанным состоянием
+        if (wins===0 && totalCnt>=10){
+          state.bosses.daily = { day: utcDayKey(), counts:{} };
+        }
+      }
+      try { if (typeof localStorage!=='undefined') localStorage.setItem(fixKey, '1'); } catch (e1) {}
+    }
+  } catch (e0) {}
   // normalize
   if (!state.settings) state.settings = Object.assign({}, defaults.settings);
   if (typeof state.totalXp !== 'number') state.totalXp = 0;
