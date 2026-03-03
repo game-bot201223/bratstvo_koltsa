@@ -4948,7 +4948,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
       }
     } catch (e0) {}
-    if ((storedHp<=0) && b.maxHP>0) return null;
+    if ((storedHp<=0) && b.maxHP>0) {
+      // Если HP по данным (локальным или с сервера) уже 0,
+      // но у игрока есть оплаченные удары, считаем, что он начинает новый бой.
+      try {
+        const strikes = parseInt(state.bosses && state.bosses.strikes || 0, 10) || 0;
+        if (strikes > 0) {
+          storedHp = b.maxHP;
+        } else {
+          return null;
+        }
+      } catch (e1) {
+        return null;
+      }
+    }
     const startHp = storedHp;
     if (f && (parseInt(f.hp||0,10)||0) <= 0) {
       try { delete state.bosses.fights[String(id)]; } catch (e) {}
