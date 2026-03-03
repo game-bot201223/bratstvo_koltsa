@@ -5700,7 +5700,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (!id) return;
         if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
           const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)];
-          if (cc && typeof cc === 'object' && (parseInt(cc.hp||0,10)||0) <= 0) { toast('Босс повержен. Забери награду.','lose'); return; }
+          const dead = cc && typeof cc === 'object' && (parseInt(cc.hp||0,10)||0) <= 0;
+          const claimed = !!(cc && typeof cc === 'object' && cc.reward_claimed);
+          if (dead && !claimed) { toast('Босс повержен. Забери награду.','lose'); return; }
         } else {
           if ((parseInt(bossHp(id)||0,10)||0) <= 0) { toast('Босс повержен. Забери награду.','lose'); return; }
         }
@@ -5773,7 +5775,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
         const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)];
-        if (cc && typeof cc === 'object' && (parseInt(cc.hp||0,10)||0) <= 0) { toast('Босс повержен. Забери награду.','lose'); return; }
+        const dead = cc && typeof cc === 'object' && (parseInt(cc.hp||0,10)||0) <= 0;
+        const claimed = !!(cc && typeof cc === 'object' && cc.reward_claimed);
+        if (dead && !claimed) { toast('Босс повержен. Забери награду.','lose'); return; }
       } else {
         if ((parseInt(bossHp(id)||0,10)||0) <= 0) { toast('Босс повержен. Забери награду.','lose'); return; }
       }
@@ -5916,8 +5920,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + (dead
             ? (canClaim
                 ? '<button class="btn btnMini bossAtkBtn" data-boss-claim="'+b.id+'">ЗАБРАТЬ НАГРАДУ</button>'
-                : '<div class="btn btnMini bossAtkBtn" style="opacity:.9; cursor:default; text-align:center; margin-bottom:6px">Награда уже получена</div>'
-                  + '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
+                : '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
               )
             : '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
           )
