@@ -1965,7 +1965,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Storage
   const SAVE_KEY = 'mora_mobile_save_v2';
   const CURRENCY_CAP = 999999999999;
-  const BUILD_ID = '2026-03-03_02-56';
+  const BUILD_ID = '2026-03-03_03-10';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   let __srvDirty = false;
@@ -1974,7 +1974,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   let __srvEnabled = true;
   let __dbgOn = false;
   let __lastCloudErr = '';
-  let __lastCloudFn = '';
   function dbgText(){
     try {
       const id = tgInitData();
@@ -2230,11 +2229,2937 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   let __bossFightsPullTs = 0;
   async function bossFightsCloudPull(){
+    try {
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+      const initData = tgInitData();
+      if (!initData) return;
+      const r = await sbFnCall('boss_fights_list', { initData });
+      const fights = (r && Array.isArray(r.fights)) ? r.fights : [];
+      if (!state.bosses) state.bosses = Object.assign({}, defaults.bosses);
+      if (!state.bosses.cloud || typeof state.bosses.cloud !== 'object') state.bosses.cloud = {};
+      const next = {};
+      fights.forEach(f=>{
+        try {
+          const bid = parseInt(f && f.boss_id || 0, 10) || 0;
+          if (!bid) return;
+          next[String(bid)] = {
+            hp: Math.max(0, Math.floor(parseInt(f && f.hp || 0, 10) || 0)),
+            max_hp: Math.max(0, Math.floor(parseInt(f && f.max_hp || 0, 10) || 0)),
+            expires_at: f && f.expires_at ? String(f.expires_at) : '',
+            reward_claimed: !!(f && f.reward_claimed)
+          };
+        } catch (e0) {}
+      });
+      state.bosses.cloud = next;
+      save();
+    } catch (e) {}
+  }
+  async function bossFightsCloudPullMaybe(){
+    try {
+      const t = now();
+      if (__bossFightsPullTs && (t - __bossFightsPullTs) < 2500) return;
+      __bossFightsPullTs = t;
+      await bossFightsCloudPull();
+    } catch (e) {}
+  }
+  async function bossFightHitCloud(bossId, dmg){
+    try {
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return null;
+      return await sbFnCall('boss_fight_hit', { initData: tgInitData(), boss_id: bossId, dmg: dmg });
+    } catch (e) { return null; }
+  }
   async function bossFightClaimCloud(bossId){
     try {
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return null;
       return await sbFnCall('boss_fight_claim', { initData: tgInitData(), boss_id: bossId });
     } catch (e) { return null; }
+  }
+
+  function cloudStateSnapshot(s){
+    try {
+      const text = JSON.stringify(s, (k, v)=>{
+        try {
+          if (typeof v === 'string' && v.length > 5000) return v.slice(0, 5000);
+          if (Array.isArray(v)) {
+            const kk = String(k||'');
+            const isLog = /log|logs|history|events|messages|chat|feed/i.test(kk);
+            const max = isLog ? 60 : 250;
+            if (v.length > max) return v.slice(v.length - max);
+          }
+          if (v && typeof v === 'object' && !Array.isArray(v)) {
+            const kk = String(k||'');
+            if (/dmgLog|dmgTop|hp|fights/i.test(kk)) {
+              const keys = Object.keys(v);
+              if (keys.length > 80) {
+                const keep = keys.sort().slice(-80);
+                const out = {};
+                for (const key of keep) out[key] = v[key];
+                return out;
+              }
+            }
+          }
+          return v;
+        } catch (e0) { return v; }
+      });
+      return JSON.parse(text);
+    } catch (e) {
+      try { return s; } catch (e2) { return null; }
+    }
+  }
+
+  function serverMarkDirty(){
+    __srvDirty = true;
+    if (__srvSendT) return;
+    __srvSendT = setTimeout(async ()=>{
+      __srvSendT = 0;
+      if (!__srvEnabled) return;
+      if (!__srvDirty) return;
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+      const initData = tgInitData();
+      if (!initData) return;
+      const since = now() - (__srvLastSent||0);
+      if (since < 8000) { serverMarkDirty(); return; }
+      __srvDirty = false;
+      try {
+        const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
+
+        let refTgId = '';
+        try {
+          if (state && typeof state === 'object') {
+            const sp = tgStartParam();
+            const ref = parseReferrerTgIdFromStartParam(sp);
+            if (ref) {
+              if (!state._refTgId) state._refTgId = ref;
+              if (!state._invBonusPaid) refTgId = String(state._refTgId||'');
+            }
+          }
+        } catch (e0) {}
+
+        await sbFnCall('upsert_player', {
+          initData,
+          name: state.playerName,
+          level: state.level,
+          arena_power: (state.arena && (state.arena.power||0)) || 0,
+          arena_wins: (state.arena && (state.arena.wins||0)) || 0,
+          arena_losses: (state.arena && (state.arena.losses||0)) || 0,
+          stats_sum: statsSum,
+          boss_wins: (state.bosses && state.bosses.wins) || 0,
+          referrer_tg_id: refTgId,
+          state: cloudStateSnapshot(state)
+        });
+        __srvLastSent = now();
+        try { $('syncState').textContent = 'СЕЙВ: CLOUD'; $('syncState').style.opacity = '.85'; } catch (e) {}
+      } catch (e) {
+        __srvDirty = true;
+        try {
+          const msg = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim();
+          $('syncState').textContent = 'СЕЙВ: CLOUD ERR ' + msg.slice(0, 32);
+          $('syncState').style.opacity = '1';
+        } catch (e2) {}
+      }
+    }, 1800);
+  }
+  function load(){
+    try { return JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); } catch (e) { return null; }
+  }
+  function save(){
+    try {
+      state.gold = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.gold||0)));
+      state.silver = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.silver||0)));
+      state.tooth = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.tooth||0)));
+      state.rings = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.rings||0)));
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+      try {
+        const el = $('syncState');
+        const cloudEnabled = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
+        const cur = el ? String(el.textContent||'') : '';
+        if (!cloudEnabled) {
+          if (el) { el.textContent = 'СЕЙВ: OK'; el.style.opacity = '.85'; }
+        } else {
+          if (el && !/^СЕЙВ:\s*CLOUD/i.test(cur) && !/^TG:\s*/i.test(cur)) {
+            el.textContent = 'СЕЙВ: LOCAL';
+            el.style.opacity = '.85';
+          }
+        }
+      } catch (e0) {}
+      try { serverMarkDirty(); } catch (e3) {}
+    } catch (e) {
+      try {
+        $('syncState').textContent = 'СЕЙВ: ERR';
+        $('syncState').style.opacity = '1';
+      } catch (e2) {}
+    }
+  }
+
+  // --- Game data
+  const ITEMS = [
+    { key:'VIP', name:'VIP статус', desc:'Открывает VIP возможности', cost:500, currency:'TOOTH', apply:()=>{ if (state.vip){ toast('VIP уже активен','lose'); return; } state.vip = true; toast('VIP активирован','win'); } },
+    { key:'G1', name:'Золото', desc:'+50 🪙', cost:'1$', currency:'TOOTH', goldAdd:50 },
+    { key:'G2', name:'Золото', desc:'+100 🪙', cost:'2$', currency:'TOOTH', goldAdd:100 },
+    { key:'G3', name:'Золото', desc:'+300 🪙', cost:'6$', currency:'TOOTH', goldAdd:300 },
+    { key:'G4', name:'Золото', desc:'+500 🪙', cost:'10$', currency:'TOOTH', goldAdd:500 },
+    { key:'G5', name:'Золото', desc:'+1 000 🪙', cost:'20$', currency:'TOOTH', goldAdd:1000 },
+    { key:'G6', name:'Золото', desc:'+2 500 🪙', cost:'50$', currency:'TOOTH', goldAdd:2500 },
+    { key:'G7', name:'Золото', desc:'+5 000 🪙', cost:'100$', currency:'TOOTH', goldAdd:5000 },
+    { key:'G8', name:'Золото', desc:'+10 000 🪙', cost:'200$', currency:'TOOTH', goldAdd:10000 }
+  ];
+
+  const PETS = [
+    { id:1, name:'Страж Пепла', emoji:'🐾', cost:100, pct:0.20 },
+    { id:2, name:'Волк Ночи', emoji:'🐺', cost:300, pct:0.30 },
+    { id:3, name:'Тень Дракона', emoji:'🐉', cost:700, pct:0.40 },
+    { id:4, name:'Морской Феникс', emoji:'🦅', cost:1500, pct:0.50 }
+  ];
+
+  const BOSSES = [
+    { id:1, name:'Фёдор', emoji:'🦈', img:'фёдор.png', maxHP:1000, reward:{ xp:50, tooth:100, gold:0 } },
+    { id:2, name:'Гиви', emoji:'🧨', img:'гиви.png', maxHP:10000, reward:{ xp:100, tooth:300, gold:0 } },
+    { id:3, name:'Логоваз', emoji:'🦴', img:'логоваз.png', maxHP:50000, reward:{ xp:200, tooth:500, gold:0 } },
+    { id:4, name:'Теодед', emoji:'🪓', img:'теодед.png', maxHP:200000, reward:{ xp:500, tooth:800, gold:0 } },
+    { id:5, name:'Фарамир', emoji:'🔥', img:'фарамир.png', maxHP:1000000, reward:{ xp:1000, tooth:1200, gold:0 } },
+    { id:6, name:'Паучиха', emoji:'🕷️', img:'паучиха.png', maxHP:2000000, reward:{ xp:2000, tooth:2000, gold:0 } },
+    { id:7, name:'Боря Мем', emoji:'🌪️', img:'борямем.png', maxHP:5000000, reward:{ xp:5000, tooth:5000, gold:0 } },
+    { id:8, name:'Сарумян', emoji:'🧿', img:'сарумян.png', maxHP:10000000, reward:{ xp:10000, tooth:10000, gold:0 } },
+    { id:9, name:'Дроворуб', emoji:'🪵', img:'дроворуб.png', maxHP:20000000, reward:{ xp:20000, tooth:20000, gold:0 } },
+    { id:10, name:'Пендальф', emoji:'🧙', img:'пендальф.png', maxHP:50000000, reward:{ xp:50000, tooth:50000, gold:0 } },
+    { id:11, name:'Элронд Вечноправ', emoji:'🗡️', img:'элрондвечноправ.png', maxHP:100000000, reward:{ xp:100000, tooth:100000, gold:0 } },
+    { id:12, name:'Назгул', emoji:'🗡️', img:'назгул.png', maxHP:200000000, reward:{ xp:200000, tooth:200000, gold:0 } }
+  ];
+
+  const GYM_STATS = [
+    { key:'health', name:'Здоровье' },
+    { key:'strength', name:'Сила' },
+    { key:'agility', name:'Ловкость' },
+    { key:'initiative', name:'Инициатива' },
+    { key:'endurance', name:'Выносливость' },
+    { key:'might', name:'Мощь' },
+    { key:'charisma', name:'Харизма' }
+  ];
+
+  // --- State
+  const defaults = {
+    v:2,
+    playerName:'PLAYER',
+    level:1,
+    xp:0,
+    totalXp:0,
+    gold:1000000,
+    silver:5200,
+    tooth:12,
+    rings:0,
+    energy:100,
+    energyMax:100,
+    lastEnergyTs: now(),
+    nextWinBonus:0,
+    settings:{ sound:true, haptics:true, reduced:false },
+    inventory: Array(9).fill(' '),
+    petsOwned:{},
+    activePetId:0,
+    gym:{},
+    arena:{ cdUntil:0, wins:0, losses:0 },
+    groupFight:{ joined:false, startTs:0, resolvedTs:0, battle:null, autoShownStartTs:0, pendingReward:null },
+    gf1010:{ joined:false, startTs:0, costPaid:0, gathered:0, matchId:'', fight:{ round:1, turnLeft:10, myTarget:'', targets:[], log:[] } },
+    diceGame:{ active:false, rolls:0, max:10, dice:[1,1,1,1,1] },
+    consumables:{ med:0, nade:0 },
+    clan:{ id:'', name:'', owner:'', createdTs:0, role:'', deputy:'', joinedTs:0 },
+    clansDb:{ nextId:1, order:[], clans:{}, myApps:{} },
+    promoUsedCodes:{},
+    districtTasksDone:{},
+    districtTaskCounts:{},
+    districtFear:{},
+    districtBonusClaimed:{},
+    districtClearedEver:{},
+    districtFearLeaders:{},
+    districtDailyFear:{ day:'', byDistrict:{} },
+    districtBizLvls:{},
+    districtBizDaily:{ day:'', claimed:{} },
+    _bizEnergyApplied:0,
+    bosses:{ hp:{}, strikes:10, wins:0, lastWinners:{}, keys:{}, hitStocks:{ kick:0, knuckle:0, enema:0 }, shopQty:1, hitUseQty:1, fights:{}, dmgLog:{}, dmgTop:{}, daily:{ day:'', counts:{} }, toothNextTs:0 },
+    friendHelpLvl:0,
+    vip:false,
+    shopX2:false,
+    feed:[],
+    friends:[]
+  };
+
+  let state = Object.assign({}, defaults, load()||{});
+  // normalize
+  if (!state.settings) state.settings = Object.assign({}, defaults.settings);
+  if (typeof state.totalXp !== 'number') state.totalXp = 0;
+  if (!Array.isArray(state.inventory)) state.inventory = Array(9).fill(' ');
+  if (!state.petsOwned) state.petsOwned = {};
+  if (!state.gym) state.gym = {};
+  if (!state.arena) state.arena = Object.assign({}, defaults.arena);
+  if (!state.groupFight) state.groupFight = Object.assign({}, defaults.groupFight);
+  if (typeof state.groupFight.autoShownStartTs !== 'number') state.groupFight.autoShownStartTs = 0;
+  if (typeof state.groupFight.resolvedTs !== 'number') state.groupFight.resolvedTs = 0;
+  if (typeof state.groupFight.pendingReward === 'undefined') state.groupFight.pendingReward = null;
+  if (!state.gf1010) state.gf1010 = Object.assign({}, defaults.gf1010);
+  if (!state.diceGame) state.diceGame = Object.assign({}, defaults.diceGame);
+  if (!state.consumables) state.consumables = Object.assign({}, defaults.consumables);
+  if (typeof state.consumables.med !== 'number') state.consumables.med = 0;
+  if (typeof state.consumables.nade !== 'number') state.consumables.nade = 0;
+  if (!state.clan) state.clan = Object.assign({}, defaults.clan);
+  if (typeof state.clan.createdTs !== 'number') state.clan.createdTs = 0;
+  if (typeof state.clan.id !== 'string') state.clan.id = '';
+  if (typeof state.clan.name !== 'string') state.clan.name = '';
+  if (typeof state.clan.owner !== 'string') state.clan.owner = '';
+  if (typeof state.clan.role !== 'string') state.clan.role = '';
+  if (typeof state.clan.deputy !== 'string') state.clan.deputy = '';
+  if (typeof state.clan.joinedTs !== 'number') state.clan.joinedTs = 0;
+  if (!state.clansDb) state.clansDb = Object.assign({}, defaults.clansDb);
+  if (typeof state.clansDb.nextId !== 'number') state.clansDb.nextId = 1;
+  if (!Array.isArray(state.clansDb.order)) state.clansDb.order = [];
+  if (!state.clansDb.clans || typeof state.clansDb.clans !== 'object') state.clansDb.clans = {};
+  if (!state.clansDb.myApps || typeof state.clansDb.myApps !== 'object') state.clansDb.myApps = {};
+  if (!state.districtTasksDone || typeof state.districtTasksDone !== 'object') state.districtTasksDone = {};
+  if (!state.districtTaskCounts || typeof state.districtTaskCounts !== 'object') state.districtTaskCounts = {};
+  if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
+  if (!state.districtBonusClaimed || typeof state.districtBonusClaimed !== 'object') state.districtBonusClaimed = {};
+  if (!state.districtClearedEver || typeof state.districtClearedEver !== 'object') state.districtClearedEver = {};
+  if (!state.districtFearLeaders || typeof state.districtFearLeaders !== 'object') state.districtFearLeaders = {};
+  if (!state.districtDailyFear || typeof state.districtDailyFear !== 'object') state.districtDailyFear = { day:'', byDistrict:{} };
+  if (!state.districtDailyFear.byDistrict || typeof state.districtDailyFear.byDistrict !== 'object') state.districtDailyFear.byDistrict = {};
+  if (!state.districtBizLvls || typeof state.districtBizLvls !== 'object') state.districtBizLvls = {};
+  if (!state.districtBizDaily || typeof state.districtBizDaily !== 'object') state.districtBizDaily = { day:'', claimed:{} };
+  if (!state.districtBizDaily.claimed || typeof state.districtBizDaily.claimed !== 'object') state.districtBizDaily.claimed = {};
+  if (typeof state._bizEnergyApplied !== 'number') state._bizEnergyApplied = 0;
+
+  try {
+    if (state.districtTasksDone && typeof state.districtTasksDone === 'object'){
+      Object.keys(state.districtTasksDone).forEach(k=>{
+        if (!state.districtTaskCounts[k]) state.districtTaskCounts[k] = 1;
+      });
+    }
+  } catch (e) {}
+  if (!state.bosses) state.bosses = Object.assign({}, defaults.bosses);
+  if (!state.bosses.hp) state.bosses.hp = {};
+  if (typeof state.bosses.wins !== 'number') state.bosses.wins = 0;
+  if (!state.bosses.lastWinners) state.bosses.lastWinners = {};
+  if (!state.bosses.keys) state.bosses.keys = {};
+  if (!state.bosses.fights) state.bosses.fights = {};
+  if (!state.bosses.dmgLog) state.bosses.dmgLog = {};
+  if (!state.bosses.dmgTop) state.bosses.dmgTop = {};
+  if (!state.bosses.daily) state.bosses.daily = { day:'', counts:{} };
+  if (!state.bosses.daily.counts) state.bosses.daily.counts = {};
+  if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
+  if (!state.bosses || typeof state.bosses.toothNextTs === 'undefined') state.bosses.toothNextTs = 0;
+  if (typeof state.bosses.shopQty !== 'number') state.bosses.shopQty = 1;
+  if (typeof state.bosses.hitUseQty !== 'number') state.bosses.hitUseQty = 1;
+  if (typeof state.rings !== 'number') state.rings = 0;
+  if (!state.promoUsedCodes || typeof state.promoUsedCodes !== 'object') state.promoUsedCodes = {};
+
+  // migration: old boss key 'ring' conflicted with currency 💍 (state.rings)
+  try {
+    const oldRingKey = parseInt(state.bosses.keys['ring']||0,10)||0;
+    if (oldRingKey>0 && (typeof state.bosses.keys['pass'] === 'undefined')) {
+      state.bosses.keys['pass'] = oldRingKey;
+      delete state.bosses.keys['ring'];
+    }
+  } catch (e) {}
+
+  state.bosses.hitStocks.kick = clamp(parseInt(state.bosses.hitStocks.kick||0,10)||0, 0, 999999);
+  state.bosses.hitStocks.knuckle = clamp(parseInt(state.bosses.hitStocks.knuckle||0,10)||0, 0, 999999);
+
+  try {
+    if (state.clansDb && state.clansDb.clans && typeof state.clansDb.clans === 'object') {
+      Object.keys(state.clansDb.clans).forEach(k=>{
+        const c = state.clansDb.clans[k];
+        if (!c) return;
+        const leader = String(c.leader||'');
+        const members = Array.isArray(c.members) ? c.members : [];
+        if (isBotName(leader) || members.some(isBotName)) {
+          delete state.clansDb.clans[id];
+          state.clansDb.order = (Array.isArray(state.clansDb.order) ? state.clansDb.order : []).filter(x=>String(x)!==String(id));
+          try { if (state.clansDb.myApps) delete state.clansDb.myApps[String(id)]; } catch (e2) {}
+          if (state.clan && String(state.clan.id||'') === String(id)) state.clan = Object.assign({}, defaults.clan);
+        }
+      });
+    }
+  } catch (e) {}
+
+  state.gold = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.gold||0)));
+  state.silver = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.silver||0)));
+  state.tooth = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.tooth||0)));
+  state.rings = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.rings||0)));
+
+  // --- Core math
+  function xpNeed(level){
+    const lvl = Math.max(1, parseInt(level||1,10)||1);
+    const base = 1000;
+    const targetLvl = 201;
+    const targetNeed = 20000000;
+    const k = Math.pow((targetNeed / base), (1 / Math.max(1, (targetLvl-1))));
+    return Math.max(1, Math.round(base * Math.pow(k, (lvl-1))));
+  }
+  function addXp(n){
+    const add = Math.max(0, Math.floor(n||0));
+    state.totalXp = Math.max(0, Math.floor(state.totalXp||0) + add);
+    state.xp = Math.max(0, (state.xp||0) + add);
+    while (state.xp >= xpNeed(state.level)) {
+      state.xp -= xpNeed(state.level);
+      state.level += 1;
+      state.energy = clamp(Math.floor(state.energyMax||100), 0, Math.floor(state.energyMax||100));
+      state.lastEnergyTs = now();
+      toast('Уровень повышен: ' + state.level,'win');
+      haptic('heavy');
+    }
+  }
+
+  const DISTRICT_REQ_XP = [
+    0,
+    50,
+    150,
+    300,
+    500,
+    800,
+    1200,
+    1700,
+    2300,
+    3000,
+    3800,
+    4700
+  ];
+  function districtReqXp(idx){
+    const i = clamp(parseInt(idx||0,10)||0, 0, 11);
+    return parseInt(DISTRICT_REQ_XP[i]||0,10)||0;
+  }
+  function districtPrevCleared(idx){
+    try {
+      const i = clamp(parseInt(idx||0,10)||0, 0, 11);
+      if (i<=0) return true;
+      const prev = i-1;
+      const bk = 'D'+String(prev);
+      if (state.districtClearedEver && state.districtClearedEver[bk]) return true;
+      const data = districtData();
+      const d = data[prev];
+      if (!d) return true;
+      const tasks = Array.isArray(d.tasks) ? d.tasks : [];
+      return tasks.every((t, ti)=>{
+        const m = districtTaskMeta(d.diff, ti, prev);
+        const k = districtTaskKey(prev, ti);
+        const c = Math.max(0, (state.districtTaskCounts && state.districtTaskCounts[k]) ? (parseInt(state.districtTaskCounts[k]||0,10)||0) : 0);
+        return c >= m.max;
+      });
+    } catch (e) { return false; }
+  }
+  function districtReqOk(idx){
+    try {
+      const need = districtReqXp(idx);
+      const cur = Math.max(0, Math.floor(state.totalXp||0));
+      return cur >= need;
+    } catch (e) { return false; }
+  }
+  const DEBUG_UNLOCK_ALL_DISTRICTS = true;
+  function districtUnlocked(idx){
+    if (DEBUG_UNLOCK_ALL_DISTRICTS) return true;
+    return districtPrevCleared(idx) && districtReqOk(idx);
+  }
+
+  function districtAllTasksDone(dIdx){
+    try {
+      const data = districtData();
+      const d = data[dIdx];
+      if (!d) return false;
+      const tasks = Array.isArray(d.tasks) ? d.tasks : [];
+      return tasks.every((t, ti)=>{
+        const m = districtTaskMeta(d.diff, ti, dIdx);
+        const k = districtTaskKey(dIdx, ti);
+        const c = Math.max(0, (state.districtTaskCounts && state.districtTaskCounts[k]) ? (parseInt(state.districtTaskCounts[k]||0,10)||0) : 0);
+        return c >= m.max;
+      });
+    } catch (e) { return false; }
+  }
+  function districtResetTasks(dIdx){
+    try {
+      const data = districtData();
+      const d = data[dIdx];
+      if (!d) return;
+      const tasks = Array.isArray(d.tasks) ? d.tasks : [];
+      if (!state.districtTaskCounts || typeof state.districtTaskCounts !== 'object') state.districtTaskCounts = {};
+      tasks.forEach((t, ti)=>{
+        const k = districtTaskKey(dIdx, ti);
+        state.districtTaskCounts[k] = 0;
+      });
+    } catch (e) {}
+  }
+
+  function districtCompletionAutoReward(dIdx){
+    try {
+      const id = clamp(parseInt(dIdx||0,10)||0, 0, 11);
+      if (!districtAllTasksDone(id)) return;
+      const mult = (id + 1) * 100;
+      const bk = 'D'+String(id);
+
+      addXp(mult);
+      state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + mult);
+
+      const curFear = Math.max(0, (state.districtFear && state.districtFear[bk]) ? (parseInt(state.districtFear[bk]||0,10)||0) : 0);
+      if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
+      state.districtFear[bk] = curFear + mult;
+
+      try {
+        if (!state.districtClearedEver || typeof state.districtClearedEver !== 'object') state.districtClearedEver = {};
+        state.districtClearedEver[bk] = now();
+      } catch (e0) {}
+
+      try {
+        districtFearLeaderUpdate(id);
+        districtDailyFearAdd(id, mult);
+      } catch (e1) {}
+
+      districtResetTasks(id);
+
+      toast('НАГРАДА: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱','win');
+      feedAdd('Награда района: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱','SYS');
+      haptic('heavy');
+    } catch (e) {}
+  }
+
+  const DISTRICT_BIZ = [
+    ['Огород хоббитов','Табачная лавка','Пекарня','Малый трактир'],
+    ['Трактир «Гарцующий пони»','Торговая лавка','Конюшня','Караванная стоянка'],
+    ['Эльфийская кузница','Магическая лавка','Склад артефактов','Эльфийская мастерская'],
+    ['Шахта','Склад руды','Гоблинский рынок','Кузница гномов'],
+    ['Магический сад','Эльфийская мастерская','Тайный склад','Кристальная роща'],
+    ['Кузница урук-хай','Лесопилка','Военный лагерь','Оружейный склад'],
+    ['Конюшня','Оружейная','Торговый двор','Фермерское подворье'],
+    ['Оружейный склад','Башня дозора','Городской рынок','Казармы'],
+    ['Разрушенный склад','Военная база','Тайник','Полевой лагерь'],
+    ['Темная башня','Магический алтарь','Черный рынок','Крепостной двор'],
+    ['Оружейный завод','Лагерь орков','Склад ресурсов','Темная кузница'],
+    ['Главная крепость','Башня Саурона','Черная сокровищница','Тронный зал']
+  ];
+  const BIZ_MAX_LVL = 10;
+  const BIZ_LVL_COSTS = [
+    5000,
+    10000,
+    50000,
+    100000,
+    500000,
+    1000000,
+    5000000,
+    10000000,
+    50000000,
+    100000000
+  ];
+
+  const BIZ2_FEAR_PER_LVL = [200,400,600,800,1000,1200,1400,1600,1800,2000];
+  const BIZ3_PCT_PER_LVL = [0.005,0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05];
+  const BIZ4_GOLD_PER_LVL = [1,2,3,4,5,6,7,8,9,10];
+
+  function bizKey(dIdx, bIdx){
+    return 'D' + String(dIdx) + 'B' + String(bIdx);
+  }
+  function bizLvl(dIdx, bIdx){
+    try {
+      const k = bizKey(dIdx, bIdx);
+      const v = state.districtBizLvls && typeof state.districtBizLvls === 'object' ? state.districtBizLvls[k] : 0;
+      return clamp(parseInt(v||0,10)||0, 0, BIZ_MAX_LVL);
+    } catch (e) { return 0; }
+  }
+  function bizSetLvl(dIdx, bIdx, lvl){
+    if (!state.districtBizLvls || typeof state.districtBizLvls !== 'object') state.districtBizLvls = {};
+    state.districtBizLvls[bizKey(dIdx, bIdx)] = clamp(parseInt(lvl||0,10)||0, 0, BIZ_MAX_LVL);
+  }
+  function bizCostNext(lvl){
+    const nxt = clamp((parseInt(lvl||0,10)||0) + 1, 1, BIZ_MAX_LVL);
+    const c = BIZ_LVL_COSTS[nxt-1];
+    return (typeof c === 'number' && c>0) ? c : 0;
+  }
+
+  function bizTotalLvl(bIdx){
+    try {
+      let sum = 0;
+      for (let d=0; d<12; d++) sum += bizLvl(d, bIdx);
+      return clamp(sum, 0, 999999);
+    } catch (e) { return 0; }
+  }
+  function bizGymBonusPct(){
+    try {
+      let pct = 0;
+      for (let d=0; d<12; d++){
+        const lvl = bizLvl(d, 2);
+        if (lvl<=0) continue;
+        pct += (BIZ3_PCT_PER_LVL[lvl-1]||0);
+      }
+      return Math.max(0, pct);
+    } catch (e) { return 0; }
+  }
+  function bizSyncEnergyMax(){
+    try {
+      const want = bizTotalLvl(0) * 2;
+      const cur = Math.max(0, Math.floor(state._bizEnergyApplied||0));
+      const delta = want - cur;
+      if (delta!==0){
+        state.energyMax = Math.max(1, Math.floor(state.energyMax||100) + delta);
+        state._bizEnergyApplied = want;
+        state.energy = clamp(Math.floor(state.energy||0), 0, state.energyMax);
+      }
+    } catch (e) {}
+  }
+
+  try { bizSyncEnergyMax(); } catch (e) {}
+
+  function bizDailyClaimForDistrict(dIdx){
+    try {
+      const dayKey = utcDayKey();
+      if (!state.districtBizDaily || typeof state.districtBizDaily !== 'object') state.districtBizDaily = { day:'', claimed:{} };
+      if (!state.districtBizDaily.claimed || typeof state.districtBizDaily.claimed !== 'object') state.districtBizDaily.claimed = {};
+      if (state.districtBizDaily.day !== dayKey){
+        state.districtBizDaily.day = dayKey;
+        state.districtBizDaily.claimed = {};
+      }
+      const id = clamp(parseInt(dIdx||0,10)||0, 0, 11);
+      const c2k = bizKey(id, 1);
+      const c4k = bizKey(id, 3);
+
+      let didAny = false;
+      let txt = '';
+
+      if (!state.districtBizDaily.claimed[c2k]){
+        const lvl2 = bizLvl(id, 1);
+        const addFear = lvl2>0 ? (BIZ2_FEAR_PER_LVL[lvl2-1]||0) : 0;
+        if (addFear>0){
+          const fk = 'D'+String(id);
+          const curFear = Math.max(0, (state.districtFear && state.districtFear[fk]) ? (parseInt(state.districtFear[fk]||0,10)||0) : 0);
+          if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
+          state.districtFear[fk] = curFear + addFear;
+          didAny = true;
+          txt += (txt?' · ':'') + '+'+fmt4(addFear)+' 😱';
+        }
+        state.districtBizDaily.claimed[c2k] = now();
+      }
+
+      if (!state.districtBizDaily.claimed[c4k]){
+        const lvl4 = bizLvl(id, 3);
+        const addGold = lvl4>0 ? (BIZ4_GOLD_PER_LVL[lvl4-1]||0) : 0;
+        if (addGold>0){
+          state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + addGold);
+          didAny = true;
+          txt += (txt?' · ':'') + '+'+fmt4(addGold)+' 🪙';
+        }
+        state.districtBizDaily.claimed[c4k] = now();
+      }
+
+      if (didAny){
+        save();
+        renderHUD();
+        toast('БИЗНЕС: ' + txt,'win');
+      }
+    } catch (e) {}
+  }
+
+  function renderDistrictBiz(dIdx){
+    try {
+      const data = districtData();
+      const id = clamp(parseInt(dIdx||0,10)||0, 0, data.length-1);
+      const unlocked = districtUnlocked(id);
+      if (!unlocked) { toast('Район закрыт','lose'); return; }
+
+      const d = data[id];
+      const nm = d && d.name ? d.name : 'РАЙОН';
+      const list = Array.isArray(DISTRICT_BIZ[id]) ? DISTRICT_BIZ[id] : [];
+      try { $('dbTitle').textContent = 'БИЗНЕС'; } catch (e) {}
+      try { $('dbDistrict').textContent = String(nm).toUpperCase(); } catch (e) {}
+      const box = $('dbList');
+      if (!box) return;
+      let html = '';
+      for (let i=0;i<4;i++){
+        const bn = list[i] ? String(list[i]) : ('Бизнес '+(i+1));
+        const lvl = bizLvl(id, i);
+        const maxed = lvl >= BIZ_MAX_LVL;
+        const cost = maxed ? 0 : bizCostNext(lvl);
+        const hasCost = cost>0;
+        let eff = '—';
+        if (i===0){
+          const curAdd = lvl*2;
+          const nextAdd = (lvl+1)*2;
+          eff = '+2 к максимуму энергии за уровень (сейчас +' + curAdd + (maxed?')':(', следующий: +' + nextAdd + ')'));
+        } else if (i===1){
+          const addFear = lvl>0 ? (BIZ2_FEAR_PER_LVL[lvl-1]||0) : 0;
+          const nextFear = maxed ? addFear : (BIZ2_FEAR_PER_LVL[lvl]||addFear);
+          eff = 'Ежедневно в 00:00 UTC: +' + fmt4(addFear) + ' 😱 (в этом районе)' + (maxed ? '' : (' · следующий: +' + fmt4(nextFear) + ' 😱'));
+        } else if (i===2){
+          const pct = lvl>0 ? (BIZ3_PCT_PER_LVL[lvl-1]||0) : 0;
+          const nextPct = maxed ? pct : (BIZ3_PCT_PER_LVL[lvl]||pct);
+          eff = 'Бонус к спортзалу: +' + (pct*100).toFixed(1) + '% (суммируется по районам)' + (maxed ? '' : (' · следующий: +' + (nextPct*100).toFixed(1) + '%'));
+        } else if (i===3){
+          const addGold = lvl>0 ? (BIZ4_GOLD_PER_LVL[lvl-1]||0) : 0;
+          const nextGold = maxed ? addGold : (BIZ4_GOLD_PER_LVL[lvl]||addGold);
+          eff = 'Ежедневно в 00:00 UTC: +' + fmt4(addGold) + ' 🪙' + (maxed ? '' : (' · следующий: +' + fmt4(nextGold) + ' 🪙'));
+        }
+        html += '<div class="card" style="margin:0;">'
+          + '<div class="row"><div style="min-width:0"><div class="k">'+String(bn).toUpperCase()+'</div><div style="margin-top:6px; font-size:12px; opacity:.8; line-height:1.35">'+eff+'</div></div>'
+          + '<div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px">'
+          + '<div class="badge">УРОВЕНЬ '+lvl+'/'+BIZ_MAX_LVL+'</div>'
+          + '<button class="btn btnSmall" data-biz-up="'+id+':'+i+'" '+((maxed||!hasCost)?'disabled':'')+'>'
+          + (maxed ? 'МАКС' : (hasCost ? ('УЛУЧШИТЬ ЗА '+fmt4(cost)+' 🦷') : 'СКОРО'))
+          + '</button>'
+          + '</div></div>'
+          + '</div>';
+      }
+      box.innerHTML = html || '—';
+
+      box.querySelectorAll('[data-biz-up]').forEach(btn=>{
+        btn.onclick = ()=>{
+          const raw = String(btn.getAttribute('data-biz-up')||'');
+          const parts = raw.split(':');
+          const dd = clamp(parseInt(parts[0]||'0',10)||0, 0, 11);
+          const bb = clamp(parseInt(parts[1]||'0',10)||0, 0, 3);
+          const cur = bizLvl(dd, bb);
+          if (cur>=BIZ_MAX_LVL){ toast('Уже максимум','lose'); return; }
+          const cost = bizCostNext(cur);
+          if (!(cost>0)){ toast('Скоро','lose'); return; }
+          if ((state.tooth||0) < cost){ toast('Нужно '+fmt4(cost)+' 🦷','lose'); return; }
+          state.tooth -= cost;
+          bizSetLvl(dd, bb, cur+1);
+          if (bb===0) bizSyncEnergyMax();
+          save();
+          renderHUD();
+          renderDistrictBiz(dd);
+          haptic('light');
+          toast('Улучшено','win');
+        };
+      });
+
+      showModal('mDistrictBiz');
+    } catch (e) {}
+  }
+
+  function activePet(){
+    const id = parseInt(state.activePetId||0,10) || 0;
+    return PETS.find(p=>p.id===id) || null;
+  }
+  function petBonusPct(){
+    const p = activePet();
+    return p ? (p.pct||0) : 0;
+  }
+
+  function feedAdd(text, kind){
+    const t = String(text||'').trim();
+    if (!t) return;
+    const tag = kind ? '['+kind+'] ' : '';
+    state.feed.unshift(tag + t);
+    if (state.feed.length>18) state.feed = state.feed.slice(0,18);
+  }
+
+  // --- Modal system
+  const overlay = $('overlay');
+  const stack = [];
+  const SCREEN_IDS = new Set(['mArena','mBoss','mTop','mDice','mDistricts','mBattle']);
+  function setOverlay(){
+    if (!overlay) return;
+    const top = stack.length ? stack[stack.length-1] : '';
+    overlay.classList.toggle('show', stack.length>0);
+  }
+  function showModal(id){
+    const m = $(id);
+    if (!m) return;
+    if (id==='mBattle'){
+      try { hideModal('mGFJoin'); } catch (e) {}
+      try { hideModal('mGF1010'); } catch (e) {}
+    }
+    if (!stack.includes(id)) stack.push(id);
+    m.classList.add('show');
+    setOverlay();
+    updateBackButton();
+  }
+
+  function openScreen(id){
+    try { document.querySelectorAll('.modal.show').forEach(m=>m.classList.remove('show')); } catch (e) {}
+    stack.length = 0;
+    showModal(id);
+  }
+  function hideModal(id){
+    const m = $(id);
+    if (!m) return;
+    m.classList.remove('show');
+    const idx = stack.lastIndexOf(id);
+    if (idx>=0) stack.splice(idx,1);
+    setOverlay();
+    updateBackButton();
+
+    if (id==='mBossFight'){
+      while (stack.length) {
+        const top = stack[stack.length-1];
+        const mm = $(top);
+        if (mm) mm.classList.remove('show');
+        stack.pop();
+      }
+      setOverlay();
+      updateBackButton();
+    }
+  }
+  function hideTop(){
+    const id = stack[stack.length-1];
+    if (id) hideModal(id);
+  }
+
+  function updateBackButton(){
+    try {
+      if (!tg || !tg.BackButton) return;
+      if (stack.length>0) {
+        tg.BackButton.show();
+      } else {
+        tg.BackButton.hide();
+      }
+    } catch (e) {}
+  }
+
+  try { if (tg && tg.BackButton) tg.BackButton.onClick(()=>{ hideTop(); }); } catch (e) {}
+
+  // --- Rendering
+  function fmtK(n){
+    n = Math.floor(n||0);
+    if (n<1000) return String(n);
+    if (n<1000000) return (Math.floor(n/100)/10)+'K';
+    return (Math.floor(n/100000)/10)+'M';
+  }
+
+  function fmt4(n){
+    n = Math.floor(n||0);
+    if (n < 10000) return String(n);
+    if (n < 1000000) return String(Math.floor(n/1000)) + 'K';
+    if (n < 1000000000) return String(Math.floor(n/1000000)) + 'M';
+    return '999M';
+  }
+
+  function renderUTC(){
+    const utc = $('utc');
+    if (!utc) return;
+    const d = new Date();
+    const y = d.getUTCFullYear();
+    const m = d.getUTCMonth();
+    const day = d.getUTCDate();
+    const h = d.getUTCHours();
+    const mm = d.getUTCMinutes();
+    utc.textContent = pad2(h) + ':' + pad2(mm);
+  }
+
+  function renderHUD(){
+    renderUTC();
+    $('playerName').textContent = state.playerName;
+    $('playerLevel').textContent = 'УР. ' + state.level;
+
+    try {
+      const a = $('btnArena');
+      if (a) a.style.display = ($('mBattle') && $('mBattle').classList.contains('show')) ? 'none' : '';
+    } catch (e0) {}
+
+    $('gold').textContent = fmt4(state.gold||0);
+    $('silver').textContent = fmt4(state.silver||0);
+    $('tooth').textContent = fmt4(state.tooth||0);
+
+    $('energy').textContent = String(Math.floor(state.energy||0));
+    $('energyMax').textContent = String(Math.floor(state.energyMax||0));
+
+    const need = xpNeed(state.level);
+    const cur = Math.floor(state.xp||0);
+    const pct = need>0 ? clamp((cur/need)*100,0,100) : 0;
+    $('xpFill').style.width = pct.toFixed(2)+'%';
+    $('xpText').textContent = cur + ' / ' + need + ' XP';
+  }
+
+  function renderFriends(){
+    const row = $('friendsRow');
+    if (!row) return;
+    row.innerHTML = '';
+    const list = (Array.isArray(state.friends) ? state.friends.slice() : []);
+    try {
+      const c = clanGetMyClan();
+      const mem = (c && Array.isArray(c.members)) ? c.members : [];
+      if (c && mem.length){
+        mem.forEach(nm=>{
+          try {
+            const n = String(nm||'').trim();
+            if (!n) return;
+            if (n === String(state.playerName||'')) return;
+            const exists = list.some(x=>String(x && x.name || '').trim().toUpperCase() === n.toUpperCase());
+            if (exists) return;
+            const mm = (c.memberMeta && c.memberMeta[n]) ? c.memberMeta[n] : clanGuessMemberMeta(n);
+            list.push({ name:n, lvl: parseInt(mm && mm.lvl || 1,10)||1, power: parseInt(mm && mm.stats || mm && mm.power || 0,10)||0, online:true, _clan:true });
+          } catch (e2) {}
+        });
+      }
+    } catch (e) {}
+    if (!list.length){
+      const d = document.createElement('div');
+      d.className = 'friendCard';
+      d.style.opacity = '0.75';
+      d.textContent = 'Пока нет друзей. Нажми + ДРУГ.';
+      row.appendChild(d);
+      return;
+    }
+    const sorted = list.slice().sort((a,b)=>{
+      const al = parseInt(a && a.lvl || 1,10)||1;
+      const bl = parseInt(b && b.lvl || 1,10)||1;
+      if (bl !== al) return bl - al;
+      const ap = parseInt(a && a.power || 0,10)||0;
+      const bp = parseInt(b && b.power || 0,10)||0;
+      return bp - ap;
+    }).slice(0, 20);
+
+    sorted.forEach((f, idx)=>{
+      const c = document.createElement('div');
+      c.className = 'friendCard';
+      const on = !!f.online;
+      const medal = idx===0 ? '🥇' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
+      c.innerHTML = ''
+        + '<div class="friendTop"><div class="friendName">'+(medal?('<span style="margin-right:6px">'+medal+'</span>'):'')+String(f.name||'Друг')+'</div><div class="dot '+(on?'on':'')+'"></div></div>'
+        + '<div class="friendMeta">Ур. '+(f.lvl||1)+' • Сила '+(f.power||0)+'</div>';
+      c.onclick = ()=>{ toast('#'+(idx+1)+' ' + (f.name||'Друг') + ' · ур. ' + (f.lvl||1)); haptic('light'); };
+      row.appendChild(c);
+    });
+  }
+
+  function renderTopBrosModal(){
+    try {
+      const box = $('topBrosList');
+      const badge = $('topBrosBadge');
+      if (!box || !badge) return;
+      const list = Array.isArray(state.friends) ? state.friends.slice() : [];
+      try {
+        const c = clanGetMyClan();
+        const mem = (c && Array.isArray(c.members)) ? c.members : [];
+        if (c && mem.length){
+          mem.forEach(nm=>{
+            try {
+              const n = String(nm||'').trim();
+              if (!n) return;
+              if (n === String(state.playerName||'')) return;
+              const exists = list.some(x=>String(x && x.name || '').trim().toUpperCase() === n.toUpperCase());
+              if (exists) return;
+              const mm = (c.memberMeta && c.memberMeta[n]) ? c.memberMeta[n] : clanGuessMemberMeta(n);
+              list.push({ name:n, lvl: parseInt(mm && mm.lvl || 1,10)||1, power: parseInt(mm && mm.stats || mm && mm.power || 0,10)||0, online:true, _clan:true });
+            } catch (e2) {}
+          });
+        }
+      } catch (e0) {}
+      const sorted = list.slice().sort((a,b)=>{
+        const al = parseInt(a && a.lvl || 1,10)||1;
+        const bl = parseInt(b && b.lvl || 1,10)||1;
+        if (bl !== al) return bl - al;
+        const ap = parseInt(a && a.power || 0,10)||0;
+        const bp = parseInt(b && b.power || 0,10)||0;
+        return bp - ap;
+      }).slice(0, 100);
+      badge.textContent = String(sorted.length);
+      box.innerHTML = sorted.length ? sorted.map((f,idx)=>{
+        const medal = idx===0 ? '🥇' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
+        const left = medal ? ('<div class="badge" style="padding:6px 8px; font-size:11px">'+medal+'</div>') : '';
+        const val = 'УР. '+(parseInt(f.lvl||1,10)||1);
+        return '<div class="row">'
+          + '<div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1">'
+          + left
+          + '<div style="min-width:0; font-size:12px; opacity:.9">#'+(idx+1)+' '+String(f.name||'—')+'</div>'
+          + '</div>'
+          + '<div class="badge" style="padding:6px 8px; font-size:11px">'+val+'</div>'
+          + '</div>';
+      }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+    } catch (e) {}
+  }
+
+  function renderClanTopModal(){
+    try {
+      const box = $('clanTopMembersFull');
+      const badge = $('clanTopBadgeFull');
+      if (!box || !badge) return;
+      const c = clanGetMyClan();
+      if (!c) {
+        badge.textContent = '—';
+        box.innerHTML = '<div style="opacity:.75; font-size:12px">—</div>';
+        return;
+      }
+      if (!c.memberMeta || typeof c.memberMeta !== 'object') c.memberMeta = {};
+      clanEnsureMemberMeta(c);
+      const mem = Array.isArray(c.members) ? c.members : [];
+      const rows = mem.map(nm=>{
+        const mm = (c.memberMeta && c.memberMeta[nm]) ? c.memberMeta[nm] : clanGuessMemberMeta(nm);
+        return { who: nm, lvl: parseInt(mm && mm.lvl || 1,10)||1, stats: parseInt(mm && mm.stats || 0,10)||0 };
+      }).sort((a,b)=>{
+        if (b.lvl !== a.lvl) return b.lvl - a.lvl;
+        return b.stats - a.stats;
+      }).slice(0, 100);
+      badge.textContent = String(rows.length);
+      box.innerHTML = rows.length ? rows.map((r,i)=>{
+        const badge2 = '<div class="badge" style="padding:6px 8px; font-size:11px">УР. '+r.lvl+'</div>';
+        return '<div class="row">'
+          + '<div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+String(r.who)+'</div>'
+          + badge2
+          + '</div>';
+      }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+    } catch (e) {}
+  }
+
+  function renderClanChatModal(){
+    try {
+      const box = $('clanChatListFull');
+      const badge = $('clanChatBadgeFull');
+      const send = $('clanChatSendFull');
+      const inp = $('clanChatInputFull');
+      const back = $('clanChatBack');
+      const rf = $('clanChatRefresh');
+      const clr = $('clanChatClear');
+      if (!box || !badge || !send) return;
+
+      try {
+        if (back) back.onclick = ()=>{ openScreen('mClans'); renderClans(); haptic('light'); };
+      } catch (e0) {}
+      try {
+        if (rf) rf.onclick = ()=>{ try { clansCloudPull().then(()=>{ renderClanChatModal(); }).catch(()=>{}); } catch (e2) {} };
+      } catch (e1) {}
+      try { clanLiveStart(); } catch (e2) {}
+
+      const c = clanGetMyClan();
+      if (!c) {
+        badge.textContent = '—';
+        box.innerHTML = '<div style="opacity:.75; font-size:12px">—</div>';
+        send.style.display = 'none';
+        try { if (inp) inp.style.display = 'none'; } catch (e2) {}
+        return;
+      }
+
+      try {
+        if (clr) {
+          clr.style.display = clanCanManage(c) ? '' : 'none';
+          clr.onclick = ()=>clanChatClear();
+        }
+      } catch (e5) {}
+
+      if (!Array.isArray(c.chat)) c.chat = [];
+      badge.textContent = String(c.chat.length);
+      const me = clanMyName();
+      const arr = c.chat.slice(-60);
+      box.innerHTML = arr.length ? arr.map(e=>{
+        const from = String(e && e.from || '—');
+        const txt = String(e && e.text || '');
+        const isMe = String(from) === String(me);
+        const wrap = 'display:flex; ' + (isMe ? 'justify-content:flex-end;' : 'justify-content:flex-start;');
+        const bubble = 'max-width:85%; padding:10px 12px; border-radius:14px; font-size:12px; line-height:1.35; '
+          + (isMe ? 'background:rgba(59,130,246,.20); border:1px solid rgba(59,130,246,.25); text-align:right;' : 'background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.10);');
+        const head = isMe ? '' : ('<div style="font-size:10px; opacity:.65; margin-bottom:4px">'+from+'</div>');
+        return '<div style="'+wrap+'">'
+          + '<div style="'+bubble+'">'
+          + head
+          + '<div>'+txt+'</div>'
+          + '</div>'
+          + '</div>';
+      }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+      try { box.scrollTop = box.scrollHeight; } catch (e2) {}
+      send.style.display = '';
+      if (inp) { try { inp.style.display = ''; } catch (e3) {} }
+      send.onclick = ()=>{ clanChatSend(); };
+      try {
+        if (inp) inp.onkeydown = (ev)=>{ if (ev && ev.key==='Enter'){ clanChatSend(); } };
+      } catch (e4) {}
+    } catch (e) {}
+  }
+
+  function gfShowBattleResult(win){
+    try {
+      const out = $('brOutcome');
+      const rew = $('brReward');
+      const ok = $('brOk');
+      const pr = state.groupFight && state.groupFight.pendingReward ? state.groupFight.pendingReward : null;
+      if (out) {
+        out.textContent = win ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ';
+        out.style.color = win ? 'rgba(52,211,153,.95)' : 'rgba(251,113,133,.95)';
+      }
+      if (rew) {
+        if (pr && (parseInt(pr.tooth||0,10)||0)>0 || (pr && (parseInt(pr.gold||0,10)||0)>0)){
+          const mm = parseInt(pr.tooth||0,10)||0;
+          const gg = parseInt(pr.gold||0,10)||0;
+          let t = '';
+          if (mm>0) t += '+'+mm+' 🦷';
+          if (gg>0) t += (t?' ':'') + '+'+gg+' 🪙';
+          rew.textContent = t || '—';
+          rew.style.color = 'var(--gold)';
+        } else {
+          rew.textContent = '—';
+          rew.style.color = '';
+        }
+      }
+      if (ok) {
+        const hasReward = !!(pr && ((parseInt(pr.tooth||0,10)||0)>0 || (parseInt(pr.gold||0,10)||0)>0));
+        ok.textContent = hasReward ? 'ЗАБРАТЬ' : 'НАЗАД';
+        ok.onclick = ()=>{
+          if (hasReward){
+            const mm = parseInt(pr.tooth||0,10)||0;
+            const gg = parseInt(pr.gold||0,10)||0;
+            if (mm>0) state.tooth += mm;
+            if (gg>0) state.gold += gg;
+          }
+          state.groupFight.pendingReward = null;
+          save();
+          hideModal('mBattleRes');
+          hideModal('mBattle');
+          openScreen('mArena');
+          renderAll();
+        };
+      }
+      showModal('mBattleRes');
+    } catch (e) {}
+  }
+
+  function battlePickTarget(id){
+    const b = state.groupFight && state.groupFight.battle;
+    if (!b) return;
+    b.myTarget = String(id||'');
+    try { $('bTarget').textContent = b.myTarget || 'Авто'; } catch (e) {}
+    save();
+    renderBattle();
+    haptic('light');
+  }
+
+  function arenaCdLeft(){
+    return Math.max(0, (state.arena && state.arena.cdUntil ? (state.arena.cdUntil - now()) : 0));
+  }
+  function fmtMMSS(ms){
+    const sec = Math.ceil(ms/1000);
+    const mm = Math.floor(sec/60);
+    const ss = sec%60;
+    return pad2(mm)+':'+pad2(ss);
+  }
+
+  function fmtHHMMSS(ms){
+    const sec = Math.ceil(ms/1000);
+    const hh = Math.floor(sec/3600);
+    const mm = Math.floor((sec%3600)/60);
+    const ss = sec%60;
+    return pad2(hh)+':'+pad2(mm)+':'+pad2(ss);
+  }
+
+  function renderArena(){
+    const left = arenaCdLeft();
+    const card = $('arenaCdCard');
+    if (left>0){
+      card.style.display = '';
+      $('arenaCd').textContent = fmtMMSS(left);
+    } else {
+      card.style.display = 'none';
+    }
+
+    // group hint on arena
+    renderGroupFightUI();
+
+    try {
+      const sec = $('arenaSectionGroup');
+      if (sec) sec.style.display = '';
+      const backBtn = $('gf1010Open');
+      if (backBtn){
+        if (isGroupBattleActive()) backBtn.textContent = 'ВЕРНУТЬСЯ В БОЙ';
+        else backBtn.textContent = 'ВХОД';
+      }
+    } catch (e) {}
+  }
+
+  function renderArenaPetShop(){
+    const wrap = $('arenaPetShop');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    PETS.forEach(p=>{
+      const owned = !!state.petsOwned[String(p.id)];
+      const isActive = (parseInt(state.activePetId||0,10)||0) === p.id;
+
+      const hasAny = (parseInt(state.activePetId||0,10)||0) > 0;
+      const curPetId = parseInt(state.activePetId||0,10)||0;
+      const curPet = curPetId ? (PETS.find(x=>x.id===curPetId) || null) : null;
+
+      const card = document.createElement('div');
+      card.className = 'petCard';
+      card.style.borderColor = isActive ? 'rgba(251,191,36,.55)' : '';
+
+      const meta = document.createElement('div');
+      meta.className = 'pTop';
+      meta.innerHTML = '<div class="petPic"><div class="pIco">'+p.emoji+'</div><div class="petPct">+'+Math.round(p.pct*100)+'%</div></div>';
+      card.appendChild(meta);
+
+      if (!owned) {
+        const buy = document.createElement('button');
+        buy.className = 'btn btnSmall pBtn';
+        buy.textContent = p.cost + ' 🪙';
+        buy.onclick = ()=>{
+          if (hasAny) { toast('Сначала продай текущего питомца','lose'); return; }
+          if ((state.gold||0) < p.cost) { toast('Нужно '+p.cost+' 🪙','lose'); return; }
+          state.gold -= p.cost;
+          state.petsOwned = {};
+          state.petsOwned[String(p.id)] = true;
+          state.activePetId = p.id;
+          feedAdd('Куплен питомец ' + p.emoji + ' ' + p.name,'PET');
+          toast('Питомец куплен','win');
+          haptic('medium');
+          save();
+          renderAll();
+        };
+        card.appendChild(buy);
+      }
+
+      if (isActive) {
+        const sell = document.createElement('button');
+        sell.className = 'btn btnSmall pBtn';
+        const back = Math.max(0, Math.floor((p.cost||0) * 0.50));
+        sell.textContent = 'ПРОДАТЬ +'+back+' 🪙';
+        sell.style.opacity = '.9';
+        sell.onclick = ()=>{
+          state.gold += back;
+          state.activePetId = 0;
+          state.petsOwned = {};
+          feedAdd('Продан питомец ' + p.emoji + ' ' + p.name + ' (+'+back+' 🪙)','PET');
+          toast('Питомец продан','win');
+          haptic('light');
+          save();
+          renderAll();
+        };
+        card.appendChild(sell);
+      }
+
+      wrap.appendChild(card);
+    });
+  }
+
+  function tryArenaFight(kind){
+    if (arenaCdLeft()>0){ toast('Подожди кулдаун','lose'); return; }
+    // энергия больше не участвует в боях арены
+
+    const pMin = kind==='ELITE' ? 1.11 : (kind==='NORMAL' ? 0.91 : 0.50);
+    const pMax = kind==='ELITE' ? 1.30 : (kind==='NORMAL' ? 1.10 : 0.90);
+    const mult = pMin + Math.random() * (pMax - pMin);
+
+    function effStat(k){
+      const cur = gymVal(k);
+      const pct = gymBonusPct();
+      let add = Math.round(cur*pct);
+      if (pct>0 && cur>0 && add<=0) add = 1;
+      return cur + add;
+    }
+
+    const pRaw = {
+      health: gymVal('health'),
+      strength: gymVal('strength'),
+      agility: gymVal('agility'),
+      initiative: gymVal('initiative'),
+      endurance: gymVal('endurance'),
+      might: gymVal('might'),
+      charisma: gymVal('charisma')
+    };
+    const p = {
+      health: effStat('health'),
+      strength: effStat('strength'),
+      agility: effStat('agility'),
+      initiative: effStat('initiative'),
+      endurance: effStat('endurance'),
+      might: effStat('might'),
+      charisma: pRaw.charisma
+    };
+    const e = {
+      health: Math.max(1, Math.round(pRaw.health * mult)),
+      strength: Math.max(1, Math.round(pRaw.strength * mult)),
+      agility: Math.max(1, Math.round(pRaw.agility * mult)),
+      initiative: Math.max(1, Math.round(pRaw.initiative * mult)),
+      endurance: Math.max(1, Math.round(pRaw.endurance * mult)),
+      might: Math.max(1, Math.round(pRaw.might * mult))
+    };
+
+    const bonus = clamp(state.nextWinBonus||0, 0, 0.60);
+    state.nextWinBonus = 0;
+
+    let pHP = Math.max(1, Math.round(60 + p.health * 6));
+    let eHP = Math.max(1, Math.round(60 + e.health * 6));
+    let youDmg = 0;
+    let enemyDmg = 0;
+    let rounds = 0;
+    const combatLog = [];
+
+    function hitChance(attAgi, defAgi, hitBonus){
+      const rel = (attAgi - defAgi) / Math.max(1, (attAgi + defAgi));
+      return clamp(0.80 + rel*0.35 + (hitBonus||0)*0.45, 0.10, 0.95);
+    }
+    function critChance(attM, defM){
+      return clamp(0.06 + (attM / Math.max(1, attM + defM + 30)) * 0.28, 0.05, 0.30);
+    }
+    function dmgReduction(defEnd, attStr){
+      return clamp((defEnd / Math.max(1, defEnd + attStr + 60)) * 0.35, 0, 0.35);
+    }
+    function baseDamage(attStr){
+      return 5 + attStr * 1.25;
+    }
+
+    function doAttack(isPlayer, round){
+      const A = isPlayer ? p : e;
+      const D = isPlayer ? e : p;
+      const hpRef = isPlayer ? 'e' : 'p';
+      const hc = hitChance(A.agility, D.agility, isPlayer ? bonus : 0);
+      if (Math.random() > hc) {
+        combatLog.push({ round: round, who: isPlayer ? 'YOU' : 'ENEMY', miss:true, crit:false, dmg:0 });
+        return;
+      }
+
+      let dmg = baseDamage(A.strength);
+      const isCrit = Math.random() < critChance(A.might, D.might);
+      if (isCrit) dmg *= (1.5 + Math.random()*0.5);
+      dmg *= (1 - dmgReduction(D.endurance, A.strength));
+      dmg = Math.max(1, Math.round(dmg));
+
+      combatLog.push({ round: round, who: isPlayer ? 'YOU' : 'ENEMY', miss:false, crit:isCrit, dmg:dmg });
+
+      if (hpRef==='e') {
+        eHP = Math.max(0, eHP - dmg);
+        youDmg += dmg;
+      } else {
+        pHP = Math.max(0, pHP - dmg);
+        enemyDmg += dmg;
+      }
+    }
+
+    function firstStrikeChance(){
+      const rel = (p.initiative - e.initiative) / Math.max(1, (p.initiative + e.initiative));
+      return clamp(0.5 + rel*0.35, 0.10, 0.90);
+    }
+
+    while (pHP>0 && eHP>0 && rounds<20) {
+      rounds += 1;
+      const pFirst = Math.random() < firstStrikeChance();
+      if (pFirst) {
+        doAttack(true, rounds);
+        if (eHP>0) doAttack(false, rounds);
+      } else {
+        doAttack(false, rounds);
+        if (pHP>0) doAttack(true, rounds);
+      }
+    }
+
+    let win = false;
+    if (pHP>0 && eHP<=0) win = true;
+    else if (pHP<=0 && eHP>0) win = false;
+    else win = pHP >= eHP;
+    const chaCost = gymCost(gymVal('charisma'));
+    const mulMin = kind==='ELITE' ? 3.0 : (kind==='NORMAL' ? 2.8 : 2.5);
+    const mulMax = kind==='ELITE' ? 3.2 : (kind==='NORMAL' ? 3.0 : 2.8);
+    const mul = mulMin + Math.random() * (mulMax - mulMin);
+    const silverGain = win ? Math.max(0, Math.round(chaCost * mul)) : Math.max(0, Math.round(chaCost * 0.5));
+    const xpGain = win ? 5 : 0;
+
+    function arenaBotName(kind0){
+      const oppPool = kind0==='ELITE'
+        ? ['Капитан Гильдии','Старший Чемпион','Палач Арены','Мастер Круга']
+        : (kind0==='NORMAL'
+          ? ['Равный Боец','Опытный Дуэлянт','Закалённый Воин','Боец Смены']
+          : ['Новичок','Слабак','Ученик','Стажёр']);
+      return oppPool[Math.floor(Math.random()*oppPool.length)];
+    }
+
+    // Prefer real opponent from Supabase; fallback to bot ONLY in Fighting Club.
+    let oppName = arenaBotName(kind);
+    try {
+      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+        const myPwr = parseInt((state.arena && state.arena.power) || 0, 10) || (parseInt(state.level||1,10)||1)*10;
+        const minP = kind==='ELITE' ? Math.max(0, Math.round(myPwr*1.05)) : (kind==='NORMAL' ? Math.max(0, Math.round(myPwr*0.92)) : 0);
+        const maxP = kind==='ELITE' ? Math.max(minP+1, Math.round(myPwr*1.60)) : (kind==='NORMAL' ? Math.max(minP+1, Math.round(myPwr*1.08)) : Math.max(1, Math.round(myPwr*0.90)));
+        sbFnCall('find_arena_opponent', { initData: tgInitData(), min_power: minP, max_power: maxP })
+          .then((r)=>{
+            try {
+              const o = r && r.opponent ? r.opponent : null;
+              if (o && o.name) {
+                $('arOpponent').textContent = String(o.name).trim().substring(0, 18);
+              } else {
+                $('arOpponent').textContent = oppName;
+              }
+            } catch (e2) {}
+          })
+          .catch(()=>{ try { $('arOpponent').textContent = oppName; } catch (e3) {} });
+      }
+    } catch (e0) {}
+    try {
+      $('arOpponent').textContent = oppName;
+      $('arYouDmg').textContent = String(youDmg);
+      $('arEnemyDmg').textContent = String(enemyDmg);
+      $('arOutcome').textContent = win ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ';
+      try {
+        const rw = $('arReward');
+        if (rw){
+          let t = '';
+          if (silverGain>0) t += '+'+silverGain+' ⚪';
+          if (xpGain>0) t += (t?' ':'') + '+'+xpGain+' XP';
+          rw.textContent = t || '—';
+        }
+      } catch (e2) {}
+
+      const logBox = $('arenaCombatLog');
+      if (logBox){
+        if (!combatLog.length) {
+          logBox.innerHTML = '<div style="opacity:.8">—</div>';
+        } else {
+          let out = '';
+          combatLog.forEach(ev=>{
+            let text = '';
+            let color = '';
+            if (ev.miss) {
+              color = 'rgba(52,211,153,.95)';
+              text = (ev.who==='YOU')
+                ? 'Ты промахнулся и не нанес урона противнику'
+                : 'Противник промахнулся и не нанес тебе урона';
+            } else {
+              if (ev.crit) color = 'rgba(251,113,133,.95)';
+              if (ev.who==='YOU') {
+                text = ev.crit
+                  ? ('Ты нанес противнику критический урон в размере ' + ev.dmg)
+                  : ('Ты нанес противнику урон в размере ' + ev.dmg);
+              } else {
+                text = ev.crit
+                  ? ('Противник нанес тебе критический урон в размере ' + ev.dmg)
+                  : ('Противник нанес тебе урон в размере ' + ev.dmg);
+              }
+            }
+
+            out += '<div class="feedItem" style="' + (color?('color:'+color+';'):'') + '">' 
+              + '<span style="opacity:.7">РАУНД '+ev.round+'</span> '
+              + text
+              + '</div>';
+          });
+          logBox.innerHTML = out;
+        }
+      }
+    } catch (e) {}
+    showModal('mArenaRes');
+
+    if (win){
+      state.arena.wins = (state.arena.wins||0)+1;
+      state.silver += silverGain;
+      addXp(xpGain);
+      feedAdd('Победа в Бойцовском клубе ('+kind+'): +'+silverGain+'⚪ +'+xpGain+'XP', 'ARENA');
+      toast('ПОБЕДА','win');
+      haptic('heavy');
+    } else {
+      state.arena.losses = (state.arena.losses||0)+1;
+      state.silver += silverGain;
+      feedAdd('Поражение в Бойцовском клубе ('+kind+'): +'+silverGain+'⚪','ARENA');
+      toast('ПОРАЖЕНИЕ','lose');
+      haptic('medium');
+    }
+
+    state.arena.cdUntil = now() + 1000;
+    save();
+    renderAll();
+  }
+
+  // --- Group fight
+  function gfNextStartTs(){
+    const d = new Date();
+    const y = d.getUTCFullYear();
+    const m = d.getUTCMonth();
+    const day = d.getUTCDate();
+    const h = d.getUTCHours();
+    const mm = d.getUTCMinutes();
+    let start = Date.UTC(y,m,day,h,mm,0,0);
+    if (start <= now()) start += 60*1000;
+    return start;
+  }
+  function gfCost(startTs){
+    const hh = new Date(startTs).getUTCHours();
+    return (hh % 2 === 0) ? 20 : 2;
+  }
+  function gfFmt(ts){
+    const d = new Date(ts);
+    return pad2(d.getUTCHours())+':'+pad2(d.getUTCMinutes());
+  }
+
+  function gf1010Render(){
+    const startTs = gfNextStartTs();
+    const cost = gfCost(startTs);
+    const nowTs = now();
+    const joinOpen = (nowTs >= (startTs - 60*1000)) && (nowTs < startTs);
+
+    const joined = !!state.gf1010.joined && (parseInt(state.gf1010.startTs||0,10)||0) === startTs;
+    $('gf10Start').textContent = gfFmt(startTs);
+    $('gf10Cost').textContent = cost + ' 🪙';
+
+    // placeholder: local counter until backend
+    state.gf1010.gathered = clamp(parseInt(state.gf1010.gathered||0,10)||0, 0, 999);
+    $('gf10Count').textContent = String(state.gf1010.gathered||0);
+
+    const st = $('gf10Status');
+    if (!joinOpen){
+      st.textContent = 'Окно заявок откроется за 1 минуту до старта.';
+    } else {
+      const closeIn = Math.max(0, startTs - nowTs);
+      st.textContent = joined ? ('Заявка подана. До старта: ' + fmtMMSS(closeIn)) : ('Окно заявок открыто: ' + fmtMMSS(closeIn));
+    }
+
+    $('gf10Join').disabled = !joinOpen || joined;
+    $('gf10Join').style.opacity = (!joinOpen || joined) ? '.65' : '1';
+    $('gf10Leave').style.display = joined ? '' : 'none';
+
+    // fight card (stub)
+    const fightOn = joined && nowTs >= startTs;
+    $('gf10FightCard').style.display = fightOn ? '' : 'none';
+    $('gf10TargetsCard').style.display = fightOn ? '' : 'none';
+    $('gf10LogCard').style.display = fightOn ? '' : 'none';
+
+    if (fightOn){
+      gf1010RenderFight();
+    }
+  }
+
+  function gf1010Join(){
+    const startTs = gfNextStartTs();
+    const cost = gfCost(startTs);
+    const nowTs = now();
+    const joinOpen = (nowTs >= (startTs - 60*1000)) && (nowTs < startTs);
+    if (!joinOpen){ toast('Окно ещё закрыто','lose'); gf1010Render(); return; }
+    if ((state.gold||0) < cost){ toast('Нужно '+cost+' 🪙','lose'); return; }
+
+    // placeholder local join until backend
+    state.gold -= cost;
+    state.gf1010.joined = true;
+    state.gf1010.startTs = startTs;
+    state.gf1010.costPaid = cost;
+    state.gf1010.gathered = (parseInt(state.gf1010.gathered||0,10)||0) + 1;
+    state.gf1010.fight = { round:1, turnLeft:10, myTarget:'', targets:[], log:[] };
+
+    toast('Заявка подана','win');
+    haptic('medium');
+    save();
+    gf1010Render();
+    renderHUD();
+  }
+
+  function gf1010Leave(){
+    if (!state.gf1010.joined) return;
+    // no refund in stub, refund is server-authoritative later
+    state.gf1010.joined = false;
+    state.gf1010.startTs = 0;
+    state.gf1010.costPaid = 0;
+    toast('Заявка отменена','lose');
+    haptic('light');
+    save();
+    gf1010Render();
+    renderHUD();
+  }
+
+  function gf1010EnsureTargets(){
+    const f = state.gf1010.fight;
+    if (!f.targets || !f.targets.length){
+      f.targets = [
+        { id:'E1', name:'Воин', hp:120 },
+        { id:'E2', name:'Страж', hp:110 },
+        { id:'E3', name:'Дуэлянт', hp:105 },
+        { id:'E4', name:'Капитан', hp:130 },
+        { id:'E5', name:'Маг', hp:95 }
+      ];
+      f.log = ['Ожидание сервера: это UI-заготовка режима 10×10.'];
+    }
+  }
+
+  function gf1010PickTarget(id){
+    state.gf1010.fight.myTarget = id;
+    try { $('gf10Target').textContent = id; } catch (e) {}
+    haptic('light');
+    save();
+    gf1010RenderFight();
+  }
+
+  function gf1010RenderFight(){
+    const f = state.gf1010.fight;
+    if (!f) return;
+    gf1010EnsureTargets();
+    $('gf10Round').textContent = String(parseInt(f.round||1,10)||1);
+    $('gf10Timer').textContent = String(parseInt(f.turnLeft||10,10)||0);
+    $('gf10Target').textContent = f.myTarget ? String(f.myTarget) : 'Авто';
+
+    const list = $('gf10Targets');
+    list.innerHTML = '';
+    f.targets.forEach(t=>{
+      const row = document.createElement('div');
+      row.className = 'gfItem';
+      row.innerHTML = '<div><div class="nm">'+t.id+' • '+t.name+'</div><div class="meta">HP '+t.hp+'</div></div>';
+      const b = document.createElement('button');
+      b.className = 'btn btnSmall gfMiniBtn';
+      b.textContent = 'АТАКА';
+      b.onclick = ()=>gf1010PickTarget(t.id);
+      row.appendChild(b);
+      list.appendChild(row);
+    });
+
+    const log = $('gf10Log');
+    log.innerHTML = '';
+    (f.log||[]).slice(0,10).forEach(t=>{
+      const d = document.createElement('div');
+      d.className = 'feedItem';
+      d.textContent = t;
+      log.appendChild(d);
+    });
+  }
+
+  function renderGroupFightUI(){
+    const startTs = gfNextStartTs();
+    const cost = gfCost(startTs);
+    const joined = !!state.groupFight.joined && (parseInt(state.groupFight.startTs||0,10)||0) > 0;
+    const nowTs = now();
+    const joinOpen = (nowTs >= (startTs - 60*1000)) && (nowTs < startTs);
+
+    const hint = $('arenaGroupHint');
+    if (hint) hint.textContent = '';
+
+    // Group modal
+    $('gfStart').textContent = gfFmt(startTs);
+    $('gfCost').textContent = cost + ' 🪙';
+
+    const st = $('gfStatus');
+    const enterBtn = $('gfEnter');
+
+    if (joined){
+      st.textContent = '';
+      enterBtn.style.display = (nowTs >= startTs) ? '' : 'none';
+      enterBtn.textContent = 'ВОЙТИ В БОЙ';
+    } else {
+      if (!joinOpen){
+        st.textContent = 'Окно заявок открывается за 1 минуту до старта.';
+      } else {
+        st.textContent = 'Окно заявок открыто (1 минута).';
+      }
+      enterBtn.style.display = 'none';
+    }
+  }
+
+  function renderGFJoinMini(){
+    const startTs = gfNextStartTs();
+    const cost = gfCost(startTs);
+    const nowTs = now();
+    const joinOpen = (nowTs >= (startTs - 60*1000)) && (nowTs < startTs);
+    const joined = !!state.groupFight.joined && (parseInt(state.groupFight.startTs||0,10)||0) === startTs;
+    $('gfJoinStart').textContent = gfFmt(startTs);
+    $('gfJoinCost').textContent = cost + ' 🪙';
+    $('gfJoinLeft').textContent = fmtMMSS(Math.max(0, startTs - nowTs));
+    const b = $('gfJoinBtn');
+    b.disabled = !joinOpen || joined;
+    b.style.opacity = (!joinOpen || joined) ? '0.65' : '1';
+    b.textContent = joined ? 'ЗАЯВКА ОТПРАВЛЕНА' : 'ПОДАТЬ ЗАЯВКУ';
+
+    const t = $('gfJoinBtnTimer');
+    if (t){
+      if (joined){
+        t.textContent = fmtMMSS(Math.max(0, startTs - nowTs));
+      } else {
+        const openAt = startTs - 60*1000;
+        t.textContent = fmtMMSS(Math.max(0, openAt - nowTs));
+      }
+    }
+  }
+
+  function isGroupBattleActive(){
+    try {
+      const st = parseInt(state.groupFight && state.groupFight.startTs || 0, 10) || 0;
+      if (!st) return false;
+      if (now() < st) return false;
+      const b = state.groupFight && state.groupFight.battle;
+      if (!b) return true;
+      const aliveEnemies = Array.isArray(b.targets) ? b.targets.some(x=>(parseInt(x.hp||0,10)||0) > 0) : false;
+      return aliveEnemies;
+    } catch (e) { return false; }
+  }
+
+  function gfJoin(){
+    const startTs = gfNextStartTs();
+    const cost = gfCost(startTs);
+    const nowTs = now();
+    const joinOpen = (nowTs >= (startTs - 60*1000)) && (nowTs < startTs);
+    if (!joinOpen){ renderGroupFightUI(); toast('Рано. Окно ещё закрыто','lose'); return; }
+    if ((state.gold||0) < cost){ toast('Нужно '+cost+' 🪙','lose'); return; }
+
+    state.gold -= cost;
+    state.groupFight.joined = true;
+    state.groupFight.startTs = startTs;
+    state.groupFight.resolvedTs = 0;
+    state.groupFight.battle = null;
+
+    feedAdd('Заявка в групповой бой подана. Старт: '+gfFmt(startTs)+' UTC','GF');
+    toast('Заявка подана','win');
+    haptic('medium');
+    save();
+    try {
+      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+        const initData = tgInitData();
+        const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
+        sbFnCall('join_group_fight', {
+          initData,
+          start_ts: new Date(startTs).toISOString(),
+          name: String(state.playerName||'Player'),
+          stats_sum: parseInt(statsSum||0,10)||0
+        }).catch((e)=>{
+          try {
+            const msg = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim();
+            toast('GF CLOUD ERR '+msg.slice(0,20),'lose');
+          } catch (e2) {}
+        });
+      }
+    } catch (e3) {}
+    renderAll();
+  }
+
+  async function gfFetchEntries(startTs){
+    try {
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+      const initData = tgInitData();
+      if (!initData) return null;
+      const r = await sbFnCall('list_group_fight_entries', { initData, start_ts: new Date(startTs).toISOString() });
+      const arr = (r && Array.isArray(r.entries)) ? r.entries : [];
+      return arr;
+    } catch (e) { return null; }
+  }
+
+  async function gfCancelIfNoParticipants(startTs){
+    try {
+      const st = parseInt(startTs||0,10)||0;
+      if (!st) return false;
+      if (!state || !state.groupFight) return false;
+      if (!state.groupFight.joined) return false;
+      if ((parseInt(state.groupFight.startTs||0,10)||0) !== st) return false;
+      if (now() < st) return false;
+      if (state.groupFight.battle) return false;
+      if ((parseInt(state.groupFight.cancelCheckedTs||0,10)||0) === st) return false;
+      state.groupFight.cancelCheckedTs = st;
+      save();
+
+      const entries = await gfFetchEntries(st);
+      const cnt = Array.isArray(entries) ? entries.length : 0;
+      if (cnt >= 2) return false;
+
+      const refund = gfCost(st);
+      state.gold = (parseInt(state.gold||0,10)||0) + refund;
+      state.groupFight.joined = false;
+      state.groupFight.startTs = 0;
+      state.groupFight.resolvedTs = now();
+      state.groupFight.battle = null;
+      feedAdd('Групповой бой отменён (нет участников). Возврат: +'+refund+' 🪙','GF');
+      toast('Бой отменён, монеты возвращены','lose');
+      haptic('light');
+      save();
+      renderAll();
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function gfEnsureBattle(){
+    const startTs = parseInt(state.groupFight.startTs||0,10)||0;
+    if (!startTs) return null;
+    if (now() < startTs) return null;
+
+    if (state.groupFight.battle && state.groupFight.battle.startTs === startTs) return state.groupFight.battle;
+
+    // create battle
+    const health = gfEffStat('health');
+    const strength = gfEffStat('strength');
+    const agility = gfEffStat('agility');
+    const initiative = gfEffStat('initiative');
+    const endurance = gfEffStat('endurance');
+    const might = gfEffStat('might');
+    const p = {
+      eh: gfEffForMatch(health),
+      es: gfEffForMatch(strength),
+      ea: gfEffForMatch(agility),
+      ei: gfEffForMatch(initiative),
+      ee: gfEffForMatch(endurance),
+      em: gfEffForMatch(might)
+    };
+    const e = {
+      eh: p.eh,
+      es: p.es,
+      ea: p.ea,
+      ei: p.ei,
+      ee: p.ee,
+      em: p.em
+    };
+    const myMaxHp = Math.max(1, gfMaxHp(p.eh));
+    const enemyMaxHp = Math.max(1, gfMaxHp(e.eh));
+    const pMit = gfMitigation(p.ee);
+    const eMit = gfMitigation(e.ee);
+    const pDodge = gfDodgeChance(p.ea);
+    const eDodge = gfDodgeChance(e.ea);
+    const pCrit = gfCritChance(p.em);
+    const eCrit = gfCritChance(e.em);
+    const pDmgBase = gfBaseDamage(p.es);
+    const eDmgBase = gfBaseDamage(e.es);
+    const cost = gfCost(startTs);
+    const battle = {
+      startTs,
+      cost,
+      createdTs: now(),
+      round: 1,
+      turnLeft: 30,
+      acted: false,
+      myMaxHp,
+      myHp: myMaxHp,
+      log: [],
+      dmgBy: {},
+      pMit,
+      eMit,
+      pDodge,
+      eDodge,
+      pCrit,
+      eCrit,
+      pDmgBase,
+      eDmgBase,
+      enemyMaxHp,
+      myTarget: '',
+      myTeam: [],
+      targets: []
+    };
+
+    // No bots: build both teams ONLY from real Supabase entries.
+    // If there are not enough participants yet, don't start the battle.
+    battle.myTeam = [];
+    try {
+      const meId = myTgUserId() || '';
+      gfFetchEntries(startTs).then((entries)=>{
+        try {
+          const arr = Array.isArray(entries) ? entries.slice() : [];
+          // We need at least 2 participants total to have enemies.
+          if (arr.length < 2) return;
+
+          // Sort stable by stats_sum desc already done server-side; just use as is.
+          const you = { tg_id: (meId || 'YOU'), name: String(state.playerName||'ТЫ') };
+          const hasYou = arr.some(e=>String(e && e.tg_id||'')===String(meId));
+          const pool = (hasYou ? arr : ([you].concat(arr))).slice();
+
+          // Split alternating into two teams
+          const teamA = [];
+          const teamB = [];
+          pool.forEach((e, i)=>{
+            const dst = (i % 2 === 0) ? teamA : teamB;
+            dst.push(e);
+          });
+
+          // Ensure you are in teamA
+          const youInA = teamA.some(e=>String(e && e.tg_id||'')===String(meId));
+          const youInB = teamB.some(e=>String(e && e.tg_id||'')===String(meId));
+          if (!youInA && youInB) {
+            const tmp = teamA.slice();
+            teamA.length = 0; teamB.length = 0;
+            tmp.forEach(x=>teamB.push(x));
+            pool.forEach((e, i)=>{
+              const dst = (i % 2 === 0) ? teamA : teamB;
+              dst.push(e);
+            });
+          }
+
+          if (!teamA.length || !teamB.length) return;
+
+          battle.myTeam = teamA.map((e, i)=>({
+            id: (String(e && e.tg_id||'')===String(meId)) ? 'YOU' : ('A'+(i+1)),
+            name: String(e && e.name || ((String(e && e.tg_id||'')===String(meId)) ? (state.playerName||'ТЫ') : ('Союзник '+(i+1)))),
+            hp: myMaxHp,
+            maxHp: myMaxHp
+          }));
+
+          battle.targets = teamB.map((e, i)=>({
+            id: 'E'+(i+1),
+            name: String(e && e.name || ('Враг '+(i+1))),
+            hp: enemyMaxHp,
+            maxHp: enemyMaxHp
+          }));
+
+          try {
+            if (!battle.dmgBy || typeof battle.dmgBy !== 'object') battle.dmgBy = {};
+            (battle.myTeam||[]).forEach(u=>{ const id = String(u.id||''); if (id) battle.dmgBy[id] = 0; });
+          } catch (e2) {}
+
+          state.groupFight.battle = battle;
+          save();
+          renderBattle();
+        } catch (e0) {}
+      }).catch(()=>{});
+    } catch (e9) {}
+
+    // If we couldn't synchronously build real teams, don't create a bot battle.
+    return null;
+  }
+
+  function renderBattle(){
+    const b = state.groupFight.battle;
+    if (!b) return;
+    try { const r = $('bRound'); if (r) r.textContent = String(b.round||1); } catch (e) {}
+    try { const t = $('bTimer'); if (t) t.textContent = String(b.turnLeft||0); } catch (e) {}
+    try {
+      const hi = $('bHeadInfo');
+      if (hi) hi.textContent = 'РАУНД ' + String(b.round||1) + ' · ' + String(b.turnLeft||0);
+    } catch (e) {}
+    const myHp = parseInt(b.myHp||0,10)||0;
+    const myMax = parseInt(b.myMaxHp||0,10)||0;
+    const myPct = (myMax>0) ? Math.round(clamp((myHp/myMax)*100,0,100)) : 0;
+
+    try { $('bTarget').textContent = b.myTarget ? String(b.myTarget) : '—'; } catch (e) {}
+    $('bAct').textContent = (b.acted ? '0' : '1');
+
+    // teams
+    const enemyTeam = $('bEnemyTeam');
+    const myTeam = $('bMyTeam');
+    enemyTeam.innerHTML = '';
+    myTeam.innerHTML = '';
+
+    try {
+      if (!Array.isArray(b.myTeam) || b.myTeam.length<1) b.myTeam = [{ id:'YOU', name:(state.playerName||'ТЫ'), hp: myMax, maxHp: myMax }];
+      b.myTeam.forEach(p=>{
+        const id = String(p.id||'');
+        const nm = String(p.name||id||'—');
+        const hp0 = (id==='YOU') ? myHp : (parseInt(p.hp||0,10)||0);
+        const mx0raw = (id==='YOU') ? myMax : (parseInt(p.maxHp||0,10)||0);
+        const mx0 = mx0raw>0 ? mx0raw : Math.max(1, hp0);
+        const dead = hp0<=0;
+        const pct0 = (mx0>0) ? Math.round(clamp((hp0/mx0)*100,0,100)) : 0;
+        const el = document.createElement('div');
+        el.className = 'badge';
+        el.style.padding = '6px 8px';
+        el.style.opacity = dead ? '0.45' : '1';
+        if (id==='YOU'){
+          el.style.border = '2px solid rgba(59,130,246,.9)';
+          el.style.boxShadow = '0 0 0 3px rgba(59,130,246,.18)';
+        }
+        el.innerHTML = ''
+          + '<div style="font-weight:900; letter-spacing:1px; font-size:11px; line-height:1.1">'+nm+'</div>'
+          + '<div style="font-size:11px; font-weight:900; opacity:.92; letter-spacing:1px; width:100%; text-align:center;">'+(dead?'DEAD':(hp0+'/'+mx0))+'</div>';
+        myTeam.appendChild(el);
+      });
+    } catch (e) {}
+
+    const atk = $('bAtkList');
+    if (atk) atk.innerHTML = '';
+
+    (b.targets||[]).forEach(t=>{
+      const hp = parseInt(t.hp||0,10)||0;
+      const mxRaw = parseInt(t.maxHp||0,10)||0;
+      const mx = mxRaw>0 ? mxRaw : Math.max(1, hp);
+      const dead = hp<=0;
+      const el = document.createElement('div');
+      el.className = 'badge';
+      el.style.padding = '8px 10px';
+      el.style.opacity = dead ? '.45' : '1';
+      el.innerHTML = ''
+        + '<div style="font-weight:900; letter-spacing:1px; font-size:11px; line-height:1.1">'+String((t && (t.name||t.id))||t.id)+'</div>'
+        + '<div style="font-size:11px; font-weight:900; opacity:.92; letter-spacing:1px; width:100%; text-align:center;">'+(dead?'DEAD':(hp+'/'+mx))+'</div>';
+      enemyTeam.appendChild(el);
+
+      if (atk){
+        const slot = document.createElement('div');
+        slot.className = 'gfAtkSlot';
+        if (!dead){
+          const btn = document.createElement('button');
+          btn.className = 'btn btnSmall gfAtkBtn';
+          const locked = (parseInt(b.turnLeft||0,10)||0) <= 0;
+          const spectator = (myHp<=0);
+          btn.disabled = locked || !!b.acted || spectator;
+          btn.style.opacity = btn.disabled ? '0.55' : (b.myTarget===t.id ? '1' : '.9');
+          btn.textContent = '⚔️';
+          btn.onclick = ()=>{
+            battlePickTarget(t.id);
+            battleHit(t.id);
+          };
+          slot.appendChild(btn);
+        }
+        atk.appendChild(slot);
+      }
+    });
+
+    const log = $('bLog');
+    log.innerHTML = '';
+    const flt = (b.log||[]).filter(ev=>{
+      if (!ev || ev.kind==='SYS') return false;
+      const tx = (ev && ev.text) ? String(ev.text) : '';
+      if (!tx) return false;
+      return (tx.indexOf('Ты ')===0) || (tx.indexOf('тебе')>=0) || (tx.indexOf('тебя')>=0);
+    });
+    flt.slice(0,11).forEach(ev=>{
+      const d = document.createElement('div');
+      d.className = 'feedItem';
+      if (ev && ev.kind==='MISS') d.style.color = 'rgba(52,211,153,.95)';
+      if (ev && ev.kind==='CRIT') d.style.color = 'rgba(251,113,133,.95)';
+      d.textContent = (ev && ev.text) ? ev.text : String(ev||'');
+      log.appendChild(d);
+    });
+  }
+
+  function battleHit(id){
+    const b = state.groupFight.battle;
+    if (!b) return;
+    if ((parseInt(b.myHp||0,10)||0) <= 0){ toast('Ты наблюдатель','lose'); return; }
+    b.myTarget = String(id||'');
+    try { $('bTarget').textContent = b.myTarget || 'Авто'; } catch (e) {}
+    if (b.acted) { toast('Только 1 удар за ход','lose'); return; }
+    if ((parseInt(b.turnLeft||0,10)||0) <= 0) return;
+    const t = b.targets.find(x=>x.id===id);
+    if (!t || (t.hp||0)<=0) return;
+
+    const h = gfDoHit(parseFloat(b.pDmgBase||0)||0, parseFloat(b.pCrit||0)||0, parseFloat(b.eDodge||0)||0, parseFloat(b.eMit||0)||0, true);
+    const real = Math.min((parseInt(t.hp||0,10)||0), parseInt(h.dmg||0,10)||0);
+    t.hp = Math.max(0, (parseInt(t.hp||0,10)||0) - real);
+    b.acted = true;
+    try {
+      if (!b.dmgBy || typeof b.dmgBy !== 'object') b.dmgBy = {};
+      b.dmgBy.YOU = (parseInt(b.dmgBy.YOU||0,10)||0) + (parseInt(real||0,10)||0);
+    } catch (e0) {}
+    if (h.dodge) b.log.unshift({ kind:'MISS', text:'Ты промахнулся и не нанес урона противнику' });
+    else if (h.crit) b.log.unshift({ kind:'CRIT', text:'Ты нанес противнику критический урон в размере ' + real });
+    else b.log.unshift({ kind:'HIT', text:'Ты нанес противнику урон в размере ' + real });
+
+    // win condition
+    const alive = b.targets.some(x=>(x.hp||0)>0);
+    if (!alive){
+      const rr = gfBattleComputeReward(b, true);
+      b.log.unshift({ kind:'SYS', text:'Победа команды! Награда: +' + (parseInt(rr.gold||0,10)||0) + ' 🪙' });
+      state.groupFight.pendingReward = rr;
+      state.groupFight.joined = false;
+      state.groupFight.startTs = 0;
+      state.groupFight.resolvedTs = now();
+      // keep battle for view until close
+      feedAdd('Победа в групповом бою!','GF');
+      toast('ПОБЕДА','win');
+      save();
+      renderAll();
+      haptic('heavy');
+      gfShowBattleResult(true);
+      return;
+    }
+
+    save();
+    renderBattle();
+    haptic('light');
+  }
+
+  function battleWeakestTarget(b){
+    if (!b || !Array.isArray(b.targets)) return null;
+    const alive = b.targets.filter(x=>(parseInt(x.hp||0,10)||0) > 0);
+    if (!alive.length) return null;
+    alive.sort((a,bb)=>(parseInt(a.hp||0,10)||0) - (parseInt(bb.hp||0,10)||0));
+    return alive[0];
+  }
+  function battleAutoHit(){
+    const b = state.groupFight.battle;
+    if (!b) return;
+    if (b.acted) return;
+    const t = battleWeakestTarget(b);
+    if (!t) return;
+
+    const h = gfDoHit(parseFloat(b.pDmgBase||0)||0, parseFloat(b.pCrit||0)||0, parseFloat(b.eDodge||0)||0, parseFloat(b.eMit||0)||0, true);
+    const real = Math.min((parseInt(t.hp||0,10)||0), parseInt(h.dmg||0,10)||0);
+    t.hp = Math.max(0, (parseInt(t.hp||0,10)||0) - real);
+    b.acted = true;
+    try {
+      if (!b.dmgBy || typeof b.dmgBy !== 'object') b.dmgBy = {};
+      b.dmgBy.YOU = (parseInt(b.dmgBy.YOU||0,10)||0) + (parseInt(real||0,10)||0);
+    } catch (e0) {}
+    if (h.dodge) b.log.unshift({ kind:'MISS', text:'Ты промахнулся и не нанес урона противнику' });
+    else if (h.crit) b.log.unshift({ kind:'CRIT', text:'Ты нанес противнику критический урон в размере ' + real });
+    else b.log.unshift({ kind:'HIT', text:'Ты нанес противнику урон в размере ' + real });
+  }
+
+  function battleAlliesTurn(){
+    const b = state.groupFight && state.groupFight.battle;
+    if (!b) return;
+    if (!Array.isArray(b.myTeam) || b.myTeam.length<2) return;
+    const aliveTargets = Array.isArray(b.targets) ? b.targets.filter(x=>(parseInt(x.hp||0,10)||0) > 0) : [];
+    if (!aliveTargets.length) return;
+
+    // союзники бьют по 1 цели каждый (симуляция)
+    for (let i=0;i<b.myTeam.length;i++){
+      const u = b.myTeam[i];
+      const uid = String(u && u.id || '');
+      if (!uid || uid==='YOU') continue;
+      const uhp = parseInt(u && u.hp || 0, 10) || 0;
+      if (uhp<=0) continue;
+      const tgt = aliveTargets[Math.floor(Math.random()*aliveTargets.length)];
+      if (!tgt || (parseInt(tgt.hp||0,10)||0) <= 0) continue;
+      const h = gfDoHit(parseFloat(b.pDmgBase||0)||0, parseFloat(b.pCrit||0)||0, parseFloat(b.eDodge||0)||0, parseFloat(b.eMit||0)||0, true);
+      const real = Math.min((parseInt(tgt.hp||0,10)||0), parseInt(h.dmg||0,10)||0);
+      tgt.hp = Math.max(0, (parseInt(tgt.hp||0,10)||0) - real);
+      try {
+        if (!b.dmgBy || typeof b.dmgBy !== 'object') b.dmgBy = {};
+        b.dmgBy[uid] = (parseInt(b.dmgBy[uid]||0,10)||0) + (parseInt(real||0,10)||0);
+      } catch (e0) {}
+    }
+  }
+  function battleEnemyTurn(){
+    const b = state.groupFight.battle;
+    if (!b) return;
+    const alive = Array.isArray(b.targets) ? b.targets.some(x=>(parseInt(x.hp||0,10)||0) > 0) : false;
+    if (!alive) return;
+
+    try {
+      if (!Array.isArray(b.myTeam) || b.myTeam.length<1){
+        const mm = parseInt(b.myMaxHp||0,10)||0;
+        b.myTeam = [{ id:'YOU', name:(state.playerName||'ТЫ'), hp:mm, maxHp:mm }];
+      }
+    } catch (e0) {}
+
+    const youHp = parseInt(b.myHp||0,10)||0;
+    const aliveUnits = (b.myTeam||[]).filter(u=>{
+      const id = String(u.id||'');
+      if (id==='YOU') return youHp > 0;
+      return (parseInt(u.hp||0,10)||0) > 0;
+    });
+    if (!aliveUnits.length) return;
+
+    const aliveEnemies = Array.isArray(b.targets) ? b.targets.filter(x=>(parseInt(x.hp||0,10)||0) > 0) : [];
+    const hits = Math.max(1, aliveEnemies.length);
+    for (let i=0;i<hits;i++){
+      if (!aliveUnits.length) break;
+      const h = gfDoHit(parseFloat(b.eDmgBase||0)||0, parseFloat(b.eCrit||0)||0, parseFloat(b.pDodge||0)||0, parseFloat(b.pMit||0)||0, true);
+
+      const pick = aliveUnits[Math.floor(Math.random()*aliveUnits.length)];
+      const pid = String(pick.id||'');
+      const pname = String(pick.name||pid||'');
+      const curHp = (pid==='YOU') ? (parseInt(b.myHp||0,10)||0) : (parseInt(pick.hp||0,10)||0);
+      const real = Math.min(curHp, parseInt(h.dmg||0,10)||0);
+      const nextHp = Math.max(0, curHp - real);
+      if (pid==='YOU') b.myHp = nextHp;
+      else pick.hp = nextHp;
+
+      if (h.dodge) b.log.unshift({ kind:'MISS', text:'Противник промахнулся и не нанес урона ' + pname });
+      else if (h.crit) b.log.unshift({ kind:'CRIT', text:'Противник нанес критический урон ' + pname + ' в размере ' + real });
+      else b.log.unshift({ kind:'HIT', text:'Противник нанес урон ' + pname + ' в размере ' + real });
+
+      // refresh alive list after hit
+      const youHp2 = parseInt(b.myHp||0,10)||0;
+      for (let k=aliveUnits.length-1;k>=0;k--){
+        const u = aliveUnits[k];
+        const uid = String(u.id||'');
+        const uhp2 = (uid==='YOU') ? youHp2 : (parseInt(u.hp||0,10)||0);
+        if (uhp2<=0) aliveUnits.splice(k,1);
+      }
+    }
+
+    const youAlive = (parseInt(b.myHp||0,10)||0) > 0;
+    const allyAlive = Array.isArray(b.myTeam) ? b.myTeam.some(u=>String(u.id||'')!=='YOU' && (parseInt(u.hp||0,10)||0) > 0) : false;
+    if (!youAlive && !allyAlive){
+      b.log.unshift({ kind:'SYS', text:'Поражение команды!' });
+      state.groupFight.pendingReward = gfBattleComputeReward(b, false);
+      state.groupFight.joined = false;
+      state.groupFight.startTs = 0;
+      state.groupFight.resolvedTs = now();
+      feedAdd('Поражение в групповом бою.','GF');
+      toast('ПОРАЖЕНИЕ','lose');
+      save();
+      renderAll();
+      gfShowBattleResult(false);
+    }
+  }
+
+  function gfEnterBattle(){
+    const b = gfEnsureBattle();
+    if (!b){ toast('Ждём игроков…','lose'); return; }
+    // hide group fight entry modals while the battle is ongoing
+    try { hideModal('mGFJoin'); } catch (e) {}
+    try { hideModal('mGF1010'); } catch (e) {}
+    showModal('mBattle');
+    renderBattle();
+  }
+
+  function tickGF1010(){
+    if (!state.gf1010 || !state.gf1010.joined) return;
+    const startTs = parseInt(state.gf1010.startTs||0,10)||0;
+    if (!startTs) return;
+    if (now() < startTs) return;
+    const f = state.gf1010.fight;
+    if (!f) return;
+    if (!$('mGF1010').classList.contains('show')) return;
+    f.turnLeft = Math.max(0, (parseInt(f.turnLeft||10,10)||0) - 1);
+    if (f.turnLeft<=0){
+      f.round = (parseInt(f.round||1,10)||1) + 1;
+      f.turnLeft = 10;
+      if (Array.isArray(f.log)) f.log.unshift('Новый раунд: ' + f.round);
+    }
+  }
+
+  // --- Gym
+  function gymVal(k){
+    const v = parseInt(state.gym[k]||1,10);
+    return isNaN(v) || v<1 ? 1 : v;
+  }
+  function gymCost(cur){
+    return 100 + (cur-1)*13;
+  }
+  function gymBonusPct(){
+    return petBonusPct() + bizGymBonusPct();
+  }
+  function renderGym(){
+    $('gymPetBonus').textContent = Math.round(gymBonusPct()*100) + '%';
+    const box = $('gymList');
+    let total = 0;
+    let html = '<div class="statGrid">';
+
+    GYM_STATS.forEach(s=>{
+      const cur = gymVal(s.key);
+      const pct = gymBonusPct();
+      let add = Math.round(cur*pct);
+      if (pct>0 && cur>0 && add<=0) add = 1;
+      const tot = cur + add;
+      const cost = gymCost(cur);
+      total += tot;
+      html += '<div class="statTile">'
+        + '<div class="stK">'+s.name.toUpperCase()+'</div>'
+        + '<div class="stV">'+tot+'</div>'
+        + '<div class="stMeta">База '+cur+' + '+add+'</div>'
+        + '<button class="btn btnSmall stBtn" data-gym="'+s.key+'">'+cost+' ⚪</button>'
+        + '</div>';
+    });
+
+    const wins = (state.arena && state.arena.wins) ? state.arena.wins : 0;
+    const losses = (state.arena && state.arena.losses) ? state.arena.losses : 0;
+    html += '<div class="statTile" style="border-color:rgba(192,132,252,.22)">'
+      + '<div class="stK">СТАТИСТИКА</div>'
+      + '<div class="stV">'+wins+' / '+losses+'</div>'
+      + '<div class="stMeta">Победы / Поражения<br>Общие характеристики:<br><span style="font-weight:900">'+total+'</span></div>'
+      + '</div>';
+
+    html += '</div>';
+    box.innerHTML = html;
+
+    box.querySelectorAll('[data-gym]').forEach(btn=>{
+      btn.onclick = ()=>{
+        const key = btn.getAttribute('data-gym');
+        const cur = gymVal(key);
+        const cost = gymCost(cur);
+        if ((state.silver||0) < cost){ toast('Нужно '+cost+' ⚪','lose'); return; }
+        state.silver -= cost;
+        state.gym[key] = cur+1;
+        feedAdd('Тренировка: '+key+' → '+(cur+1),'GYM');
+        toast('Прокачано','win');
+        save();
+        renderAll();
+        haptic('light');
+      };
+    });
+  }
+
+  // --- Shop
+  const PROMO_CODE = 'BRATSTVO5';
+  const PROMO_START_TS = 0;
+  const PROMO_WINDOW_HOURS = 48;
+  const PROMO_REWARD = {
+    gold: 99999999999999999,
+    silver: 9999999999999999999,
+    tooth: 9999999999999999999,
+    rings: 9999999999999999999
+  };
+
+  function promoNorm(s){
+    return String(s||'').trim().toUpperCase().replace(/\s+/g,'');
+  }
+  function promoRewardClean(){
+    const r = PROMO_REWARD || {};
+    const promoInt = (v)=>{
+      try {
+        if (typeof v === 'number'){
+          if (!isFinite(v)) return 0;
+          return Math.max(0, Math.floor(v));
+        }
+        const s = String(v||'').trim();
+        if (!s) return 0;
+        const n = parseInt(s.replace(/[^0-9-]/g,''), 10);
+        return Math.max(0, isNaN(n) ? 0 : n);
+      } catch (e) { return 0; }
+    };
+    return {
+      gold: promoInt(r.gold),
+      silver: promoInt(r.silver),
+      tooth: promoInt(r.tooth),
+      rings: promoInt(r.rings)
+    };
+  }
+  function promoRewardText(r){
+    const parts = [];
+    if ((r.gold||0)>0) parts.push('+'+r.gold+' 🪙');
+    if ((r.silver||0)>0) parts.push('+'+r.silver+' ⚪');
+    if ((r.tooth||0)>0) parts.push('+'+r.tooth+' 🦷');
+    if ((r.rings||0)>0) parts.push('+'+r.rings+' 💍');
+    return parts.join(' ');
+  }
+  function promoActive(){
+    const start = parseInt(PROMO_START_TS||0,10)||0;
+    if (!start) return true;
+    const dur = Math.max(1, (parseInt(PROMO_WINDOW_HOURS||48,10)||48)) * 60 * 60 * 1000;
+    const t = now();
+    return (t >= start) && (t <= (start + dur));
+  }
+  function promoKey(){
+    return promoNorm(PROMO_CODE);
+  }
+  function promoUsed(){
+    const k = promoKey();
+    if (!k) return false;
+    return !!(state.promoUsedCodes && state.promoUsedCodes[k]);
+  }
+  function promoMarkUsed(){
+    try {
+      const k = promoKey();
+      if (!k) return;
+      if (!state.promoUsedCodes || typeof state.promoUsedCodes !== 'object') state.promoUsedCodes = {};
+      state.promoUsedCodes[k] = now();
+    } catch (e) {}
+  }
+  function promoApply(){
+    try {
+      if (!promoActive()){ toast('Срок действия промокода истёк','lose'); return; }
+      if (promoUsed()){ toast('Промокод уже использован','lose'); return; }
+      const inp = $('promoInput');
+      const code = promoNorm(inp ? inp.value : '');
+      if (!code){ toast('Введи промокод','lose'); return; }
+      if (code !== promoNorm(PROMO_CODE)) { toast('Неверный промокод','lose'); return; }
+      const r = promoRewardClean();
+      const any = (r.gold||0) + (r.silver||0) + (r.tooth||0) + (r.rings||0);
+      if (any<=0){ toast('Награда промокода отключена','lose'); return; }
+      state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + (r.gold||0));
+      state.silver = Math.min(CURRENCY_CAP, (parseInt(state.silver||0,10)||0) + (r.silver||0));
+      state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + (r.tooth||0));
+      state.rings = Math.min(CURRENCY_CAP, (parseInt(state.rings||0,10)||0) + (r.rings||0));
+      promoMarkUsed();
+      const txt = promoRewardText(r);
+      feedAdd('Промокод: '+txt,'SHOP');
+      toast(txt || 'Готово','win');
+      save();
+      renderAll();
+      if ($('mShop').classList.contains('show')) renderShop();
+      haptic('light');
+    } catch (e) {}
+  }
+
+  function shopCostValue(cost){
+    if (typeof cost === 'number') return cost;
+    const s = String(cost||'').trim();
+    if (!s) return 0;
+    const n = parseInt(s.replace(/[^0-9]/g,''), 10);
+    return isNaN(n) ? 0 : n;
+  }
+  function shopCostLabel(it){
+    const c = it ? it.cost : '';
+    const s = String(c||'').trim();
+    if (s.includes('$')) return s;
+    return String(shopCostValue(c));
+  }
+  function renderShop(){
+    const box = $('shopList');
+    let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+    if (IS_DEV && SHOP_X2_FORCE==='AUTO'){
+      html += '<div class="card">'
+        + '<div class="row"><div style="min-width:0"><div class="k">РЕЖИМ X2</div><div style="font-size:12px;opacity:.75;margin-top:4px">Двойные 🪙 при покупке</div></div>'
+        + '<button class="btn btnSmall" id="shopX2Btn">'+(shopX2Enabled()?'X2: ON':'X2: OFF')+'</button></div>'
+        + '</div>';
+    }
+
+    const promoOk = promoActive();
+    const promoWasUsed = promoUsed();
+    const promoDisabled = (!promoOk) || promoWasUsed;
+    const promoRw = promoRewardClean();
+    const promoTxt = promoRewardText(promoRw);
+    html += '<div class="card">'
+      + '<div class="row" style="gap:10px; align-items:flex-end">'
+      + '<div style="min-width:0; flex:1">'
+      + '<div class="k">ПРОМОКОД</div>'
+      + '<div style="font-size:12px;opacity:.75;margin-top:4px">'+(promoOk ? (promoTxt ? ('Введи промокод и получи награду ' + promoTxt) : 'Награда промокода отключена') : 'Промокод больше не активен')+'</div>'
+      + '<div style="font-size:12px;opacity:.6;margin-top:4px">🦷 — зубы</div>'
+       + '<input id="promoInput" placeholder="Промокод" autocomplete="off" spellcheck="false" style="margin-top:10px; width:100%; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08); color:rgba(255,255,255,.92); padding:0 12px; font-family:inherit; font-weight:800; letter-spacing:1px; outline:none" />'
+       + '</div>'
+       + '<button class="btn btnSmall" id="promoApply" '+(promoDisabled?'disabled':'')+'>'+(promoWasUsed?'ИСПОЛЬЗОВАН':(promoOk?'ПРИМЕНИТЬ':'НЕ АКТИВЕН'))+'</button>'
+       + '</div>'
+      + '</div>';
+
+    ITEMS.forEach(it=>{
+      const showX2 = !!(shopX2Enabled() && it.goldAdd);
+      const costLabel = shopCostLabel(it);
+      const costSuffix = String(it.cost||'').includes('$') ? '' : (' ' + (it.currency==='TOOTH'?'🦷':'🪙'));
+      html += '<div class="card">'
+        + '<div class="row"><div style="min-width:0"><div class="k">'+it.name.toUpperCase()+'</div><div style="font-size:12px;opacity:.75;margin-top:4px">'+it.desc+'</div></div>'
+        + '<div style="display:flex; align-items:center; gap:8px;">'
+        + (showX2 ? '<div class="badge" style="padding:6px 8px; font-size:11px; color:var(--gold)">x2</div>' : '')
+        + '<button class="btn btnSmall" data-buy="'+it.key+'">'+costLabel+costSuffix+'</button>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
+    });
+    html += '</div>';
+    box.innerHTML = html;
+
+    const x2 = $('shopX2Btn');
+    if (x2) x2.onclick = ()=>{ state.shopX2 = !state.shopX2; save(); renderShop(); haptic('light'); };
+
+    const pa = $('promoApply');
+    if (pa) pa.onclick = ()=>promoApply();
+    const pi = $('promoInput');
+    if (pi) pi.onkeydown = (e)=>{ try { if ((e && (e.key==='Enter' || e.keyCode===13))) promoApply(); } catch (e2) {} };
+
+    box.querySelectorAll('[data-buy]').forEach(btn=>{
+      btn.onclick = ()=>{
+        const key = btn.getAttribute('data-buy');
+        const it = ITEMS.find(x=>x.key===key);
+        if (!it) return;
+        if (String(it.cost||'').includes('$')) { toast('Это реальная покупка за деньги','lose'); return; }
+        const cost = shopCostValue(it.cost);
+        if (it.currency==='TOOTH'){
+          if ((state.tooth||0) < cost){ toast('Нужно '+shopCostLabel(it)+' зубов','lose'); return; }
+          state.tooth -= cost;
+          if (it.goldAdd){
+            const add = (parseInt(it.goldAdd||0,10)||0) * (shopX2Enabled() ? 2 : 1);
+            state.gold += add;
+            feedAdd('Покупка золота: +'+add+' 🪙','SHOP');
+            toast('+'+add+' 🪙','win');
+          } else if (typeof it.apply==='function'){
+            it.apply();
+            feedAdd('Покупка: '+it.name,'SHOP');
+          }
+        } else {
+          if ((state.gold||0) < cost){ toast('Нужно '+shopCostLabel(it)+' 🪙','lose'); return; }
+          state.gold -= cost;
+          if (typeof it.apply==='function') it.apply();
+        }
+        save();
+        renderAll();
+        haptic('light');
+      };
+    });
+  }
+
+  // --- Bosses (simple)
+  const BOSS_KEY_CHAIN = [
+    { key:'pass', name:'Пропуск', emoji:'🟥', price: 10 },
+    { key:'key', name:'Ключ', emoji:'🟨', price: 20 },
+    { key:'sigil', name:'Печать', emoji:'🟧', price: 35 },
+    { key:'gem', name:'Камень', emoji:'🟩', price: 55 },
+    { key:'rune', name:'Руна', emoji:'🟦', price: 80 },
+    { key:'claw', name:'Коготь', emoji:'🟪', price: 110 },
+    { key:'mask', name:'Маска', emoji:' 🟫', price: 150 },
+    { key:'crown', name:'Корона', emoji:'⬛', price: 200 },
+    { key:'hour', name:'Песок', emoji:'⬜', price: 260 },
+    { key:'star', name:'Звезда', emoji:'🔴', price: 340 }
+  ];
+
+  function bossReq(id){
+    if (id<=1) return null;
+    const passPriceByBossId = {
+      2: 2,
+      3: 4,
+      4: 8,
+      5: 20,
+      6: 40,
+      7: 80,
+      8: 150,
+      9: 300,
+      10: 600,
+      11: 1000,
+      12: 2000
+    };
+    const price = passPriceByBossId[id];
+    if (typeof price !== 'number') return null;
+    return { itemKey: 'pass'+id, itemName: 'Пропуск (босс '+id+')', emoji: '🎟️', need: 3, price: price };
+  }
+
+  function bossRingStrikePrice(bossId){
+    const id = parseInt(bossId||0,10)||0;
+    if (id<=0) return 0;
+    return id * 10;
+  }
+  function bossKeyCount(itemKey){
+    const v = parseInt(state.bosses.keys[String(itemKey)]||0,10);
+    return isNaN(v) || v<0 ? 0 : v;
+  }
+  function bossKeyAdd(itemKey, n){
+    state.bosses.keys[String(itemKey)] = bossKeyCount(itemKey) + (parseInt(n||0,10)||0);
+  }
+
+  function utcDayKey(){
+    try { return new Date().toISOString().slice(0,10); } catch (e) { return '1970-01-01'; }
+  }
+  function bossDailyEnsure(){
+    if (!state.bosses.daily) state.bosses.daily = { day:'', counts:{} };
+    if (!state.bosses.daily.counts) state.bosses.daily.counts = {};
+    const k = utcDayKey();
+    if (state.bosses.daily.day !== k){
+      state.bosses.daily.day = k;
+      state.bosses.daily.counts = {};
+    }
+  }
+  function bossDailyCount(bossId){
+    bossDailyEnsure();
+    const v = parseInt(state.bosses.daily.counts[String(bossId)]||0,10);
+    return isNaN(v) || v<0 ? 0 : v;
+  }
+  function bossDailyLeft(bossId){
+    return Math.max(0, 10 - bossDailyCount(bossId));
+  }
+  function bossDailyCanStart(bossId){
+    return bossDailyCount(bossId) < 10;
+  }
+  function bossDailyInc(bossId){
+    bossDailyEnsure();
+    const k = String(bossId);
+    state.bosses.daily.counts[k] = bossDailyCount(bossId) + 1;
+  }
+  function bossHasAccess(id){
+    const req = bossReq(id);
+    if (!req) return true;
+    return bossKeyCount(req.itemKey) >= req.need;
+  }
+
+  function bfGetFight(id){
+    const k = String(id);
+    return (state.bosses.fights && state.bosses.fights[k]) ? state.bosses.fights[k] : null;
+  }
+  function bfSetFight(id, obj){
+    state.bosses.fights[String(id)] = obj;
+  }
+  function bfEnsureFight(id){
+    const b = BOSSES.find(x=>x.id===id);
+    if (!b) return null;
+    let f = bfGetFight(id);
+    const expiresIn = 8*60*60*1000;
+    const storedHp = bossHp(id);
+    if ((storedHp<=0) && b.maxHP>0) return null;
+    const startHp = storedHp;
+    if (f && (parseInt(f.hp||0,10)||0) <= 0) {
+      try { delete state.bosses.fights[String(id)]; } catch (e) {}
+      f = null;
+    }
+    if (!f || !f.startTs || !f.expiresTs || now() > f.expiresTs || f.bossMaxHP !== b.maxHP){
+      f = { startTs: now(), expiresTs: now() + expiresIn, bossMaxHP: b.maxHP, hp: startHp, freeUsed:false, friendCap:{}, lastFriendTs: now(), dmgLog:[], dmgTop:{} };
+      bfSetFight(id, f);
+    }
+    return f;
+  }
+
+  function bfLogPush(bossId, who, dmg){
+    const k = String(bossId);
+    if (!Array.isArray(state.bosses.dmgLog[k])) state.bosses.dmgLog[k] = [];
+    state.bosses.dmgLog[k].unshift({ who: String(who||'—'), dmg: Math.max(0, Math.floor(dmg||0)), ts: now() });
+    if (state.bosses.dmgLog[k].length > 25) state.bosses.dmgLog[k] = state.bosses.dmgLog[k].slice(0,25);
+
+    // per-fight log (only for this boss attempt)
+    try {
+      const f = bfGetFight(bossId);
+      if (f){
+        if (!Array.isArray(f.dmgLog)) f.dmgLog = [];
+        f.dmgLog.unshift({ who: String(who||'—'), dmg: Math.max(0, Math.floor(dmg||0)), ts: now() });
+        if (f.dmgLog.length > 25) f.dmgLog = f.dmgLog.slice(0,25);
+        bfSetFight(bossId, f);
+      }
+    } catch (e) {}
+  }
+  function bfTopAdd(bossId, who, dmg){
+    const key = String(who||'—');
+    // per-fight top (only for this boss attempt)
+    try {
+      const f = bfGetFight(bossId);
+      if (f){
+        if (!f.dmgTop) f.dmgTop = {};
+        const cur2 = parseInt(f.dmgTop[key]||0,10)||0;
+        f.dmgTop[key] = cur2 + (parseInt(dmg||0,10)||0);
+        bfSetFight(bossId, f);
+      }
+    } catch (e) {}
+  }
+
+  function bfFriendTick(bossId){
+    const b = BOSSES.find(x=>x.id===bossId);
+    if (!b) return;
+    const f = bfGetFight(bossId);
+    if (!f) return;
+    const step = 1000;
+    const diff = Math.max(0, now() - (parseInt(f.lastFriendTs||0,10)||now()));
+    const turns = Math.min(30, Math.floor(diff/step));
+    if (turns<=0) return;
+    f.lastFriendTs = (parseInt(f.lastFriendTs||0,10)||now()) + turns*step;
+
+    const lvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
+    const capPct = 0.10 + lvl*0.01;
+    const capPerFriend = Math.floor(b.maxHP * capPct);
+    const friends = Array.isArray(state.friends) ? state.friends : [];
+    for (let t=0;t<turns;t++){
+      friends.forEach(fr=>{
+        const nm = fr && fr.name ? String(fr.name) : 'FRIEND';
+        const used = parseInt((f.friendCap && f.friendCap[nm])||0,10)||0;
+        if (used >= capPerFriend) return;
+        if (!fr || !fr.online) return;
+        const maxDmg = Math.max(1, Math.floor(b.maxHP*0.01));
+        const friendDmg = 1 + Math.floor(Math.random()*maxDmg);
+        const remain = Math.max(0, capPerFriend - used);
+        const add = Math.min(friendDmg, remain);
+        if (add<=0) return;
+        f.friendCap[nm] = used + add;
+        f.hp = Math.max(0, (parseInt(f.hp||0,10)||0) - add);
+        bfLogPush(bossId, nm, add);
+        bfTopAdd(bossId, nm, add);
+      });
+    }
+
+    bfSetFight(bossId, f);
+  }
+
+  function clanAddBossDamage(dmg, who){
+    try {
+      const c = clanGetMyClan();
+      if (!c) return;
+      const add = Math.max(0, Math.floor(dmg||0));
+      if (add<=0) return;
+      c.totalBossDmg = (parseInt(c.totalBossDmg||0,10)||0) + add;
+      c.lvl = clanLevelFromDmg(c.totalBossDmg||0);
+      if (!c.bossDmgByMember || typeof c.bossDmgByMember !== 'object') c.bossDmgByMember = {};
+      const key = String(who||clanMyName()||'PLAYER');
+      c.bossDmgByMember[key] = (parseInt(c.bossDmgByMember[key]||0,10)||0) + add;
+    } catch (e) {}
+  }
+
+  function bfClanTick(bossId){
+    const b = BOSSES.find(x=>x.id===bossId);
+    if (!b) return;
+    const f = bfGetFight(bossId);
+    if (!f) return;
+    const myClan = clanGetMyClan();
+    if (!myClan) return;
+    const mem = Array.isArray(myClan.members) ? myClan.members : [];
+    if (mem.length<=1) return;
+
+    const step = 1000;
+    const diff = Math.max(0, now() - (parseInt(f.lastClanTs||0,10)||now()));
+    const turns = Math.min(30, Math.floor(diff/step));
+    if (turns<=0) return;
+    f.lastClanTs = (parseInt(f.lastClanTs||0,10)||now()) + turns*step;
+
+    if (!f.clanCap) f.clanCap = {};
+    const lvl = clamp(parseInt(myClan.lvl||1,10)||1, 1, 10);
+    const capPct = 0.04 + lvl*0.01;
+    const capPerMember = Math.floor(b.maxHP * capPct);
+    const maxMembersPerTurn = Math.min(12, Math.max(1, mem.length-1));
+    const helpers = mem
+      .filter(n=>String(n)!==clanMyName())
+      .slice(0, maxMembersPerTurn);
+
+    if (!helpers.length) { bfSetFight(bossId, f); return; }
+
+    for (let t=0;t<turns;t++){
+      helpers.forEach(nm=>{
+        const key = String(nm||'BRAT');
+        const used = parseInt((f.clanCap && f.clanCap[key])||0,10)||0;
+        if (used >= capPerMember) return;
+        const remain = Math.max(0, capPerMember - used);
+        const add = remain;
+        if (add<=0) return;
+        f.clanCap[key] = used + add;
+        f.hp = Math.max(0, (parseInt(f.hp||0,10)||0) - add);
+        bfLogPush(bossId, key, add);
+        bfTopAdd(bossId, key, add);
+        clanAddBossDamage(add, key);
+      });
+    }
+    bfSetFight(bossId, f);
+  }
+
+  function bfInstantHelpDmg(bossId, f, b){
+    try {
+      if (!f || !b) return 0;
+      let total = 0;
+      const hp0 = parseInt(f.hp||0,10)||0;
+      if (hp0<=0) return 0;
+
+      // friends help
+      const friends = Array.isArray(state.friends) ? state.friends : [];
+      if (!f.friendCap) f.friendCap = {};
+      const frLvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
+      const frCapPct = 0.10 + frLvl*0.01;
+      const capPerFriend = Math.floor(b.maxHP * frCapPct);
+      friends.forEach(fr=>{
+        const nm = fr && fr.name ? String(fr.name) : 'FRIEND';
+        const used = parseInt((f.friendCap && f.friendCap[nm])||0,10)||0;
+        if (used >= capPerFriend) return;
+        if (!fr || !fr.online) return;
+        const maxDmg = Math.max(1, Math.floor(b.maxHP*0.01));
+        const friendDmg = 1 + Math.floor(Math.random()*maxDmg);
+        const remain = Math.max(0, capPerFriend - used);
+        const add = Math.min(friendDmg, remain);
+        if (add<=0) return;
+        f.friendCap[nm] = used + add;
+        total += add;
+        bfLogPush(bossId, nm, add);
+        bfTopAdd(bossId, nm, add);
+      });
+
+      // clan help
+      const myClan = clanGetMyClan();
+      if (myClan){
+        const mem = Array.isArray(myClan.members) ? myClan.members : [];
+        if (mem.length>1){
+          if (!f.clanCap) f.clanCap = {};
+          const clLvl = clamp(parseInt(myClan.lvl||1,10)||1, 1, 10);
+          const capPct = 0.04 + clLvl*0.01;
+          const capPerMember = Math.floor(b.maxHP * capPct);
+          mem.filter(n=>String(n)!==clanMyName()).forEach(nm=>{
+            const key = String(nm||'BRAT');
+            const used = parseInt((f.clanCap && f.clanCap[key])||0,10)||0;
+            if (used >= capPerMember) return;
+            const remain = Math.max(0, capPerMember - used);
+            const add = remain;
+            if (add<=0) return;
+            f.clanCap[key] = used + add;
+            total += add;
+            bfLogPush(bossId, key, add);
+            bfTopAdd(bossId, key, add);
+            clanAddBossDamage(add, key);
+          });
+        }
+      }
+
+      const hp1 = parseInt(f.hp||0,10)||0;
+      const real = Math.min(hp1, Math.max(0, Math.floor(total)));
+      if (real>0) f.hp = Math.max(0, hp1 - real);
+      return real;
+    } catch (e) { return 0; }
+  }
+
+  function bfRender(bossId){
+    const b = BOSSES.find(x=>x.id===bossId);
+    if (!b) return;
+    const f = bfEnsureFight(bossId);
+    if (!f) { toast('Босс повержен. Забери награду.','lose'); return; }
+
+    function bossGymTotal(){
+      try {
+        if (!Array.isArray(GYM_STATS)) return 0;
+        let sum = 0;
+        const pct = gymBonusPct();
+        GYM_STATS.forEach(s=>{
+          const cur = (gymVal(s.key)||0);
+          let add = Math.round(cur*pct);
+          if (pct>0 && cur>0 && add<=0) add = 1;
+          sum += (cur + add);
+        });
+        return Math.max(0, Math.floor(sum));
+      } catch (e) { return 0; }
+    }
+    function bossHitDmg(div, base){
+      const tot = bossGymTotal();
+      const stat = Math.max(0, Math.floor(tot / Math.max(1, (parseInt(div||1,10)||1))));
+      const raw = Math.max(1, (parseInt(base||0,10)||0) + stat);
+      return raw;
+    }
+
+    // NOTE: помощь уроном теперь применяется моментально при твоём ударе (см. bfInstantHelpDmg)
+
+    try {
+      const pic = $('bfEmoji');
+      if (pic){
+        if (b.img){
+          pic.textContent = '';
+          pic.style.backgroundImage = 'url("'+encodeURI(String(b.img))+'")';
+        } else {
+          pic.textContent = b.emoji;
+          pic.style.backgroundImage = '';
+        }
+      }
+    } catch (e0) {}
+    $('bfName').textContent = b.name;
+    $('bfHp').textContent = 'HP ' + (parseInt(f.hp||0,10)||0) + ' / ' + b.maxHP;
+    const left = Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now());
+    $('bfTimer').textContent = left>0 ? ('ВРЕМЯ: ' + fmtHHMMSS(left)) : 'ВРЕМЯ: 00:00:00';
+    const hs = state.bosses.hitStocks || { kick:0, knuckle:0, enema:0 };
+    const hk = parseInt(hs.kick||0,10)||0;
+    const hn = parseInt(hs.knuckle||0,10)||0;
+    const he = parseInt(hs.enema||0,10)||0;
+    $('bfHits').textContent = '';
+
+    try {
+      const q = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
+      const box = $('bfHitQty');
+      if (box){
+        const opts = [1,10,100,1000];
+        box.innerHTML = opts.map(n=>{
+          const a = (n===q) ? '1' : '.7';
+          return '<button class="btn btnMini" data-bf-hitqty="'+n+'" style="opacity:'+a+'">x'+n+'</button>';
+        }).join('');
+        box.querySelectorAll('[data-bf-hitqty]').forEach(bb=>{
+          bb.onclick = ()=>{
+            const n = parseInt(bb.getAttribute('data-bf-hitqty')||'1',10)||1;
+            state.bosses.hitUseQty = clamp(n, 1, 1000);
+            save();
+            bfRender(bossId);
+            haptic('light');
+          };
+        });
+      }
+    } catch (e) {}
+
+    const freeBtn = $('bfFreeHit');
+    const hitBtn1 = $('bfHit1');
+    const hitBtn2 = $('bfHit2');
+    const hitBtn3 = $('bfHit3');
+    const alive = (parseInt(f.hp||0,10)||0) > 0;
+    const inTime = left > 0;
+    freeBtn.disabled = (!alive || !inTime || !!f.freeUsed);
+    freeBtn.style.opacity = freeBtn.disabled ? '.6' : '1';
+    const useQ = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
+    hitBtn1.disabled = (!alive || !inTime || hk<useQ);
+    hitBtn2.disabled = (!alive || !inTime || hn<useQ);
+    hitBtn3.disabled = (!alive || !inTime || he<useQ);
+    hitBtn1.style.opacity = hitBtn1.disabled ? '.6' : '1';
+    hitBtn2.style.opacity = hitBtn2.disabled ? '.6' : '1';
+    hitBtn3.style.opacity = hitBtn3.disabled ? '.6' : '1';
+
+    try {
+      const q2 = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
+      freeBtn.textContent = 'БЕСПЛАТНО · УРОН ' + Math.max(1, bossHitDmg(14, 50));
+      hitBtn1.textContent = 'НОГОЙ ('+hk+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(10, 70)) * q2);
+      hitBtn2.textContent = 'КОСТЕТОМ ('+hn+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(7, 85)) * q2);
+      hitBtn3.textContent = 'КЛИЗМА ('+he+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(4, 100)) * q2);
+    } catch (e) {}
+
+    if (!inTime && alive){
+      $('bfHint').textContent = 'Время вышло — попытка проиграна.';
+      bfCheckLose(bossId);
+    } else if (!alive){
+      $('bfHint').textContent = 'Босс повержен!';
+    } else {
+      $('bfHint').textContent = '';
+    }
+
+    const openShop = $('bfShopOpen');
+    if (openShop) {
+      openShop.onclick = ()=>{ showModal('mBfShop'); bfShopRender(); haptic('light'); };
+    }
+
+    freeBtn.onclick = ()=>{
+      const ff = bfGetFight(bossId);
+      if (!ff) return;
+      const left2 = Math.max(0, (parseInt(ff.expiresTs||0,10)||0) - now());
+      if (left2<=0 || (parseInt(ff.hp||0,10)||0)<=0 || ff.freeUsed) return;
+      ff.freeUsed = true;
+      ff.lastFriendTs = now();
+      const dmg = bossHitDmg(14, 50);
+      const real = Math.min(parseInt(ff.hp||0,10)||0, dmg);
+      bossFightHitCloud(bossId, real).then((r)=>{
+        try {
+          const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+          if (fhp!==null) ff.hp = Math.max(0, fhp);
+          else ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real);
+        } catch (e1) { ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real); }
+        bfSetFight(bossId, ff);
+        bfLogPush(bossId, state.playerName||'PLAYER', real);
+        bfTopAdd(bossId, state.playerName||'PLAYER', real);
+        clanAddBossDamage(real, state.playerName||'PLAYER');
+        try { bossHelpSend(bossId, real); } catch (e0) {}
+        bfCheckWin(bossId);
+        try { bossFightsCloudPullMaybe(); } catch (e2) {}
+        save();
+        if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
+        renderAll();
+        haptic('light');
+      }).catch(()=>{});
+    };
+
+    function doTokenHit(kind){
+      const f2 = bfEnsureFight(bossId);
+      if (!f2) return;
+      const ff = bfGetFight(bossId);
+      if (!ff) return;
+      const hs = state.bosses.hitStocks || { kick:0, knuckle:0, enema:0 };
+      const hs2 = { kick: parseInt(hs.kick||0,10)||0, knuckle: parseInt(hs.knuckle||0,10)||0, enema: parseInt(hs.enema||0,10)||0 };
+      const q = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
+      if (kind==='kick'){
+        if ((hs2.kick||0) < q){ toast('Нужно купить пинки','lose'); return; }
+        hs2.kick -= q;
+      } else if (kind==='knuckle'){
+        if ((hs2.knuckle||0) < q){ toast('Нужно купить костеты','lose'); return; }
+        hs2.knuckle -= q;
+      } else if (kind==='enema'){
+        if ((hs2.enema||0) < q){ toast('Нужно купить клизмы','lose'); return; }
+        hs2.enema -= q;
+      } else {
+        toast('Нужно купить удары','lose');
+        return;
+      }
+      state.bosses.hitStocks = hs2;
+      ff.lastFriendTs = now();
+      const one = (kind==='kick') ? bossHitDmg(10, 70) : ((kind==='knuckle') ? bossHitDmg(7, 85) : bossHitDmg(4, 100));
+      const dmg = Math.max(1, one) * q;
+      const real = Math.min(parseInt(ff.hp||0,10)||0, dmg);
+      bossFightHitCloud(bossId, real).then((r)=>{
+        try {
+          const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+          if (fhp!==null) ff.hp = Math.max(0, fhp);
+          else ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real);
+        } catch (e1) { ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real); }
+        bfSetFight(bossId, ff);
+        bfLogPush(bossId, state.playerName||'PLAYER', real);
+        bfTopAdd(bossId, state.playerName||'PLAYER', real);
+        clanAddBossDamage(real);
+        try { bossHelpSend(bossId, real); } catch (e0) {}
+        bfCheckWin(bossId);
+        try { bossFightsCloudPullMaybe(); } catch (e2) {}
+        save();
+        if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
+        renderAll();
+        haptic('light');
+      }).catch(()=>{});
+    }
+
+    hitBtn1.onclick = ()=>doTokenHit('kick');
+    hitBtn2.onclick = ()=>doTokenHit('knuckle');
+    hitBtn3.onclick = ()=>doTokenHit('enema');
+
+    try { bossHelpPollStart(); } catch (e0) {}
+
+    const log = $('bfLog');
+    const fLog = f && Array.isArray(f.dmgLog) ? f.dmgLog : null;
+    const logArr = fLog ? fLog : (Array.isArray(state.bosses.dmgLog[String(bossId)]) ? state.bosses.dmgLog[String(bossId)] : []);
+    log.innerHTML = logArr.length ? logArr.map(e=>{
+      return '<div class="row"><div style="min-width:0; font-size:12px; opacity:.9">'+String(e.who)+'</div><div class="badge" style="padding:6px 8px; font-size:11px">'+String(e.dmg)+'</div></div>';
+    }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+
+    const top = $('bfTop');
+    const topObj = (f && f.dmgTop) ? f.dmgTop : {};
+    const rows = Object.keys(topObj).map(k=>({ who:k, dmg: parseInt(topObj[k]||0,10)||0 })).sort((a,b)=>b.dmg-a.dmg).slice(0,12);
+    top.innerHTML = rows.length ? rows.map((r,i)=>{
+      return '<div class="row"><div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+r.who+'</div><div class="badge" style="padding:6px 8px; font-size:11px">'+r.dmg+'</div></div>';
+    }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+  }
+
+  function bfShopRender(){
+    try {
+      $('bfShopGold').textContent = String(state.gold||0) + ' 🪙';
+    } catch (e) {}
+
+    try {
+      const q = clamp(parseInt(state.bosses.shopQty||1,10)||1, 1, 1000);
+      const box = $('bfShopQty');
+      if (box){
+        const opts = [1,10,100,1000];
+        box.innerHTML = opts.map(n=>{
+          const a = (n===q) ? '1' : '.7';
+          return '<button class="btn btnMini" data-bf-qty="'+n+'" style="opacity:'+a+'">x'+n+'</button>';
+        }).join('');
+        box.querySelectorAll('[data-bf-qty]').forEach(b=>{
+          b.onclick = ()=>{
+            const n = parseInt(b.getAttribute('data-bf-qty')||'1',10)||1;
+            state.bosses.shopQty = clamp(n, 1, 1000);
+            save();
+            bfShopRender();
+            haptic('light');
+          };
+        });
+      }
+    } catch (e) {}
+  }
+  function bfShopBuy(kind, price){
+    const p = parseInt(price||0,10)||0;
+    if (p<=0) return;
+    const q = clamp(parseInt(state.bosses.shopQty||1,10)||1, 1, 1000);
+    const total = p * q;
+    if ((state.gold||0) < total){ toast('Нужно '+total+' 🪙','lose'); return; }
+    state.gold -= total;
+    if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
+    if (kind==='kick') state.bosses.hitStocks.kick = clamp((parseInt(state.bosses.hitStocks.kick||0,10)||0) + q, 0, 999999);
+    if (kind==='knuckle') state.bosses.hitStocks.knuckle = clamp((parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + q, 0, 999999);
+    if (kind==='enema') state.bosses.hitStocks.enema = clamp((parseInt(state.bosses.hitStocks.enema||0,10)||0) + q, 0, 999999);
+    toast('Куплено: +'+q,'win');
+    save();
+    bfShopRender();
+    const bid = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
+    if (bid) bfRender(bid);
+    renderAll();
   }
 
   function bfShowResult(bossId, win){
@@ -2303,6 +5228,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
 
     // close fight UI so it doesn't remain stuck with 0 HP
+    try { hideModal('mBfShop'); } catch (e) {}
     try { hideModal('mBossFight'); } catch (e) {}
 
     try { renderAll(); } catch (e) {}
@@ -2347,6 +5273,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
               if (b2) setBossHp(bossId, b2.maxHP);
             } catch (e4) {}
             save();
+            try { bossFightsCloudPullMaybe(); } catch (e1) {}
             hideModal('mBossFightRes');
             openScreen('mBoss');
             renderBosses();
@@ -2719,6 +5646,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
               if (b2) setBossHp(id, b2.maxHP);
             } catch (e4) {}
             save();
+            try { bossFightsCloudPullMaybe(); } catch (e1) {}
             renderBosses();
             renderHUD();
             toast('Награда получена','win');
