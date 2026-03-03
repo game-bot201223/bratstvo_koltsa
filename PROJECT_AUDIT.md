@@ -119,4 +119,6 @@
 - [ ] Убедиться, что на проде задеплоены актуальные Edge Functions и применены миграции (`supabase functions deploy`, `supabase db push`).
 - [ ] Сверить константы боссов (BOSSES в index.html и bossDef в boss_fight_hit, boss_help_send, boss_fight_claim, boss_fight_get).
 
+**Правило деплоя:** после любого редактирования `index.html` обязательно выполнять `git add index.html`, `git commit -m "..."`, `git push origin main`, чтобы изменения появились на GitHub и можно было обновить фронт в игре.
+
 Файл можно дополнять при обнаружении новых связей или типичных ошибок.
