@@ -511,9 +511,30 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 @media (prefers-reduced-motion: reduce){
   *{scroll-behavior:auto !important;transition:none !important;animation:none !important;}
 }
+
+/* Debug overlay — поверх всего, подсвечивает ошибки */
+#dbgOverlay{
+  position:fixed;top:0;left:0;right:0;
+  z-index:999999;
+  padding:10px 12px;
+  font-size:11px;line-height:1.25;white-space:pre-wrap;word-break:break-word;
+  font-family:monospace;
+  background:rgba(207,179,137,.95);
+  border-bottom:1px solid rgba(36,24,14,.3);
+  box-shadow:0 4px 12px rgba(0,0,0,.2);
+  max-height:40vh;overflow:auto;
+  display:none;
+  pointer-events:auto;
+}
+#dbgOverlay.hasErr{
+  background:rgba(180,50,50,.95);
+  color:#fff;
+  border-bottom-color:rgba(255,100,100,.5);
+}
 </style>
 </head>
 <body>
+<div id="dbgOverlay" aria-live="polite"></div>
 <div id="app">
   <div class="hud">
     <div class="hudRow">
@@ -2052,25 +2073,29 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
   function dbgUpdate(){
     try {
-      const el = $('dbgPanel');
       const txt = dbgText();
+      const hasErr = !!String(__lastCloudErr||'').trim();
+      const show = __dbgOn || hasErr;
+
+      const elOverlay = $('dbgOverlay');
+      if (elOverlay){
+        if (!show) { elOverlay.style.display = 'none'; elOverlay.classList.remove('hasErr'); }
+        else {
+          elOverlay.style.display = 'block';
+          elOverlay.classList.toggle('hasErr', hasErr);
+          elOverlay.textContent = txt;
+        }
+      }
+
+      const el = $('dbgPanel');
       if (el){
         if (!__dbgOn) { el.style.display = 'none'; }
-        else {
-          el.style.display = 'block';
-          el.textContent = txt;
-        }
+        else { el.style.display = 'block'; el.textContent = txt; }
       }
       const elBoss = $('bfCloudDbg');
       if (elBoss){
-        const hasErr = !!String(__lastCloudErr||'').trim();
-        if (hasErr){
-          elBoss.style.display = 'block';
-          elBoss.textContent = txt;
-        } else {
-          elBoss.style.display = 'none';
-          elBoss.textContent = '';
-        }
+        if (hasErr){ elBoss.style.display = 'block'; elBoss.textContent = txt; }
+        else { elBoss.style.display = 'none'; elBoss.textContent = ''; }
       }
     } catch (e) {}
   }
@@ -2096,6 +2121,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (elBossDbg){
       elBossDbg.onclick = ()=>{ __dbgFreeze = !__dbgFreeze; };
     }
+  } catch (e0) {}
+  try {
+    const elOv = $('dbgOverlay');
+    if (elOv) elOv.ondblclick = ()=>{ __lastCloudErr = ''; dbgUpdate(); };
   } catch (e0) {}
   function tgInitData(){
     try { return (tg && typeof tg.initData==='string') ? tg.initData : ''; } catch (e) { return ''; }
@@ -2378,7 +2407,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       fights.forEach(f=>{
         try {
           const bid = parseInt(f && f.boss_id || 0, 10) || 0;
-          if (!bid) return;
+          if (!bid || bid < 1 || bid > 12) return;
           next[String(bid)] = {
             hp: Math.max(0, Math.floor(parseInt(f && f.hp || 0, 10) || 0)),
             max_hp: Math.max(0, Math.floor(parseInt(f && f.max_hp || 0, 10) || 0)),
@@ -2388,11 +2417,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         } catch (e0) {}
       });
 
-      // cleanup: drop expired fights that server didn't return
+      // cleanup: drop expired fights and invalid boss_ids (only 1-12 exist)
       try {
         const keys = Object.keys(next);
         const tNow = Date.now();
         for (const k of keys) {
+          const bid = parseInt(k, 10);
+          if (!bid || bid < 1 || bid > 12) { delete next[k]; continue; }
           const v = next[k];
           if (!v || typeof v !== 'object') continue;
           const exp = v.expires_at ? Date.parse(String(v.expires_at)) : 0;
@@ -2768,6 +2799,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (typeof state.bosses.hitUseQty !== 'number') state.bosses.hitUseQty = 1;
   if (typeof state.rings !== 'number') state.rings = 0;
   if (!state.promoUsedCodes || typeof state.promoUsedCodes !== 'object') state.promoUsedCodes = {};
+  // Fix invalid activeFightId (only bosses 1-12 exist)
+  try {
+    const bid = parseInt(state.bosses.activeFightId||0,10)||0;
+    if (bid < 1 || bid > 12) state.bosses.activeFightId = 0;
+  } catch (e0) {}
 
   // migration: old boss key 'ring' conflicted with currency 💍 (state.rings)
   try {
