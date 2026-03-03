@@ -1990,7 +1990,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Storage
   const SAVE_KEY_BASE = 'mora_mobile_save_v2';
   const CURRENCY_CAP = 999999999999;
-  const BUILD_ID = '2026-03-03_08-30';
+  const BUILD_ID = '2026-03-03_08-50';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   let __srvDirty = false;
@@ -5643,8 +5643,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const leftDaily = bossDailyLeft(selectedId);
     const canByDaily = leftDaily > 0;
     $('baAccess').textContent = accessText + ' · Бои сегодня: ' + (10-leftDaily) + '/10';
-    goBtn.disabled = (!canGo || !canByDaily);
-    goBtn.style.opacity = (canGo && canByDaily) ? '1' : '.6';
+    goBtn.disabled = (!canGo);
+    goBtn.style.opacity = (canGo) ? '1' : '.6';
 
     if (ringBtn){
       const priceR = bossRingStrikePrice(selectedId);
