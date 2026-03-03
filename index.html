@@ -3135,8 +3135,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!m) return;
     if (id==='mBossFight'){
       try {
-        let bid = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
-        if (!bid && state.bosses && state.bosses.pendingAttackId) bid = parseInt(state.bosses.pendingAttackId || 0, 10) || 0;
+        if (!state.bosses) state.bosses = {};
+        let bid = parseInt(state.bosses.activeFightId || 0, 10) || 0;
+        if (!bid && state.bosses.pendingAttackId != null) bid = parseInt(state.bosses.pendingAttackId, 10) || 0;
         if (bid) state.bosses.activeFightId = bid;
         const hasBoss = bid ? bossExists(bid) : false;
         if (!bid || !hasBoss) {
@@ -3146,7 +3147,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           return;
         }
       } catch (e) {
-        try { state.bosses.activeFightId = 0; save(); } catch (e0) {}
+        try { if (state.bosses) state.bosses.activeFightId = 0; save(); } catch (e0) {}
         return;
       }
     }
@@ -5709,11 +5710,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         toast('+1 атака','win');
         save();
 
-        // enter boss fight: do not hide mBoss so stack stays valid and we don't land on main
         state.bosses.pendingAttackId = id;
         state.bosses.activeFightId = id;
-        hideModal('mBossAttack');
         showModal('mBossFight');
+        hideModal('mBossAttack');
         bfEnsureFight(id);
         bfRender(id);
         save();
