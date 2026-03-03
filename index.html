@@ -5898,7 +5898,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       const lh = state.bosses && state.bosses.hp ? state.bosses.hp[k] : null;
       const v = parseInt(lh||0,10);
-      if (!isNaN(v) && v>=0) return Math.min(max||v, v);
+      if (!isNaN(v) && v>=0) {
+        // Если локально сохранилось HP=0, но с сервера нет значения,
+        // считаем это сломанным локальным стейтом и возвращаем полное HP,
+        // чтобы не блокировать новый бой. Серверные данные (cloud.hp)
+        // всегда имеют приоритет и уже обработаны выше.
+        if (v===0 && max>0) return max;
+        return Math.min(max||v, v);
+      }
     } catch (e2) {}
     try {
       const f = bfGetFight(id);
