@@ -2188,9 +2188,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const e = j.error;
           const r = j.reason;
           const d = j.details;
+          const dbg = j.debug;
           if (e && r) err = String(e)+':'+String(r);
           else if (e) err = String(e);
           else if (d) err = String(d);
+          try {
+            if (dbg && typeof dbg === 'object') {
+              const ph = dbg.provided_hash_prefix ? String(dbg.provided_hash_prefix) : '';
+              const ch = dbg.computed_hash_prefix ? String(dbg.computed_hash_prefix) : '';
+              const vk = dbg.variant_kind ? String(dbg.variant_kind) : '';
+              const ln = (typeof dbg.len !== 'undefined') ? String(dbg.len) : '';
+              const tail = (vk||ph||ch) ? (' dbg='+vk+':'+ph+'!='+ch+' len='+ln) : '';
+              if (tail) err = err + tail;
+            }
+          } catch (e9) {}
         }
       } catch (e0) {}
       try {
