@@ -300,6 +300,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .districtActions{display:flex;flex-direction:column;gap:6px;flex-wrap:nowrap;justify-content:flex-start;width:100%;}
  .districtBtn{font-size:10px;padding:7px 9px;letter-spacing:1px;width:100%;}
 
+ .districtBtn,
+ #arenaWeak,
+ #arenaNorm,
+ #arenaElite{
+  background:linear-gradient(180deg, rgba(147,197,253,.96), rgba(59,130,246,.96)) !important;
+  border:1px solid rgba(255,255,255,.50) !important;
+  color:rgba(10,20,40,.92) !important;
+  box-shadow: 0 10px 22px rgba(59,130,246,.20), inset 0 1px 0 rgba(255,255,255,.22) !important;
+ }
+
  #mDistricts .sheetBody{overflow-x:hidden;}
  #districtList{max-width:100%;}
  #districtList .card{max-width:100%; box-sizing:border-box; overflow:hidden;}
@@ -1503,7 +1513,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
           photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
         } catch (e0) { photo = ''; }
-        state.districtFearLeaders[fk] = { name:(state.playerName||'PLAYER'), fear: val, ts: now(), photo: photo };
+        const nm = (state.playerName||'PLAYER');
+        state.districtFearLeaders[fk] = { name:nm, fear: val, ts: now(), photo: photo };
+        try { districtLeaderCloudUpsert(fk, val, nm, photo); } catch (e1) {}
       }
     } catch (e) {}
   }
@@ -1979,7 +1991,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Storage
   const SAVE_KEY_BASE = 'mora_mobile_save_v2';
   const CURRENCY_CAP = 999999999999;
-  const BUILD_ID = '2026-03-03_06-56';
+  const BUILD_ID = '2026-03-03_07-10';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   let __srvDirty = false;
@@ -2320,6 +2332,52 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return null;
       return await sbFnCall('boss_fight_claim', { initData: tgInitData(), boss_id: bossId });
     } catch (e) { return null; }
+  }
+
+  let __districtLeadersPullTs = 0;
+  async function districtLeadersCloudPull(){
+    try {
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
+      const r = await sbFnCall('district_leaders_list', { initData: tgInitData() });
+      const rows = (r && Array.isArray(r.leaders)) ? r.leaders : [];
+      if (!state.districtFearLeaders || typeof state.districtFearLeaders !== 'object') state.districtFearLeaders = {};
+      rows.forEach(it=>{
+        try {
+          const k = String(it && it.district_key || '').trim();
+          if (!k) return;
+          const nm = it && it.name ? String(it.name) : '—';
+          const fear = Math.max(0, parseInt(it && it.fear || 0, 10) || 0);
+          const photo = it && it.photo_url ? String(it.photo_url) : '';
+          const ts = it && it.updated_at ? Date.parse(String(it.updated_at)) : 0;
+          const cur = state.districtFearLeaders[k];
+          const curTs = cur && cur.ts ? (parseInt(cur.ts||0,10)||0) : 0;
+          if (!cur || (ts && ts > curTs)) {
+            state.districtFearLeaders[k] = { name: nm, fear: fear, ts: ts || now(), photo: photo };
+          }
+        } catch (e0) {}
+      });
+      save();
+    } catch (e) {}
+  }
+  async function districtLeadersCloudPullMaybe(){
+    try {
+      const t = now();
+      if (__districtLeadersPullTs && (t - __districtLeadersPullTs) < 3500) return;
+      __districtLeadersPullTs = t;
+      await districtLeadersCloudPull();
+    } catch (e) {}
+  }
+  async function districtLeaderCloudUpsert(districtKey, fear, name, photo){
+    try {
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
+      await sbFnCall('district_leader_upsert', {
+        initData: tgInitData(),
+        district_key: String(districtKey||''),
+        fear: Math.max(0, parseInt(fear||0,10)||0),
+        name: String(name||'').trim().substring(0,18),
+        photo_url: String(photo||'').trim()
+      });
+    } catch (e) {}
   }
 
   function cloudStateSnapshot(s){
@@ -6722,6 +6780,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const box = $('districtList');
     if (!box) return;
     let html = '';
+    try { districtLeadersCloudPullMaybe().catch(()=>{}); } catch (e0) {}
     const data = districtData();
     const dayKey = utcDayKey();
     const dayBox = (state.districtDailyFear && state.districtDailyFear.day===dayKey) ? state.districtDailyFear.byDistrict : null;
@@ -6767,7 +6826,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + (lockTxt ? ('<div style="margin-top:6px; font-size:12px; line-height:1.35; font-weight:900; color:rgba(248,113,113,.95)">'+lockTxt+'</div>') : '')
         + '</div>'
         + '<div class="districtCardBadge">'
-        + '<div class="badge" style="padding:8px 10px"> '+fmt4(fear)+'</div>'
+        + '<div class="badge" style="padding:5px 7px; font-size:11px; min-width:0">'+fmt4(fear)+'</div>'
         + '</div>'
         + '</div>'
         + '<div class="districtStack">'
@@ -7123,6 +7182,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     document.querySelectorAll('[data-close]').forEach(b=>{
       b.onclick = ()=>hideModal(b.getAttribute('data-close'));
     });
+
+    try {
+      const dnc = document.querySelector('[data-close="mDistrictNightmare"]');
+      if (dnc) {
+        dnc.onclick = ()=>{
+          hideModal('mDistrictNightmare');
+          openScreen('mDistricts');
+          renderAll();
+          haptic('light');
+        };
+      }
+    } catch (e0) {}
 
     try {
       const bcl = document.querySelector('[data-close="mBattle"]');
