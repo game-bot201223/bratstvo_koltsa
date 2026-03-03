@@ -1991,7 +1991,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Storage
   const SAVE_KEY_BASE = 'mora_mobile_save_v2';
   const CURRENCY_CAP = 999999999999;
-  const BUILD_ID = '2026-03-03_07-10';
+  const BUILD_ID = '2026-03-03_07-18';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   let __srvDirty = false;
@@ -6989,7 +6989,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       let fear = 0;
       let max = (diff==='СРЕДНЕ') ? 6 : (diff==='ЖЕСТКО' ? 8 : 4);
       if (dIdx===0){
-        const xpArr = [0,4,4,4,6,6,6];
+        const xpArr = [2,4,4,4,6,6,6];
         const fearArr = [2,6,8,10,14,16,20];
         xp = xpArr[idx] || 0;
         fear = fearArr[idx] || 0;
@@ -7008,19 +7008,30 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const tpl = [2,6,8,10,14,16,20];
     const tplSum = 76;
     const factor = sumNeed / tplSum;
-    const arr = tpl.map(v=>Math.max(1, Math.round(v * factor)));
+    let arr = tpl.map(v=>Math.max(1, Math.round(v * factor)));
+
+    // Make costs even for nicer numbers; keep total sumNeed by rebalancing in steps of 2.
+    // sumNeed is even for our district totals; if it ever becomes odd, we keep a minimal safe adjustment.
+    try {
+      arr = arr.map(v=>{
+        const n = Math.max(2, Math.floor(v||0));
+        return (n % 2 === 0) ? n : (n + 1);
+      });
+    } catch (e0) {}
     let curSum = arr.reduce((a,b)=>a+b,0);
     let delta = sumNeed - curSum;
     let j = 0;
     while (delta !== 0 && j < 500){
       const p = j % arr.length;
       if (delta > 0){
-        arr[p] += 1;
-        delta -= 1;
+        const step = (Math.abs(delta) >= 2) ? 2 : 1;
+        arr[p] += step;
+        delta -= step;
       } else {
-        if (arr[p] > 1){
-          arr[p] -= 1;
-          delta += 1;
+        const step = (Math.abs(delta) >= 2) ? 2 : 1;
+        if (arr[p] > step){
+          arr[p] -= step;
+          delta += step;
         }
       }
       j++;
