@@ -3160,21 +3160,26 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const m = $(id);
     if (!m) return;
     if (id==='mBossFight'){
-      try {
-        if (!state.bosses) state.bosses = {};
-        let bid = parseInt(state.bosses.activeFightId || 0, 10) || 0;
-        if (!bid && state.bosses.pendingAttackId != null) bid = parseInt(state.bosses.pendingAttackId, 10) || 0;
-        if (bid) state.bosses.activeFightId = bid;
-        const hasBoss = bid ? bossExists(bid) : false;
-        if (!bid || !hasBoss) {
-          try { state.bosses.activeFightId = 0; save(); } catch (e0) {}
-          try { hideModal('mBfShop'); } catch (e1) {}
-          try { hideModal('mBossFightRes'); } catch (e2) {}
+      if (!window.__skipBossFightGuard) {
+        try {
+          if (!state.bosses) state.bosses = {};
+          let bid = parseInt(state.bosses.activeFightId || 0, 10) || 0;
+          if (!bid && state.bosses.pendingAttackId != null) bid = parseInt(state.bosses.pendingAttackId, 10) || 0;
+          if (bid) state.bosses.activeFightId = bid;
+          const hasBoss = bid ? bossExists(bid) : false;
+          if (!bid || !hasBoss) {
+            try { state.bosses.activeFightId = 0; save(); } catch (e0) {}
+            try { hideModal('mBfShop'); } catch (e1) {}
+            try { hideModal('mBossFightRes'); } catch (e2) {}
+            return;
+          }
+        } catch (e) {
+          try { if (state.bosses) state.bosses.activeFightId = 0; save(); } catch (e0) {}
           return;
         }
-      } catch (e) {
-        try { if (state.bosses) state.bosses.activeFightId = 0; save(); } catch (e0) {}
-        return;
+      } else {
+        // одноразовый обход защиты, используется при гарантированно валидном bossId
+        window.__skipBossFightGuard = false;
       }
     }
     if (id==='mBattle'){
@@ -5738,6 +5743,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
         state.bosses.pendingAttackId = id;
         state.bosses.activeFightId = id;
+        window.__skipBossFightGuard = true;
         window.__ignoreOverlayClickOnce = true;
         showModal('mBossFight');
         hideModal('mBossAttack');
