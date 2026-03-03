@@ -1970,7 +1970,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Storage
   const SAVE_KEY_BASE = 'mora_mobile_save_v2';
   const CURRENCY_CAP = 999999999999;
-  const BUILD_ID = '2026-03-03_03-52';
+  const BUILD_ID = '2026-03-03_03-58';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   let __srvDirty = false;
@@ -2036,8 +2036,25 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
       const id = u && (u.id || u.id===0) ? String(u.id) : '';
-      return /^\d+$/.test(id) ? id : '';
+      return id;
     } catch (e) { return ''; }
+  }
+
+  function tgSuggestedName(){
+    try {
+      const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+      const tid = myTgUserId();
+      const tail = tid ? String(tid).slice(-4) : '';
+      const uname = u && u.username ? String(u.username) : '';
+      const fname = u && u.first_name ? String(u.first_name) : '';
+      const base = (uname || fname || 'PLAYER');
+      const nm = (base === 'PLAYER') ? (tail ? ('PLAYER#'+tail) : 'PLAYER') : (tail ? (base+'#'+tail) : base);
+      return String(nm||'PLAYER').trim().substring(0, 18) || 'PLAYER';
+    } catch (e) {
+      const tid = myTgUserId();
+      const tail = tid ? String(tid).slice(-4) : '';
+      return (tail ? ('PLAYER#'+tail) : 'PLAYER');
+    }
   }
 
   function inviteBros(){
@@ -5710,7 +5727,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           // No keys: open pass shop directly
           showModal('mBossAttack');
           renderBossAttackModal(id);
-          toast('Не хватает ключей — открыл магазин пропусков','lose');
+          toast('Не хватает ключей','lose');
           haptic('light');
           return;
         }
@@ -7425,11 +7442,28 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           $('syncState').style.opacity = '.85';
         }
       } catch (e0) {}
+
+      try {
+        if (tgInitData() && myTgUserId()) {
+          const cur = String(state.playerName||'').trim();
+          if (!cur || cur.toUpperCase() === 'PLAYER') {
+            state.playerName = tgSuggestedName();
+            try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e1) {}
+          }
+        }
+      } catch (e0) {}
+
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
         const r = await sbFnCall('get_player', { initData: tgInitData() });
         const ps = r && r.player && r.player.state;
         if (ps && typeof ps === 'object') {
           state = Object.assign({}, state, ps);
+          try {
+            const cur = String(state.playerName||'').trim();
+            if (!cur || cur.toUpperCase() === 'PLAYER') {
+              state.playerName = tgSuggestedName();
+            }
+          } catch (e00) {}
           try {
             if (!state.arena) state.arena = Object.assign({}, defaults.arena);
             if (!state.bosses) state.bosses = Object.assign({}, defaults.bosses);
