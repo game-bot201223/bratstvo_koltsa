@@ -2686,25 +2686,21 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   };
 
   let state = Object.assign({}, defaults, load()||{});
-  // One-time авто-очистка багнутого лимита боссов,
-  // когда в сохранении дневные лимиты забиты, а побед по боссам ещё нет.
+  // One-time авто-очистка багнутого лимита боссов
   try {
-    const fixKey = SAVE_KEY_BASE + '_boss_daily_fix_v1';
-    const alreadyFixed = (typeof localStorage!=='undefined') ? localStorage.getItem(fixKey) : '1';
-    if (!alreadyFixed) {
-      if (state && state.bosses && state.bosses.daily && state.bosses.daily.counts){
-        const wins = parseInt(state.bosses.wins||0,10)||0;
-        const counts = state.bosses.daily.counts;
-        const totalCnt = Object.keys(counts).reduce((sum,k)=>{
-          const v = parseInt(counts[k]||0,10)||0;
-          return sum + (v>0 ? v : 0);
-        }, 0);
-        // Если побед по боссам ещё нет, но лимиты уже "съедены", считаем это старым сломанным состоянием
-        if (wins===0 && totalCnt>=10){
-          state.bosses.daily = { day: utcDayKey(), counts:{} };
-        }
+    if (state && state.bosses && state.bosses.daily && state.bosses.daily.counts){
+      const wins = parseInt(state.bosses.wins||0,10)||0;
+      const counts = state.bosses.daily.counts;
+      const totalCnt = Object.keys(counts).reduce((sum,k)=>{
+        const v = parseInt(counts[k]||0,10)||0;
+        return sum + (v>0 ? v : 0);
+      }, 0);
+      const fixKey = SAVE_KEY_BASE + '_boss_daily_fix_v2';
+      const alreadyFixed = (typeof localStorage!=='undefined') ? localStorage.getItem(fixKey) : '1';
+      if (!alreadyFixed && ((wins===0 && totalCnt>=10) || (totalCnt>wins+2 && totalCnt>=3))) {
+        state.bosses.daily = { day: utcDayKey(), counts:{} };
+        try { if (typeof localStorage!=='undefined') localStorage.setItem(fixKey, '1'); } catch (e1) {}
       }
-      try { if (typeof localStorage!=='undefined') localStorage.setItem(fixKey, '1'); } catch (e1) {}
     }
   } catch (e0) {}
   // normalize
@@ -5832,6 +5828,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
       if (!bossDailyCanStart(id)) { toast('Лимит боёв на сегодня: 10/10','lose'); return; }
 
+      const f = bfEnsureFight(id);
+      if (!f) {
+        toast('Не удалось начать бой. Попробуй обновить страницу.','lose');
+        haptic('light');
+        return;
+      }
       bossDailyInc(id);
       const rr = bossReq(id);
       if (rr){
@@ -5842,7 +5844,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       window.__ignoreOverlayClickOnce = true;
       hideModal('mBossAttack');
       showModal('mBossFight');
-      bfEnsureFight(id);
       bfRender(id);
       save();
     };
@@ -5893,7 +5894,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (cc && typeof cc === 'object' && typeof cc.hp !== 'undefined') {
         const chp = parseInt(cc.hp||0,10);
         if (!isNaN(chp) && chp>=0) {
-          if (chp===0 && max>0 && !!cc.reward_claimed) return max;
+          if (chp===0 && max>0 && cc.reward_claimed !== false) return max;
           return Math.min(max||chp, chp);
         }
       }
