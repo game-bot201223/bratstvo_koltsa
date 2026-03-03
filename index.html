@@ -5959,7 +5959,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const statusHtml = status ? String(status).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
     if (statusHtml){
       html += '<div class="card">'
-        + '<div class="row"><div class="k">СТАТУС БОССОВ</div></div>'
+        + '<div class="row"><div class="k">СТАТУС БОССОВ</div><button class="btn btnSmall" id="bossDailyResetBtn">СБРОС ЛИМИТА</button></div>'
         + '<div style="margin-top:6px; font-size:11px; opacity:.8; white-space:pre-wrap; word-break:break-word;">'+statusHtml+'</div>'
         + '</div>';
     }
@@ -6030,6 +6030,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     const fho = $('friendHelpOpen');
     if (fho) fho.onclick = ()=>{ showModal('mFriendHelp'); renderFriendHelp(); haptic('light'); };
+
+    const resetBtn = $('bossDailyResetBtn');
+    if (resetBtn) resetBtn.onclick = ()=>{
+      bossDailyEnsure();
+      state.bosses.daily.counts = {};
+      save();
+      renderBosses();
+      toast('Лимит боёв сброшен','win');
+      haptic('light');
+    };
 
     box.querySelectorAll('[data-boss-attack]').forEach(btn=>{
       btn.onclick = ()=>{
