@@ -304,10 +304,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  #arenaWeak,
  #arenaNorm,
  #arenaElite{
-  background:linear-gradient(180deg, rgba(147,197,253,.96), rgba(59,130,246,.96)) !important;
-  border:1px solid rgba(255,255,255,.50) !important;
-  color:rgba(10,20,40,.92) !important;
-  box-shadow: 0 10px 22px rgba(59,130,246,.20), inset 0 1px 0 rgba(255,255,255,.22) !important;
+  background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98)) !important;
+  border:1px solid rgba(255,255,255,.55) !important;
+  color:rgba(255,255,255,.96) !important;
+  box-shadow: 0 12px 26px rgba(37,99,235,.28), inset 0 1px 0 rgba(255,255,255,.18) !important;
  }
 
  #mDistricts .sheetBody{overflow-x:hidden;}
@@ -1991,7 +1991,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Storage
   const SAVE_KEY_BASE = 'mora_mobile_save_v2';
   const CURRENCY_CAP = 999999999999;
-  const BUILD_ID = '2026-03-03_07-18';
+  const BUILD_ID = '2026-03-03_07-30';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   let __srvDirty = false;
@@ -5168,9 +5168,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           else ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real);
         } catch (e1) { ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real); }
         try {
-          if (!state.bosses.cloud || typeof state.bosses.cloud !== 'object') state.bosses.cloud = {};
-          const k = String(bossId);
-          state.bosses.cloud[k] = Object.assign({}, (state.bosses.cloud[k]||{}), { boss_id: bossId, hp: ff.hp, max_hp: b.maxHP, updated_at: new Date().toISOString() });
+          const fhp2 = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+          if (fhp2!==null) {
+            if (!state.bosses.cloud || typeof state.bosses.cloud !== 'object') state.bosses.cloud = {};
+            const k = String(bossId);
+            state.bosses.cloud[k] = Object.assign({}, (state.bosses.cloud[k]||{}), { boss_id: bossId, hp: fhp2, max_hp: b.maxHP, updated_at: new Date().toISOString() });
+          }
         } catch (e9) {}
         bfSetFight(bossId, ff);
         bfLogPush(bossId, state.playerName||'PLAYER', real);
@@ -5219,9 +5222,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           else ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real);
         } catch (e1) { ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real); }
         try {
-          if (!state.bosses.cloud || typeof state.bosses.cloud !== 'object') state.bosses.cloud = {};
-          const k = String(bossId);
-          state.bosses.cloud[k] = Object.assign({}, (state.bosses.cloud[k]||{}), { boss_id: bossId, hp: ff.hp, max_hp: b.maxHP, updated_at: new Date().toISOString() });
+          const fhp2 = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+          if (fhp2!==null) {
+            if (!state.bosses.cloud || typeof state.bosses.cloud !== 'object') state.bosses.cloud = {};
+            const k = String(bossId);
+            state.bosses.cloud[k] = Object.assign({}, (state.bosses.cloud[k]||{}), { boss_id: bossId, hp: fhp2, max_hp: b.maxHP, updated_at: new Date().toISOString() });
+          }
         } catch (e9) {}
         bfSetFight(bossId, ff);
         bfLogPush(bossId, state.playerName||'PLAYER', real);
@@ -5766,7 +5772,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       + '<button class="btn btnSmall" id="friendHelpOpen">ПОМОЩЬ БРАТКОВ</button></div>'
       + '</div>';
     BOSSES.forEach(b=>{
-      const hp = bossHp(b.id);
+      const cloudOn = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
+      let hp = bossHp(b.id);
+      let hpCloud = null;
+      try {
+        if (cloudOn) {
+          const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(b.id)];
+          if (cc && typeof cc === 'object' && typeof cc.hp !== 'undefined') {
+            hpCloud = (parseInt(cc.hp||0,10)||0);
+          }
+          // If no fight row on server, show full HP (boss is not in a server fight for this player)
+          if (hpCloud===null) hp = b.maxHP;
+          else hp = Math.max(0, hpCloud);
+        }
+      } catch (e00) {}
       const pct = b.maxHP>0 ? clamp((hp/b.maxHP)*100,0,100) : 0;
       const lw = (state.bosses && state.bosses.lastWinners && state.bosses.lastWinners[String(b.id)]) || null;
       const lwName = lw && lw.name ? String(lw.name) : '—';
@@ -5776,15 +5795,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const rxp = parseInt(b.reward && b.reward.xp || 0, 10) || 0;
       const rm = parseInt(b.reward && b.reward.tooth || 0, 10) || 0;
       const rg = parseInt(b.reward && b.reward.gold || 0, 10) || 0;
-      const dead = (parseInt(hp||0,10)||0) <= 0;
+      const dead = cloudOn ? (!!(hpCloud!==null && (parseInt(hpCloud||0,10)||0) <= 0)) : ((parseInt(hp||0,10)||0) <= 0);
       let canClaim = dead;
-      try {
-        if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-          const k = String(b.id);
-          const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[k];
-          canClaim = !!(cc && typeof cc === 'object' && (parseInt(cc.hp||0,10)||0) <= 0);
-        }
-      } catch (e0) {}
+      if (cloudOn) canClaim = !!(hpCloud!==null && (parseInt(hpCloud||0,10)||0) <= 0);
       html += '<div class="card">'
         + '<div class="bossWinnerTop">ПОСЛЕДНИЙ ПОБЕДИТЕЛЬ</div>'
         + '<div class="bossWinnerNm">'+lwName+'</div>'
