@@ -1990,7 +1990,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Storage
   const SAVE_KEY_BASE = 'mora_mobile_save_v2';
   const CURRENCY_CAP = 999999999999;
-  const BUILD_ID = '2026-03-03_08-16';
+  const BUILD_ID = '2026-03-03_08-22';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   let __srvDirty = false;
@@ -3099,9 +3099,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       try {
         const bid = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
         const hasBoss = bid ? bossExists(bid) : false;
-        const cloudOn = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
-        const hasCloudFight = bid && cloudOn ? !!(state.bosses && state.bosses.cloud && state.bosses.cloud[String(bid)] && typeof state.bosses.cloud[String(bid)].hp !== 'undefined') : true;
-        if (!bid || !hasBoss || !hasCloudFight) {
+        if (!bid || !hasBoss) {
           try { state.bosses.activeFightId = 0; save(); } catch (e0) {}
           try { hideModal('mBfShop'); } catch (e1) {}
           try { hideModal('mBossFightRes'); } catch (e2) {}
@@ -5084,16 +5082,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
         const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(bossId)];
-        if (!cc || typeof cc !== 'object' || typeof cc.hp === 'undefined') {
-          // No fight on server => do not keep local fight UI
-          try { state.bosses.activeFightId = 0; save(); } catch (e0) {}
-          try { hideModal('mBfShop'); } catch (e1) {}
-          try { hideModal('mBossFight'); } catch (e2) {}
-          return;
+        if (cc && typeof cc === 'object' && typeof cc.hp !== 'undefined') {
+          f.hp = Math.max(0, parseInt(cc.hp||0,10)||0);
+          bfSetFight(bossId, f);
+          if ((parseInt(f.hp||0,10)||0) <= 0) return;
+        } else {
+          // Fight may not exist on server yet (created on first hit). Keep local UI.
+          try { bossFightsCloudPullMaybe(); } catch (e0) {}
         }
-        f.hp = Math.max(0, parseInt(cc.hp||0,10)||0);
-        bfSetFight(bossId, f);
-        if ((parseInt(f.hp||0,10)||0) <= 0) return;
       }
     } catch (e00) {}
 
