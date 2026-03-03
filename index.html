@@ -1214,15 +1214,23 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   let __bossHelpPollT = 0;
   let __bossHelpLast = 0;
+  function bossUiOpen(){
+    try {
+      const bf = $('mBossFight');
+      const bl = $('mBoss');
+      return !!((bf && bf.classList.contains('show')) || (bl && bl.classList.contains('show')));
+    } catch (e) { return false; }
+  }
   async function bossHelpSend(bossId, dmg){
     try {
-      const bid = parseInt(bossId||0,10)||0;
-      const dd = Math.max(0, Math.floor(dmg||0));
-      if (!bid || !dd) return;
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
+      dmg = Math.max(1, parseInt(dmg||0,10)||0);
+      bossId = Math.max(1, parseInt(bossId||0,10)||0);
+      if (!bossId || !dmg) return;
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
       const cid = clanFindMyClanId();
       const me = clanMyName();
-      await sbFnCall('boss_help_send', { initData: tgInitData(), boss_id: bid, dmg: dd, clan_id: cid, from_name: me });
+      await sbFnCall('boss_help_send', { initData: tgInitData(), boss_id: bossId, dmg: dmg, clan_id: cid, from_name: me });
     } catch (e) {}
   }
 
@@ -1319,22 +1327,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (__bossHelpPollT) return;
       __bossHelpPollT = setInterval(()=>{
         try {
-          const bf = $('mBossFight');
-          const open = !!(bf && bf.classList.contains('show'));
-          if (!open) {
-            // background pull (allows offline accumulation: events are stored server-side and applied on return)
-            const t2 = now();
-            if (__bossHelpLast && (t2 - __bossHelpLast) < 6000) return;
-            __bossHelpLast = t2;
-            bossHelpPullOnce().catch(()=>{});
-            return;
-          }
+          if (!bossUiOpen()) return;
           const t = now();
-          if (__bossHelpLast && (t - __bossHelpLast) < 450) return;
+          if (__bossHelpLast && (t - __bossHelpLast) < 5000) return;
           __bossHelpLast = t;
           bossHelpPullOnce().catch(()=>{});
         } catch (e0) {}
-      }, 250);
+      }, 6000);
     } catch (e) {}
   }
 
@@ -1991,7 +1990,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Storage
   const SAVE_KEY_BASE = 'mora_mobile_save_v2';
   const CURRENCY_CAP = 999999999999;
-  const BUILD_ID = '2026-03-03_07-30';
+  const BUILD_ID = '2026-03-03_07-38';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   let __srvDirty = false;
@@ -2315,8 +2314,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
   async function bossFightsCloudPullMaybe(){
     try {
+      if (!bossUiOpen()) return;
       const t = now();
-      if (__bossFightsPullTs && (t - __bossFightsPullTs) < 2500) return;
+      if (__bossFightsPullTs && (t - __bossFightsPullTs) < 6000) return;
       __bossFightsPullTs = t;
       await bossFightsCloudPull();
     } catch (e) {}
