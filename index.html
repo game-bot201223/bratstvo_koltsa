@@ -3135,7 +3135,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!m) return;
     if (id==='mBossFight'){
       try {
-        const bid = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
+        let bid = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
+        if (!bid && state.bosses && state.bosses.pendingAttackId) bid = parseInt(state.bosses.pendingAttackId || 0, 10) || 0;
+        if (bid) state.bosses.activeFightId = bid;
         const hasBoss = bid ? bossExists(bid) : false;
         if (!bid || !hasBoss) {
           try { state.bosses.activeFightId = 0; save(); } catch (e0) {}
@@ -5583,12 +5585,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   function bfCheckWin(bossId){
-    try {
-      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-        // Cloud mode: server controls win/reward. Do not grant local rewards.
-        return;
-      }
-    } catch (e00) {}
     const b = BOSSES.find(x=>x.id===bossId);
     if (!b) return;
     const f = bfGetFight(bossId);
