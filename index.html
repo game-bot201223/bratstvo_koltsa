@@ -2015,7 +2015,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   // --- Storage
-  const SAVE_KEY_BASE = 'mora_mobile_save_v3';
+  const SAVE_KEY_BASE = 'mora_mobile_save_v5';
   const CURRENCY_CAP = 999999999999;
   const BUILD_ID = '2026-03-03_16-30_boss_fix';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
@@ -5892,7 +5892,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[k];
       if (cc && typeof cc === 'object' && typeof cc.hp !== 'undefined') {
         const chp = parseInt(cc.hp||0,10);
-        if (!isNaN(chp) && chp>=0) return Math.min(max||chp, chp);
+        if (!isNaN(chp) && chp>=0) {
+          if (chp===0 && max>0 && !!cc.reward_claimed) return max;
+          return Math.min(max||chp, chp);
+        }
       }
     } catch (e1) {}
     try {
