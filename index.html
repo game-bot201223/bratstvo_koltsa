@@ -2315,7 +2315,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           try {
             if (d && typeof d === 'string') {
               const dd = String(d||'').replace(/\s+/g,' ').trim();
-              if (dd) err = err + ' det=' + dd.slice(0, 180);
+              if (dd) err = err + ' det=' + dd;
             }
           } catch (e8) {}
         }
