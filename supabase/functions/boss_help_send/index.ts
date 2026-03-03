@@ -264,7 +264,7 @@ async function postgrestApplyBossDamage(
   expiresAt: string,
 ): Promise<boolean> {
   try {
-    const url = projectUrl.replace(/\/$/, "") + "/rest/v1/rpc/apply_boss_damage"
+    const url = projectUrl.replace(/\/$/, "") + "/rest/v1/rpc/apply_boss_damage_v2"
     const resp = await fetch(url, {
       method: "POST",
       headers: {
