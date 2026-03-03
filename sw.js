@@ -1,8 +1,6 @@
-const CACHE_NAME = 'mora-enhanced-v5';
+const CACHE_NAME = 'mora-enhanced-v6';
 
 const PRECACHE_URLS = [
-  './',
-  './index.html',
   './manifest.json'
 ];
 
@@ -37,6 +35,15 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
 
+  // Never cache index.html. Telegram WebView can keep showing an old build otherwise.
+  try {
+    const u = new URL(request.url);
+    if (u.origin === self.location.origin && /\/index\.html(\?|#|$)/.test(u.pathname + (u.search||'') + (u.hash||''))) {
+      event.respondWith(fetch(request, { cache: 'no-store' }));
+      return;
+    }
+  } catch (e) {}
+
   if (isNavigationRequest(request)) {
     event.respondWith(
       fetch(request)
@@ -45,7 +52,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
           return response;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() => fetch('./index.html', { cache: 'no-store' }))
     );
     return;
   }
