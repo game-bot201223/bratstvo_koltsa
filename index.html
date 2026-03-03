@@ -1498,7 +1498,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const cur = state.districtFearLeaders[fk];
       const best = cur && cur.fear ? (parseInt(cur.fear||0,10)||0) : 0;
       if (!cur || val > best){
-        state.districtFearLeaders[fk] = { name:(state.playerName||'PLAYER'), fear: val, ts: now() };
+        let photo = '';
+        try {
+          const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+          photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
+        } catch (e0) { photo = ''; }
+        state.districtFearLeaders[fk] = { name:(state.playerName||'PLAYER'), fear: val, ts: now(), photo: photo };
       }
     } catch (e) {}
   }
@@ -1974,7 +1979,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Storage
   const SAVE_KEY_BASE = 'mora_mobile_save_v2';
   const CURRENCY_CAP = 999999999999;
-  const BUILD_ID = '2026-03-03_06-21';
+  const BUILD_ID = '2026-03-03_06-33';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   let __srvDirty = false;
@@ -6700,6 +6705,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const fear = (dailyNm && dailyNm === you) ? Math.max(0, (parseInt(dailyRec.fear||0,10)||0)) : 0;
       const top = (state.districtFearLeaders && state.districtFearLeaders[fk]) ? state.districtFearLeaders[fk] : null;
       const topName = top && top.name ? top.name : '—';
+      const topPhoto = top && top.photo ? String(top.photo) : '';
       const topFear = top && (typeof top.fear !== 'undefined') ? (parseInt(top.fear||0,10)||0) : 0;
       const dayTop = dayBox && dayBox[fk] ? dayBox[fk] : null;
       const dayName = dayTop && dayTop.name ? dayTop.name : '—';
@@ -6721,7 +6727,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '<div class="districtCardTop">'
         + '<div style="min-width:0">'
         + '<div class="k">'+name.toUpperCase()+'</div>'
-        + '<div style="margin-top:6px; font-size:12px; opacity:.8; line-height:1.35">Заданий: '+(data[i-1].tasks ? data[i-1].tasks.length : 0)+'</div>'
         + (lockTxt ? ('<div style="margin-top:6px; font-size:12px; line-height:1.35; font-weight:900; color:rgba(248,113,113,.95)">'+lockTxt+'</div>') : '')
         + '</div>'
         + '<div class="districtCardBadge">'
@@ -6731,7 +6736,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '<div class="districtStack">'
         + '<div style="min-width:0">'
         + '<div class="districtTag" style="text-align:left">ДЕРЖИТ РАЙОН</div>'
-        + '<div class="districtNick" style="margin-top:4px">'+String(topName).toUpperCase()+'</div>'
+        + '<div class="districtNick" style="margin-top:4px; display:flex; align-items:center; gap:8px">'
+        + (topPhoto ? ('<img src="'+encodeURI(topPhoto)+'" style="width:26px; height:26px; border-radius:999px; object-fit:cover; border:1px solid rgba(255,255,255,.22)"/>') : '<div style="width:26px; height:26px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.12);"></div>')
+        + '<span style="min-width:0; overflow:hidden; text-overflow:ellipsis;">'+String(topName).toUpperCase()+'</span>'
+        + '</div>'
         + '<div class="districtStatBox" style="margin-top:6px">'
         + '<div class="districtStatRow">'
         + '<div class="districtFear">😱 '+fmt4(topFear)+'</div>'
