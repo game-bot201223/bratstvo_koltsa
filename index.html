@@ -1294,7 +1294,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function bossHelpCapRemainClan(b, f, nm){
     try {
       const c = clanGetMyClan();
-      const capPct = 0.10;
+      const lvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
+      const capPct = 0.10 + lvl*0.01;
       const capPerMember = Math.floor(b.maxHP * capPct);
       if (!f.clanCap) f.clanCap = {};
       const used = parseInt((f.clanCap && f.clanCap[nm])||0,10)||0;
@@ -5110,7 +5111,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     f.lastClanTs = (parseInt(f.lastClanTs||0,10)||now()) + turns*step;
 
     if (!f.clanCap) f.clanCap = {};
-    const capPct = 0.10;
+    const lvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
+    const capPct = 0.10 + lvl*0.01;
     const capPerMember = Math.floor(b.maxHP * capPct);
     const maxMembersPerTurn = Math.min(12, Math.max(1, mem.length-1));
     const helpers = mem
@@ -5172,7 +5174,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const mem = Array.isArray(myClan.members) ? myClan.members : [];
         if (mem.length>1){
           if (!f.clanCap) f.clanCap = {};
-          const capPct = 0.10;
+          const clLvl2 = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
+          const capPct = 0.10 + clLvl2*0.01;
           const capPerMember = Math.floor(b.maxHP * capPct);
           mem.filter(n=>String(n)!==clanMyName()).forEach(nm=>{
             const key = String(nm||'BRAT');
