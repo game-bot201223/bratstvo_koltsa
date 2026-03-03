@@ -2320,7 +2320,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       try { __lastCloudErr = String(err||''); dbgUpdate(); } catch (e2) {}
       throw new Error(String(err));
     }
-    try { __lastCloudErr = ''; dbgUpdate(); } catch (e3) {}
+    // Do not clear __lastCloudErr on success so that the last error
+    // remains visible on screen long enough to inspect/copy.
+    try { dbgUpdate(); } catch (e3) {}
     return j;
   }
 
