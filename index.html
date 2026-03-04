@@ -1777,7 +1777,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const curVal = cur && cur.fear ? (parseInt(cur.fear||0,10)||0) : 0;
       const next = curVal + Math.max(0, parseInt(addFear||0,10)||0);
       if (!state.districtDailyFear.byDistrict || typeof state.districtDailyFear.byDistrict !== 'object') state.districtDailyFear.byDistrict = {};
-      state.districtDailyFear.byDistrict[fk] = { name:(state.playerName||'PLAYER'), fear: next, ts: now() };
+      let photo = '';
+      try {
+        const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+        photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
+      } catch (e0) { photo = ''; }
+      state.districtDailyFear.byDistrict[fk] = { name:(state.playerName||'PLAYER'), fear: next, ts: now(), photo: photo };
+      try {
+        if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+          districtDailyLeaderCloudUpsert(utcDayKey(), fk, next, (state.playerName||'PLAYER'), photo);
+        }
+      } catch (e1) {}
     } catch (e) {}
   }
 
@@ -2745,6 +2755,53 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         photo_url: String(photo||'').trim()
       });
       try { districtLeadersCloudPullMaybe(); } catch (e0) {}
+    } catch (e) {}
+  }
+
+  let __districtDailyLeadersPullTs = 0;
+  async function districtDailyLeadersCloudPull(day){
+    try {
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
+      const k = String(day||utcDayKey());
+      const r = await sbFnCall('district_daily_leaders_list', { initData: tgInitData(), day: k });
+      const rows = (r && Array.isArray(r.leaders)) ? r.leaders : [];
+      if (!state.districtDailyFear || typeof state.districtDailyFear !== 'object') state.districtDailyFear = { day:'', byDistrict:{} };
+      state.districtDailyFear.day = k;
+      const next = {};
+      rows.forEach(it=>{
+        try {
+          const dk = it && it.district_key ? String(it.district_key) : '';
+          if (!dk) return;
+          const nm = it && it.name ? String(it.name) : '—';
+          const fear = Math.max(0, parseInt(it && it.fear || 0, 10) || 0);
+          const photo = it && it.photo_url ? String(it.photo_url) : '';
+          const ts = it && it.updated_at ? Date.parse(String(it.updated_at)) : 0;
+          next[dk] = { name: nm, fear: fear, ts: ts || now(), photo: photo };
+        } catch (e0) {}
+      });
+      state.districtDailyFear.byDistrict = next;
+      save();
+    } catch (e) {}
+  }
+  async function districtDailyLeadersCloudPullMaybe(){
+    try {
+      const force = arguments && arguments.length ? !!arguments[0] : false;
+      const day = String(arguments && arguments.length>1 ? (arguments[1]||'') : utcDayKey());
+      await cloudOnce('pull:district_daily_leaders:'+day, ()=>districtDailyLeadersCloudPull(day));
+    } catch (e) {}
+  }
+  async function districtDailyLeaderCloudUpsert(day, districtKey, fear, name, photo){
+    try {
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
+      await sbFnCall('district_daily_leader_upsert', {
+        initData: tgInitData(),
+        day: String(day||utcDayKey()),
+        district_key: String(districtKey||''),
+        fear: Math.max(0, parseInt(fear||0,10)||0),
+        name: String(name||'').trim().substring(0,18),
+        photo_url: String(photo||'').trim()
+      });
+      try { districtDailyLeadersCloudPullMaybe(true, String(day||utcDayKey())); } catch (e0) {}
     } catch (e) {}
   }
 
@@ -7719,10 +7776,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
         districtLeadersCloudPullMaybe(true).catch(()=>{});
+        districtDailyLeadersCloudPullMaybe(true, utcDayKey()).catch(()=>{});
       }
     } catch (e0) {}
     let html = '';
     try { districtLeadersCloudPullMaybe().catch(()=>{}); } catch (e0) {}
+    try { districtDailyLeadersCloudPullMaybe(false, utcDayKey()).catch(()=>{}); } catch (e0) {}
     const data = districtData();
     const dayKey = utcDayKey();
     const dayBox = (state.districtDailyFear && state.districtDailyFear.day===dayKey) ? state.districtDailyFear.byDistrict : null;
@@ -7748,6 +7807,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const dayTop = dayBox && dayBox[fk] ? dayBox[fk] : null;
       const dayName = dayTop && dayTop.name ? dayTop.name : '—';
       const dayFear = dayTop && (typeof dayTop.fear !== 'undefined') ? (parseInt(dayTop.fear||0,10)||0) : 0;
+      const dayPhoto = dayTop && dayTop.photo ? String(dayTop.photo) : '';
       const idx = i-1;
       const unlocked = districtUnlocked(idx);
       const prevOk = districtPrevCleared(idx);
@@ -7786,7 +7846,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '</div>'
         + '<div style="min-width:0">'
         + '<div class="districtTag" style="text-align:left">СТРАШИЛА ДНЯ</div>'
-        + '<div class="districtNick" style="margin-top:4px">'+String(dayName).toUpperCase()+'</div>'
+        + '<div class="districtNick" style="margin-top:4px; display:flex; align-items:center; gap:8px">'
+        + (dayPhoto ? ('<img src="'+encodeURI(dayPhoto)+'" style="width:52px; height:52px; border-radius:999px; object-fit:cover; border:1px solid rgba(255,255,255,.22)"/>') : '<div style="width:52px; height:52px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.12);"></div>')
+        + '<span style="min-width:0; overflow:hidden; text-overflow:ellipsis;">'+String(dayName).toUpperCase()+'</span>'
+        + '</div>'
         + '<div class="districtStatBox" style="margin-top:6px">'
         + '<div class="districtStatRow">'
         + '<div class="districtFear">😱 '+fmt4(dayFear)+'</div>'
