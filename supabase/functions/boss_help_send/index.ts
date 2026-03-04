@@ -401,7 +401,7 @@ Deno.serve(async (req: Request) => {
   const senderTgId = String(verified.user.id)
   const bossId = Math.max(1, safeInt(body?.boss_id ?? body?.bossId, 0))
   const dmg = Math.max(0, Math.min(1_000_000_000, safeInt(body?.dmg, 0)))
-  const clanId = sanitizeClanId(body?.clan_id ?? body?.clanId)
+  let clanId = sanitizeClanId(body?.clan_id ?? body?.clanId)
   const fromName = sanitizeName(body?.from_name ?? body?.from ?? body?.member_name ?? body?.name)
 
   // Soft rate limit: ignore spam/double-clicks without error.
@@ -441,6 +441,17 @@ Deno.serve(async (req: Request) => {
       status: 404,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
+  }
+
+  // If client did not send clan_id (or sent invalid), infer it from sender stored state.
+  if (!clanId) {
+    try {
+      const st = senderRow?.state
+      const cid = st && typeof st === "object" ? String((st as any)?.clan?.id || "").trim().toUpperCase() : ""
+      clanId = sanitizeClanId(cid)
+    } catch (_e) {
+      // ignore
+    }
   }
 
   const senderName = String(senderRow?.name || fromName || "Player").trim().slice(0, 18) || "Player"

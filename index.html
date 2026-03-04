@@ -1315,16 +1315,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const want = Math.max(0, Math.floor(dmg||0));
       if (!want) return;
 
-      const isFriend = Array.isArray(state.friends) && state.friends.some(x=>String(x && x.name || '').trim().toUpperCase() === String(nm).toUpperCase());
-      const myClanId = clanFindMyClanId();
-      const evClan = String(clanId||'').trim().toUpperCase();
-      const isClan = !!(myClanId && evClan && String(myClanId).trim().toUpperCase() === evClan);
-
-      if (!isFriend && !isClan) return;
+      const isCloud = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
+      if (!isCloud) {
+        const isFriend = Array.isArray(state.friends) && state.friends.some(x=>String(x && x.name || '').trim().toUpperCase() === String(nm).toUpperCase());
+        const myClanId = clanFindMyClanId();
+        const evClan = String(clanId||'').trim().toUpperCase();
+        const isClan = !!(myClanId && evClan && String(myClanId).trim().toUpperCase() === evClan);
+        if (!isFriend && !isClan) return;
+      }
 
       // In cloud mode HP is server-authoritative; do not mutate local HP from events.
       // We only log the event and then pull fresh HP from server.
-      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+      if (isCloud) {
         const add = want;
         if (add<=0) return;
         bfLogPush(bid, nm, add);
