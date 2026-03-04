@@ -78,6 +78,51 @@ function sanitizeClanId(id: unknown): string {
   return s
 }
 
+function safeStr(v: unknown): string {
+  return String(v || "").trim()
+}
+
+function escapeLikeExact(input: string): string {
+  // Escape LIKE wildcards so ilike matches exact string
+  return input.replace(/[\\%_]/g, (m) => `\\${m}`)
+}
+
+async function postgrestFindExistingNames(
+  projectUrl: string,
+  serviceKey: string,
+  names: string[],
+): Promise<Set<string>> {
+  const out = new Set<string>()
+  const uniq = Array.from(new Set(names.map((x) => safeStr(x)).filter(Boolean)))
+  if (!uniq.length) return out
+
+  // Chunk to keep URL manageable
+  const chunkSize = 40
+  for (let i = 0; i < uniq.length; i += chunkSize) {
+    const chunk = uniq.slice(i, i + chunkSize)
+    const orParts = chunk.map((nm) => `name.ilike.${escapeLikeExact(nm)}`)
+    const url = projectUrl.replace(/\/$/, "") +
+      `/rest/v1/players?select=name&or=(${encodeURIComponent(orParts.join(","))})&limit=${chunk.length}`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+      },
+    })
+    if (!resp.ok) continue
+    const rows = await resp.json().catch(() => [])
+    if (!Array.isArray(rows)) continue
+    rows.forEach((r) => {
+      try {
+        const nm = safeStr((r as any)?.name)
+        if (nm) out.add(nm.toUpperCase())
+      } catch (_e) {}
+    })
+  }
+  return out
+}
+
 async function postgrestListClans(projectUrl: string, serviceKey: string, limit: number): Promise<Response> {
   const lim = Math.max(1, Math.min(200, Math.floor(limit || 100)))
   const url = projectUrl.replace(/\/$/, "") + `/rest/v1/clans?select=id,name,owner_tg_id,data,updated_at&order=updated_at.desc&limit=${lim}`
@@ -146,7 +191,46 @@ Deno.serve(async (req: Request) => {
   }
 
   const rows = await resp.json().catch(() => [])
-  return new Response(JSON.stringify({ ok: true, clans: rows }), {
+  const arr = Array.isArray(rows) ? rows : []
+
+  // Remove stale deleted accounts from clan members/apps.
+  // Clan membership is stored by name. Since names are unique, we can validate against players.
+  const allNames: string[] = []
+  arr.forEach((row: any) => {
+    try {
+      const data = row?.data
+      if (!data || typeof data !== "object") return
+      const members = Array.isArray(data.members) ? data.members : []
+      const apps = Array.isArray(data.apps) ? data.apps : []
+      members.forEach((x: any) => { const s = safeStr(x); if (s) allNames.push(s) })
+      apps.forEach((x: any) => { const s = safeStr(x); if (s) allNames.push(s) })
+    } catch (_e) {}
+  })
+  const existing = await postgrestFindExistingNames(projectUrl, serviceKey, allNames)
+
+  const cleaned = arr.map((row: any) => {
+    try {
+      const data = row?.data
+      if (!data || typeof data !== "object") return row
+      const members0 = Array.isArray(data.members) ? data.members : []
+      const apps0 = Array.isArray(data.apps) ? data.apps : []
+      const members = members0.filter((nm: any) => {
+        const s = safeStr(nm)
+        if (!s) return false
+        return existing.has(s.toUpperCase())
+      })
+      const apps = apps0.filter((nm: any) => {
+        const s = safeStr(nm)
+        if (!s) return false
+        return existing.has(s.toUpperCase())
+      })
+      return { ...row, data: { ...data, members, apps } }
+    } catch (_e) {
+      return row
+    }
+  })
+
+  return new Response(JSON.stringify({ ok: true, clans: cleaned }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   })
 })
