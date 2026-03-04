@@ -595,7 +595,7 @@ Deno.serve(async (req: Request) => {
 
   // Apply damage server-side immediately so recipient boss HP updates even if offline
   // Best-effort: failure here should not block logging events.
-  const rows = await Promise.all(
+  const rows0 = await Promise.all(
     recArr.map(async (toTgId) => {
       let applied = 0
       let targetBossId = bossId
@@ -604,16 +604,24 @@ Deno.serve(async (req: Request) => {
         const pr = await postgrestGetPlayer(projectUrl, serviceKey, String(toTgId))
         const st = pr && typeof pr === "object" ? (pr as any).state : null
 
-        // Apply help to recipient's active fight (authoritative source = player_boss_fights).
-        // This matches the rule "only one active boss fight" and works even if client state is stale.
+        // Help should apply ONLY if the recipient has already started a boss fight.
+        // If no active fight exists, do not create a new fight row and do not reduce HP by default.
+        let hasActiveFight = false
         try {
           const ab = await postgrestFindActiveBossFightId(projectUrl, serviceKey, String(toTgId))
           const dd = ab ? bossDef(ab) : null
           if (dd) {
+            hasActiveFight = true
             targetBossId = ab
             targetDef = dd
           }
-        } catch (_e0) {}
+        } catch (_e0) {
+          hasActiveFight = false
+        }
+
+        if (!hasActiveFight) {
+          return null
+        }
 
         if (clanId) {
           const lvlRaw = st && typeof st === "object" ? (st as any).friendHelpLvl : 0
@@ -676,57 +684,65 @@ Deno.serve(async (req: Request) => {
         applied = 0
       }
 
-      return {
-        to_tg_id: toTgId,
-        from_tg_id: senderTgId,
-        from_name: senderName,
-        boss_id: targetBossId,
-        dmg: applied,
-        clan_id: clanId || null,
-        created_at: ts,
-        consumed: false,
-      }
-    }),
-  )
+    if (applied <= 0) return null
 
-  const ins = await postgrestInsertEvents(projectUrl, serviceKey, rows)
-  if (!ins.ok) {
-    const text = await ins.text().catch(() => "")
-    return new Response(
-      JSON.stringify({
-        ok: false,
-        error: "supabase_error",
-        details: text.slice(0, 1500),
-        debug: {
-          step: "insert_boss_help_events",
-          status: ins.status,
-          status_text: ins.statusText,
-          recipients: recArr.length,
-          rows: rows.length,
-          sample_to: rows && rows.length ? String((rows[0] as any)?.to_tg_id || "") : "",
-          sample_boss_id: rows && rows.length ? Number((rows[0] as any)?.boss_id || 0) : 0,
-        },
-      }),
-      {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    )
-  }
+    return {
+      to_tg_id: String(toTgId),
+      from_tg_id: String(senderTgId),
+      boss_id: targetBossId,
+      dmg: applied,
+      clan_id: clanId || null,
+      from_name: senderName,
+      created_at: ts,
+    }
+  }),
+)
 
+const rows = (Array.isArray(rows0) ? rows0 : []).filter((x) => !!x)
+if (!rows.length) {
+  return new Response(JSON.stringify({ ok: true, inserted: 0, debug: { recipients: recArr.length, rpc_ok: rpcOkCount, rpc_fail: rpcFailCount } }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  })
+}
+
+const ins = await postgrestInsertEvents(projectUrl, serviceKey, rows)
+if (!ins.ok) {
+  const text = await ins.text().catch(() => "")
   return new Response(
     JSON.stringify({
-      ok: true,
-      inserted: rows.length,
+      ok: false,
+      error: "supabase_error",
+      details: text.slice(0, 1500),
       debug: {
+        step: "insert_boss_help_events",
+        status: ins.status,
+        status_text: ins.statusText,
         recipients: recArr.length,
-        rpc_ok: rpcOkCount,
-        rpc_fail: rpcFailCount,
-        rpc_first_error: rpcFirstErr,
+        rows: rows.length,
+        sample_to: rows && rows.length ? String((rows[0] as any)?.to_tg_id || "") : "",
+        sample_boss_id: rows && rows.length ? Number((rows[0] as any)?.boss_id || 0) : 0,
       },
     }),
     {
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     },
   )
+}
+
+return new Response(
+  JSON.stringify({
+    ok: true,
+    inserted: rows.length,
+    debug: {
+      recipients: recArr.length,
+      rpc_ok: rpcOkCount,
+      rpc_fail: rpcFailCount,
+      rpc_first_err: rpcFirstErr,
+    },
+  }),
+  {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  },
+)
 })

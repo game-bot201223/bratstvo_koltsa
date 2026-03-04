@@ -6221,12 +6221,23 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (cc && typeof cc === 'object' && typeof cc.hp !== 'undefined') {
             hpCloud = (parseInt(cc.hp||0,10)||0);
           }
-          // If no fight row on server, show full HP (boss is not in a server fight for this player)
-          if (hpCloud===null) hp = b.maxHP;
-          else {
-            const claimed = !!(cc && typeof cc === 'object' && cc.reward_claimed);
-            if ((parseInt(hpCloud||0,10)||0) <= 0 && claimed) hp = b.maxHP;
-            else hp = Math.max(0, hpCloud);
+          // Show cloud HP only if this player has started a local fight with this boss.
+          let started = false;
+          try {
+            const f0 = bfGetFight(b.id);
+            if (f0 && f0.startTs && f0.expiresTs && now() < (parseInt(f0.expiresTs||0,10)||0)) started = true;
+          } catch (e9) { started = false; }
+          if (!started) {
+            hp = b.maxHP;
+            hpCloud = null;
+          } else {
+            // If no fight row on server, show full HP.
+            if (hpCloud===null) hp = b.maxHP;
+            else {
+              const claimed = !!(cc && typeof cc === 'object' && cc.reward_claimed);
+              if ((parseInt(hpCloud||0,10)||0) <= 0 && claimed) hp = b.maxHP;
+              else hp = Math.max(0, hpCloud);
+            }
           }
         }
       } catch (e00) {}
