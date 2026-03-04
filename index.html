@@ -2549,8 +2549,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
   async function districtLeadersCloudPullMaybe(){
     try {
+      const force = arguments && arguments.length ? !!arguments[0] : false;
       const t = now();
-      if (__districtLeadersPullTs && (t - __districtLeadersPullTs) < 3500) return;
+      if (!force && __districtLeadersPullTs && (t - __districtLeadersPullTs) < 3500) return;
       __districtLeadersPullTs = t;
       await districtLeadersCloudPull();
     } catch (e) {}
@@ -3852,121 +3853,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     const pMin = kind==='ELITE' ? 1.11 : (kind==='NORMAL' ? 0.91 : 0.50);
     const pMax = kind==='ELITE' ? 1.30 : (kind==='NORMAL' ? 1.10 : 0.90);
-    const mult = pMin + Math.random() * (pMax - pMin);
-
-    function effStat(k){
-      const cur = gymVal(k);
-      const pct = gymBonusPct();
-      let add = Math.round(cur*pct);
-      if (pct>0 && cur>0 && add<=0) add = 1;
-      return cur + add;
-    }
-
-    const pRaw = {
-      health: gymVal('health'),
-      strength: gymVal('strength'),
-      agility: gymVal('agility'),
-      initiative: gymVal('initiative'),
-      endurance: gymVal('endurance'),
-      might: gymVal('might'),
-      charisma: gymVal('charisma')
-    };
-    const p = {
-      health: effStat('health'),
-      strength: effStat('strength'),
-      agility: effStat('agility'),
-      initiative: effStat('initiative'),
-      endurance: effStat('endurance'),
-      might: effStat('might'),
-      charisma: pRaw.charisma
-    };
-    const e = {
-      health: Math.max(1, Math.round(pRaw.health * mult)),
-      strength: Math.max(1, Math.round(pRaw.strength * mult)),
-      agility: Math.max(1, Math.round(pRaw.agility * mult)),
-      initiative: Math.max(1, Math.round(pRaw.initiative * mult)),
-      endurance: Math.max(1, Math.round(pRaw.endurance * mult)),
-      might: Math.max(1, Math.round(pRaw.might * mult))
-    };
-
-    const bonus = clamp(state.nextWinBonus||0, 0, 0.60);
-    state.nextWinBonus = 0;
-
-    let pHP = Math.max(1, Math.round(60 + p.health * 6));
-    let eHP = Math.max(1, Math.round(60 + e.health * 6));
-    let youDmg = 0;
-    let enemyDmg = 0;
-    let rounds = 0;
-    const combatLog = [];
-
-    function hitChance(attAgi, defAgi, hitBonus){
-      const rel = (attAgi - defAgi) / Math.max(1, (attAgi + defAgi));
-      return clamp(0.80 + rel*0.35 + (hitBonus||0)*0.45, 0.10, 0.95);
-    }
-    function critChance(attM, defM){
-      return clamp(0.06 + (attM / Math.max(1, attM + defM + 30)) * 0.28, 0.05, 0.30);
-    }
-    function dmgReduction(defEnd, attStr){
-      return clamp((defEnd / Math.max(1, defEnd + attStr + 60)) * 0.35, 0, 0.35);
-    }
-    function baseDamage(attStr){
-      return 5 + attStr * 1.25;
-    }
-
-    function doAttack(isPlayer, round){
-      const A = isPlayer ? p : e;
-      const D = isPlayer ? e : p;
-      const hpRef = isPlayer ? 'e' : 'p';
-      const hc = hitChance(A.agility, D.agility, isPlayer ? bonus : 0);
-      if (Math.random() > hc) {
-        combatLog.push({ round: round, who: isPlayer ? 'YOU' : 'ENEMY', miss:true, crit:false, dmg:0 });
-        return;
-      }
-
-      let dmg = baseDamage(A.strength);
-      const isCrit = Math.random() < critChance(A.might, D.might);
-      if (isCrit) dmg *= (1.5 + Math.random()*0.5);
-      dmg *= (1 - dmgReduction(D.endurance, A.strength));
-      dmg = Math.max(1, Math.round(dmg));
-
-      combatLog.push({ round: round, who: isPlayer ? 'YOU' : 'ENEMY', miss:false, crit:isCrit, dmg:dmg });
-
-      if (hpRef==='e') {
-        eHP = Math.max(0, eHP - dmg);
-        youDmg += dmg;
-      } else {
-        pHP = Math.max(0, pHP - dmg);
-        enemyDmg += dmg;
-      }
-    }
-
-    function firstStrikeChance(){
-      const rel = (p.initiative - e.initiative) / Math.max(1, (p.initiative + e.initiative));
-      return clamp(0.5 + rel*0.35, 0.10, 0.90);
-    }
-
-    while (pHP>0 && eHP>0 && rounds<20) {
-      rounds += 1;
-      const pFirst = Math.random() < firstStrikeChance();
-      if (pFirst) {
-        doAttack(true, rounds);
-        if (eHP>0) doAttack(false, rounds);
-      } else {
-        doAttack(false, rounds);
-        if (pHP>0) doAttack(true, rounds);
-      }
-    }
-
-    let win = false;
-    if (pHP>0 && eHP<=0) win = true;
-    else if (pHP<=0 && eHP>0) win = false;
-    else win = pHP >= eHP;
-    const chaCost = gymCost(gymVal('charisma'));
-    const mulMin = kind==='ELITE' ? 3.0 : (kind==='NORMAL' ? 2.8 : 2.5);
-    const mulMax = kind==='ELITE' ? 3.2 : (kind==='NORMAL' ? 3.0 : 2.8);
-    const mul = mulMin + Math.random() * (mulMax - mulMin);
-    const silverGain = win ? Math.max(0, Math.round(chaCost * mul)) : Math.max(0, Math.round(chaCost * 0.5));
-    const xpGain = win ? 5 : 0;
 
     function arenaBotName(kind0){
       const oppPool = kind0==='ELITE'
@@ -3977,98 +3863,221 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return oppPool[Math.floor(Math.random()*oppPool.length)];
     }
 
-    // Prefer real opponent from Supabase; fallback to bot ONLY in Fighting Club.
-    let oppName = arenaBotName(kind);
+    function runArenaFightWith(mult, oppName){
+      function effStat(k){
+        const cur = gymVal(k);
+        const pct = gymBonusPct();
+        let add = Math.round(cur*pct);
+        if (pct>0 && cur>0 && add<=0) add = 1;
+        return cur + add;
+      }
+
+      const pRaw = {
+        health: gymVal('health'),
+        strength: gymVal('strength'),
+        agility: gymVal('agility'),
+        initiative: gymVal('initiative'),
+        endurance: gymVal('endurance'),
+        might: gymVal('might'),
+        charisma: gymVal('charisma')
+      };
+      const p = {
+        health: effStat('health'),
+        strength: effStat('strength'),
+        agility: effStat('agility'),
+        initiative: effStat('initiative'),
+        endurance: effStat('endurance'),
+        might: effStat('might'),
+        charisma: pRaw.charisma
+      };
+      const e = {
+        health: Math.max(1, Math.round(pRaw.health * mult)),
+        strength: Math.max(1, Math.round(pRaw.strength * mult)),
+        agility: Math.max(1, Math.round(pRaw.agility * mult)),
+        initiative: Math.max(1, Math.round(pRaw.initiative * mult)),
+        endurance: Math.max(1, Math.round(pRaw.endurance * mult)),
+        might: Math.max(1, Math.round(pRaw.might * mult))
+      };
+
+      const bonus = clamp(state.nextWinBonus||0, 0, 0.60);
+      state.nextWinBonus = 0;
+
+      let pHP = Math.max(1, Math.round(60 + p.health * 6));
+      let eHP = Math.max(1, Math.round(60 + e.health * 6));
+      let youDmg = 0;
+      let enemyDmg = 0;
+      let rounds = 0;
+      const combatLog = [];
+
+      function hitChance(attAgi, defAgi, hitBonus){
+        const rel = (attAgi - defAgi) / Math.max(1, (attAgi + defAgi));
+        return clamp(0.80 + rel*0.35 + (hitBonus||0)*0.45, 0.10, 0.95);
+      }
+      function critChance(attM, defM){
+        return clamp(0.06 + (attM / Math.max(1, attM + defM + 30)) * 0.28, 0.05, 0.30);
+      }
+      function dmgReduction(defEnd, attStr){
+        return clamp((defEnd / Math.max(1, defEnd + attStr + 60)) * 0.35, 0, 0.35);
+      }
+      function baseDamage(attStr){
+        return 5 + attStr * 1.25;
+      }
+
+      function doAttack(isPlayer, round){
+        const A = isPlayer ? p : e;
+        const D = isPlayer ? e : p;
+        const hpRef = isPlayer ? 'e' : 'p';
+        const hc = hitChance(A.agility, D.agility, isPlayer ? bonus : 0);
+        if (Math.random() > hc) {
+          combatLog.push({ round: round, who: isPlayer ? 'YOU' : 'ENEMY', miss:true, crit:false, dmg:0 });
+          return;
+        }
+
+        let dmg = baseDamage(A.strength);
+        const isCrit = Math.random() < critChance(A.might, D.might);
+        if (isCrit) dmg *= (1.5 + Math.random()*0.5);
+        dmg *= (1 - dmgReduction(D.endurance, A.strength));
+        dmg = Math.max(1, Math.round(dmg));
+
+        combatLog.push({ round: round, who: isPlayer ? 'YOU' : 'ENEMY', miss:false, crit:isCrit, dmg:dmg });
+
+        if (hpRef==='e') {
+          eHP = Math.max(0, eHP - dmg);
+          youDmg += dmg;
+        } else {
+          pHP = Math.max(0, pHP - dmg);
+          enemyDmg += dmg;
+        }
+      }
+
+      function firstStrikeChance(){
+        const rel = (p.initiative - e.initiative) / Math.max(1, (p.initiative + e.initiative));
+        return clamp(0.5 + rel*0.35, 0.10, 0.90);
+      }
+
+      while (pHP>0 && eHP>0 && rounds<20) {
+        rounds += 1;
+        const pFirst = Math.random() < firstStrikeChance();
+        if (pFirst) {
+          doAttack(true, rounds);
+          if (eHP>0) doAttack(false, rounds);
+        } else {
+          doAttack(false, rounds);
+          if (pHP>0) doAttack(true, rounds);
+        }
+      }
+
+      let win = false;
+      if (pHP>0 && eHP<=0) win = true;
+      else if (pHP<=0 && eHP>0) win = false;
+      else win = pHP >= eHP;
+      const chaCost = gymCost(gymVal('charisma'));
+      const mulMin = kind==='ELITE' ? 3.0 : (kind==='NORMAL' ? 2.8 : 2.5);
+      const mulMax = kind==='ELITE' ? 3.2 : (kind==='NORMAL' ? 3.0 : 2.8);
+      const mul = mulMin + Math.random() * (mulMax - mulMin);
+      const silverGain = win ? Math.max(0, Math.round(chaCost * mul)) : Math.max(0, Math.round(chaCost * 0.5));
+      const xpGain = win ? 5 : 0;
+
+      try {
+        $('arOpponent').textContent = oppName;
+        $('arYouDmg').textContent = String(youDmg);
+        $('arEnemyDmg').textContent = String(enemyDmg);
+        $('arOutcome').textContent = win ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ';
+        try {
+          const rw = $('arReward');
+          if (rw){
+            let t = '';
+            if (silverGain>0) t += '+'+silverGain+' ⚪';
+            if (xpGain>0) t += (t?' ':'') + '+'+xpGain+' XP';
+            rw.textContent = t || '—';
+          }
+        } catch (e2) {}
+
+        const logBox = $('arenaCombatLog');
+        if (logBox){
+          if (!combatLog.length) {
+            logBox.innerHTML = '<div style="opacity:.8">—</div>';
+          } else {
+            let out = '';
+            combatLog.forEach(ev=>{
+              let text = '';
+              let color = '';
+              if (ev.miss) {
+                color = 'rgba(52,211,153,.95)';
+                text = (ev.who==='YOU')
+                  ? 'Ты промахнулся и не нанес урона противнику'
+                  : 'Противник промахнулся и не нанес тебе урона';
+              } else {
+                if (ev.crit) color = 'rgba(251,113,133,.95)';
+                if (ev.who==='YOU') {
+                  text = ev.crit
+                    ? ('Ты нанес противнику критический урон в размере ' + ev.dmg)
+                    : ('Ты нанес противнику урон в размере ' + ev.dmg);
+                } else {
+                  text = ev.crit
+                    ? ('Противник нанес тебе критический урон в размере ' + ev.dmg)
+                    : ('Противник нанес тебе урон в размере ' + ev.dmg);
+                }
+              }
+              out += '<div class="feedItem" style="' + (color?('color:'+color+';'):'') + '">' 
+                + '<span style="opacity:.7">РАУНД '+ev.round+'</span> '
+                + text
+                + '</div>';
+            });
+            logBox.innerHTML = out;
+          }
+        }
+      } catch (e) {}
+      showModal('mArenaRes');
+
+      if (win) {
+        state.arena.wins = (state.arena.wins||0)+1;
+        state.silver += silverGain;
+        feedAdd('Победа в Бойцовском клубе ('+kind+'): +'+silverGain+'⚪','ARENA');
+        if (xpGain>0) addXp(xpGain);
+        toast('ПОБЕДА','win');
+        haptic('heavy');
+      } else {
+        state.arena.losses = (state.arena.losses||0)+1;
+        state.silver += silverGain;
+        feedAdd('Поражение в Бойцовском клубе ('+kind+'): +'+silverGain+'⚪','ARENA');
+        toast('ПОРАЖЕНИЕ','lose');
+        haptic('medium');
+      }
+
+      state.arena.cdUntil = now() + 1000;
+      save();
+      renderAll();
+    }
+
+    const myPwr = parseInt((state.arena && state.arena.power) || 0, 10) || (parseInt(state.level||1,10)||1)*10;
+    const minP = kind==='ELITE' ? Math.max(0, Math.round(myPwr*1.05)) : (kind==='NORMAL' ? Math.max(0, Math.round(myPwr*0.92)) : 0);
+    const maxP = kind==='ELITE' ? Math.max(minP+1, Math.round(myPwr*1.60)) : (kind==='NORMAL' ? Math.max(minP+1, Math.round(myPwr*1.08)) : Math.max(1, Math.round(myPwr*0.90)));
+    const botName = arenaBotName(kind);
+    const botMult = pMin + Math.random() * (pMax - pMin);
+
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-        const myPwr = parseInt((state.arena && state.arena.power) || 0, 10) || (parseInt(state.level||1,10)||1)*10;
-        const minP = kind==='ELITE' ? Math.max(0, Math.round(myPwr*1.05)) : (kind==='NORMAL' ? Math.max(0, Math.round(myPwr*0.92)) : 0);
-        const maxP = kind==='ELITE' ? Math.max(minP+1, Math.round(myPwr*1.60)) : (kind==='NORMAL' ? Math.max(minP+1, Math.round(myPwr*1.08)) : Math.max(1, Math.round(myPwr*0.90)));
+        try { $('arOpponent').textContent = 'ПОИСК...'; } catch (e0) {}
         sbFnCall('find_arena_opponent', { initData: tgInitData(), min_power: minP, max_power: maxP })
           .then((r)=>{
             try {
               const o = r && r.opponent ? r.opponent : null;
-              if (o && o.name) {
-                $('arOpponent').textContent = String(o.name).trim().substring(0, 18);
-              } else {
-                $('arOpponent').textContent = oppName;
+              const oppPwr = parseInt(o && o.arena_power || 0, 10) || 0;
+              if (oppPwr > 0 && myPwr > 0) {
+                const mult = clamp(oppPwr / myPwr, pMin, pMax);
+                const nm = o && o.name ? String(o.name).trim().substring(0, 18) : botName;
+                return runArenaFightWith(mult, nm);
               }
-            } catch (e2) {}
+            } catch (e0) {}
+            return runArenaFightWith(botMult, botName);
           })
-          .catch(()=>{ try { $('arOpponent').textContent = oppName; } catch (e3) {} });
+          .catch(()=>runArenaFightWith(botMult, botName));
+        return;
       }
     } catch (e0) {}
-    try {
-      $('arOpponent').textContent = oppName;
-      $('arYouDmg').textContent = String(youDmg);
-      $('arEnemyDmg').textContent = String(enemyDmg);
-      $('arOutcome').textContent = win ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ';
-      try {
-        const rw = $('arReward');
-        if (rw){
-          let t = '';
-          if (silverGain>0) t += '+'+silverGain+' ⚪';
-          if (xpGain>0) t += (t?' ':'') + '+'+xpGain+' XP';
-          rw.textContent = t || '—';
-        }
-      } catch (e2) {}
 
-      const logBox = $('arenaCombatLog');
-      if (logBox){
-        if (!combatLog.length) {
-          logBox.innerHTML = '<div style="opacity:.8">—</div>';
-        } else {
-          let out = '';
-          combatLog.forEach(ev=>{
-            let text = '';
-            let color = '';
-            if (ev.miss) {
-              color = 'rgba(52,211,153,.95)';
-              text = (ev.who==='YOU')
-                ? 'Ты промахнулся и не нанес урона противнику'
-                : 'Противник промахнулся и не нанес тебе урона';
-            } else {
-              if (ev.crit) color = 'rgba(251,113,133,.95)';
-              if (ev.who==='YOU') {
-                text = ev.crit
-                  ? ('Ты нанес противнику критический урон в размере ' + ev.dmg)
-                  : ('Ты нанес противнику урон в размере ' + ev.dmg);
-              } else {
-                text = ev.crit
-                  ? ('Противник нанес тебе критический урон в размере ' + ev.dmg)
-                  : ('Противник нанес тебе урон в размере ' + ev.dmg);
-              }
-            }
-
-            out += '<div class="feedItem" style="' + (color?('color:'+color+';'):'') + '">' 
-              + '<span style="opacity:.7">РАУНД '+ev.round+'</span> '
-              + text
-              + '</div>';
-          });
-          logBox.innerHTML = out;
-        }
-      }
-    } catch (e) {}
-    showModal('mArenaRes');
-
-    if (win){
-      state.arena.wins = (state.arena.wins||0)+1;
-      state.silver += silverGain;
-      addXp(xpGain);
-      feedAdd('Победа в Бойцовском клубе ('+kind+'): +'+silverGain+'⚪ +'+xpGain+'XP', 'ARENA');
-      toast('ПОБЕДА','win');
-      haptic('heavy');
-    } else {
-      state.arena.losses = (state.arena.losses||0)+1;
-      state.silver += silverGain;
-      feedAdd('Поражение в Бойцовском клубе ('+kind+'): +'+silverGain+'⚪','ARENA');
-      toast('ПОРАЖЕНИЕ','lose');
-      haptic('medium');
-    }
-
-    state.arena.cdUntil = now() + 1000;
-    save();
-    renderAll();
+    return runArenaFightWith(botMult, botName);
   }
 
   // --- Group fight
@@ -7294,6 +7303,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function renderDistricts(){
     const box = $('districtList');
     if (!box) return;
+    try {
+      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+        districtLeadersCloudPullMaybe(true).catch(()=>{});
+      }
+    } catch (e0) {}
     let html = '';
     try { districtLeadersCloudPullMaybe().catch(()=>{}); } catch (e0) {}
     const data = districtData();
@@ -7744,7 +7758,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     $('shopBtn').onclick = ()=>{ showModal('mShop'); renderShop(); haptic('light'); };
     $('btnDistricts').onclick = ()=>{
       openScreen('mDistricts');
-      try { districtLeadersCloudPullMaybe(); } catch (e0) {}
+      try { districtLeadersCloudPullMaybe(true); } catch (e0) {}
       renderDistricts();
       haptic('light');
     };

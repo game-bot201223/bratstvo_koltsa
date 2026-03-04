@@ -315,6 +315,8 @@ Deno.serve(async (req: Request) => {
   } catch (_e) {}
 
   const ownerTgId = String(verified.user.id)
+  const verifiedName = String(verified.user?.first_name || verified.user?.username || "Player").trim().slice(0, 18) || "Player"
+  const verifiedPhoto = String(verified.user?.photo_url || "").trim().slice(0, 500)
   const bossId = Math.max(1, safeInt(body?.boss_id ?? body?.bossId, 0))
   const def = bossDef(bossId)
   if (!def) {
@@ -340,8 +342,13 @@ Deno.serve(async (req: Request) => {
   // Best-effort: store last winner for global display.
   try {
     if (ok) {
-      const p = await postgrestGetPlayerBasic(projectUrl, serviceKey, ownerTgId)
-      if (p && p.tg_id) {
+      const p0 = await postgrestGetPlayerBasic(projectUrl, serviceKey, ownerTgId)
+      const p = {
+        tg_id: ownerTgId,
+        name: (p0 && p0.name) ? p0.name : verifiedName,
+        photo_url: (p0 && p0.photo_url) ? p0.photo_url : verifiedPhoto,
+      }
+      if (p.tg_id) {
         await postgrestUpsertBossLastWinner(projectUrl, serviceKey, bossId, p).catch(() => false)
       }
     }
