@@ -386,9 +386,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .bfHpBarText{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:10px; letter-spacing:1px; font-weight:900; color:rgba(36,24,14,.96); text-shadow:none; pointer-events:none;}
  .bfHitQtyGrid{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:8px;}
  .bfHitGrid{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));grid-auto-rows:auto;gap:10px;justify-content:end;align-content:start;margin-top:10px;}
- .bfHitCell{display:flex; flex-direction:column; align-items:stretch; gap:4px;}
- .bfHitMain{display:flex; align-items:center; justify-content:flex-start; gap:8px;}
- .bfHitDmg{font-size:11px; font-weight:900; letter-spacing:1px; opacity:.9; white-space:nowrap;}
+ .bfHitCell{display:flex; flex-direction:column; align-items:center; gap:4px;}
+ .bfHitDmg{font-size:11px; font-weight:900; letter-spacing:1px; opacity:.9; line-height:1; text-align:center;}
  .bfHitCnt{font-size:10px; opacity:.85; line-height:1; text-align:center;}
  .bfHitImg{width:85%; height:85%; object-fit:contain; display:block; margin:auto;}
 
@@ -849,39 +848,31 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             <div style="margin-top:10px;" id="bfHitQty"></div>
             <div class="bfHitGrid" style="margin-top:10px;">
               <div class="bfHitCell">
-                <div class="bfHitMain">
-                  <button class="btn bfHitIcon" id="bfFreeHit" aria-label="Пинок под зад (бесплатно)">
-                    <img class="bfHitImg" src="пинок.png" alt="Пинок под зад" onerror="this.style.display='none'; this.parentNode.textContent='🆓';">
-                  </button>
-                  <div class="bfHitDmg" id="bfFreeDmg">УРОН 0</div>
-                </div>
+                <button class="btn bfHitIcon" id="bfFreeHit" aria-label="Пинок под зад (бесплатно)">
+                  <img class="bfHitImg" src="пинок.png" alt="Пинок под зад" onerror="this.style.display='none'; this.parentNode.textContent='🆓';">
+                </button>
+                <div class="bfHitDmg" id="bfFreeDmg">УРОН 0</div>
                 <div class="bfHitCnt" id="bfFreeCnt">∞</div>
               </div>
               <div class="bfHitCell">
-                <div class="bfHitMain">
-                  <button class="btn bfHitIcon" id="bfHit1" aria-label="Удар ногой">
-                    <img class="bfHitImg" src="ногой.png" alt="Удар ногой" onerror="this.style.display='none'; this.parentNode.textContent='🦶';">
-                  </button>
-                  <div class="bfHitDmg" id="bfHit1Dmg">УРОН 0</div>
-                </div>
+                <button class="btn bfHitIcon" id="bfHit1" aria-label="Удар ногой">
+                  <img class="bfHitImg" src="ногой.png" alt="Удар ногой" onerror="this.style.display='none'; this.parentNode.textContent='🦶';">
+                </button>
+                <div class="bfHitDmg" id="bfHit1Dmg">УРОН 0</div>
                 <div class="bfHitCnt" id="bfHit1Cnt">0</div>
               </div>
               <div class="bfHitCell">
-                <div class="bfHitMain">
-                  <button class="btn bfHitIcon" id="bfHit2" aria-label="Удар костетом">
-                    <img class="bfHitImg" src="костетом.jpg" alt="Удар костетом" onerror="this.style.display='none'; this.parentNode.textContent='🥊';">
-                  </button>
-                  <div class="bfHitDmg" id="bfHit2Dmg">УРОН 0</div>
-                </div>
+                <button class="btn bfHitIcon" id="bfHit2" aria-label="Удар костетом">
+                  <img class="bfHitImg" src="костетом.jpg" alt="Удар костетом" onerror="this.style.display='none'; this.parentNode.textContent='🥊';">
+                </button>
+                <div class="bfHitDmg" id="bfHit2Dmg">УРОН 0</div>
                 <div class="bfHitCnt" id="bfHit2Cnt">0</div>
               </div>
               <div class="bfHitCell">
-                <div class="bfHitMain">
-                  <button class="btn bfHitIcon" id="bfHit3" aria-label="Клизма">
-                    <img class="bfHitImg" src="клизма.jpg" alt="Клизма" onerror="this.style.display='none'; this.parentNode.textContent='🚽';">
-                  </button>
-                  <div class="bfHitDmg" id="bfHit3Dmg">УРОН 0</div>
-                </div>
+                <button class="btn bfHitIcon" id="bfHit3" aria-label="Клизма">
+                  <img class="bfHitImg" src="клизма.jpg" alt="Клизма" onerror="this.style.display='none'; this.parentNode.textContent='🚽';">
+                </button>
+                <div class="bfHitDmg" id="bfHit3Dmg">УРОН 0</div>
                 <div class="bfHitCnt" id="bfHit3Cnt">0</div>
               </div>
             </div>
