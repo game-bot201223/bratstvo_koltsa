@@ -2529,7 +2529,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
       const r = await sbFnCall('district_leaders_list', { initData: tgInitData() });
       const rows = (r && Array.isArray(r.leaders)) ? r.leaders : [];
-      if (!state.districtFearLeaders || typeof state.districtFearLeaders !== 'object') state.districtFearLeaders = {};
+      const next = {};
       rows.forEach(it=>{
         try {
           const k = String(it && it.district_key || '').trim();
@@ -2538,13 +2538,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const fear = Math.max(0, parseInt(it && it.fear || 0, 10) || 0);
           const photo = it && it.photo_url ? String(it.photo_url) : '';
           const ts = it && it.updated_at ? Date.parse(String(it.updated_at)) : 0;
-          const cur = state.districtFearLeaders[k];
-          const curTs = cur && cur.ts ? (parseInt(cur.ts||0,10)||0) : 0;
-          if (!cur || (ts && ts > curTs)) {
-            state.districtFearLeaders[k] = { name: nm, fear: fear, ts: ts || now(), photo: photo };
-          }
+          next[k] = { name: nm, fear: fear, ts: ts || now(), photo: photo };
         } catch (e0) {}
       });
+      state.districtFearLeaders = next;
       save();
     } catch (e) {}
   }
