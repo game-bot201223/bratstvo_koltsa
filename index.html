@@ -292,17 +292,40 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .diceTitle .ico{font-size:18px;}
  .dicePrice{margin-top:10px; text-align:center; font-size:12px; opacity:.85;}
  .diceGrid{margin-top:14px; display:grid; grid-template-columns:repeat(5,1fr); gap:14px;}
- .dieBox{aspect-ratio:1/1; border-radius:14px; border:2px solid rgba(255,255,255,.85);
-   background:rgba(255,255,255,.26);
-   border-color:rgba(45,30,18,.22);
-   display:flex; align-items:center; justify-content:center;
-   font-weight:900; font-size:30px; letter-spacing:2px;
-   box-shadow: 0 18px 45px rgba(45,30,18,.18), inset 0 1px 0 rgba(255,255,255,.22);
-   cursor:pointer;
+ .dice{width:60px; height:60px; background:#fff; border-radius:12px; display:grid;
+   grid-template-columns:repeat(3, 1fr); grid-template-rows:repeat(3, 1fr);
+   padding:8px; gap:6px;
+   box-shadow: 0 12px 25px rgba(0,0,0,.12);
    touch-action: manipulation;
    user-select:none;
+   transform: rotate(0deg);
  }
- .dieBox:active{ transform: translateY(1px); }
+ .dice.rolling{ transition: transform .85s ease-in-out; transform: rotate(720deg); }
+ .dice .pip{ width:10px; height:10px; border-radius:50%; background:#000; opacity:0;
+   justify-self:center; align-self:center;
+ }
+ /* pip positions: 1..9 = left-top .. right-bottom */
+ .dice-1 .pip:nth-child(5){opacity:1;}
+ .dice-2 .pip:nth-child(1),
+ .dice-2 .pip:nth-child(9){opacity:1;}
+ .dice-3 .pip:nth-child(1),
+ .dice-3 .pip:nth-child(5),
+ .dice-3 .pip:nth-child(9){opacity:1;}
+ .dice-4 .pip:nth-child(1),
+ .dice-4 .pip:nth-child(3),
+ .dice-4 .pip:nth-child(7),
+ .dice-4 .pip:nth-child(9){opacity:1;}
+ .dice-5 .pip:nth-child(1),
+ .dice-5 .pip:nth-child(3),
+ .dice-5 .pip:nth-child(5),
+ .dice-5 .pip:nth-child(7),
+ .dice-5 .pip:nth-child(9){opacity:1;}
+ .dice-6 .pip:nth-child(1),
+ .dice-6 .pip:nth-child(3),
+ .dice-6 .pip:nth-child(4),
+ .dice-6 .pip:nth-child(6),
+ .dice-6 .pip:nth-child(7),
+ .dice-6 .pip:nth-child(9){opacity:1;}
  .dicePrimary{ margin-top:24px; padding:14px 16px; font-size:12px; letter-spacing:4px; width:min(320px, 76%); margin-left:auto; margin-right:auto; display:block; }
 
   #diceRoll{ touch-action: manipulation; }
@@ -6653,9 +6676,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const d = Array.isArray(g.dice) && g.dice.length===5 ? g.dice : [1,1,1,1,1];
     for (let i=0;i<5;i++){
       const box = document.createElement('div');
-      box.className = 'dieBox';
-      box.textContent = String(d[i]||1);
-      box.onclick = ()=>diceRerollOne(i);
+      const v = clamp(parseInt(d[i]||1,10)||1, 1, 6);
+      box.className = 'dice dice-' + v;
+      for (let p=0;p<9;p++){
+        const pip = document.createElement('span');
+        pip.className = 'pip';
+        box.appendChild(pip);
+      }
       row.appendChild(box);
     }
 
@@ -6726,6 +6753,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   function diceStart(){
+    // HARD: roll animation first, then assign values.
     if ((state.gold||0) < 1){ toast('Нужно 1 🪙','lose'); return false; }
     state.gold -= 1;
     state.diceGame.active = true;
@@ -6733,17 +6761,38 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     state.diceGame.max = 10;
     state.diceGame.target = 0;
     state.diceGame.comboTarget = 0;
-    state.diceGame.dice = diceRoll5();
-    if ((parseInt(state.diceGame.comboTarget||0,10)||0) === 0){
-      let guard = 0;
-      while ((isFiveKind(state.diceGame.dice) || maxSameCount(state.diceGame.dice) >= 4) && guard<12){
-        state.diceGame.dice = diceRoll5();
-        guard++;
-      }
-    }
+    // keep previous values during animation
+    if (!Array.isArray(state.diceGame.dice) || state.diceGame.dice.length!==5) state.diceGame.dice = [1,1,1,1,1];
     save();
     renderDice();
-    haptic('light');
+
+    const ms = 700 + Math.floor(Math.random()*301);
+    const nodes = document.querySelectorAll('#diceRow .dice');
+    try {
+      nodes.forEach(n=>{
+        n.classList.remove('rolling');
+        void n.offsetWidth;
+        n.classList.add('rolling');
+      });
+    } catch (e0) {}
+
+    setTimeout(()=>{
+      try {
+        state.diceGame.dice = diceRoll5();
+        if ((parseInt(state.diceGame.comboTarget||0,10)||0) === 0){
+          let guard = 0;
+          while ((isFiveKind(state.diceGame.dice) || maxSameCount(state.diceGame.dice) >= 4) && guard<12){
+            state.diceGame.dice = diceRoll5();
+            guard++;
+          }
+        }
+        save();
+        renderDice();
+        try { document.querySelectorAll('#diceRow .dice').forEach(n=>n.classList.remove('rolling')); } catch (e1) {}
+        haptic('light');
+      } catch (e2) {}
+    }, ms);
+
     return true;
   }
 
@@ -6755,17 +6804,35 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const used = parseInt(g.rolls||0,10)||0;
     if (used >= max){ toast('Перебросы закончились','lose'); return; }
     if (!Array.isArray(g.dice) || g.dice.length!==5) g.dice = [1,1,1,1,1];
-    const tgt = parseInt(g.comboTarget||0,10)||0;
-    let v = diceFace();
-    g.dice[i] = v;
-    if (tgt===0 && isFiveKind(g.dice)){
-      g.dice[i] = 1 + Math.floor(Math.random()*5);
-      if (g.dice[i] === v) g.dice[i] = 1;
-    }
-    g.rolls = used + 1;
-    save();
-    renderDice();
-    haptic('light');
+    const ms = 700 + Math.floor(Math.random()*301);
+    try {
+      const node = document.querySelectorAll('#diceRow .dice')[i];
+      if (node) {
+        node.classList.remove('rolling');
+        void node.offsetWidth;
+        node.classList.add('rolling');
+      }
+    } catch (e0) {}
+
+    setTimeout(()=>{
+      try {
+        const tgt = parseInt(g.comboTarget||0,10)||0;
+        let v = diceFace();
+        g.dice[i] = v;
+        if (tgt===0 && isFiveKind(g.dice)){
+          g.dice[i] = 1 + Math.floor(Math.random()*5);
+          if (g.dice[i] === v) g.dice[i] = 1;
+        }
+        g.rolls = used + 1;
+        save();
+        renderDice();
+        try {
+          const node2 = document.querySelectorAll('#diceRow .dice')[i];
+          if (node2) node2.classList.remove('rolling');
+        } catch (e1) {}
+        haptic('light');
+      } catch (e2) {}
+    }, ms);
   }
 
   let diceRewardTmr = 0;
