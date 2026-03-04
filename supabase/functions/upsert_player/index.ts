@@ -175,6 +175,34 @@ function safeNonNegInt(v: unknown): number {
   return Math.max(0, Math.floor(n))
 }
 
+async function postgrestRateLimitAllow(
+  projectUrl: string,
+  serviceKey: string,
+  key: string,
+  windowMs: number,
+): Promise<{ ok: boolean; allowed: boolean; next_allow_at?: string }> {
+  try {
+    const url = projectUrl.replace(/\/$/, "") + "/rest/v1/rpc/rate_limit_allow"
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({ p_key: key, p_window_ms: windowMs }),
+    })
+    if (!resp.ok) return { ok: false, allowed: true }
+    const rows = await resp.json().catch(() => [])
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null
+    const allowed = !!(row && typeof row === "object" ? (row as any).allowed : true)
+    const next = row && typeof row === "object" ? String((row as any).next_allow_at || "") : ""
+    return { ok: true, allowed, next_allow_at: next || undefined }
+  } catch (_e) {
+    return { ok: false, allowed: true }
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
   if (req.method !== "POST") {
@@ -220,6 +248,18 @@ Deno.serve(async (req: Request) => {
   }
 
   const tgId = String(verified.user.id)
+
+  // Soft rate limit: cloud saves can be frequent; cap to a few per second.
+  try {
+    const rlKey = `upsert_player:${tgId}`
+    const rl = await postgrestRateLimitAllow(projectUrl, serviceKey, rlKey, 2500)
+    if (rl.ok && !rl.allowed) {
+      return new Response(JSON.stringify({ ok: true, skipped: true, reason: "rate_limited", next_allow_at: rl.next_allow_at || null }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+  } catch (_e) {}
+
   const name = String(body?.name || verified.user?.first_name || verified.user?.username || "Player").trim() || "Player"
   const photoUrl = String(body?.photo_url || verified.user?.photo_url || "")
 

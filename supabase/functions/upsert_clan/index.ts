@@ -83,6 +83,34 @@ function sanitizeName(name: unknown): string {
   return nm
 }
 
+async function postgrestRateLimitAllow(
+  projectUrl: string,
+  serviceKey: string,
+  key: string,
+  windowMs: number,
+): Promise<{ ok: boolean; allowed: boolean; next_allow_at?: string }> {
+  try {
+    const url = projectUrl.replace(/\/$/, "") + "/rest/v1/rpc/rate_limit_allow"
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({ p_key: key, p_window_ms: windowMs }),
+    })
+    if (!resp.ok) return { ok: false, allowed: true }
+    const rows = await resp.json().catch(() => [])
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null
+    const allowed = !!(row && typeof row === "object" ? (row as any).allowed : true)
+    const next = row && typeof row === "object" ? String((row as any).next_allow_at || "") : ""
+    return { ok: true, allowed, next_allow_at: next || undefined }
+  } catch (_e) {
+    return { ok: false, allowed: true }
+  }
+}
+
 async function postgrestUpsertClan(projectUrl: string, serviceKey: string, payload: Record<string, unknown>): Promise<Response> {
   const url = projectUrl.replace(/\/$/, "") + "/rest/v1/clans?on_conflict=id"
   return await fetch(url, {
@@ -153,6 +181,18 @@ Deno.serve(async (req: Request) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
   }
+
+  // Soft rate limit: clan upserts are mutations; avoid double submits.
+  try {
+    const tgId = String(verified.user.id)
+    const rlKey = `upsert_clan:${tgId}`
+    const rl = await postgrestRateLimitAllow(projectUrl, serviceKey, rlKey, 1200)
+    if (rl.ok && !rl.allowed) {
+      return new Response(JSON.stringify({ ok: true, skipped: true, reason: "rate_limited", next_allow_at: rl.next_allow_at || null }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+  } catch (_e) {}
 
   const tgId = String(verified.user.id)
   const clanId = sanitizeClanId(body?.id)
