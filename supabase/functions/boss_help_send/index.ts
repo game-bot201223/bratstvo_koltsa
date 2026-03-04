@@ -192,12 +192,27 @@ function bossDef(bossId: number): { boss_id: number; max_hp: number } | null {
   return { boss_id: bossId, max_hp: maxHp }
 }
 
-function getActiveBossIdFromState(st: any): number {
+async function postgrestFindActiveBossFightId(
+  projectUrl: string,
+  serviceKey: string,
+  ownerTgId: string,
+): Promise<number> {
   try {
-    if (!st || typeof st !== "object") return 0
-    const bosses = (st as any).bosses
-    if (!bosses || typeof bosses !== "object") return 0
-    const bid = safeInt((bosses as any).activeFightId ?? (bosses as any).active_fight_id, 0)
+    const nowIso = new Date().toISOString()
+    const url = projectUrl.replace(/\/$/, "") +
+      `/rest/v1/player_boss_fights?owner_tg_id=eq.${encodeURIComponent(ownerTgId)}` +
+      `&reward_claimed=eq.false` +
+      `&hp=gt.0` +
+      `&expires_at=gt.${encodeURIComponent(nowIso)}` +
+      `&select=boss_id,updated_at&order=updated_at.desc&limit=1`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp.ok) return 0
+    const rows = await resp.json().catch(() => [])
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null
+    const bid = safeInt(row && typeof row === "object" ? (row as any).boss_id : 0, 0)
     return bid > 0 ? bid : 0
   } catch (_e) {
     return 0
@@ -569,10 +584,10 @@ Deno.serve(async (req: Request) => {
         const pr = await postgrestGetPlayer(projectUrl, serviceKey, String(toTgId))
         const st = pr && typeof pr === "object" ? (pr as any).state : null
 
-        // Apply help to recipient's active boss (design requirement).
-        // If recipient does not have an active boss, fallback to sender bossId.
+        // Apply help to recipient's active fight (authoritative source = player_boss_fights).
+        // This matches the rule "only one active boss fight" and works even if client state is stale.
         try {
-          const ab = getActiveBossIdFromState(st)
+          const ab = await postgrestFindActiveBossFightId(projectUrl, serviceKey, String(toTgId))
           const dd = ab ? bossDef(ab) : null
           if (dd) {
             targetBossId = ab
