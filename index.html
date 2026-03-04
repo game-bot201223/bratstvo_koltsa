@@ -330,6 +330,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   #diceRoll{ touch-action: manipulation; }
 
+ .bfHitRow{margin-top:12px; display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap;}
+ .bfHitIcon{width:40px; height:40px; padding:0; border-radius:12px; letter-spacing:0; font-size:18px; line-height:1;
+   display:flex; align-items:center; justify-content:center; overflow:hidden;
+ }
+ .bfHitIcon:active{transform:translateY(1px)}
+ .bfHitIcon[disabled]{cursor:not-allowed;}
+
  .bossRow{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:flex-start;}
  .bossMiniWrap{position:relative;width:140px;height:140px;}
  .bossMini{width:140px;height:140px;border-radius:26px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:56px;}
@@ -828,11 +835,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           </div>
         </div>
 
-        <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
-          <button class="btn" id="bfFreeHit">ПИНОК ПОД ЗАД (БЕСПЛАТНО)</button>
-          <button class="btn" id="bfHit1">УДАР 2 (НОГОЙ)</button>
-          <button class="btn" id="bfHit2">УДАР 3 (КОСТЕТОМ)</button>
-          <button class="btn" id="bfHit3">УДАР 4 (КЛИЗМА)</button>
+        <div class="bfHitRow">
+          <button class="btn bfHitIcon" id="bfFreeHit" aria-label="Бесплатный удар">🆓</button>
+          <button class="btn bfHitIcon" id="bfHit1" aria-label="Удар ногой">🦶</button>
+          <button class="btn bfHitIcon" id="bfHit2" aria-label="Удар костетом">🥊</button>
+          <button class="btn bfHitIcon" id="bfHit3" aria-label="Удар клизмой">🚽</button>
         </div>
 
         <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.3" id="bfHint">—</div>
@@ -1363,8 +1370,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
 
       // In cloud mode HP is server-authoritative; do not mutate local HP from events.
-      // We only log the event and then pull fresh HP from server.
+      // We log server-applied damage and then pull fresh HP from server.
       if (isCloud) {
+        try {
+          bfLogPush(bid, nm, want);
+          bfTopAdd(bid, nm, want);
+          save();
+        } catch (e9) {}
         try { bossFightsCloudPullMaybe(true); } catch (e0) {}
         return;
       }
@@ -5639,10 +5651,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     try {
       const q2 = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
-      freeBtn.textContent = 'БЕСПЛАТНО · УРОН ' + Math.max(1, bossHitDmg(14, 50));
-      hitBtn1.textContent = 'НОГОЙ ('+hk+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(10, 70)) * q2);
-      hitBtn2.textContent = 'КОСТЕТОМ ('+hn+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(7, 85)) * q2);
-      hitBtn3.textContent = 'КЛИЗМА ('+he+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(4, 100)) * q2);
+      const t0 = 'БЕСПЛАТНО · УРОН ' + Math.max(1, bossHitDmg(14, 50));
+      const t1 = 'НОГОЙ ('+hk+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(10, 70)) * q2);
+      const t2 = 'КОСТЕТОМ ('+hn+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(7, 85)) * q2);
+      const t3 = 'КЛИЗМА ('+he+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(4, 100)) * q2);
+      freeBtn.textContent = '🆓';
+      hitBtn1.textContent = '🦶';
+      hitBtn2.textContent = '🥊';
+      hitBtn3.textContent = '🚽';
+      try { freeBtn.title = t0; hitBtn1.title = t1; hitBtn2.title = t2; hitBtn3.title = t3; } catch (e0) {}
     } catch (e) {}
 
     if (!inTime && alive){
