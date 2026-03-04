@@ -113,6 +113,161 @@ async function postgrestGetPlayerState(projectUrl: string, serviceKey: string, t
   return row && typeof row === "object" ? (row as any).state : null
 }
 
+async function postgrestGetPlayerName(projectUrl: string, serviceKey: string, tgId: string): Promise<string> {
+  try {
+    const url = projectUrl.replace(/\/$/, "") +
+      `/rest/v1/players?tg_id=eq.${encodeURIComponent(tgId)}&select=name&limit=1`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp.ok) return ""
+    const rows = await resp.json().catch(() => [])
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null
+    const nm = row && typeof row === "object" ? String((row as any).name || "").trim() : ""
+    return nm.slice(0, 18)
+  } catch (_e) {
+    return ""
+  }
+}
+
+async function postgrestListClans(projectUrl: string, serviceKey: string, limit: number): Promise<any[]> {
+  try {
+    const lim = Math.max(1, Math.min(300, Math.floor(limit || 200)))
+    const url = projectUrl.replace(/\/$/, "") +
+      `/rest/v1/clans?select=id,data,updated_at&order=updated_at.desc&limit=${lim}`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp.ok) return []
+    const rows = await resp.json().catch(() => [])
+    return Array.isArray(rows) ? rows : []
+  } catch (_e) {
+    return []
+  }
+}
+
+async function postgrestPatchClanData(projectUrl: string, serviceKey: string, clanId: string, data: any): Promise<boolean> {
+  try {
+    const url = projectUrl.replace(/\/$/, "") + `/rest/v1/clans?id=eq.${encodeURIComponent(clanId)}`
+    const resp = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({ data, updated_at: new Date().toISOString() }),
+    })
+    return resp.ok
+  } catch (_e) {
+    return false
+  }
+}
+
+function normName(name: unknown): string {
+  return String(name || "").trim().toUpperCase()
+}
+
+async function postgrestUpdateBossLastWinnerName(projectUrl: string, serviceKey: string, tgId: string, name: string, photoUrl: string): Promise<void> {
+  try {
+    const url = projectUrl.replace(/\/$/, "") + `/rest/v1/boss_last_winners?tg_id=eq.${encodeURIComponent(tgId)}`
+    await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({ name, photo_url: photoUrl, updated_at: new Date().toISOString() }),
+    }).catch(() => {})
+  } catch (_e) {}
+}
+
+async function postgrestUpdateDistrictLeaderName(projectUrl: string, serviceKey: string, tgId: string, name: string, photoUrl: string): Promise<void> {
+  try {
+    const url = projectUrl.replace(/\/$/, "") + `/rest/v1/district_leaders?tg_id=eq.${encodeURIComponent(tgId)}`
+    await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({ name, photo_url: photoUrl, updated_at: new Date().toISOString() }),
+    }).catch(() => {})
+  } catch (_e) {}
+}
+
+async function bestEffortPropagateRename(
+  projectUrl: string,
+  serviceKey: string,
+  tgId: string,
+  prevName: string,
+  nextName: string,
+  photoUrl: string,
+): Promise<void> {
+  try {
+    const prevN = normName(prevName)
+    const nextN = String(nextName || "").trim().slice(0, 18)
+    if (!prevN || !nextN) return
+
+    // Update clans data (best-effort, recent N clans).
+    try {
+      const clans = await postgrestListClans(projectUrl, serviceKey, 300)
+      for (const row of clans) {
+        const id = String((row as any)?.id || "").trim()
+        const data = (row as any)?.data
+        if (!id || !data || typeof data !== "object") continue
+
+        let touched = false
+
+        // leader / deputy
+        try {
+          if (normName((data as any).leader) === prevN) { (data as any).leader = nextN; touched = true }
+          if (normName((data as any).deputy) === prevN) { (data as any).deputy = nextN; touched = true }
+        } catch (_e) {}
+
+        // members/apps arrays
+        try {
+          const m0 = Array.isArray((data as any).members) ? (data as any).members : []
+          const a0 = Array.isArray((data as any).apps) ? (data as any).apps : []
+          const m1 = m0.map((x: any) => (normName(x) === prevN ? nextN : x))
+          const a1 = a0.map((x: any) => (normName(x) === prevN ? nextN : x))
+          // also remove duplicates after rename
+          const uniq = (arr: any[]) => {
+            const seen = new Set<string>()
+            const out: any[] = []
+            for (const it of arr) {
+              const k = normName(it)
+              if (!k) continue
+              if (seen.has(k)) continue
+              seen.add(k)
+              out.push(it)
+            }
+            return out
+          }
+          ;(data as any).members = uniq(m1)
+          ;(data as any).apps = uniq(a1)
+          if (m0.some((x: any) => normName(x) === prevN) || a0.some((x: any) => normName(x) === prevN)) touched = true
+        } catch (_e) {}
+
+        if (touched) {
+          await postgrestPatchClanData(projectUrl, serviceKey, id, data).catch(() => false)
+        }
+      }
+    } catch (_e) {}
+
+    // Update other tables that store name.
+    try { await postgrestUpdateBossLastWinnerName(projectUrl, serviceKey, tgId, nextN, photoUrl) } catch (_e) {}
+    try { await postgrestUpdateDistrictLeaderName(projectUrl, serviceKey, tgId, nextN, photoUrl) } catch (_e) {}
+  } catch (_e) {}
+}
+
 async function postgrestFindNameOwner(projectUrl: string, serviceKey: string, name: string): Promise<string> {
   try {
     const nm = String(name || "").trim()
@@ -280,6 +435,7 @@ Deno.serve(async (req: Request) => {
     }
   } catch (_e) {}
 
+  const prevName = await postgrestGetPlayerName(projectUrl, serviceKey, tgId).catch(() => "")
   const name = String(body?.name || verified.user?.first_name || verified.user?.username || "Player").trim() || "Player"
   // Prefer verified Telegram avatar; client may be stale.
   const photoUrl = String(verified.user?.photo_url || body?.photo_url || "")
@@ -381,6 +537,15 @@ Deno.serve(async (req: Request) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
   }
+
+  // Best-effort: if nickname changed, propagate to places that store name by string.
+  try {
+    const prevN = normName(prevName)
+    const nextN = normName(name)
+    if (prevN && nextN && prevN !== nextN) {
+      bestEffortPropagateRename(projectUrl, serviceKey, tgId, prevName, name, photoUrl).catch(() => {})
+    }
+  } catch (_e) {}
 
   return new Response(JSON.stringify({ ok: true, tg_id: tgId }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -7928,6 +7928,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             renderAll();
             haptic('light');
             try { __srvLastSent = now(); } catch (e0) {}
+            try { clansCloudPull().catch(()=>{}); } catch (e1) {}
+            try { districtLeadersCloudPullMaybe(true).catch(()=>{}); } catch (e2) {}
+            try { bossLastWinnersCloudPullMaybe(true).catch(()=>{}); } catch (e3) {}
           }).catch((e)=>{
             const msg = String((e && e.message) || e || 'err');
             if (/name_taken/i.test(msg)) {
