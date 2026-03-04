@@ -620,16 +620,8 @@ Deno.serve(async (req: Request) => {
         }
 
         if (!hasActiveFight) {
-          // Record event only; no HP change when user hasn't started any fight.
-          return {
-            to_tg_id: String(toTgId),
-            from_tg_id: String(senderTgId),
-            boss_id: bossId,
-            dmg: Math.max(0, Math.min(dmg, def.max_hp)),
-            clan_id: clanId || null,
-            from_name: senderName,
-            created_at: ts,
-          }
+          // No active fight -> do not spend help caps and do not create events.
+          return null
         }
 
         if (clanId) {
