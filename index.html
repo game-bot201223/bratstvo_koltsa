@@ -1365,11 +1365,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       // In cloud mode HP is server-authoritative; do not mutate local HP from events.
       // We only log the event and then pull fresh HP from server.
       if (isCloud) {
-        const add = want;
-        if (add<=0) return;
-        bfLogPush(bid, nm, add);
-        bfTopAdd(bid, nm, add);
-        save();
         try { bossFightsCloudPullMaybe(true); } catch (e0) {}
         return;
       }
@@ -5672,7 +5667,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!ff) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
       const left2 = Math.max(0, (parseInt(ff.expiresTs||0,10)||0) - now());
       if (left2<=0 || (parseInt(ff.hp||0,10)||0)<=0 || ff.freeUsed) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
-      const prevHp = Math.max(0, parseInt(ff.hp||0,10)||0);
+      let prevHp = Math.max(0, parseInt(ff.hp||0,10)||0);
+      try {
+        const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(bossId)];
+        const chp = cc && typeof cc === 'object' && typeof cc.hp !== 'undefined' ? (parseInt(cc.hp||0,10)||0) : null;
+        if (chp!==null) prevHp = Math.max(0, chp);
+      } catch (e0) {}
       const dmg = bossHitDmg(14, 50);
       const wantApply = Math.min(prevHp, dmg);
       bossFightHitCloud(bossId, wantApply).then((r)=>{
@@ -5741,7 +5741,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       ff.lastFriendTs = now();
       const one = (kind==='kick') ? bossHitDmg(10, 70) : ((kind==='knuckle') ? bossHitDmg(7, 85) : bossHitDmg(4, 100));
       const dmg = Math.max(1, one) * q;
-      const prevHp = Math.max(0, parseInt(ff.hp||0,10)||0);
+      let prevHp = Math.max(0, parseInt(ff.hp||0,10)||0);
+      try {
+        const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(bossId)];
+        const chp = cc && typeof cc === 'object' && typeof cc.hp !== 'undefined' ? (parseInt(cc.hp||0,10)||0) : null;
+        if (chp!==null) prevHp = Math.max(0, chp);
+      } catch (e0) {}
       const wantApply = Math.min(prevHp, dmg);
 
       bossFightHitCloud(bossId, wantApply).then((r)=>{

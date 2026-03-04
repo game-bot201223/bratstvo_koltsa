@@ -604,8 +604,9 @@ Deno.serve(async (req: Request) => {
         const pr = await postgrestGetPlayer(projectUrl, serviceKey, String(toTgId))
         const st = pr && typeof pr === "object" ? (pr as any).state : null
 
-        // Help should apply ONLY if the recipient has already started a boss fight.
-        // If no active fight exists, do not create a new fight row and do not reduce HP by default.
+        // Help should apply even if the recipient has not started a fight yet.
+        // If an active fight exists, apply to that active boss_id; otherwise apply to requested boss_id,
+        // which will create a fight row on first help hit.
         let hasActiveFight = false
         try {
           const ab = await postgrestFindActiveBossFightId(projectUrl, serviceKey, String(toTgId))
@@ -620,8 +621,8 @@ Deno.serve(async (req: Request) => {
         }
 
         if (!hasActiveFight) {
-          // No active fight -> do not spend help caps and do not create events.
-          return null
+          targetBossId = bossId
+          targetDef = def
         }
 
         if (clanId) {
