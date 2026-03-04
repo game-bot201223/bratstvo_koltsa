@@ -364,7 +364,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  #arenaElite{
   background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98)) !important;
   border:1px solid rgba(255,255,255,.55) !important;
-  color:rgba(255,255,255,.96) !important;
+  color:var(--ink) !important;
   box-shadow: 0 12px 26px rgba(37,99,235,.28), inset 0 1px 0 rgba(255,255,255,.18) !important;
  }
 
@@ -383,7 +383,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .bfHpBar{width:180px; height:14px; border-radius:999px; background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.14); overflow:hidden; position:relative;}
  .bfHpFill{height:100%; width:0%; background:linear-gradient(90deg, rgba(22,163,74,.95), rgba(34,197,94,.95)); border-radius:999px;}
  .bfHpText{font-size:11px; opacity:.9; margin-top:2px; display:none;}
- .bfHpBarText{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:10px; letter-spacing:1px; font-weight:900; color:rgba(255,255,255,.92); text-shadow:0 1px 2px rgba(0,0,0,.55); pointer-events:none;}
+ .bfHpBarText{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:10px; letter-spacing:1px; font-weight:900; color:rgba(36,24,14,.96); text-shadow:none; pointer-events:none;}
  .bfHitQtyGrid{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:8px;}
  .bfHitGrid{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));grid-auto-rows:auto;gap:10px;justify-content:end;align-content:start;margin-top:10px;}
  .bfHitCell{display:flex; flex-direction:column; align-items:stretch; gap:4px;}
@@ -394,11 +394,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
  .toothBtn{position:relative; width:44px; height:40px; border-radius:14px; border:1px solid rgba(217,70,239,.55); background:linear-gradient(180deg, rgba(217,70,239,.24) 0%, rgba(42,30,20,.70) 100%); color:rgba(217,70,239,.95); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; box-shadow: 0 10px 26px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);}
  .toothBtn .ico{font-size:18px;}
- .toothBtn .tm{font-size:9px; opacity:.82; margin-top:2px; letter-spacing:1px; color:rgba(255,255,255,.92)}
+ .toothBtn .tm{font-size:9px; opacity:.82; margin-top:2px; letter-spacing:1px; color:rgba(36,24,14,.96)}
  .toothBtn.ready{border-color: rgba(217,70,239,.95); box-shadow: 0 0 0 2px rgba(217,70,239,.18) inset, 0 0 22px rgba(217,70,239,.35), 0 10px 26px rgba(0,0,0,.45);}
  .toothBtn.ready .tm{opacity:1;}
 
- #bossToothBtn{border-color: rgba(255,255,255,.55); color: rgba(255,255,255,.92);}
+ #bossToothBtn{border-color: rgba(255,255,255,.55); color: rgba(36,24,14,.96);}
  #bossToothBtn.ready{border-color: rgba(255,255,255,.95); box-shadow: 0 0 0 2px rgba(255,255,255,.18) inset, 0 0 22px rgba(255,255,255,.35), 0 10px 26px rgba(0,0,0,.45);}
 
  .bossAtkBtn{font-size:9px !important; padding:5px 7px !important; letter-spacing:1px; min-height:28px;}
@@ -448,7 +448,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  #mBattle .hpMini{display:flex;align-items:center;gap:10px;min-width:0;}
  #mBattle .hpBar{position:relative;width:120px;max-width:32vw;height:6px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);overflow:hidden;box-shadow: inset 0 1px 0 rgba(255,255,255,.06);}
  #mBattle .hpFill{height:100%;width:0%;background:linear-gradient(90deg, rgba(52,211,153,.95), rgba(34,211,238,.85));}
- #mBattle .hpIn{position:absolute;inset:-8px 0 auto 0;height:22px;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:1px;white-space:nowrap;color:rgba(255,255,255,.98);font-weight:900;text-shadow:0 2px 4px rgba(0,0,0,.95);pointer-events:none;}
+ #mBattle .hpIn{position:absolute;inset:-8px 0 auto 0;height:22px;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:1px;white-space:nowrap;color:rgba(36,24,14,.96);font-weight:900;text-shadow:none;pointer-events:none;}
  #mBattle .hpTxt{font-size:11px;letter-spacing:1px;white-space:nowrap;}
   #mBattle #bLog .feedItem{padding:5px 7px;border-radius:12px;font-size:10px;line-height:1.2;}
   #mBattle #bMyTeam .badge,
@@ -5205,7 +5205,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       + '<div class="k">ПРОМОКОД</div>'
       + '<div style="font-size:12px;opacity:.75;margin-top:4px">'+(promoOk ? (promoTxt ? ('Введи промокод и получи награду ' + promoTxt) : 'Награда промокода отключена') : 'Промокод больше не активен')+'</div>'
       + '<div style="font-size:12px;opacity:.6;margin-top:4px">🦷 — зубы</div>'
-       + '<input id="promoInput" placeholder="Промокод" autocomplete="off" spellcheck="false" style="margin-top:10px; width:100%; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08); color:rgba(255,255,255,.92); padding:0 12px; font-family:inherit; font-weight:800; letter-spacing:1px; outline:none" />'
+       + '<input id="promoInput" placeholder="Промокод" autocomplete="off" spellcheck="false" style="margin-top:10px; width:100%; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08); color:rgba(36,24,14,.96); padding:0 12px; font-family:inherit; font-weight:800; letter-spacing:1px; outline:none" />'
        + '</div>'
        + '<button class="btn btnSmall" id="promoApply" '+(promoDisabled?'disabled':'')+'>'+(promoWasUsed?'ИСПОЛЬЗОВАН':(promoOk?'ПРИМЕНИТЬ':'НЕ АКТИВЕН'))+'</button>'
        + '</div>'
@@ -5635,14 +5635,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const pic = $('bfEmoji');
       if (pic){
         if (b.img){
-          const imgPath = encodeURI(String(b.img));
-          const testImg = new Image();
-          testImg.onload = ()=>{ pic.textContent = ''; pic.style.backgroundImage = 'url("'+imgPath+'")'; };
-          testImg.onerror = ()=>{ pic.style.backgroundImage = ''; pic.textContent = b.emoji; };
-          testImg.src = b.img;
-          pic.textContent = b.emoji;
-          pic.style.backgroundImage = '';
+          const url = String(b.img);
+          const prev = String(pic.dataset.bgUrl||'');
+          if (prev !== url){
+            pic.dataset.bgUrl = url;
+            const imgPath = encodeURI(url);
+            const testImg = new Image();
+            testImg.onload = ()=>{ try { if (String(pic.dataset.bgUrl||'')===url) { pic.textContent = ''; pic.style.backgroundImage = 'url("'+imgPath+'")'; } } catch (e2) {} };
+            testImg.onerror = ()=>{ try { if (String(pic.dataset.bgUrl||'')===url) { pic.style.backgroundImage = ''; pic.textContent = b.emoji; } } catch (e3) {} };
+            // Keep current view until load finishes to avoid flicker
+            if (!pic.style.backgroundImage) pic.textContent = b.emoji;
+            testImg.src = url;
+          }
         } else {
+          pic.dataset.bgUrl = '';
           pic.textContent = b.emoji;
           pic.style.backgroundImage = '';
         }
@@ -5959,14 +5965,19 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const pic = $('bfrEmoji');
       if (pic){
         if (b.img){
-          const imgPath = encodeURI(String(b.img));
-          const testImg = new Image();
-          testImg.onload = ()=>{ pic.textContent = ''; pic.style.backgroundImage = 'url("'+imgPath+'")'; };
-          testImg.onerror = ()=>{ pic.style.backgroundImage = ''; pic.textContent = b.emoji; };
-          testImg.src = b.img;
-          pic.textContent = b.emoji;
-          pic.style.backgroundImage = '';
+          const url = String(b.img);
+          const prev = String(pic.dataset.bgUrl||'');
+          if (prev !== url){
+            pic.dataset.bgUrl = url;
+            const imgPath = encodeURI(url);
+            const testImg = new Image();
+            testImg.onload = ()=>{ try { if (String(pic.dataset.bgUrl||'')===url) { pic.textContent = ''; pic.style.backgroundImage = 'url("'+imgPath+'")'; } } catch (e2) {} };
+            testImg.onerror = ()=>{ try { if (String(pic.dataset.bgUrl||'')===url) { pic.style.backgroundImage = ''; pic.textContent = b.emoji; } } catch (e3) {} };
+            if (!pic.style.backgroundImage) pic.textContent = b.emoji;
+            testImg.src = url;
+          }
         } else {
+          pic.dataset.bgUrl = '';
           pic.textContent = b.emoji;
           pic.style.backgroundImage = '';
         }
@@ -7852,7 +7863,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const locked = districtTaskLocked(i, k, tasks.length);
           const can = (!done) && (!locked) && (energy >= meta.cost);
           const btnTxt = done ? 'ГОТОВО' : (locked ? 'НЕДОСТУПНО' : 'ВЫПОЛНИТЬ');
-          const btnStyle = 'height:34px; padding:0 12px; border-radius:999px; font-weight:900; letter-spacing:1px; border:1px solid rgba(255,255,255,.35);' + (can ? ' background:linear-gradient(180deg, rgba(37,99,235,.98), rgba(30,64,175,.98)); color:rgba(255,255,255,.98); box-shadow: 0 10px 22px rgba(30,64,175,.25), inset 0 1px 0 rgba(255,255,255,.18);' : ' background:rgba(120,120,120,.45); color:rgba(255,255,255,.92); opacity:.75;');
+          const btnStyle = 'height:34px; padding:0 12px; border-radius:999px; font-weight:900; letter-spacing:1px; border:1px solid rgba(255,255,255,.35);' + (can ? ' background:linear-gradient(180deg, rgba(37,99,235,.98), rgba(30,64,175,.98)); color:rgba(36,24,14,.96); box-shadow: 0 10px 22px rgba(30,64,175,.25), inset 0 1px 0 rgba(255,255,255,.18);' : ' background:rgba(120,120,120,.45); color:rgba(36,24,14,.96); opacity:.75;');
           const pct = meta.max>0 ? clamp((cnt/meta.max)*100, 0, 100) : 0;
           h += '<div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(45,30,18,.18)"></div>';
           h += '<div style="display:grid; grid-template-columns: minmax(0,1fr) 92px 62px 112px; gap:8px; align-items:center; '+(locked ? 'opacity:.45; filter:grayscale(1);' : '')+'">';
