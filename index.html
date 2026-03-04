@@ -6324,8 +6324,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       try {
         const fhp2 = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
         const applied2 = (fhp2!==null) ? Math.max(0, prevHp - Math.max(0, fhp2)) : wantApply;
-        const overflow2 = Math.max(0, dmg - applied2);
-        if (overflow2>0) bossHelpSend(id, overflow2);
+        // Help damage should be sent on every successful hit.
+        // Fight log/top uses only `applied2` to avoid "damage > hp" artifacts.
+        bossHelpSend(id, dmg);
         feedAdd('Ты ударил босса: '+b.name+' -'+applied2, 'BOSS');
       } catch (e0) {
         feedAdd('Ты ударил босса: '+b.name+' -'+wantApply, 'BOSS');
