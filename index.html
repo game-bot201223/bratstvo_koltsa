@@ -4222,7 +4222,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (start <= now()) start += 60*1000;
     return start;
   }
-  function gfCost(startTs){
+  function gfBuildBattle(startTs){
     const hh = new Date(startTs).getUTCHours();
     return (hh % 2 === 0) ? 20 : 2;
   }
@@ -4583,8 +4583,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         try {
           const arr = Array.isArray(entries) ? entries.slice() : [];
           // If not enough participants, inject bots for testing.
-          if (arr.length < 2) {
-            const botNeed = 2 - arr.length;
+          if (arr.length < 10) {
+            const botNeed = 10 - arr.length;
             for (let i=0;i<botNeed;i++){
               arr.push({ tg_id: 'BOT_GF_'+String(i+1), name: 'BOT GF '+String(i+1) });
             }
@@ -5642,119 +5642,126 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
 
     freeBtn.onclick = ()=>{
+      if (!window.__bfHitLock) window.__bfHitLock = {};
+      const lk = 'free:' + String(bossId);
+      try { if (window.__bfHitLock[lk]) return; window.__bfHitLock[lk] = true; } catch (e0) {}
       const ff = bfGetFight(bossId);
-      if (!ff) return;
+      if (!ff) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
       const left2 = Math.max(0, (parseInt(ff.expiresTs||0,10)||0) - now());
-      if (left2<=0 || (parseInt(ff.hp||0,10)||0)<=0 || ff.freeUsed) return;
-      ff.freeUsed = true;
-      ff.lastFriendTs = now();
+      if (left2<=0 || (parseInt(ff.hp||0,10)||0)<=0 || ff.freeUsed) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
+      const prevHp = Math.max(0, parseInt(ff.hp||0,10)||0);
       const dmg = bossHitDmg(14, 50);
-      const real = Math.min(parseInt(ff.hp||0,10)||0, dmg);
-      bossFightHitCloud(bossId, real).then((r)=>{
+      const wantApply = Math.min(prevHp, dmg);
+      bossFightHitCloud(bossId, wantApply).then((r)=>{
         try {
           if (r && typeof r === 'object' && r.skipped) {
-            ff.freeUsed = false;
             try { bossFightsCloudPullMaybe(true); } catch (e0) {}
             return;
           }
         } catch (e0) {}
+
+        ff.freeUsed = true;
+        ff.lastFriendTs = now();
+
+        const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+        const applied = (fhp!==null) ? Math.max(0, prevHp - Math.max(0, fhp)) : wantApply;
         try {
-          const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
           if (fhp!==null) ff.hp = Math.max(0, fhp);
-          else ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real);
-        } catch (e1) { ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real); }
+          else ff.hp = Math.max(0, prevHp - applied);
+        } catch (e1) {}
         try {
-          const fhp2 = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
-          if (fhp2!==null) {
+          if (fhp!==null) {
             if (!state.bosses.cloud || typeof state.bosses.cloud !== 'object') state.bosses.cloud = {};
             const k = String(bossId);
-            state.bosses.cloud[k] = Object.assign({}, (state.bosses.cloud[k]||{}), { boss_id: bossId, hp: fhp2, max_hp: b.maxHP, updated_at: new Date().toISOString() });
+            state.bosses.cloud[k] = Object.assign({}, (state.bosses.cloud[k]||{}), { boss_id: bossId, hp: fhp, max_hp: b.maxHP, updated_at: new Date().toISOString() });
           }
         } catch (e9) {}
         bfSetFight(bossId, ff);
-        bfLogPush(bossId, state.playerName||'PLAYER', real);
-        bfTopAdd(bossId, state.playerName||'PLAYER', real);
-        clanAddBossDamage(real, state.playerName||'PLAYER');
-        try { bossHelpSend(bossId, real); } catch (e0) {}
+        bfLogPush(bossId, state.playerName||'PLAYER', applied);
+        bfTopAdd(bossId, state.playerName||'PLAYER', applied);
+        clanAddBossDamage(applied, state.playerName||'PLAYER');
+        try { bossHelpSend(bossId, dmg); } catch (e0) {}
         bfCheckWin(bossId);
         try { bossFightsCloudPullMaybe(); } catch (e2) {}
         save();
         if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
         renderAll();
         haptic('light');
-      }).catch(()=>{});
+      }).catch(()=>{}).finally(()=>{ try { delete window.__bfHitLock[lk]; } catch (e0) {} });
     };
 
     function doTokenHit(kind){
+      if (!window.__bfHitLock) window.__bfHitLock = {};
+      const lk = 'tok:' + String(bossId) + ':' + String(kind||'');
+      try { if (window.__bfHitLock[lk]) return; window.__bfHitLock[lk] = true; } catch (e0) {}
+
       const f2 = bfEnsureFight(bossId);
-      if (!f2) return;
+      if (!f2) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
       const ff = bfGetFight(bossId);
-      if (!ff) return;
+      if (!ff) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
+
+      const q = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
       const hs = state.bosses.hitStocks || { kick:0, knuckle:0, enema:0 };
       const hs2 = { kick: parseInt(hs.kick||0,10)||0, knuckle: parseInt(hs.knuckle||0,10)||0, enema: parseInt(hs.enema||0,10)||0 };
-      const q = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
       if (kind==='kick'){
-        if ((hs2.kick||0) < q){ toast('Нужно купить пинки','lose'); return; }
-        hs2.kick -= q;
+        if ((hs2.kick||0) < q){ toast('Нужно купить пинки','lose'); try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
       } else if (kind==='knuckle'){
-        if ((hs2.knuckle||0) < q){ toast('Нужно купить костеты','lose'); return; }
-        hs2.knuckle -= q;
+        if ((hs2.knuckle||0) < q){ toast('Нужно купить костеты','lose'); try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
       } else if (kind==='enema'){
-        if ((hs2.enema||0) < q){ toast('Нужно купить клизмы','lose'); return; }
-        hs2.enema -= q;
+        if ((hs2.enema||0) < q){ toast('Нужно купить клизмы','lose'); try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
       } else {
         toast('Нужно купить удары','lose');
+        try { delete window.__bfHitLock[lk]; } catch (e0) {}
         return;
       }
-      state.bosses.hitStocks = hs2;
+
       ff.lastFriendTs = now();
       const one = (kind==='kick') ? bossHitDmg(10, 70) : ((kind==='knuckle') ? bossHitDmg(7, 85) : bossHitDmg(4, 100));
       const dmg = Math.max(1, one) * q;
-      const real = Math.min(parseInt(ff.hp||0,10)||0, dmg);
-      bossFightHitCloud(bossId, real).then((r)=>{
+      const prevHp = Math.max(0, parseInt(ff.hp||0,10)||0);
+      const wantApply = Math.min(prevHp, dmg);
+
+      bossFightHitCloud(bossId, wantApply).then((r)=>{
         try {
           if (r && typeof r === 'object' && r.skipped) {
-            // Server soft-rate-limited this hit: rollback local spend and resync.
-            try {
-              const cur = state.bosses.hitStocks || { kick:0, knuckle:0, enema:0 };
-              const cur2 = { kick: parseInt(cur.kick||0,10)||0, knuckle: parseInt(cur.knuckle||0,10)||0, enema: parseInt(cur.enema||0,10)||0 };
-              if (kind==='kick') cur2.kick = clamp((cur2.kick||0) + q, 0, 999999);
-              if (kind==='knuckle') cur2.knuckle = clamp((cur2.knuckle||0) + q, 0, 999999);
-              if (kind==='enema') cur2.enema = clamp((cur2.enema||0) + q, 0, 999999);
-              state.bosses.hitStocks = cur2;
-              save();
-            } catch (e9) {}
             try { bossFightsCloudPullMaybe(true); } catch (e0) {}
             try { bfRender(bossId); } catch (e1) {}
             try { renderAll(); } catch (e2) {}
             return;
           }
         } catch (e0) {}
+
+        // HARD MODE: spend token only after server ok
+        if (kind==='kick') hs2.kick = Math.max(0, (hs2.kick||0) - q);
+        if (kind==='knuckle') hs2.knuckle = Math.max(0, (hs2.knuckle||0) - q);
+        if (kind==='enema') hs2.enema = Math.max(0, (hs2.enema||0) - q);
+        state.bosses.hitStocks = hs2;
+
+        const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+        const applied = (fhp!==null) ? Math.max(0, prevHp - Math.max(0, fhp)) : wantApply;
         try {
-          const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
           if (fhp!==null) ff.hp = Math.max(0, fhp);
-          else ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real);
-        } catch (e1) { ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real); }
+          else ff.hp = Math.max(0, prevHp - applied);
+        } catch (e1) {}
         try {
-          const fhp2 = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
-          if (fhp2!==null) {
+          if (fhp!==null) {
             if (!state.bosses.cloud || typeof state.bosses.cloud !== 'object') state.bosses.cloud = {};
             const k = String(bossId);
-            state.bosses.cloud[k] = Object.assign({}, (state.bosses.cloud[k]||{}), { boss_id: bossId, hp: fhp2, max_hp: b.maxHP, updated_at: new Date().toISOString() });
+            state.bosses.cloud[k] = Object.assign({}, (state.bosses.cloud[k]||{}), { boss_id: bossId, hp: fhp, max_hp: b.maxHP, updated_at: new Date().toISOString() });
           }
         } catch (e9) {}
         bfSetFight(bossId, ff);
-        bfLogPush(bossId, state.playerName||'PLAYER', real);
-        bfTopAdd(bossId, state.playerName||'PLAYER', real);
-        clanAddBossDamage(real);
-        try { bossHelpSend(bossId, real); } catch (e0) {}
+        bfLogPush(bossId, state.playerName||'PLAYER', applied);
+        bfTopAdd(bossId, state.playerName||'PLAYER', applied);
+        clanAddBossDamage(applied);
+        try { bossHelpSend(bossId, dmg); } catch (e0) {}
         bfCheckWin(bossId);
         try { bossFightsCloudPullMaybe(); } catch (e2) {}
         save();
         if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
         renderAll();
         haptic('light');
-      }).catch(()=>{});
+      }).catch(()=>{}).finally(()=>{ try { delete window.__bfHitLock[lk]; } catch (e0) {} });
     }
 
     hitBtn1.onclick = ()=>doTokenHit('kick');
@@ -6429,7 +6436,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const statusHtml = status ? String(status).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
     if (statusHtml){
       html += '<div class="card">'
-        + '<div class="row"><div class="k">СТАТУС БОССОВ</div><button class="btn btnSmall" id="bossDailyResetBtn">СБРОС ЛИМИТА</button></div>'
+        + '<div class="row"><div class="k">СТАТУС БОССОВ</div><div style="width:44px"></div></div>'
         + '<div style="margin-top:6px; font-size:11px; opacity:.8; white-space:pre-wrap; word-break:break-word;">'+statusHtml+'</div>'
         + '</div>';
     }
@@ -6526,16 +6533,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     const fho = $('friendHelpOpen');
     if (fho) fho.onclick = ()=>{ showModal('mFriendHelp'); renderFriendHelp(); haptic('light'); };
-
-    const resetBtn = $('bossDailyResetBtn');
-    if (resetBtn) resetBtn.onclick = ()=>{
-      bossDailyEnsure();
-      state.bosses.daily.counts = {};
-      save();
-      renderBosses();
-      toast('Лимит боёв сброшен','win');
-      haptic('light');
-    };
 
     box.querySelectorAll('[data-boss-attack]').forEach(btn=>{
       btn.onclick = ()=>{
