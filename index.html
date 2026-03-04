@@ -331,7 +331,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   #diceRoll{ touch-action: manipulation; }
 
  .bfHitRow{margin-top:12px; display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap;}
- .bfHitIcon{width:40px; height:40px; padding:0; border-radius:12px; letter-spacing:0; font-size:18px; line-height:1;
+ .bfHitIcon{width:50px; height:50px; padding:0; border-radius:14px; letter-spacing:0; font-size:18px; line-height:1;
    display:flex; align-items:center; justify-content:center; overflow:hidden;
  }
  .bfHitIcon:active{transform:translateY(1px)}
@@ -380,7 +380,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .bossFightBig{width:180px;height:180px;border-radius:34px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:78px;flex:0 0 auto;}
  .bossFightMeta{min-width:0;flex:1;}
  .bossFightLeft{display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
- .bfHitGrid{display:grid;grid-template-columns:repeat(2,40px);grid-auto-rows:40px;gap:10px;justify-content:end;align-content:start;margin-top:10px;}
+ .bfHpBar{width:180px; height:14px; border-radius:999px; background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.14); overflow:hidden; position:relative;}
+ .bfHpFill{height:100%; width:0%; background:linear-gradient(90deg, rgba(22,163,74,.95), rgba(34,197,94,.95)); border-radius:999px;}
+ .bfHpText{font-size:11px; opacity:.9; margin-top:2px;}
+ .bfHitQtyGrid{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:8px;}
+ .bfHitGrid{display:grid;grid-template-columns:repeat(2,50px);grid-auto-rows:auto;gap:10px;justify-content:end;align-content:start;margin-top:10px;}
+ .bfHitCell{display:flex; flex-direction:column; align-items:center; gap:4px;}
+ .bfHitCnt{font-size:10px; opacity:.85; line-height:1; text-align:center;}
+ .bfHitImg{width:100%; height:100%; object-fit:contain; display:block;}
 
  .toothBtn{position:relative; width:44px; height:40px; border-radius:14px; border:1px solid rgba(217,70,239,.55); background:linear-gradient(180deg, rgba(217,70,239,.24) 0%, rgba(42,30,20,.70) 100%); color:rgba(217,70,239,.95); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; box-shadow: 0 10px 26px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);}
  .toothBtn .ico{font-size:18px;}
@@ -826,21 +833,42 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="card">
         <div class="bossFightHero">
           <div class="bossFightLeft">
+            <div class="bossName" id="bfName">БОСС</div>
+            <div class="badge" id="bfTimer">—</div>
             <div class="bossFightBig" id="bfEmoji">👹</div>
-            <div class="badge" id="bfHp">HP —</div>
+            <div class="bfHpBar" id="bfHpBar"><div class="bfHpFill" id="bfHpFill"></div></div>
+            <div class="bfHpText" id="bfHpText">HP —</div>
           </div>
           <div class="bossFightMeta">
-            <div class="bossName" id="bfName">БОСС</div>
-            <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center">
-              <div class="badge" id="bfTimer">—</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end">
               <div class="badge" style="color:var(--gold); display:none" id="bfHits">УДАРЫ x0</div>
             </div>
-            <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end" id="bfHitQty"></div>
-            <div class="bfHitGrid">
-              <button class="btn bfHitIcon" id="bfFreeHit" aria-label="Бесплатный удар">🆓</button>
-              <button class="btn bfHitIcon" id="bfHit1" aria-label="Удар ногой">🦶</button>
-              <button class="btn bfHitIcon" id="bfHit2" aria-label="Удар костетом">🥊</button>
-              <button class="btn bfHitIcon" id="bfHit3" aria-label="Удар клизмой">🚽</button>
+            <div style="margin-top:10px;" id="bfHitQty"></div>
+            <div class="bfHitGrid" style="margin-top:10px;">
+              <div class="bfHitCell">
+                <button class="btn bfHitIcon" id="bfFreeHit" aria-label="Пинок под зад (бесплатно)">
+                  <img class="bfHitImg" src="пинок.png" alt="Пинок под зад" onerror="this.style.display='none'; this.parentNode.textContent='🆓';">
+                </button>
+                <div class="bfHitCnt" id="bfFreeCnt">∞</div>
+              </div>
+              <div class="bfHitCell">
+                <button class="btn bfHitIcon" id="bfHit1" aria-label="Удар ногой">
+                  <img class="bfHitImg" src="ногой.png" alt="Удар ногой" onerror="this.style.display='none'; this.parentNode.textContent='🦶';">
+                </button>
+                <div class="bfHitCnt" id="bfHit1Cnt">0</div>
+              </div>
+              <div class="bfHitCell">
+                <button class="btn bfHitIcon" id="bfHit2" aria-label="Удар костетом">
+                  <img class="bfHitImg" src="костетом.jpg" alt="Удар костетом" onerror="this.style.display='none'; this.parentNode.textContent='🥊';">
+                </button>
+                <div class="bfHitCnt" id="bfHit2Cnt">0</div>
+              </div>
+              <div class="bfHitCell">
+                <button class="btn bfHitIcon" id="bfHit3" aria-label="Клизма">
+                  <img class="bfHitImg" src="клизма.jpg" alt="Клизма" onerror="this.style.display='none'; this.parentNode.textContent='🚽';">
+                </button>
+                <div class="bfHitCnt" id="bfHit3Cnt">0</div>
+              </div>
             </div>
           </div>
         </div>
@@ -5606,7 +5634,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e0) {}
     $('bfName').textContent = b.name;
-    $('bfHp').textContent = 'HP ' + (parseInt(f.hp||0,10)||0) + ' / ' + b.maxHP;
+    const hpNow = Math.max(0, parseInt(f.hp||0,10)||0);
+    const hpMax = Math.max(1, parseInt(b.maxHP||0,10)||0);
+    try {
+      $('bfHpText').textContent = 'HP ' + hpNow + ' / ' + hpMax;
+      const pct = clamp(Math.floor((hpNow / hpMax) * 1000) / 10, 0, 100);
+      $('bfHpFill').style.width = pct + '%';
+    } catch (e0) {}
     const left = Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now());
     $('bfTimer').textContent = left>0 ? ('ВРЕМЯ: ' + fmtHHMMSS(left)) : 'ВРЕМЯ: 00:00:00';
     const hs = state.bosses.hitStocks || { kick:0, knuckle:0, enema:0 };
@@ -5620,10 +5654,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const box = $('bfHitQty');
       if (box){
         const opts = [1,10,100,1000];
-        box.innerHTML = opts.map(n=>{
+        box.innerHTML = '<div class="bfHitQtyGrid">'+opts.map(n=>{
           const a = (n===q) ? '1' : '.7';
           return '<button class="btn btnMini" data-bf-hitqty="'+n+'" style="opacity:'+a+'">x'+n+'</button>';
-        }).join('');
+        }).join('')+'</div>';
         box.querySelectorAll('[data-bf-hitqty]').forEach(bb=>{
           bb.onclick = ()=>{
             const n = parseInt(bb.getAttribute('data-bf-hitqty')||'1',10)||1;
@@ -5635,6 +5669,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         });
       }
     } catch (e) {}
+
+    try {
+      const freeLeft = (!!f.freeUsed) ? 0 : 1;
+      const freeCnt = $('bfFreeCnt');
+      const c1 = $('bfHit1Cnt');
+      const c2 = $('bfHit2Cnt');
+      const c3 = $('bfHit3Cnt');
+      if (freeCnt) freeCnt.textContent = String(freeLeft);
+      if (c1) c1.textContent = String(hk);
+      if (c2) c2.textContent = String(hn);
+      if (c3) c3.textContent = String(he);
+    } catch (e0) {}
 
     const freeBtn = $('bfFreeHit');
     const hitBtn1 = $('bfHit1');
@@ -5658,10 +5704,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const t1 = 'НОГОЙ ('+hk+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(10, 70)) * q2);
       const t2 = 'КОСТЕТОМ ('+hn+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(7, 85)) * q2);
       const t3 = 'КЛИЗМА ('+he+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(4, 100)) * q2);
-      freeBtn.textContent = '🆓';
-      hitBtn1.textContent = '🦶';
-      hitBtn2.textContent = '🥊';
-      hitBtn3.textContent = '🚽';
       try { freeBtn.title = t0; hitBtn1.title = t1; hitBtn2.title = t2; hitBtn3.title = t3; } catch (e0) {}
     } catch (e) {}
 
