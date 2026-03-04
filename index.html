@@ -539,7 +539,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 </style>
 </head>
 <body>
-<div id="dbgOverlay" aria-live="polite"></div>
+<div id="dbgOverlay" aria-live="polite" style="display:none"></div>
 <div id="app">
   <div class="hud">
     <div class="hudRow">
@@ -2090,24 +2090,21 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
   function dbgUpdate(){
     try {
+      if (!IS_DEV) return;
       const txt = dbgText();
       const hasErr = !!String(__lastCloudErr||'').trim();
       const show = __dbgOn || hasErr;
 
       const elOverlay = $('dbgOverlay');
-      if (elOverlay){
-        if (!show) { elOverlay.style.display = 'none'; elOverlay.classList.remove('hasErr'); }
-        else {
-          elOverlay.style.display = 'block';
-          elOverlay.classList.toggle('hasErr', hasErr);
-          elOverlay.textContent = txt;
-        }
+      if (elOverlay) {
+        elOverlay.style.display = show ? 'block' : 'none';
+        elOverlay.textContent = txt;
       }
 
-      const el = $('dbgPanel');
-      if (el){
-        if (!__dbgOn) { el.style.display = 'none'; }
-        else { el.style.display = 'block'; el.textContent = txt; }
+      const elPanel = $('dbgPanel');
+      if (elPanel) {
+        elPanel.style.display = show ? 'block' : 'none';
+        elPanel.textContent = txt;
       }
       const elBoss = $('bfCloudDbg');
       if (elBoss){
@@ -2117,6 +2114,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e) {}
   }
   function dbgToggle(){
+    if (!IS_DEV) return;
     __dbgOn = !__dbgOn;
     dbgUpdate();
   }
@@ -2127,6 +2125,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (__dbgTickT) return;
       __dbgTickT = setInterval(()=>{
         try {
+          if (!IS_DEV) return;
           if (!__dbgOn) return;
           dbgUpdate();
         } catch (e0) {}
@@ -2136,7 +2135,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   try {
     const elBossDbg = $('bfCloudDbg');
     if (elBossDbg){
-      elBossDbg.onclick = ()=>{ __dbgFreeze = !__dbgFreeze; };
+      elBossDbg.onclick = ()=>{ if (IS_DEV) __dbgFreeze = !__dbgFreeze; };
     }
   } catch (e0) {}
   try {
@@ -2337,10 +2336,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (Object.prototype.hasOwnProperty.call(payload, 'clan_id')) extra = ' cid=' + String(payload.clan_id);
           else if (Object.prototype.hasOwnProperty.call(payload, 'id')) extra = ' id=' + String(payload.id);
         }
-        __lastCloudFn = String(fnName||'') + extra;
+        if (IS_DEV) __lastCloudFn = String(fnName||'') + extra;
       }
-    } catch (e0) { if (!__dbgFreeze) __lastCloudFn = String(fnName||''); }
-    try { if (!__dbgFreeze) __lastCloudTs = now(); } catch (e00) { if (!__dbgFreeze) __lastCloudTs = (new Date()).getTime(); }
+    } catch (e0) { if (!__dbgFreeze && IS_DEV) __lastCloudFn = String(fnName||''); }
+    try { if (!__dbgFreeze && IS_DEV) __lastCloudTs = now(); } catch (e00) { if (!__dbgFreeze && IS_DEV) __lastCloudTs = (new Date()).getTime(); }
     const resp = await fetch(url, {
       method: 'POST',
       headers: {
@@ -2399,14 +2398,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
       } catch (e1) {}
       try {
-        if (!__dbgFreeze) __lastCloudErr = String(err||'');
-        dbgUpdate();
+        if (!__dbgFreeze && IS_DEV) __lastCloudErr = String(err||'');
+        if (IS_DEV) dbgUpdate();
       } catch (e2) {}
       throw new Error(String(err));
     }
     // Do not clear __lastCloudErr on success so that the last error
     // remains visible on screen long enough to inspect/copy.
-    try { dbgUpdate(); } catch (e3) {}
+    try { if (IS_DEV) dbgUpdate(); } catch (e3) {}
     return j;
   }
 
