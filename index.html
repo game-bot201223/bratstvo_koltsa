@@ -2500,9 +2500,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         try {
           const bid = parseInt(it && it.boss_id || 0, 10) || 0;
           if (!bid || bid < 1 || bid > 12) return;
+          const nm0 = it && it.name ? String(it.name) : '';
+          if (isBotName(nm0)) return;
           next[String(bid)] = {
             tg_id: it && (it.tg_id || it.tgId) ? String(it.tg_id || it.tgId) : '',
-            name: it && it.name ? String(it.name) : '—',
+            name: nm0 || '—',
             photo: it && it.photo_url ? String(it.photo_url) : '',
             ts: it && it.updated_at ? Date.parse(String(it.updated_at)) : 0
           };
@@ -2685,6 +2687,68 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (v) return JSON.parse(v || 'null');
     } catch (e) {}
     return null;
+  }
+
+  function isBotName(n){
+    try {
+      const s = String(n||'').trim();
+      if (!s) return false;
+      if (/\ud83e\udd16/.test(s)) return true;
+      if (/\bBOT\b/i.test(s)) return true;
+      if (/\b\d{0,2}\s*BOT\b/i.test(s)) return true;
+      if (/\bBOТ\b/i.test(s)) return true;
+      if (/\bБОТ\b/i.test(s)) return true;
+      if (/бот/i.test(s)) return true;
+      return false;
+    } catch (e) { return false; }
+  }
+
+  function scrubBotsEverywhere(){
+    try {
+      // friends list
+      if (Array.isArray(state.friends)) {
+        state.friends = state.friends.filter(f=>{
+          const nm = f && f.name ? String(f.name) : '';
+          return !isBotName(nm);
+        });
+      }
+
+      // district leaders
+      if (state.districtFearLeaders && typeof state.districtFearLeaders === 'object') {
+        Object.keys(state.districtFearLeaders).forEach(k=>{
+          const it = state.districtFearLeaders[k];
+          const nm = it && it.name ? String(it.name) : '';
+          if (isBotName(nm)) delete state.districtFearLeaders[k];
+        });
+      }
+
+      // boss last winners cloud
+      if (state.bosses && state.bosses.lastWinnersCloud && typeof state.bosses.lastWinnersCloud === 'object') {
+        Object.keys(state.bosses.lastWinnersCloud).forEach(k=>{
+          const it = state.bosses.lastWinnersCloud[k];
+          const nm = it && it.name ? String(it.name) : '';
+          if (isBotName(nm)) delete state.bosses.lastWinnersCloud[k];
+        });
+      }
+
+      // clans db: remove any clans that contain bots
+      try {
+        if (state.clansDb && state.clansDb.clans && typeof state.clansDb.clans === 'object') {
+          Object.keys(state.clansDb.clans).forEach(id=>{
+            const c = state.clansDb.clans[id];
+            if (!c) return;
+            const leader = String(c.leader||'');
+            const members = Array.isArray(c.members) ? c.members : [];
+            if (isBotName(leader) || members.some(isBotName)) {
+              delete state.clansDb.clans[id];
+              state.clansDb.order = (Array.isArray(state.clansDb.order) ? state.clansDb.order : []).filter(x=>String(x)!==String(id));
+              try { if (state.clansDb.myApps) delete state.clansDb.myApps[String(id)]; } catch (e2) {}
+              if (state.clan && String(state.clan.id||'') === String(id)) state.clan = Object.assign({}, defaults.clan);
+            }
+          });
+        }
+      } catch (e) {}
+    } catch (e) {}
   }
   function save(){
     try {
@@ -2907,14 +2971,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const leader = String(c.leader||'');
         const members = Array.isArray(c.members) ? c.members : [];
         if (isBotName(leader) || members.some(isBotName)) {
-          delete state.clansDb.clans[id];
-          state.clansDb.order = (Array.isArray(state.clansDb.order) ? state.clansDb.order : []).filter(x=>String(x)!==String(id));
-          try { if (state.clansDb.myApps) delete state.clansDb.myApps[String(id)]; } catch (e2) {}
-          if (state.clan && String(state.clan.id||'') === String(id)) state.clan = Object.assign({}, defaults.clan);
+          delete state.clansDb.clans[k];
+          state.clansDb.order = (Array.isArray(state.clansDb.order) ? state.clansDb.order : []).filter(x=>String(x)!==String(k));
+          try { if (state.clansDb.myApps) delete state.clansDb.myApps[String(k)]; } catch (e2) {}
+          if (state.clan && String(state.clan.id||'') === String(k)) state.clan = Object.assign({}, defaults.clan);
         }
       });
     }
   } catch (e) {}
+
+  try { scrubBotsEverywhere(); } catch (e0) {}
 
   state.gold = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.gold||0)));
   state.silver = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.silver||0)));
@@ -3479,7 +3545,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const box = $('topBrosList');
       const badge = $('topBrosBadge');
       if (!box || !badge) return;
-      const list = Array.isArray(state.friends) ? state.friends.slice() : [];
+      const list = (Array.isArray(state.friends) ? state.friends.slice() : []).filter(x=>!isBotName(x && x.name));
       try {
         const c = clanGetMyClan();
         const mem = (c && Array.isArray(c.members)) ? c.members : [];
@@ -3488,6 +3554,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             try {
               const n = String(nm||'').trim();
               if (!n) return;
+              if (isBotName(n)) return;
               if (n === String(state.playerName||'')) return;
               const exists = list.some(x=>String(x && x.name || '').trim().toUpperCase() === n.toUpperCase());
               if (exists) return;
@@ -4368,16 +4435,21 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       targets: []
     };
 
-    // No bots: build both teams ONLY from real Supabase entries.
-    // If there are not enough participants yet, don't start the battle.
+    // Group fight: build teams from Supabase entries.
+    // TEMP: allow injecting bots for testing if not enough participants.
     battle.myTeam = [];
     try {
       const meId = myTgUserId() || '';
       gfFetchEntries(startTs).then((entries)=>{
         try {
           const arr = Array.isArray(entries) ? entries.slice() : [];
-          // We need at least 2 participants total to have enemies.
-          if (arr.length < 2) return;
+          // If not enough participants, inject bots for testing.
+          if (arr.length < 2) {
+            const botNeed = 2 - arr.length;
+            for (let i=0;i<botNeed;i++){
+              arr.push({ tg_id: 'BOT_GF_'+String(i+1), name: 'BOT GF '+String(i+1) });
+            }
+          }
 
           // Sort stable by stats_sum desc already done server-side; just use as is.
           const you = { tg_id: (meId || 'YOU'), name: String(state.playerName||'ТЫ') };
@@ -4433,7 +4505,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }).catch(()=>{});
     } catch (e9) {}
 
-    // If we couldn't synchronously build real teams, don't create a bot battle.
+    // Async team build
     return null;
   }
 
