@@ -79,6 +79,34 @@ function decodeUriMaybe(s: string): string {
   }
 }
 
+async function postgrestRateLimitAllow(
+  projectUrl: string,
+  serviceKey: string,
+  key: string,
+  windowMs: number,
+): Promise<{ ok: boolean; allowed: boolean; next_allow_at?: string }> {
+  try {
+    const url = projectUrl.replace(/\/$/, "") + "/rest/v1/rpc/rate_limit_allow"
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({ p_key: key, p_window_ms: windowMs }),
+    })
+    if (!resp.ok) return { ok: false, allowed: true }
+    const rows = await resp.json().catch(() => [])
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null
+    const allowed = !!(row && typeof row === "object" ? (row as any).allowed : true)
+    const next = row && typeof row === "object" ? String((row as any).next_allow_at || "") : ""
+    return { ok: true, allowed, next_allow_at: next || undefined }
+  } catch (_e) {
+    return { ok: false, allowed: true }
+  }
+}
+
 async function verifyTelegramInitData(initData: string, botToken: string): Promise<{ ok: boolean; user?: any }>{
   if (!initData || !botToken) return { ok: false }
   const secretKey = await hmacSha256Bytes("WebAppData", botToken)
@@ -226,6 +254,17 @@ Deno.serve(async (req: Request) => {
   const ownerTgId = String(verified.user.id)
   const bossId = Math.max(1, safeInt(body?.boss_id ?? body?.bossId, 0))
   const dmg = Math.max(0, Math.min(1_000_000_000, safeInt(body?.dmg, 0)))
+
+  // Soft rate limit: ignore spam/double-clicks without error.
+  try {
+    const rlKey = `boss_hit:${ownerTgId}`
+    const rl = await postgrestRateLimitAllow(projectUrl, serviceKey, rlKey, 650)
+    if (rl.ok && !rl.allowed) {
+      return new Response(JSON.stringify({ ok: true, skipped: true, reason: "rate_limited", next_allow_at: rl.next_allow_at || null }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+  } catch (_e) {}
 
   const def = bossDef(bossId)
   if (!def) {
