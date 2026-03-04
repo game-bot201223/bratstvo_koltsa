@@ -513,11 +513,33 @@ Deno.serve(async (req: Request) => {
     const st = senderRow?.state
     const fr = st && typeof st === "object" ? (st as any).friends : null
     const list: any[] = Array.isArray(fr) ? fr : []
+    let resolvedByName = 0
     for (const it of list.slice(0, 80)) {
       const tid = String(it?.tg_id || "").trim()
-      if (!tid) continue
-      if (tid === senderTgId) continue
-      recipients.add(tid)
+      if (tid) {
+        if (tid === senderTgId) continue
+        recipients.add(tid)
+        continue
+      }
+
+      // Fallback: some clients store friends without tg_id (only name/online).
+      // Resolve friend tg_id by name to avoid losing help delivery.
+      const nmRaw = String(it?.name || "").trim()
+      const nm = nmRaw.slice(0, 18)
+      if (!nm) continue
+      const nl = nm.toLowerCase()
+      if (nl === senderNameLower) continue
+      if (resolvedByName >= 20) continue
+      try {
+        const pr = await postgrestFindPlayerByNameLower(projectUrl, serviceKey, nl)
+        const tid2 = String(pr?.tg_id || "").trim()
+        if (!tid2) continue
+        if (tid2 === senderTgId) continue
+        recipients.add(tid2)
+        resolvedByName += 1
+      } catch (_e0) {
+        // ignore
+      }
     }
   } catch (_) {}
 
