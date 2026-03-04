@@ -18,6 +18,55 @@ function getEnv(name: string): string {
   return String(Deno.env.get(name) || "").trim()
 }
 
+function safeInt(v: unknown, def = 0): number {
+  const n = Number(v)
+  if (!Number.isFinite(n)) return def
+  return Math.floor(n)
+}
+
+async function postgrestDedupeUpdate(
+  projectUrl: string,
+  serviceKey: string,
+  updateId: number,
+  body: any,
+): Promise<{ ok: boolean; duplicate: boolean }>{
+  try {
+    if (!updateId) return { ok: true, duplicate: false }
+    const base = projectUrl.replace(/\/$/, "")
+
+    // 1) check if already processed
+    const urlGet = base +
+      `/rest/v1/telegram_webhook_updates?update_id=eq.${encodeURIComponent(String(updateId))}&select=update_id&limit=1`
+    const g = await fetch(urlGet, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (g.ok) {
+      const rows = await g.json().catch(() => [])
+      if (Array.isArray(rows) && rows.length) return { ok: true, duplicate: true }
+    }
+
+    // 2) insert marker (best-effort). If conflict happens, treat as duplicate.
+    const urlIns = base + "/rest/v1/telegram_webhook_updates"
+    const ins = await fetch(urlIns, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify([{ update_id: updateId, body: body ?? null }]),
+    })
+    if (ins.ok) return { ok: true, duplicate: false }
+    const txt = await ins.text().catch(() => "")
+    if (/duplicate key value violates unique constraint/i.test(txt)) return { ok: true, duplicate: true }
+    return { ok: false, duplicate: false }
+  } catch (_e) {
+    return { ok: false, duplicate: false }
+  }
+}
+
 async function tgCall(botToken: string, method: string, payload: any): Promise<any> {
   const url = `https://api.telegram.org/bot${botToken}/${method}`
   const resp = await fetch(url, {
@@ -92,6 +141,8 @@ Deno.serve(async (req: Request) => {
   const botToken = getEnv("TELEGRAM_BOT_TOKEN") || getEnv("BOT_TOKEN")
   const webhookSecret = getEnv("TELEGRAM_WEBHOOK_SECRET") || getEnv("WEBHOOK_SECRET_TOKEN")
   const webappUrl = getEnv("WEBAPP_URL") || "https://bratstvo-koltsa.vercel.app"
+  const projectUrl = getEnv("PROJECT_URL")
+  const serviceKey = getEnv("SERVICE_ROLE_KEY")
 
   if (!botToken) return json({ ok: false, error: "missing_bot_token" }, 500)
 
@@ -108,6 +159,17 @@ Deno.serve(async (req: Request) => {
     update = await req.json()
   } catch (_e) {
     return json({ ok: false, error: "invalid_json" }, 400)
+  }
+
+  // Idempotency: dedupe by update_id (Telegram may retry delivery)
+  try {
+    const updateId = safeInt(update?.update_id, 0)
+    if (updateId && projectUrl && serviceKey) {
+      const dd = await postgrestDedupeUpdate(projectUrl, serviceKey, updateId, update)
+      if (dd.ok && dd.duplicate) return json({ ok: true, duplicate: true })
+    }
+  } catch (_e) {
+    // ignore
   }
 
   // callback_query
