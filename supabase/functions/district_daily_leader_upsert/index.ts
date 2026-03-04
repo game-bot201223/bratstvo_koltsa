@@ -141,6 +141,24 @@ function sanitizeName(s: unknown): string {
   return String(s || "").trim().slice(0, 18)
 }
 
+async function postgrestGetPlayerPhoto(projectUrl: string, serviceKey: string, tgId: string): Promise<string> {
+  try {
+    const url = projectUrl.replace(/\/$/, "") +
+      `/rest/v1/players?tg_id=eq.${encodeURIComponent(tgId)}&select=photo_url&limit=1`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp.ok) return ""
+    const rows = await resp.json().catch(() => [])
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null
+    const photo = row && typeof row === "object" ? String((row as any).photo_url || "").trim() : ""
+    return photo.slice(0, 500)
+  } catch (_e) {
+    return ""
+  }
+}
+
 async function postgrestRateLimitAllow(
   projectUrl: string,
   serviceKey: string,
@@ -239,7 +257,11 @@ Deno.serve(async (req: Request) => {
   const districtKey = sanitizeKey(body?.district_key ?? body?.districtKey)
   const fear = Math.max(0, safeInt(body?.fear, 0))
   const name = sanitizeName(body?.name) || sanitizeName(verified.user?.username) || sanitizeName(verified.user?.first_name) || "PLAYER"
-  const photoUrl = String(body?.photo_url ?? body?.photoUrl ?? "").trim().slice(0, 500) || null
+  let photoUrl = String(body?.photo_url ?? body?.photoUrl ?? "").trim().slice(0, 500) || ""
+  if (!photoUrl) {
+    photoUrl = await postgrestGetPlayerPhoto(projectUrl, serviceKey, String(verified.user.id))
+  }
+  const photoUrlFinal = photoUrl ? photoUrl : null
 
   if (!day || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(day)) {
     return new Response(JSON.stringify({ ok: false, error: "bad_day" }), {
@@ -261,7 +283,7 @@ Deno.serve(async (req: Request) => {
     tg_id: String(verified.user.id),
     name,
     fear,
-    photo_url: photoUrl,
+    photo_url: photoUrlFinal,
     updated_at: new Date().toISOString(),
   }
 
