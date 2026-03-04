@@ -125,6 +125,11 @@ function sanitizeClanId(id: unknown): string {
   return s
 }
 
+function escapeLikeExact(s: string): string {
+  // Escape LIKE wildcards so names containing %/_ don't match other rows.
+  return String(s || "").replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
+}
+
 function sanitizeName(name: unknown): string {
   return String(name || "").trim().slice(0, 18)
 }
@@ -248,16 +253,31 @@ async function postgrestGetClan(projectUrl: string, serviceKey: string, clanId: 
 async function postgrestFindPlayerByNameLower(projectUrl: string, serviceKey: string, nameLower: string): Promise<any | null> {
   // players table does not have a name_lower column; use case-insensitive match on name.
   // NOTE: no wildcards; exact match but case-insensitive.
-  const url = projectUrl.replace(/\/$/, "") +
-    `/rest/v1/players?name=ilike.${encodeURIComponent(nameLower)}&select=tg_id,name&limit=1`
-  const resp = await fetch(url, {
-    method: "GET",
-    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
-  })
-  if (!resp.ok) return null
-  const rows = await resp.json().catch(() => [])
-  const row = Array.isArray(rows) && rows.length ? rows[0] : null
-  return row && typeof row === "object" ? row : null
+  try {
+    const nm = String(nameLower || "").trim()
+    if (!nm) return null
+    const nmNorm = normName(nm)
+    const likeExact = escapeLikeExact(nm)
+    const url = projectUrl.replace(/\/$/, "") +
+      `/rest/v1/players?name=ilike.${encodeURIComponent(likeExact)}&select=tg_id,name&limit=5`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp.ok) return null
+    const rows = await resp.json().catch(() => [])
+    const arr = Array.isArray(rows) ? rows : []
+    for (const row of arr) {
+      if (!row || typeof row !== "object") continue
+      const n2 = String((row as any).name || "").trim()
+      if (!n2) continue
+      if (normName(n2) !== nmNorm) continue
+      return row
+    }
+    return null
+  } catch (_e) {
+    return null
+  }
 }
 
 async function postgrestListPlayersByClanId(projectUrl: string, serviceKey: string, clanId: string): Promise<any[]> {
