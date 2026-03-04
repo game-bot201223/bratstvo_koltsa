@@ -3951,8 +3951,19 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     });
   }
 
+  let __arenaFightLockUntil = 0;
   function tryArenaFight(kind){
+    const t0 = now();
+    if (__arenaFightLockUntil && t0 < __arenaFightLockUntil) return;
     if (arenaCdLeft()>0){ toast('Подожди кулдаун','lose'); return; }
+    __arenaFightLockUntil = t0 + 1500;
+    try {
+      if (!state.arena) state.arena = { cdUntil:0, wins:0, losses:0, power:0 };
+      // set cooldown immediately to block double taps
+      state.arena.cdUntil = t0 + 1200;
+      save();
+      renderAll();
+    } catch (e9) {}
     // энергия больше не участвует в боях арены
 
     const pMin = kind==='ELITE' ? 1.11 : (kind==='NORMAL' ? 0.91 : 0.50);
@@ -4150,6 +4161,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
 
       state.arena.cdUntil = now() + 1000;
+      __arenaFightLockUntil = now() + 500;
       save();
       renderAll();
     }
