@@ -2393,10 +2393,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   let __clansPullTs = 0;
   async function clansCloudPullMaybe(){
     try {
-      const t = now();
-      if (__clansPullTs && (t - __clansPullTs) < 1000) return;
-      __clansPullTs = t;
-      await clansCloudPull();
+      await cloudOnce('pull:clans', ()=>clansCloudPull());
     } catch (e) {
       try {
         const msg = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim();
@@ -2518,6 +2515,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     return r;
   }
 
+  const __cloudInFlight = {};
+  async function cloudOnce(key, fn){
+    try {
+      const k = String(key||'');
+      if (!k) return await fn();
+      if (__cloudInFlight[k]) return __cloudInFlight[k];
+      __cloudInFlight[k] = Promise.resolve().then(fn).finally(()=>{ try { delete __cloudInFlight[k]; } catch (e) {} });
+      return await __cloudInFlight[k];
+    } catch (e) {
+      try { delete __cloudInFlight[String(key||'')]; } catch (e2) {}
+      throw e;
+    }
+  }
+
   let __bossFightsPullTs = 0;
   async function bossFightsCloudPull(){
     try {
@@ -2566,10 +2577,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       const force = arguments && arguments.length ? !!arguments[0] : false;
       if (!force && !bossUiOpen()) return;
-      const t = now();
-      if (!force && __bossFightsPullTs && (t - __bossFightsPullTs) < 1000) return;
-      __bossFightsPullTs = t;
-      await bossFightsCloudPull();
+      await cloudOnce('pull:boss_fights', ()=>bossFightsCloudPull());
     } catch (e) {}
   }
   async function bossFightHitCloud(bossId, dmg){
@@ -2618,10 +2626,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       const force = arguments && arguments.length ? !!arguments[0] : false;
       if (!force && !bossUiOpen()) return;
-      const t = now();
-      if (!force && __bossWinnersPullTs && (t - __bossWinnersPullTs) < 1000) return;
-      __bossWinnersPullTs = t;
-      await bossLastWinnersCloudPull();
+      await cloudOnce('pull:boss_winners', ()=>bossLastWinnersCloudPull());
     } catch (e) {}
   }
 
@@ -2650,10 +2655,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   async function districtLeadersCloudPullMaybe(){
     try {
       const force = arguments && arguments.length ? !!arguments[0] : false;
-      const t = now();
-      if (!force && __districtLeadersPullTs && (t - __districtLeadersPullTs) < 1000) return;
-      __districtLeadersPullTs = t;
-      await districtLeadersCloudPull();
+      await cloudOnce('pull:district_leaders', ()=>districtLeadersCloudPull());
     } catch (e) {}
   }
   async function districtLeaderCloudUpsert(districtKey, fear, name, photo){
@@ -2710,19 +2712,21 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
   }
 
+  let __srvInFlight = false;
   function serverMarkDirty(){
     __srvDirty = true;
+    if (__srvInFlight) return;
     if (__srvSendT) return;
     __srvSendT = setTimeout(async ()=>{
       __srvSendT = 0;
+      if (__srvInFlight) return;
       if (!__srvEnabled) return;
       if (!__srvDirty) return;
       if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
       const initData = tgInitData();
       if (!initData) return;
-      const since = now() - (__srvLastSent||0);
-      if (since < 8000) { serverMarkDirty(); return; }
       __srvDirty = false;
+      __srvInFlight = true;
       try {
         const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
 
@@ -2772,8 +2776,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           $('syncState').textContent = 'СЕЙВ: CLOUD ERR ' + msg.slice(0, 32);
           $('syncState').style.opacity = '1';
         } catch (e2) {}
+      } finally {
+        __srvInFlight = false;
+        // If state changed during the request, send again immediately.
+        try { if (__srvDirty) serverMarkDirty(); } catch (e0) {}
       }
-    }, 1800);
+    }, 0);
   }
   function saveKey(){
     try {
