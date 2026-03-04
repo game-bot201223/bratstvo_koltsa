@@ -5971,6 +5971,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           state.bosses.cloud[String(id)] = Object.assign({}, (state.bosses.cloud[String(id)]||{}), { hp: fhp, max_hp: b.maxHP });
         }
       } catch (e0) {}
+      try { bossHelpSend(id, real); } catch (e0) {}
       feedAdd('Ты ударил босса: '+b.name+' -'+real, 'BOSS');
       try { bossFightsCloudPullMaybe(); } catch (e1) {}
       save();
