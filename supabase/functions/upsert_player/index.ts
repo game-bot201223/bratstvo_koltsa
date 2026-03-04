@@ -131,6 +131,67 @@ async function postgrestGetPlayerName(projectUrl: string, serviceKey: string, tg
   }
 }
 
+async function postgrestGetClan(projectUrl: string, serviceKey: string, clanId: string): Promise<any | null> {
+  try {
+    const url = projectUrl.replace(/\/$/, "") +
+      `/rest/v1/clans?id=eq.${encodeURIComponent(clanId)}&select=id,data&limit=1`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp.ok) return null
+    const rows = await resp.json().catch(() => [])
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null
+    return row && typeof row === "object" ? row : null
+  } catch (_e) {
+    return null
+  }
+}
+
+function sanitizeClanId(s: unknown): string {
+  const t = String(s || "").trim().toUpperCase().slice(0, 24)
+  if (!/^CLN\d{1,20}$/.test(t)) return ""
+  return t
+}
+
+function clanDataRename(data: any, prevN: string, nextN: string): { data: any; touched: boolean } {
+  try {
+    if (!data || typeof data !== "object") return { data, touched: false }
+    let touched = false
+    // leader / deputy
+    try {
+      if (normName((data as any).leader) === prevN) { (data as any).leader = nextN; touched = true }
+      if (normName((data as any).deputy) === prevN) { (data as any).deputy = nextN; touched = true }
+    } catch (_e) {}
+
+    // members/apps arrays
+    try {
+      const m0 = Array.isArray((data as any).members) ? (data as any).members : []
+      const a0 = Array.isArray((data as any).apps) ? (data as any).apps : []
+      const m1 = m0.map((x: any) => (normName(x) === prevN ? nextN : x))
+      const a1 = a0.map((x: any) => (normName(x) === prevN ? nextN : x))
+      const uniq = (arr: any[]) => {
+        const seen = new Set<string>()
+        const out: any[] = []
+        for (const it of arr) {
+          const k = normName(it)
+          if (!k) continue
+          if (seen.has(k)) continue
+          seen.add(k)
+          out.push(it)
+        }
+        return out
+      }
+      ;(data as any).members = uniq(m1)
+      ;(data as any).apps = uniq(a1)
+      if (m0.some((x: any) => normName(x) === prevN) || a0.some((x: any) => normName(x) === prevN)) touched = true
+    } catch (_e) {}
+    return { data, touched }
+  } catch (_e) {
+    return { data, touched: false }
+  }
+}
+
 async function postgrestListClans(projectUrl: string, serviceKey: string, limit: number): Promise<any[]> {
   try {
     const lim = Math.max(1, Math.min(300, Math.floor(limit || 200)))
@@ -216,6 +277,22 @@ async function bestEffortPropagateRename(
     const nextN = String(nextName || "").trim().slice(0, 18)
     if (!prevN || !nextN) return
 
+    // First: patch the player's current clan directly (authoritative).
+    try {
+      const st = await postgrestGetPlayerState(projectUrl, serviceKey, tgId)
+      const cid = st && typeof st === "object" ? sanitizeClanId((st as any)?.clan?.id) : ""
+      if (cid) {
+        const clanRow = await postgrestGetClan(projectUrl, serviceKey, cid)
+        const data0 = clanRow && typeof clanRow === "object" ? (clanRow as any).data : null
+        if (data0 && typeof data0 === "object") {
+          const rr = clanDataRename(data0, prevN, nextN)
+          if (rr.touched) {
+            await postgrestPatchClanData(projectUrl, serviceKey, cid, rr.data).catch(() => false)
+          }
+        }
+      }
+    } catch (_e) {}
+
     // Update clans data (best-effort, recent N clans).
     try {
       const clans = await postgrestListClans(projectUrl, serviceKey, 300)
@@ -224,41 +301,8 @@ async function bestEffortPropagateRename(
         const data = (row as any)?.data
         if (!id || !data || typeof data !== "object") continue
 
-        let touched = false
-
-        // leader / deputy
-        try {
-          if (normName((data as any).leader) === prevN) { (data as any).leader = nextN; touched = true }
-          if (normName((data as any).deputy) === prevN) { (data as any).deputy = nextN; touched = true }
-        } catch (_e) {}
-
-        // members/apps arrays
-        try {
-          const m0 = Array.isArray((data as any).members) ? (data as any).members : []
-          const a0 = Array.isArray((data as any).apps) ? (data as any).apps : []
-          const m1 = m0.map((x: any) => (normName(x) === prevN ? nextN : x))
-          const a1 = a0.map((x: any) => (normName(x) === prevN ? nextN : x))
-          // also remove duplicates after rename
-          const uniq = (arr: any[]) => {
-            const seen = new Set<string>()
-            const out: any[] = []
-            for (const it of arr) {
-              const k = normName(it)
-              if (!k) continue
-              if (seen.has(k)) continue
-              seen.add(k)
-              out.push(it)
-            }
-            return out
-          }
-          ;(data as any).members = uniq(m1)
-          ;(data as any).apps = uniq(a1)
-          if (m0.some((x: any) => normName(x) === prevN) || a0.some((x: any) => normName(x) === prevN)) touched = true
-        } catch (_e) {}
-
-        if (touched) {
-          await postgrestPatchClanData(projectUrl, serviceKey, id, data).catch(() => false)
-        }
+        const rr = clanDataRename(data, prevN, nextN)
+        if (rr.touched) await postgrestPatchClanData(projectUrl, serviceKey, id, rr.data).catch(() => false)
       }
     } catch (_e) {}
 

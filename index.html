@@ -1394,7 +1394,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         try {
           if (!bossUiOpen()) return;
           const t = now();
-          if (__bossHelpLast && (t - __bossHelpLast) < 1200) return;
+          if (__bossHelpLast && (t - __bossHelpLast) < 1000) return;
           __bossHelpLast = t;
           bossHelpPullOnce().catch(()=>{});
         } catch (e0) {}
@@ -2297,7 +2297,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   async function clansCloudPullMaybe(){
     try {
       const t = now();
-      if (__clansPullTs && (t - __clansPullTs) < 6000) return;
+      if (__clansPullTs && (t - __clansPullTs) < 1000) return;
       __clansPullTs = t;
       await clansCloudPull();
     } catch (e) {
@@ -2470,7 +2470,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const force = arguments && arguments.length ? !!arguments[0] : false;
       if (!force && !bossUiOpen()) return;
       const t = now();
-      if (!force && __bossFightsPullTs && (t - __bossFightsPullTs) < 6000) return;
+      if (!force && __bossFightsPullTs && (t - __bossFightsPullTs) < 1000) return;
       __bossFightsPullTs = t;
       await bossFightsCloudPull();
     } catch (e) {}
@@ -2522,7 +2522,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const force = arguments && arguments.length ? !!arguments[0] : false;
       if (!force && !bossUiOpen()) return;
       const t = now();
-      if (!force && __bossWinnersPullTs && (t - __bossWinnersPullTs) < 10000) return;
+      if (!force && __bossWinnersPullTs && (t - __bossWinnersPullTs) < 1000) return;
       __bossWinnersPullTs = t;
       await bossLastWinnersCloudPull();
     } catch (e) {}
@@ -2554,7 +2554,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       const force = arguments && arguments.length ? !!arguments[0] : false;
       const t = now();
-      if (!force && __districtLeadersPullTs && (t - __districtLeadersPullTs) < 3500) return;
+      if (!force && __districtLeadersPullTs && (t - __districtLeadersPullTs) < 1000) return;
       __districtLeadersPullTs = t;
       await districtLeadersCloudPull();
     } catch (e) {}
