@@ -4035,6 +4035,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const wrap = $('arenaPetShop');
     if (!wrap) return;
     wrap.innerHTML = '';
+    try {
+      if (!state.petsOwned || typeof state.petsOwned !== 'object') state.petsOwned = {};
+      if (typeof state.activePetId === 'undefined') state.activePetId = 0;
+    } catch (e0) {}
+    try {
+      if (!Array.isArray(PETS) || !PETS.length) {
+        wrap.innerHTML = '<div style="opacity:.75; font-size:12px">—</div>';
+        return;
+      }
+    } catch (e0) {}
     PETS.forEach(p=>{
       const owned = !!state.petsOwned[String(p.id)];
       const isActive = (parseInt(state.activePetId||0,10)||0) === p.id;
@@ -4614,7 +4624,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!state.groupFight.joined) return false;
       if ((parseInt(state.groupFight.startTs||0,10)||0) !== st) return false;
       if (now() < st) return false;
-      if (state.groupFight.battle) return false;
+      try {
+        const bb = state.groupFight.battle;
+        const isPending = !!(bb && typeof bb === 'object' && bb.pending);
+        if (bb && !isPending) return false;
+      } catch (e0) {}
       if ((parseInt(state.groupFight.cancelCheckedTs||0,10)||0) === st) return false;
       state.groupFight.cancelCheckedTs = st;
       save();
@@ -4683,6 +4697,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       startTs,
       cost,
       createdTs: now(),
+      pending: true,
       round: 1,
       turnLeft: 30,
       acted: false,
@@ -4707,6 +4722,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     // Group fight: build teams from Supabase entries.
     // TEMP: allow injecting bots for testing if not enough participants.
     battle.myTeam = [];
+    battle.targets = [];
+    state.groupFight.battle = battle;
+    save();
     try {
       const meId = myTgUserId() || '';
       gfFetchEntries(startTs).then((entries)=>{
@@ -4762,6 +4780,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             maxHp: enemyMaxHp
           }));
 
+          battle.pending = false;
+
           try {
             if (!battle.dmgBy || typeof battle.dmgBy !== 'object') battle.dmgBy = {};
             (battle.myTeam||[]).forEach(u=>{ const id = String(u.id||''); if (id) battle.dmgBy[id] = 0; });
@@ -4774,18 +4794,30 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }).catch(()=>{});
     } catch (e9) {}
 
-    // Async team build
-    return null;
+    // Return battle immediately; teams will fill async
+    return battle;
   }
 
   function renderBattle(){
     const b = state.groupFight.battle;
     if (!b) return;
+    try {
+      const hi = $('bHeadInfo');
+      if (hi) {
+        const pending = !!(b && typeof b === 'object' && b.pending);
+        const hasEnemies = Array.isArray(b.targets) && b.targets.length > 0;
+        if (pending || !hasEnemies) hi.textContent = 'ЖДЁМ ИГРОКОВ…';
+      }
+    } catch (e0) {}
     try { const r = $('bRound'); if (r) r.textContent = String(b.round||1); } catch (e) {}
     try { const t = $('bTimer'); if (t) t.textContent = String(b.turnLeft||0); } catch (e) {}
     try {
       const hi = $('bHeadInfo');
-      if (hi) hi.textContent = 'РАУНД ' + String(b.round||1) + ' · ' + String(b.turnLeft||0);
+      if (hi) {
+        const pending = !!(b && typeof b === 'object' && b.pending);
+        const hasEnemies = Array.isArray(b.targets) && b.targets.length > 0;
+        if (!pending && hasEnemies) hi.textContent = 'РАУНД ' + String(b.round||1) + ' · ' + String(b.turnLeft||0);
+      }
     } catch (e) {}
     const myHp = parseInt(b.myHp||0,10)||0;
     const myMax = parseInt(b.myMaxHp||0,10)||0;
@@ -5084,8 +5116,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     return petBonusPct() + bizGymBonusPct();
   }
   function renderGym(){
-    $('gymPetBonus').textContent = Math.round(gymBonusPct()*100) + '%';
+    try {
+      if (!state.gym || typeof state.gym !== 'object') state.gym = {};
+    } catch (e0) {}
+    try {
+      const bonus = $('gymPetBonus');
+      if (bonus) bonus.textContent = Math.round(gymBonusPct()*100) + '%';
+    } catch (e0) {}
     const box = $('gymList');
+    if (!box) return;
     let total = 0;
     let html = '<div class="statGrid">';
 
@@ -5116,21 +5155,23 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     html += '</div>';
     box.innerHTML = html;
 
-    box.querySelectorAll('[data-gym]').forEach(btn=>{
-      btn.onclick = ()=>{
-        const key = btn.getAttribute('data-gym');
-        const cur = gymVal(key);
-        const cost = gymCost(cur);
-        if ((state.silver||0) < cost){ toast('Нужно '+cost+' ⚪','lose'); return; }
-        state.silver -= cost;
-        state.gym[key] = cur+1;
-        feedAdd('Тренировка: '+key+' → '+(cur+1),'GYM');
-        toast('Прокачано','win');
-        save();
-        renderAll();
-        haptic('light');
-      };
-    });
+    try {
+      box.querySelectorAll('[data-gym]').forEach(btn=>{
+        btn.onclick = ()=>{
+          const key = btn.getAttribute('data-gym');
+          const cur = gymVal(key);
+          const cost = gymCost(cur);
+          if ((state.silver||0) < cost){ toast('Нужно '+cost+' ⚪','lose'); return; }
+          state.silver -= cost;
+          state.gym[key] = cur+1;
+          feedAdd('Тренировка: '+key+' → '+(cur+1),'GYM');
+          toast('Прокачано','win');
+          save();
+          renderAll();
+          haptic('light');
+        };
+      });
+    } catch (e0) {}
   }
 
   // --- Shop
