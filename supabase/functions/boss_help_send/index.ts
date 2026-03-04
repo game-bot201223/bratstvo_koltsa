@@ -203,7 +203,7 @@ async function postgrestFindActiveBossFightId(
       `/rest/v1/player_boss_fights?owner_tg_id=eq.${encodeURIComponent(ownerTgId)}` +
       `&reward_claimed=eq.false` +
       `&hp=gt.0` +
-      `&expires_at=gt.${encodeURIComponent(nowIso)}` +
+      `&or=${encodeURIComponent(`(expires_at.is.null,expires_at.gt.${nowIso})`)}` +
       `&select=boss_id,updated_at&order=updated_at.desc&limit=1`
     const resp = await fetch(url, {
       method: "GET",
