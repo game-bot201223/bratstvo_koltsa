@@ -5358,6 +5358,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const real = Math.min(parseInt(ff.hp||0,10)||0, dmg);
       bossFightHitCloud(bossId, real).then((r)=>{
         try {
+          if (r && typeof r === 'object' && r.skipped) {
+            ff.freeUsed = false;
+            try { bossFightsCloudPullMaybe(true); } catch (e0) {}
+            return;
+          }
+        } catch (e0) {}
+        try {
           const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
           if (fhp!==null) ff.hp = Math.max(0, fhp);
           else ff.hp = Math.max(0, (parseInt(ff.hp||0,10)||0) - real);
@@ -5411,6 +5418,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const dmg = Math.max(1, one) * q;
       const real = Math.min(parseInt(ff.hp||0,10)||0, dmg);
       bossFightHitCloud(bossId, real).then((r)=>{
+        try {
+          if (r && typeof r === 'object' && r.skipped) {
+            // Server soft-rate-limited this hit: rollback local spend and resync.
+            try {
+              const cur = state.bosses.hitStocks || { kick:0, knuckle:0, enema:0 };
+              const cur2 = { kick: parseInt(cur.kick||0,10)||0, knuckle: parseInt(cur.knuckle||0,10)||0, enema: parseInt(cur.enema||0,10)||0 };
+              if (kind==='kick') cur2.kick = clamp((cur2.kick||0) + q, 0, 999999);
+              if (kind==='knuckle') cur2.knuckle = clamp((cur2.knuckle||0) + q, 0, 999999);
+              if (kind==='enema') cur2.enema = clamp((cur2.enema||0) + q, 0, 999999);
+              state.bosses.hitStocks = cur2;
+              save();
+            } catch (e9) {}
+            try { bossFightsCloudPullMaybe(true); } catch (e0) {}
+            try { bfRender(bossId); } catch (e1) {}
+            try { renderAll(); } catch (e2) {}
+            return;
+          }
+        } catch (e0) {}
         try {
           const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
           if (fhp!==null) ff.hp = Math.max(0, fhp);
