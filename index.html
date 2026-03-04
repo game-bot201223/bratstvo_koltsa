@@ -1458,10 +1458,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const me = clanMyName();
       if (!cid) { toast('bad_clan_id','lose'); return; }
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-        sbFnCall('clan_chat_clear', { initData: tgInitData(), clan_id: cid, member_name: me })
-          .then(()=>clansCloudPull())
-          .then(()=>{ try { renderClans(); renderClanChatModal(); } catch (e4) {} })
-          .then(()=>{ toast('Чат очищен','win'); haptic('light'); })
+        sbFnCallSkipNull('clan_chat_clear', { initData: tgInitData(), clan_id: cid, member_name: me })
+          .then((r)=>{ if (r===null) return null; return clansCloudPull(); })
+          .then((r)=>{ if (r===null) return; try { renderClans(); renderClanChatModal(); } catch (e4) {} })
+          .then((r)=>{ if (r===null) return; toast('Чат очищен','win'); haptic('light'); })
           .catch((e)=>{ const em = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim(); toast('Не удалось: '+em.slice(0,24),'lose'); });
       }
     } catch (e) {}
@@ -2298,7 +2298,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!initData) return;
       const id = String(clanId||'');
       if (!id) return;
-      await sbFnCall('delete_clan', { initData, id });
+      return await sbFnCallSkipNull('delete_clan', { initData, id });
     } catch (e) {}
   }
   async function sbFnCall(fnName, payload){
@@ -2393,6 +2393,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     // remains visible on screen long enough to inspect/copy.
     try { dbgUpdate(); } catch (e3) {}
     return j;
+  }
+
+  async function sbFnCallSkipNull(fnName, payload){
+    const r = await sbFnCall(fnName, payload);
+    try {
+      if (r && typeof r === 'object' && r.skipped) return null;
+    } catch (e) {}
+    return r;
   }
 
   let __bossFightsPullTs = 0;
@@ -4148,25 +4156,26 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!joinOpen){ renderGroupFightUI(); toast('Рано. Окно ещё закрыто','lose'); return; }
     if ((state.gold||0) < cost){ toast('Нужно '+cost+' 🪙','lose'); return; }
 
-    state.gold -= cost;
-    state.groupFight.joined = true;
-    state.groupFight.startTs = startTs;
-    state.groupFight.resolvedTs = 0;
-    state.groupFight.battle = null;
-
-    feedAdd('Заявка в групповой бой подана. Старт: '+gfFmt(startTs)+' UTC','GF');
-    toast('Заявка подана','win');
-    haptic('medium');
-    save();
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
         const initData = tgInitData();
         const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
-        sbFnCall('join_group_fight', {
+        sbFnCallSkipNull('join_group_fight', {
           initData,
           start_ts: new Date(startTs).toISOString(),
           name: String(state.playerName||'Player'),
           stats_sum: parseInt(statsSum||0,10)||0
+        }).then((r)=>{
+          if (r===null) return;
+          state.gold -= cost;
+          state.groupFight.joined = true;
+          state.groupFight.startTs = startTs;
+          state.groupFight.resolvedTs = 0;
+          state.groupFight.battle = null;
+          feedAdd('Заявка в групповой бой подана. Старт: '+gfFmt(startTs)+' UTC','GF');
+          toast('Заявка подана','win');
+          haptic('medium');
+          save();
         }).catch((e)=>{
           try {
             const msg = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim();
@@ -6568,21 +6577,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (myLvl < minLvl) { toast('Нужен уровень: '+minLvl,'lose'); return; }
       if (myStats < minStats) { toast('Нужны характеристики: '+fmt4(minStats),'lose'); return; }
 
-      if (!Array.isArray(c.apps)) c.apps = [];
-      c.apps.push(me);
-      state.clansDb.myApps[id] = now();
       try {
         if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-          sbFnCall('clan_apply', { initData: tgInitData(), clan_id: id, applicant_name: me })
-            .then(()=>clansCloudPull())
-            .then(()=>{ try { renderClans(); } catch (e4) {} })
+          sbFnCallSkipNull('clan_apply', { initData: tgInitData(), clan_id: id, applicant_name: me })
+            .then((r)=>{
+              if (r===null) return null;
+              if (!Array.isArray(c.apps)) c.apps = [];
+              c.apps.push(me);
+              state.clansDb.myApps[id] = now();
+              save();
+              renderClans();
+              toast('Заявка подана','win');
+              haptic('light');
+              return clansCloudPull();
+            })
+            .then((r)=>{ if (r===null) return; try { renderClans(); } catch (e4) {} })
             .catch(()=>{});
         }
       } catch (e3) {}
-      save();
-      renderClans();
-      toast('Заявка подана','win');
-      haptic('light');
     } catch (e) { toast('Не удалось отправить заявку','lose'); }
   }
 
@@ -6593,20 +6605,23 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const c = state.clansDb && state.clansDb.clans ? state.clansDb.clans[id] : null;
       if (!c) return;
       const me = clanMyName();
-      if (Array.isArray(c.apps)) c.apps = c.apps.filter(x=>String(x)!==me);
-      try { if (state.clansDb && state.clansDb.myApps) delete state.clansDb.myApps[id]; } catch (e2) {}
       try {
         if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-          sbFnCall('clan_cancel_apply', { initData: tgInitData(), clan_id: id, applicant_name: me })
-            .then(()=>clansCloudPull())
-            .then(()=>{ try { renderClans(); } catch (e4) {} })
+          sbFnCallSkipNull('clan_cancel_apply', { initData: tgInitData(), clan_id: id, applicant_name: me })
+            .then((r)=>{
+              if (r===null) return null;
+              if (Array.isArray(c.apps)) c.apps = c.apps.filter(x=>String(x)!==me);
+              try { if (state.clansDb && state.clansDb.myApps) delete state.clansDb.myApps[id]; } catch (e2) {}
+              save();
+              renderClans();
+              toast('Заявка отменена','win');
+              haptic('light');
+              return clansCloudPull();
+            })
+            .then((r)=>{ if (r===null) return; try { renderClans(); } catch (e4) {} })
             .catch(()=>{});
         }
       } catch (e3) {}
-      save();
-      renderClans();
-      toast('Заявка отменена','win');
-      haptic('light');
     } catch (e) { toast('Не удалось отменить','lose'); }
   }
   function clanAccept(clanId, applicantName){
@@ -6619,10 +6634,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!nm) return;
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-        sbFnCall('clan_accept', { initData: tgInitData(), clan_id: id, applicant_name: nm })
-          .then(()=>clansCloudPull())
-          .then(()=>{ try { renderClans(); } catch (e4) {} })
-          .then(()=>{ toast('Принято: '+nm,'win'); haptic('light'); })
+        sbFnCallSkipNull('clan_accept', { initData: tgInitData(), clan_id: id, applicant_name: nm })
+          .then((r)=>{ if (r===null) return null; return clansCloudPull(); })
+          .then((r)=>{ if (r===null) return; try { renderClans(); } catch (e4) {} })
+          .then((r)=>{ if (r===null) return; toast('Принято: '+nm,'win'); haptic('light'); })
           .catch((e)=>{ const msg = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim(); toast('Не удалось принять: '+msg.slice(0,24),'lose'); });
       }
     } catch (e1) {}
@@ -6635,22 +6650,25 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!nm) return;
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-        sbFnCall('clan_reject', { initData: tgInitData(), clan_id: String(c.id||''), applicant_name: nm })
-          .then(()=>clansCloudPull())
-          .then(()=>{ try { renderClans(); } catch (e4) {} })
+        sbFnCallSkipNull('clan_reject', { initData: tgInitData(), clan_id: String(c.id||''), applicant_name: nm })
+          .then((r)=>{
+            if (r===null) return null;
+            toast('Отклонено','lose');
+            haptic('light');
+            return clansCloudPull();
+          })
+          .then((r)=>{ if (r===null) return; try { renderClans(); } catch (e4) {} })
           .catch((e)=>{ const msg = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim(); toast('Не удалось отклонить: '+msg.slice(0,24),'lose'); });
       }
     } catch (e1) {}
-    toast('Отклонено','lose');
-    haptic('light');
   }
   function clanLeave(){
     const c = clanGetMyClan();
     if (!c) return;
     const me = clanMyName();
-    const r = clanMyRole(c);
+    const role = clanMyRole(c);
     try {
-      const q = (r==='leader') ? 'Выйти? Клан будет расформирован.' : 'Выйти из клана?';
+      const q = (role==='leader') ? 'Выйти? Клан будет расформирован.' : 'Выйти из клана?';
       if (!confirm(q)) return;
     } catch (e0) {}
     try {
@@ -6672,8 +6690,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           }
         } catch (e0) {}
         if (!/^CLN\d{1,20}$/.test(clanId)) { toast('Не удалось выйти: bad_clan_id','lose'); return; }
-        sbFnCall('clan_leave', { initData: tgInitData(), clan_id: clanId, member_name: me })
-          .then(()=>{
+        sbFnCallSkipNull('clan_leave', { initData: tgInitData(), clan_id: clanId, member_name: me })
+          .then((resp)=>{
+            if (resp===null) return null;
             try {
               // update local cache to prevent UI from re-attaching you
               const db = state && state.clansDb && state.clansDb.clans ? state.clansDb.clans : null;
@@ -6692,11 +6711,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             try { if (state && state.clansDb && state.clansDb.myApps) delete state.clansDb.myApps[clanId]; } catch (e3) {}
             state.clan = Object.assign({}, defaults.clan);
             save();
-            toast((r==='leader') ? 'Клан расформирован' : 'Ты вышел из клана','win');
-            haptic((r==='leader') ? 'heavy' : 'light');
+            toast((role==='leader') ? 'Клан расформирован' : 'Ты вышел из клана','win');
+            haptic((role==='leader') ? 'heavy' : 'light');
           })
-          .then(()=>clansCloudPull())
-          .then(()=>{ try { renderClans(); renderHUD(); } catch (e4) {} })
+          .then((r)=>{ if (r===null) return null; return clansCloudPull(); })
+          .then((r)=>{ if (r===null) return; try { renderClans(); renderHUD(); } catch (e4) {} })
           .catch((e)=>{
             const msg = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim();
             if (/leader_must_transfer/i.test(msg)) { toast('Сначала передай главу','lose'); return; }
@@ -6778,23 +6797,26 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (clanMyRole(c) !== 'leader') { toast('Только глава','lose'); return; }
     if (!confirm('Удалить клан навсегда?')) return;
     const id = String(c.id||'');
-    delete state.clansDb.clans[id];
-    if (Array.isArray(state.clansDb.order)) state.clansDb.order = state.clansDb.order.filter(x=>String(x)!==id);
-    try {
-      if (state.clansDb.myApps && typeof state.clansDb.myApps === 'object') delete state.clansDb.myApps[id];
-    } catch (e) {}
     try {
       clansCloudDelete(id)
-        .then(()=>clansCloudPull())
-        .then(()=>{ try { renderClans(); } catch (e3) {} })
+        .then((r)=>{
+          if (r===null) return null;
+          delete state.clansDb.clans[id];
+          if (Array.isArray(state.clansDb.order)) state.clansDb.order = state.clansDb.order.filter(x=>String(x)!==id);
+          try {
+            if (state.clansDb.myApps && typeof state.clansDb.myApps === 'object') delete state.clansDb.myApps[id];
+          } catch (e) {}
+          state.clan = Object.assign({}, defaults.clan);
+          save();
+          renderHUD();
+          renderClans();
+          toast('Клан удалён','win');
+          haptic('heavy');
+          return clansCloudPull();
+        })
+        .then((r)=>{ if (r===null) return; try { renderClans(); } catch (e3) {} })
         .catch(()=>{});
     } catch (e2) {}
-    state.clan = Object.assign({}, defaults.clan);
-    save();
-    renderHUD();
-    renderClans();
-    toast('Клан удалён','win');
-    haptic('heavy');
   }
 
   function clanBankAdd(){
@@ -6805,10 +6827,31 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const amt = Math.max(0, Math.floor(parseInt(pick||'0',10)||0));
     if (amt<=0) return;
     if ((state.gold||0) < amt) { toast('Не хватает 🪙','lose'); return; }
+    if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+      try {
+        const next = Object.assign({}, c);
+        next.bankGold = (parseInt(c.bankGold||0,10)||0) + amt;
+        clanLog(next, 'Взнос в банк: ' + clanMyName() + ' +' + amt + ' 🪙');
+        clansCloudUpsert(next)
+          .then((r)=>{
+            if (r===null) return null;
+            state.gold -= amt;
+            state.clansDb.clans[String(next.id||c.id)] = next;
+            if (state.clan && String(state.clan.id||'') === String(next.id||c.id)) state.clan = Object.assign({}, next);
+            save();
+            renderHUD();
+            renderClans();
+            toast('Внесено: '+amt+' 🪙','win');
+            haptic('light');
+            return null;
+          })
+          .catch(()=>{});
+        return;
+      } catch (e2) {}
+    }
     state.gold -= amt;
     c.bankGold = (parseInt(c.bankGold||0,10)||0) + amt;
     clanLog(c, 'Взнос в банк: ' + clanMyName() + ' +' + amt + ' 🪙');
-    try { clansCloudUpsert(c); } catch (e2) {}
     save();
     renderHUD();
     renderClans();
@@ -6829,9 +6872,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     haptic('light');
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-        sbFnCall('clan_chat_send', { initData: tgInitData(), clan_id: cid, member_name: me, text: msg })
-          .then(()=>clansCloudPull())
-          .then(()=>{ try { renderClans(); renderClanChatModal(); } catch (e4) {} })
+        sbFnCallSkipNull('clan_chat_send', { initData: tgInitData(), clan_id: cid, member_name: me, text: msg })
+          .then((r)=>{ if (r===null) return null; return clansCloudPull(); })
+          .then((r)=>{ if (r===null) return; try { renderClans(); renderClanChatModal(); } catch (e4) {} })
           .catch((e)=>{ const em = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim(); toast('Не удалось отправить: '+em.slice(0,24),'lose'); });
         return;
       }
