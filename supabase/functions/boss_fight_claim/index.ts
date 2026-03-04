@@ -207,6 +207,59 @@ async function postgrestClaimBossReward(
   return row && typeof row === "object" ? row : null
 }
 
+async function postgrestGetPlayerBasic(projectUrl: string, serviceKey: string, tgId: string): Promise<{ tg_id: string; name: string; photo_url: string } | null> {
+  try {
+    const url = projectUrl.replace(/\/$/, "") +
+      `/rest/v1/players?tg_id=eq.${encodeURIComponent(tgId)}&select=tg_id,name,photo_url&limit=1`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp.ok) return null
+    const rows = await resp.json().catch(() => [])
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null
+    if (!row || typeof row !== "object") return null
+    return {
+      tg_id: String((row as any).tg_id || "").trim(),
+      name: String((row as any).name || "Player").trim().slice(0, 18) || "Player",
+      photo_url: String((row as any).photo_url || "").trim().slice(0, 500),
+    }
+  } catch (_e) {
+    return null
+  }
+}
+
+async function postgrestUpsertBossLastWinner(
+  projectUrl: string,
+  serviceKey: string,
+  bossId: number,
+  p: { tg_id: string; name: string; photo_url: string },
+): Promise<boolean> {
+  try {
+    const url = projectUrl.replace(/\/$/, "") + "/rest/v1/boss_last_winners"
+    const payload = {
+      boss_id: bossId,
+      tg_id: p.tg_id,
+      name: p.name,
+      photo_url: p.photo_url,
+      updated_at: new Date().toISOString(),
+    }
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        Prefer: "resolution=merge-duplicates,return=minimal",
+      },
+      body: JSON.stringify(payload),
+    })
+    return resp.ok
+  } catch (_e) {
+    return false
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
   if (req.method !== "POST") {
@@ -283,6 +336,16 @@ Deno.serve(async (req: Request) => {
   const hpRaw = (r as any).r_hp
   const hp = (hpRaw === null || typeof hpRaw === "undefined") ? null : Number(hpRaw)
   const rewardClaimed = !!(r as any).r_reward_claimed
+
+  // Best-effort: store last winner for global display.
+  try {
+    if (ok) {
+      const p = await postgrestGetPlayerBasic(projectUrl, serviceKey, ownerTgId)
+      if (p && p.tg_id) {
+        await postgrestUpsertBossLastWinner(projectUrl, serviceKey, bossId, p).catch(() => false)
+      }
+    }
+  } catch (_e) {}
 
   return new Response(JSON.stringify({ ok: true, can_claim: ok, hp, reward_claimed: rewardClaimed, reward: def.reward, boss: def }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },

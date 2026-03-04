@@ -308,10 +308,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   #diceRoll{ touch-action: manipulation; }
 
  .bossRow{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:flex-start;}
+ .bossMiniWrap{position:relative;width:140px;height:140px;}
  .bossMini{width:140px;height:140px;border-radius:26px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:56px;}
-  .bossName{font-weight:900;letter-spacing:2px;line-height:1.15;}
-  .bossSub{font-size:11px;opacity:.75;margin-top:4px;}
-  .bossReward{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+ .bossWinnerAva{position:absolute;right:-10px;bottom:10px;width:44px;height:44px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:rgba(45,30,18,.28);object-fit:cover;}
+ .bossName{font-weight:900;letter-spacing:2px;line-height:1.15;}
+ .bossSub{font-size:11px;opacity:.75;margin-top:4px;}
+ .bossReward{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
  .bossWinnerTop{font-size:11px;letter-spacing:1px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
  .bossWinnerNm{font-size:12px;letter-spacing:1px;opacity:.9;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
 
@@ -2481,6 +2483,44 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return null;
       return await sbFnCall('boss_fight_claim', { initData: tgInitData(), boss_id: bossId });
     } catch (e) { return null; }
+  }
+
+  let __bossWinnersPullTs = 0;
+  async function bossLastWinnersCloudPull(){
+    try {
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+      const initData = tgInitData();
+      if (!initData) return;
+      const r = await sbFnCall('boss_last_winners_list', { initData });
+      const rows = (r && Array.isArray(r.winners)) ? r.winners : [];
+      if (!state.bosses) state.bosses = Object.assign({}, defaults.bosses);
+      if (!state.bosses.lastWinnersCloud || typeof state.bosses.lastWinnersCloud !== 'object') state.bosses.lastWinnersCloud = {};
+      const next = {};
+      rows.forEach(it=>{
+        try {
+          const bid = parseInt(it && it.boss_id || 0, 10) || 0;
+          if (!bid || bid < 1 || bid > 12) return;
+          next[String(bid)] = {
+            tg_id: it && (it.tg_id || it.tgId) ? String(it.tg_id || it.tgId) : '',
+            name: it && it.name ? String(it.name) : '—',
+            photo: it && it.photo_url ? String(it.photo_url) : '',
+            ts: it && it.updated_at ? Date.parse(String(it.updated_at)) : 0
+          };
+        } catch (e0) {}
+      });
+      state.bosses.lastWinnersCloud = next;
+      save();
+    } catch (e) {}
+  }
+  async function bossLastWinnersCloudPullMaybe(){
+    try {
+      const force = arguments && arguments.length ? !!arguments[0] : false;
+      if (!force && !bossUiOpen()) return;
+      const t = now();
+      if (!force && __bossWinnersPullTs && (t - __bossWinnersPullTs) < 10000) return;
+      __bossWinnersPullTs = t;
+      await bossLastWinnersCloudPull();
+    } catch (e) {}
   }
 
   let __districtLeadersPullTs = 0;
@@ -6055,6 +6095,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
   function renderBosses(){
     try { bossFightsCloudPullMaybe().catch(()=>{}); } catch (e0) {}
+    try { bossLastWinnersCloudPullMaybe().catch(()=>{}); } catch (e1) {}
     const box = $('bossList');
     let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
     const status = bossMechanicsStatus();
@@ -6089,8 +6130,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
       } catch (e00) {}
       const pct = b.maxHP>0 ? clamp((hp/b.maxHP)*100,0,100) : 0;
-      const lw = (state.bosses && state.bosses.lastWinners && state.bosses.lastWinners[String(b.id)]) || null;
-      const lwName = lw && lw.name ? String(lw.name) : '—';
+      const lwLocal = (state.bosses && state.bosses.lastWinners && state.bosses.lastWinners[String(b.id)]) || null;
+      const lwCloud = (state.bosses && state.bosses.lastWinnersCloud && state.bosses.lastWinnersCloud[String(b.id)]) || null;
+      const lwName = (lwCloud && lwCloud.name) ? String(lwCloud.name) : ((lwLocal && lwLocal.name) ? String(lwLocal.name) : '—');
+      const lwPhoto = (lwCloud && lwCloud.photo) ? String(lwCloud.photo) : '';
       const locked = !bossHasAccess(b.id);
       const req = bossReq(b.id);
       const lockText = locked && req ? (' · '+req.emoji+' '+bossKeyCount(req.itemKey)+'/'+req.need) : '';
@@ -6109,7 +6152,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '<div class="bossWinnerNm">'+lwName+'</div>'
         + '<div style="height:10px"></div>'
         + '<div class="bossRow">'
+        + '<div class="bossMiniWrap">'
         + '<div class="bossMini" style="'+(b.img?('background-image:url(\''+encodeURI(String(b.img))+'\');'):'')+'">'+(b.img?'':b.emoji)+'</div>'
+        + (lwPhoto ? ('<img class="bossWinnerAva" src="'+String(lwPhoto).replace(/"/g,'&quot;')+'" alt="" />') : '')
+        + '</div>'
         + '<div style="min-width:0">'
         + '<div class="bossName">'+b.name+'</div>'
         + '<div class="bossSub">'+(dead ? ('ПОВЕРЖЕН · HP 0 / '+b.maxHP) : ('HP '+hp+' / '+b.maxHP))+lockText+'</div>'
