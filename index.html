@@ -608,16 +608,19 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         </div>
       </div>
     </div>
-    <div class="xp">
-      <div class="xpFill" id="xpFill"></div>
-      <div class="xpText" id="xpText">0 / 0 XP</div>
-    </div>
 
-    <div class="heroGrid">
-      <div class="tile gold" id="tileGold"><div class="v">🪙 <span id="gold">0</span></div></div>
-      <div class="tile silver" id="tileSilver"><div class="v">⚪ <span id="silver">0</span></div></div>
-      <div class="tile tooth" id="tileTooth"><div class="v">🦷 <span id="tooth">0</span></div></div>
-      <div class="tile rings" id="tileRings"><div class="v">💍 <span id="rings">0</span></div></div>
+    <div class="hero">
+      <div class="xp">
+        <div class="xpFill" id="xpFill"></div>
+        <div class="xpText" id="xpText">0 / 0 XP</div>
+      </div>
+
+      <div class="heroGrid">
+        <div class="tile gold" id="tileGold"><div class="v">🪙 <span id="gold">0</span></div></div>
+        <div class="tile silver" id="tileSilver"><div class="v">⚪ <span id="silver">0</span></div></div>
+        <div class="tile tooth" id="tileTooth"><div class="v">🦷 <span id="tooth">0</span></div></div>
+        <div class="tile rings" id="tileRings"><div class="v">💍 <span id="rings">0</span></div></div>
+      </div>
     </div>
   </div>
 
@@ -2216,6 +2219,30 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
   const pad2 = (n)=>String(n).padStart(2,'0');
   const now = ()=>Date.now();
+
+  // Always surface runtime errors to the on-screen debug overlay
+  try {
+    window.addEventListener('error', (ev)=>{
+      try {
+        const el = $('dbgOverlay');
+        if (!el) return;
+        const msg = (ev && (ev.message || (ev.error && ev.error.message))) ? String(ev.message || ev.error.message) : String(ev || 'error');
+        el.style.display = 'block';
+        el.classList.add('hasErr');
+        el.textContent = msg;
+      } catch (e0) {}
+    });
+    window.addEventListener('unhandledrejection', (ev)=>{
+      try {
+        const el = $('dbgOverlay');
+        if (!el) return;
+        const msg = (ev && ev.reason) ? String((ev.reason && (ev.reason.message||ev.reason.name)) || ev.reason) : 'unhandledrejection';
+        el.style.display = 'block';
+        el.classList.add('hasErr');
+        el.textContent = msg;
+      } catch (e0) {}
+    });
+  } catch (e0) {}
 
   function toast(msg, kind){
     const el = $('toast');
