@@ -6678,6 +6678,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const box = document.createElement('div');
       const v = clamp(parseInt(d[i]||1,10)||1, 1, 6);
       box.className = 'dice dice-' + v;
+      if (g && g.active) box.onclick = ()=>diceRerollOne(i);
       for (let p=0;p<9;p++){
         const pip = document.createElement('span');
         pip.className = 'pip';
