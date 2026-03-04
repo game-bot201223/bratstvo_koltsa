@@ -1610,6 +1610,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
             state.districtFear[fk] = curFear + addFear;
             addFearSum += addFear;
+            try {
+              districtFearLeaderUpdate(id);
+              districtDailyFearAdd(id, addFear);
+            } catch (e1) {}
           }
           state.districtBizDaily.claimed[c2k] = now();
         }
@@ -3231,6 +3235,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           state.districtFear[fk] = curFear + addFear;
           didAny = true;
           txt += (txt?' · ':'') + '+'+fmt4(addFear)+' 😱';
+          try {
+            districtFearLeaderUpdate(id);
+            districtDailyFearAdd(id, addFear);
+          } catch (e1) {}
         }
         state.districtBizDaily.claimed[c2k] = now();
       }
