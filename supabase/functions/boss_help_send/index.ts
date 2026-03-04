@@ -620,7 +620,16 @@ Deno.serve(async (req: Request) => {
         }
 
         if (!hasActiveFight) {
-          return null
+          // Record event only; no HP change when user hasn't started any fight.
+          return {
+            to_tg_id: String(toTgId),
+            from_tg_id: String(senderTgId),
+            boss_id: bossId,
+            dmg: Math.max(0, Math.min(dmg, def.max_hp)),
+            clan_id: clanId || null,
+            from_name: senderName,
+            created_at: ts,
+          }
         }
 
         if (clanId) {
@@ -684,26 +693,28 @@ Deno.serve(async (req: Request) => {
         applied = 0
       }
 
-    if (applied <= 0) return null
+      if (applied > 0) {
+        return {
+          to_tg_id: String(toTgId),
+          from_tg_id: String(senderTgId),
+          boss_id: targetBossId,
+          dmg: applied,
+          clan_id: clanId || null,
+          from_name: senderName,
+          created_at: ts,
+        }
+      } else {
+        return null
+      }
+    }),
+  )
 
-    return {
-      to_tg_id: String(toTgId),
-      from_tg_id: String(senderTgId),
-      boss_id: targetBossId,
-      dmg: applied,
-      clan_id: clanId || null,
-      from_name: senderName,
-      created_at: ts,
-    }
-  }),
-)
-
-const rows = (Array.isArray(rows0) ? rows0 : []).filter((x) => !!x)
-if (!rows.length) {
-  return new Response(JSON.stringify({ ok: true, inserted: 0, debug: { recipients: recArr.length, rpc_ok: rpcOkCount, rpc_fail: rpcFailCount } }), {
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  })
-}
+  const rows = (Array.isArray(rows0) ? rows0 : []).filter((x) => !!x)
+  if (!rows.length) {
+    return new Response(JSON.stringify({ ok: true, inserted: 0, debug: { recipients: recArr.length, rpc_ok: rpcOkCount, rpc_fail: rpcFailCount } }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    })
+  }
 
 const ins = await postgrestInsertEvents(projectUrl, serviceKey, rows)
 if (!ins.ok) {

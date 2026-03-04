@@ -1873,6 +1873,103 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e) {}
   }
 
+  function renameEverywhere(oldName, newName){
+    try {
+      const prev = String(oldName||'').trim();
+      const next = String(newName||'').trim();
+      if (!prev || !next) return;
+      const prevU = prev.toUpperCase();
+      const eq = (a)=>String(a||'').trim().toUpperCase() === prevU;
+
+      // friends
+      try {
+        if (Array.isArray(state.friends)) {
+          state.friends.forEach((f)=>{
+            try { if (f && typeof f==='object' && eq(f.name)) f.name = next; } catch (e0) {}
+          });
+        }
+      } catch (e) {}
+
+      // clans DB + current clan
+      try {
+        const patchClanObj = (c)=>{
+          if (!c || typeof c!=='object') return;
+          try { if (eq(c.owner)) c.owner = next; } catch (e0) {}
+          try { if (eq(c.leader)) c.leader = next; } catch (e1) {}
+          try { if (eq(c.deputy)) c.deputy = next; } catch (e2) {}
+          try {
+            if (Array.isArray(c.members)) c.members = c.members.map(x=>eq(x)?next:x);
+          } catch (e3) {}
+          try {
+            if (Array.isArray(c.apps)) c.apps = c.apps.map(x=>eq(x)?next:x);
+          } catch (e4) {}
+        };
+        if (state.clansDb && state.clansDb.clans) {
+          Object.keys(state.clansDb.clans).forEach((k)=>{ try { patchClanObj(state.clansDb.clans[k]); } catch (e0) {} });
+        }
+        if (state.clan) patchClanObj(state.clan);
+      } catch (e) {}
+
+      // district leaders
+      try {
+        if (state.districtFearLeaders && typeof state.districtFearLeaders==='object') {
+          Object.keys(state.districtFearLeaders).forEach((k)=>{
+            const it = state.districtFearLeaders[k];
+            try { if (it && typeof it==='object' && eq(it.name)) it.name = next; } catch (e0) {}
+          });
+        }
+      } catch (e) {}
+
+      // daily fear leaders
+      try {
+        if (state.districtDailyFear && state.districtDailyFear.byDistrict) {
+          const box = state.districtDailyFear.byDistrict;
+          Object.keys(box).forEach((k)=>{
+            const it = box[k];
+            try { if (it && typeof it==='object' && eq(it.name)) it.name = next; } catch (e0) {}
+          });
+        }
+      } catch (e) {}
+
+      // boss logs/tops + local winners
+      try {
+        if (state.bosses) {
+          try {
+            if (state.bosses.lastWinners && typeof state.bosses.lastWinners==='object') {
+              Object.keys(state.bosses.lastWinners).forEach((k)=>{
+                const it = state.bosses.lastWinners[k];
+                try { if (it && typeof it==='object' && eq(it.name)) it.name = next; } catch (e0) {}
+              });
+            }
+          } catch (e1) {}
+          try {
+            if (state.bosses.fights && typeof state.bosses.fights==='object') {
+              Object.keys(state.bosses.fights).forEach((k)=>{
+                const f = state.bosses.fights[k];
+                if (!f || typeof f!=='object') return;
+                try {
+                  if (Array.isArray(f.dmgLog)) {
+                    f.dmgLog.forEach((r)=>{ try { if (r && typeof r==='object' && eq(r.who)) r.who = next; } catch (e0) {} });
+                  }
+                } catch (e2) {}
+                try {
+                  if (f.dmgTop && typeof f.dmgTop==='object') {
+                    Object.keys(f.dmgTop).forEach((who)=>{
+                      if (String(who||'').trim().toUpperCase() !== prevU) return;
+                      const v = f.dmgTop[who];
+                      delete f.dmgTop[who];
+                      f.dmgTop[next] = (parseInt(f.dmgTop[next]||0,10)||0) + (parseInt(v||0,10)||0);
+                    });
+                  }
+                } catch (e3) {}
+              });
+            }
+          } catch (e4) {}
+        }
+      } catch (e) {}
+    } catch (e) {}
+  }
+
   function districtData(){
     return [
       { name:'Ширский край', img:'шир.png', diff:'ЛЕГКО', tasks:[
@@ -6234,6 +6331,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             const f0 = bfGetFight(b.id);
             if (f0 && f0.startTs && f0.expiresTs && now() < (parseInt(f0.expiresTs||0,10)||0)) started = true;
           } catch (e9) { started = false; }
+          // If boss is dead on server and reward not claimed, always show claim regardless of local fight cache.
+          try {
+            const deadSrv = cc && typeof cc==='object' && (parseInt(cc.hp||0,10)||0) <= 0;
+            const claimedSrv = !!(cc && typeof cc==='object' && cc.reward_claimed);
+            if (deadSrv && !claimedSrv) started = true;
+          } catch (e10) {}
           if (!started) {
             hp = b.maxHP;
             hpCloud = null;
@@ -6349,7 +6452,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         bossFightClaimCloud(id).then((r)=>{
           try {
             if (!(r && r.ok && r.can_claim)) {
-              try { bossFightsCloudPullMaybe(); } catch (e0) {}
+              try { bossFightsCloudPullMaybe(true); } catch (e0) {}
+              try { renderBosses(); } catch (e00) {}
               try {
                 const hp = (r && (r.hp === null || typeof r.hp === 'undefined')) ? null : (parseInt(r.hp,10)||0);
                 const claimed = !!(r && r.reward_claimed);
@@ -6382,7 +6486,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
               if (b2) setBossHp(id, b2.maxHP);
             } catch (e4) {}
             save();
-            try { bossFightsCloudPullMaybe(); } catch (e1) {}
+            try { bossFightsCloudPullMaybe(true); } catch (e1) {}
             renderBosses();
             renderHUD();
             toast('Награда получена','win');
@@ -7942,6 +8046,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             state: cloudStateSnapshot(state)
           }).then(()=>{
             state.playerName = next;
+            try { renameEverywhere(prev, next); } catch (e9) {}
             save();
             renderAll();
             haptic('light');
