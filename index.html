@@ -5915,8 +5915,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!id) return;
       if (!bossHasAccess(id)) {
         showModal('mBossAttack');
-        renderBossPassShop(id);
-        toast('Не хватает ключей','lose');
+        renderBossAttackModal(id);
         haptic('light');
         return;
       }
@@ -6163,7 +6162,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (!bossHasAccess(id)) {
           // No keys: open pass shop directly
           showModal('mBossAttack');
-          renderBossPassShop(id);
+          renderBossAttackModal(id);
           haptic('light');
           return;
         }
