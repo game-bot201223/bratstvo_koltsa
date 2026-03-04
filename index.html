@@ -145,7 +145,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   border-bottom:1px solid rgba(32,22,14,.25);
   border-radius:0;
   box-sizing:border-box;
-  position:relative;
 }
 .mainCharacter img{
   width:100%;
@@ -161,12 +160,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   margin:12px 14px 0;
   border-radius:var(--r);
   border:1px solid rgba(32,22,14,.26);
-  background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(0,0,0,.04));
-  box-shadow:0 18px 42px rgba(0,0,0,.22);
+  background:var(--paper);
+  box-shadow: var(--shadow);
   overflow:hidden;
   position:relative;
 }
-.mainCornerBtn{position:absolute; right:10px; bottom:10px; width:44px; height:40px; border-radius:14px; border:1px solid rgba(36,24,14,.20); background:rgba(255,255,255,.14); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px;}
 .heroTop{padding:14px 14px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .heroTitle{font-weight:900;letter-spacing:4px;font-size:12px;opacity:.90}
 .heroSub{font-size:11px;opacity:.78;margin-top:4px;letter-spacing:2px}
@@ -341,7 +339,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
  .bossRow{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:flex-start;}
  .bossMiniWrap{position:relative;width:140px;height:140px;}
- .bossMini{width:140px;height:140px;border-radius:26px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:105% 105%;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:56px;}
+ .bossMini{width:140px;height:140px;border-radius:26px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:56px;}
  .bossWinnerAva{position:absolute;right:-10px;bottom:10px;width:44px;height:44px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:rgba(45,30,18,.28);object-fit:cover;}
  .bossName{font-weight:900;letter-spacing:2px;line-height:1.15;}
  .bossSub{font-size:11px;opacity:.75;margin-top:4px;}
@@ -379,7 +377,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .districtCardBadge{flex:0 0 auto;}
 
  .bossFightHero{display:grid;grid-template-columns:180px 1fr;align-items:start;gap:12px;}
- .bossFightBig{width:180px;height:180px;border-radius:34px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:105% 105%;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:78px;flex:0 0 auto;}
+ .bossFightBig{width:180px;height:180px;border-radius:34px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:78px;flex:0 0 auto;}
  .bossFightMeta{min-width:0;flex:1;}
  .bossFightLeft{display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
  .bfHpBar{width:180px; height:14px; border-radius:999px; background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.14); overflow:hidden; position:relative;}
@@ -405,8 +403,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .bossAtkBtn{font-size:9px !important; padding:5px 7px !important; letter-spacing:1px; min-height:28px;}
 
 /* Modals */
-.overlay{position:fixed;inset:0;background:rgba(45,30,18,.22);backdrop-filter: blur(10px);display:none;z-index:4900;pointer-events:none;}
-.overlay.show{display:block;pointer-events:auto;}
+.overlay{position:fixed;inset:0;background:rgba(45,30,18,.22);backdrop-filter: blur(10px);display:none;z-index:4900;}
+.overlay.show{display:block;}
 
 .modal{
   position:fixed;
@@ -608,26 +606,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         </div>
       </div>
     </div>
+    <div class="xp">
+      <div class="xpFill" id="xpFill"></div>
+      <div class="xpText" id="xpText">0 / 0 XP</div>
+    </div>
 
-    <div class="hero">
-      <div class="xp">
-        <div class="xpFill" id="xpFill"></div>
-        <div class="xpText" id="xpText">0 / 0 XP</div>
-      </div>
-
-      <div class="heroGrid">
-        <div class="tile gold" id="tileGold"><div class="v">🪙 <span id="gold">0</span></div></div>
-        <div class="tile silver" id="tileSilver"><div class="v">⚪ <span id="silver">0</span></div></div>
-        <div class="tile tooth" id="tileTooth"><div class="v">🦷 <span id="tooth">0</span></div></div>
-        <div class="tile rings" id="tileRings"><div class="v">💍 <span id="rings">0</span></div></div>
-      </div>
+    <div class="heroGrid">
+      <div class="tile gold" id="tileGold"><div class="v">🪙 <span id="gold">0</span></div></div>
+      <div class="tile silver" id="tileSilver"><div class="v">⚪ <span id="silver">0</span></div></div>
+      <div class="tile tooth" id="tileTooth"><div class="v">🦷 <span id="tooth">0</span></div></div>
+      <div class="tile shop" id="tileShop"><button class="shopIconBtn" id="shopBtn" aria-label="Магазин"></button></div>
     </div>
   </div>
 
   <div class="main">
     <div class="mainCharacter">
       <img src="персонаж.png" alt="">
-      <button class="mainCornerBtn" id="mainCornerBtn" aria-label=""></button>
     </div>
     <div class="bottomStack">
       <div class="dock">
@@ -1468,6 +1462,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (__bossHelpPollT) return;
       __bossHelpPollT = setInterval(()=>{
         try {
+          if (!bossUiOpen()) return;
           const t = now();
           if (__bossHelpLast && (t - __bossHelpLast) < 1000) return;
           __bossHelpLast = t;
@@ -2219,30 +2214,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
   const pad2 = (n)=>String(n).padStart(2,'0');
   const now = ()=>Date.now();
-
-  // Always surface runtime errors to the on-screen debug overlay
-  try {
-    window.addEventListener('error', (ev)=>{
-      try {
-        const el = $('dbgOverlay');
-        if (!el) return;
-        const msg = (ev && (ev.message || (ev.error && ev.error.message))) ? String(ev.message || ev.error.message) : String(ev || 'error');
-        el.style.display = 'block';
-        el.classList.add('hasErr');
-        el.textContent = msg;
-      } catch (e0) {}
-    });
-    window.addEventListener('unhandledrejection', (ev)=>{
-      try {
-        const el = $('dbgOverlay');
-        if (!el) return;
-        const msg = (ev && ev.reason) ? String((ev.reason && (ev.reason.message||ev.reason.name)) || ev.reason) : 'unhandledrejection';
-        el.style.display = 'block';
-        el.classList.add('hasErr');
-        el.textContent = msg;
-      } catch (e0) {}
-    });
-  } catch (e0) {}
 
   function toast(msg, kind){
     const el = $('toast');
@@ -4061,12 +4032,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const wrap = $('arenaPetShop');
     if (!wrap) return;
     wrap.innerHTML = '';
-    try {
-      if (!Array.isArray(PETS) || !PETS.length) {
-        wrap.innerHTML = '<div style="opacity:.75; font-size:12px">—</div>';
-        return;
-      }
-    } catch (e0) {}
     PETS.forEach(p=>{
       const owned = !!state.petsOwned[String(p.id)];
       const isActive = (parseInt(state.activePetId||0,10)||0) === p.id;
@@ -4646,11 +4611,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!state.groupFight.joined) return false;
       if ((parseInt(state.groupFight.startTs||0,10)||0) !== st) return false;
       if (now() < st) return false;
-      try {
-        const bb = state.groupFight.battle;
-        const isPending = !!(bb && typeof bb === 'object' && bb.pending);
-        if (bb && !isPending) return false;
-      } catch (e0) {}
+      if (state.groupFight.battle) return false;
       if ((parseInt(state.groupFight.cancelCheckedTs||0,10)||0) === st) return false;
       state.groupFight.cancelCheckedTs = st;
       save();
@@ -4719,7 +4680,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       startTs,
       cost,
       createdTs: now(),
-      pending: true,
       round: 1,
       turnLeft: 30,
       acted: false,
@@ -4742,16 +4702,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     };
 
     // Group fight: build teams from Supabase entries.
+    // TEMP: allow injecting bots for testing if not enough participants.
     battle.myTeam = [];
-    battle.targets = [];
-    state.groupFight.battle = battle;
-    save();
     try {
       const meId = myTgUserId() || '';
       gfFetchEntries(startTs).then((entries)=>{
         try {
           const arr = Array.isArray(entries) ? entries.slice() : [];
-
           // If not enough participants, inject bots for testing.
           if (arr.length < 10) {
             const botNeed = 10 - arr.length;
@@ -4794,53 +4751,38 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             hp: myMaxHp,
             maxHp: myMaxHp
           }));
-          
+
           battle.targets = teamB.map((e, i)=>({
             id: 'E'+(i+1),
             name: String(e && e.name || ('Враг '+(i+1))),
             hp: enemyMaxHp,
             maxHp: enemyMaxHp
           }));
-          
-          battle.pending = false;
-          
+
           try {
             if (!battle.dmgBy || typeof battle.dmgBy !== 'object') battle.dmgBy = {};
             (battle.myTeam||[]).forEach(u=>{ const id = String(u.id||''); if (id) battle.dmgBy[id] = 0; });
           } catch (e2) {}
-          
 
           state.groupFight.battle = battle;
           save();
-          try { renderBattle(); } catch (e2) {}
+          renderBattle();
         } catch (e0) {}
       }).catch(()=>{});
     } catch (e9) {}
 
-    // Return battle immediately; teams will fill async
-    return battle;
+    // Async team build
+    return null;
   }
 
   function renderBattle(){
     const b = state.groupFight.battle;
     if (!b) return;
-    try {
-      const hi = $('bHeadInfo');
-      if (hi) {
-        const pending = !!(b && typeof b === 'object' && b.pending);
-        const hasEnemies = Array.isArray(b.targets) && b.targets.length > 0;
-        if (pending || !hasEnemies) hi.textContent = 'ЖДЁМ ИГРОКОВ…';
-      }
-    } catch (e0) {}
     try { const r = $('bRound'); if (r) r.textContent = String(b.round||1); } catch (e) {}
     try { const t = $('bTimer'); if (t) t.textContent = String(b.turnLeft||0); } catch (e) {}
     try {
       const hi = $('bHeadInfo');
-      if (hi) {
-        const pending = !!(b && typeof b === 'object' && b.pending);
-        const hasEnemies = Array.isArray(b.targets) && b.targets.length > 0;
-        if (!pending && hasEnemies) hi.textContent = 'РАУНД ' + String(b.round||1) + ' · ' + String(b.turnLeft||0);
-      }
+      if (hi) hi.textContent = 'РАУНД ' + String(b.round||1) + ' · ' + String(b.turnLeft||0);
     } catch (e) {}
     const myHp = parseInt(b.myHp||0,10)||0;
     const myMax = parseInt(b.myMaxHp||0,10)||0;
@@ -5139,12 +5081,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     return petBonusPct() + bizGymBonusPct();
   }
   function renderGym(){
-    try {
-      const bonus = $('gymPetBonus');
-      if (bonus) bonus.textContent = Math.round(gymBonusPct()*100) + '%';
-    } catch (e0) {}
+    $('gymPetBonus').textContent = Math.round(gymBonusPct()*100) + '%';
     const box = $('gymList');
-    if (!box) return;
     let total = 0;
     let html = '<div class="statGrid">';
 
@@ -5175,23 +5113,21 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     html += '</div>';
     box.innerHTML = html;
 
-    try {
-      box.querySelectorAll('[data-gym]').forEach(btn=>{
-        btn.onclick = ()=>{
-          const key = btn.getAttribute('data-gym');
-          const cur = gymVal(key);
-          const cost = gymCost(cur);
-          if ((state.silver||0) < cost){ toast('Нужно '+cost+' ⚪','lose'); return; }
-          state.silver -= cost;
-          state.gym[key] = cur+1;
-          feedAdd('Тренировка: '+key+' → '+(cur+1),'GYM');
-          toast('Прокачано','win');
-          save();
-          renderAll();
-          haptic('light');
-        };
-      });
-    } catch (e0) {}
+    box.querySelectorAll('[data-gym]').forEach(btn=>{
+      btn.onclick = ()=>{
+        const key = btn.getAttribute('data-gym');
+        const cur = gymVal(key);
+        const cost = gymCost(cur);
+        if ((state.silver||0) < cost){ toast('Нужно '+cost+' ⚪','lose'); return; }
+        state.silver -= cost;
+        state.gym[key] = cur+1;
+        feedAdd('Тренировка: '+key+' → '+(cur+1),'GYM');
+        toast('Прокачано','win');
+        save();
+        renderAll();
+        haptic('light');
+      };
+    });
   }
 
   // --- Shop
@@ -6681,6 +6617,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const box = $('bossList');
     let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
     const status = bossMechanicsStatus();
+    const statusHtml = status ? String(status).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
+    if (statusHtml){
+      html += '<div class="card">'
+        + '<div class="row"><div class="k">СТАТУС БОССОВ</div><div style="width:44px"></div></div>'
+        + '<div style="margin-top:6px; font-size:11px; opacity:.8; white-space:pre-wrap; word-break:break-word;">'+statusHtml+'</div>'
+        + '</div>';
+    }
     html += '<div class="card">'
       + '<div class="row"><div style="min-width:0"><div class="k">НАВЫК</div><div style="font-size:12px;opacity:.75;margin-top:4px">Помощь братков</div></div>'
       + '<button class="btn btnSmall" id="friendHelpOpen">ПОМОЩЬ БРАТКОВ</button></div>'
@@ -8678,16 +8621,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   async function boot(){
     try {
-      // Defensive: never let overlay/modals block the home screen on load
-      try {
-        document.querySelectorAll('.modal.show').forEach(m=>m.classList.remove('show'));
-      } catch (e0) {}
-      try {
-        const ov = $('overlay');
-        if (ov) ov.classList.remove('show');
-      } catch (e1) {}
-      try { stack.length = 0; setOverlay(); updateBackButton(); } catch (e2) {}
-
       try {
         const ss = $('syncState');
         if (ss){ ss.onclick = dbgToggle; ss.style.cursor = 'pointer'; }
