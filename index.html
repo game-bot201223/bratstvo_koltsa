@@ -376,9 +376,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .districtCardTop{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
  .districtCardBadge{flex:0 0 auto;}
 
- .bossFightHero{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+ .bossFightHero{display:grid;grid-template-columns:180px 1fr;align-items:start;gap:12px;}
  .bossFightBig{width:180px;height:180px;border-radius:34px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:78px;flex:0 0 auto;}
  .bossFightMeta{min-width:0;flex:1;}
+ .bossFightLeft{display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
+ .bfHitGrid{display:grid;grid-template-columns:repeat(2,40px);grid-auto-rows:40px;gap:10px;justify-content:end;align-content:start;margin-top:10px;}
 
  .toothBtn{position:relative; width:44px; height:40px; border-radius:14px; border:1px solid rgba(217,70,239,.55); background:linear-gradient(180deg, rgba(217,70,239,.24) 0%, rgba(42,30,20,.70) 100%); color:rgba(217,70,239,.95); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; box-shadow: 0 10px 26px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);}
  .toothBtn .ico{font-size:18px;}
@@ -823,23 +825,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody">
       <div class="card">
         <div class="bossFightHero">
-          <div class="bossFightBig" id="bfEmoji">👹</div>
+          <div class="bossFightLeft">
+            <div class="bossFightBig" id="bfEmoji">👹</div>
+            <div class="badge" id="bfHp">HP —</div>
+          </div>
           <div class="bossFightMeta">
             <div class="bossName" id="bfName">БОСС</div>
             <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center">
-              <div class="badge" id="bfHp">HP —</div>
               <div class="badge" id="bfTimer">—</div>
               <div class="badge" style="color:var(--gold); display:none" id="bfHits">УДАРЫ x0</div>
             </div>
             <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end" id="bfHitQty"></div>
+            <div class="bfHitGrid">
+              <button class="btn bfHitIcon" id="bfFreeHit" aria-label="Бесплатный удар">🆓</button>
+              <button class="btn bfHitIcon" id="bfHit1" aria-label="Удар ногой">🦶</button>
+              <button class="btn bfHitIcon" id="bfHit2" aria-label="Удар костетом">🥊</button>
+              <button class="btn bfHitIcon" id="bfHit3" aria-label="Удар клизмой">🚽</button>
+            </div>
           </div>
-        </div>
-
-        <div class="bfHitRow">
-          <button class="btn bfHitIcon" id="bfFreeHit" aria-label="Бесплатный удар">🆓</button>
-          <button class="btn bfHitIcon" id="bfHit1" aria-label="Удар ногой">🦶</button>
-          <button class="btn bfHitIcon" id="bfHit2" aria-label="Удар костетом">🥊</button>
-          <button class="btn bfHitIcon" id="bfHit3" aria-label="Удар клизмой">🚽</button>
         </div>
 
         <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.3" id="bfHint">—</div>
@@ -8112,14 +8115,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const cloudOn = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
       const hasBoss = bid ? bossExists(bid) : false;
       const hasCloudFight = bid && cloudOn ? !!(state.bosses && state.bosses.cloud && state.bosses.cloud[String(bid)] && typeof state.bosses.cloud[String(bid)].hp !== 'undefined') : true;
-      if (bid && f && alive && inTime && hasBoss && hasCloudFight){
+      if (bid && f && alive && inTime && hasBoss){
         showModal('mBossFight');
         bfEnsureFight(bid);
         bfRender(bid);
+        try { if (cloudOn && !hasCloudFight) bossFightsCloudPullMaybe(true).catch(()=>{}); } catch (e0) {}
         haptic('light');
         return;
       }
-      if (bid && (!hasBoss || !hasCloudFight)) {
+      if (bid && !hasBoss) {
         try { state.bosses.activeFightId = 0; save(); } catch (e0) {}
       }
       openScreen('mBoss');
