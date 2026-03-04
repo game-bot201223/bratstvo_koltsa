@@ -389,7 +389,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .bfHitCell{display:flex; flex-direction:column; align-items:center; gap:4px;}
  .bfHitDmg{font-size:11px; font-weight:900; letter-spacing:1px; opacity:.9; line-height:1; text-align:center;}
  .bfHitCnt{font-size:10px; opacity:.85; line-height:1; text-align:center;}
- .bfHitImg{width:85%; height:85%; object-fit:contain; display:block; margin:auto;}
+ .bfHitImg{width:120%; height:120%; object-fit:contain; display:block; margin:auto;}
 
  .toothBtn{position:relative; width:44px; height:40px; border-radius:14px; border:1px solid rgba(217,70,239,.55); background:linear-gradient(180deg, rgba(217,70,239,.24) 0%, rgba(42,30,20,.70) 100%); color:rgba(217,70,239,.95); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; box-shadow: 0 10px 26px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);}
  .toothBtn .ico{font-size:18px;}
@@ -848,22 +848,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             <div style="margin-top:10px;" id="bfHitQty"></div>
             <div class="bfHitGrid" style="margin-top:10px;">
               <div class="bfHitCell">
-                <button class="btn bfHitIcon" id="bfFreeHit" aria-label="Пинок под зад (бесплатно)">
-                  <img class="bfHitImg" src="пинок.png" alt="Пинок под зад" onerror="this.style.display='none'; this.parentNode.textContent='🆓';">
+                <button class="btn bfHitIcon" id="bfFreeHit" aria-label="Пинок (бесплатно)">
+                  <img class="bfHitImg" src="пинок.png" alt="Пинок" onerror="this.style.display='none'; this.parentNode.textContent='🆓';">
                 </button>
                 <div class="bfHitDmg" id="bfFreeDmg">УРОН 0</div>
                 <div class="bfHitCnt" id="bfFreeCnt">∞</div>
               </div>
               <div class="bfHitCell">
-                <button class="btn bfHitIcon" id="bfHit1" aria-label="Удар ногой">
-                  <img class="bfHitImg" src="ногой.png" alt="Удар ногой" onerror="this.style.display='none'; this.parentNode.textContent='🦶';">
+                <button class="btn bfHitIcon" id="bfHit1" aria-label="Ногой">
+                  <img class="bfHitImg" src="ногой.png" alt="Ногой" onerror="this.style.display='none'; this.parentNode.textContent='🦶';">
                 </button>
                 <div class="bfHitDmg" id="bfHit1Dmg">УРОН 0</div>
                 <div class="bfHitCnt" id="bfHit1Cnt">0</div>
               </div>
               <div class="bfHitCell">
-                <button class="btn bfHitIcon" id="bfHit2" aria-label="Удар костетом">
-                  <img class="bfHitImg" src="костетом.jpg" alt="Удар костетом" onerror="this.style.display='none'; this.parentNode.textContent='🥊';">
+                <button class="btn bfHitIcon" id="bfHit2" aria-label="Костетом">
+                  <img class="bfHitImg" src="костетом.jpg" alt="Костетом" onerror="this.style.display='none'; this.parentNode.textContent='🥊';">
                 </button>
                 <div class="bfHitDmg" id="bfHit2Dmg">УРОН 0</div>
                 <div class="bfHitCnt" id="bfHit2Cnt">0</div>
@@ -1277,8 +1277,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div class="row"><div class="k">НАГРАДЫ</div><div style="font-size:12px;opacity:.75">за 4 одинаковых</div></div>
         <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px; font-size:12px; opacity:.9; line-height:1.25">
           <div class="row"><div style="min-width:0">4×1</div><div class="badge">15 💍 Козырных колец</div></div>
-          <div class="row"><div style="min-width:0">4×2</div><div class="badge">+1 Пинок</div></div>
-          <div class="row"><div style="min-width:0">4×3</div><div class="badge">+1 Костет</div></div>
+          <div class="row"><div style="min-width:0">4×2</div><div class="badge">+1 Ногой</div></div>
+          <div class="row"><div style="min-width:0">4×3</div><div class="badge">+1 Костетом</div></div>
           <div class="row"><div style="min-width:0">4×4</div><div class="badge">+1 Клизма</div></div>
           <div class="row"><div style="min-width:0">4×5</div><div class="badge">Кольцо на босса «Паучиха»</div></div>
           <div class="row"><div style="min-width:0">4×6</div><div class="badge">Кольцо на босса «Сарумян»</div></div>
@@ -5729,7 +5729,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     try {
       const q2 = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
-      const t0 = 'БЕСПЛАТНО · УРОН ' + Math.max(1, bossHitDmg(14, 50));
+      const t0 = 'ПИНОК (БЕСПЛАТНО) · УРОН ' + Math.max(1, bossHitDmg(14, 50));
       const t1 = 'НОГОЙ ('+hk+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(10, 70)) * q2);
       const t2 = 'КОСТЕТОМ ('+hn+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(7, 85)) * q2);
       const t3 = 'КЛИЗМА ('+he+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(4, 100)) * q2);
@@ -6975,11 +6975,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       } else if (face===2){
         if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
         state.bosses.hitStocks.kick = clamp((parseInt(state.bosses.hitStocks.kick||0,10)||0) + 1, 0, 999999);
-        rewardText = '1 Удар ногой';
+        rewardText = '1 Ногой';
       } else if (face===3){
         if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
         state.bosses.hitStocks.knuckle = clamp((parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + 1, 0, 999999);
-        rewardText = '1 Удар костетом';
+        rewardText = '1 Костетом';
       } else if (face===4){
         if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
         state.bosses.hitStocks.enema = clamp((parseInt(state.bosses.hitStocks.enema||0,10)||0) + 1, 0, 999999);
