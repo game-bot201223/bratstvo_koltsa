@@ -2438,73 +2438,73 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e0) { if (!__dbgFreeze && IS_DEV) __lastCloudFn = String(fnName||''); }
     try { if (!__dbgFreeze && IS_DEV) __lastCloudTs = now(); } catch (e00) { if (!__dbgFreeze && IS_DEV) __lastCloudTs = (new Date()).getTime(); }
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': String(SUPABASE_ANON_KEY||''),
-        'Authorization': 'Bearer ' + String(SUPABASE_ANON_KEY||''),
-        'x-telegram-init-data': initData
-      },
-      body: JSON.stringify(bodyObj||{})
+    const reqKey = (()=>{
+      try { return String(fnName||'') + '::' + JSON.stringify(bodyObj||{}); } catch (e) { return String(fnName||''); }
+    })();
+    return await cloudOnce('act:'+reqKey, async ()=>{
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': String(SUPABASE_ANON_KEY||''),
+          'Authorization': 'Bearer ' + String(SUPABASE_ANON_KEY||''),
+          'x-telegram-init-data': initData
+        },
+        body: JSON.stringify(bodyObj||{})
+      });
+      const text = await resp.text().catch(()=> '');
+      const j = (()=>{ try { return text ? JSON.parse(text) : null; } catch (e) { return null; } })();
+      if (!resp.ok || !j || j.ok===false) {
+        let err = 'http_'+resp.status;
+        try {
+          if (j && typeof j === 'object') {
+            const e = j.error;
+            const r = j.reason;
+            const d = j.details;
+            const dbg = j.debug;
+            if (e && r) err = String(e)+':'+String(r);
+            else if (e) err = String(e);
+            else if (d) err = String(d);
+            try {
+              if (dbg && typeof dbg === 'object') {
+                const ph = dbg.provided_hash_prefix ? String(dbg.provided_hash_prefix) : '';
+                const ch = dbg.computed_hash_prefix ? String(dbg.computed_hash_prefix) : '';
+                const vk = dbg.variant_kind ? String(dbg.variant_kind) : '';
+                const ln = (typeof dbg.len !== 'undefined') ? String(dbg.len) : '';
+                const tail = (vk||ph||ch) ? (' dbg='+vk+':'+ph+'!='+ch+' len='+ln) : '';
+                if (tail) err = err + tail;
+                try {
+                  const step = dbg.step ? String(dbg.step) : '';
+                  const st = (typeof dbg.status !== 'undefined') ? String(dbg.status) : '';
+                  const stt = dbg.status_text ? String(dbg.status_text) : '';
+                  const sTail = (step || st || stt) ? (' srv='+step+' '+st+' '+stt) : '';
+                  if (sTail) err = err + sTail.replace(/\s+/g,' ').trim().replace(/^/,' ');
+                } catch (e7) {}
+              }
+            } catch (e9) {}
+            try {
+              if (d && typeof d === 'string') {
+                const dd = String(d||'').replace(/\s+/g,' ').trim();
+                if (dd) err = err + ' det=' + dd;
+              }
+            } catch (e8) {}
+          }
+        } catch (e0) {}
+        try {
+          if ((!j || typeof j !== 'object') && text) {
+            const t = String(text||'').replace(/\s+/g,' ').trim();
+            if (t) err = err + ':' + t.slice(0, 120);
+          }
+        } catch (e1) {}
+        try {
+          if (!__dbgFreeze && IS_DEV) __lastCloudErr = String(err||'');
+          if (IS_DEV) dbgUpdate();
+        } catch (e2) {}
+        throw new Error(String(err));
+      }
+      try { if (IS_DEV) dbgUpdate(); } catch (e3) {}
+      return j;
     });
-    const text = await resp.text().catch(()=> '');
-    const j = (()=>{ try { return text ? JSON.parse(text) : null; } catch (e) { return null; } })();
-    if (!resp.ok || !j || j.ok===false) {
-      let err = 'http_'+resp.status;
-      try {
-        if (j && typeof j === 'object') {
-          const e = j.error;
-          const r = j.reason;
-          const d = j.details;
-          const dbg = j.debug;
-          if (e && r) err = String(e)+':'+String(r);
-          else if (e) err = String(e);
-          else if (d) err = String(d);
-          try {
-            if (dbg && typeof dbg === 'object') {
-              const ph = dbg.provided_hash_prefix ? String(dbg.provided_hash_prefix) : '';
-              const ch = dbg.computed_hash_prefix ? String(dbg.computed_hash_prefix) : '';
-              const vk = dbg.variant_kind ? String(dbg.variant_kind) : '';
-              const ln = (typeof dbg.len !== 'undefined') ? String(dbg.len) : '';
-              const tail = (vk||ph||ch) ? (' dbg='+vk+':'+ph+'!='+ch+' len='+ln) : '';
-              if (tail) err = err + tail;
-
-              // generic server debug
-              try {
-                const step = dbg.step ? String(dbg.step) : '';
-                const st = (typeof dbg.status !== 'undefined') ? String(dbg.status) : '';
-                const stt = dbg.status_text ? String(dbg.status_text) : '';
-                const sTail = (step || st || stt) ? (' srv='+step+' '+st+' '+stt) : '';
-                if (sTail) err = err + sTail.replace(/\s+/g,' ').trim().replace(/^/,' ');
-              } catch (e7) {}
-            }
-          } catch (e9) {}
-
-          try {
-            if (d && typeof d === 'string') {
-              const dd = String(d||'').replace(/\s+/g,' ').trim();
-              if (dd) err = err + ' det=' + dd;
-            }
-          } catch (e8) {}
-        }
-      } catch (e0) {}
-      try {
-        if ((!j || typeof j !== 'object') && text) {
-          const t = String(text||'').replace(/\s+/g,' ').trim();
-          if (t) err = err + ':' + t.slice(0, 120);
-        }
-      } catch (e1) {}
-      try {
-        if (!__dbgFreeze && IS_DEV) __lastCloudErr = String(err||'');
-        if (IS_DEV) dbgUpdate();
-      } catch (e2) {}
-      throw new Error(String(err));
-    }
-    // Do not clear __lastCloudErr on success so that the last error
-    // remains visible on screen long enough to inspect/copy.
-    try { if (IS_DEV) dbgUpdate(); } catch (e3) {}
-    return j;
   }
 
   async function sbFnCallSkipNull(fnName, payload){
