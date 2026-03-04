@@ -295,7 +295,7 @@ async function postgrestApplyBossDamage(
   dmg: number,
   maxHp: number,
   expiresAt: string,
-): Promise<boolean> {
+): Promise<{ ok: boolean; status?: number; statusText?: string; body?: string }> {
   try {
     const url = projectUrl.replace(/\/$/, "") + "/rest/v1/rpc/apply_boss_damage_v2"
     const resp = await fetch(url, {
@@ -313,9 +313,15 @@ async function postgrestApplyBossDamage(
         p_expires_at: expiresAt,
       }),
     })
-    return resp.ok
+    const text = await resp.text().catch(() => "")
+    return {
+      ok: resp.ok,
+      status: resp.status,
+      statusText: resp.statusText,
+      body: text ? text.slice(0, 900) : "",
+    }
   } catch (_e) {
-    return false
+    return { ok: false, status: 0, statusText: "fetch_error", body: "" }
   }
 }
 
@@ -484,6 +490,10 @@ Deno.serve(async (req: Request) => {
   const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
   const windowStartIso = new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()
 
+  let rpcOkCount = 0
+  let rpcFailCount = 0
+  let rpcFirstErr: any = null
+
   // Apply damage server-side immediately so recipient boss HP updates even if offline
   // Best-effort: failure here should not block logging events.
   const rows = await Promise.all(
@@ -521,10 +531,35 @@ Deno.serve(async (req: Request) => {
 
       try {
         if (applied > 0) {
-          await postgrestApplyBossDamage(projectUrl, serviceKey, String(toTgId), bossId, applied, def.max_hp, expiresAt)
+          const r = await postgrestApplyBossDamage(projectUrl, serviceKey, String(toTgId), bossId, applied, def.max_hp, expiresAt)
+          if (r && r.ok) {
+            rpcOkCount += 1
+          } else {
+            rpcFailCount += 1
+            if (!rpcFirstErr) {
+              rpcFirstErr = {
+                step: "rpc_apply_boss_damage_v2",
+                to_tg_id: String(toTgId),
+                status: r?.status,
+                status_text: r?.statusText,
+                body: r?.body,
+              }
+            }
+            applied = 0
+          }
         }
       } catch (_e2) {
-        // ignore
+        rpcFailCount += 1
+        if (!rpcFirstErr) {
+          rpcFirstErr = {
+            step: "rpc_apply_boss_damage_v2",
+            to_tg_id: String(toTgId),
+            status: 0,
+            status_text: "exception",
+            body: "",
+          }
+        }
+        applied = 0
       }
 
       return {
@@ -565,7 +600,19 @@ Deno.serve(async (req: Request) => {
     )
   }
 
-  return new Response(JSON.stringify({ ok: true, inserted: rows.length, debug: { recipients: recArr.length } }), {
+  return new Response(
+    JSON.stringify({
+      ok: true,
+      inserted: rows.length,
+      debug: {
+        recipients: recArr.length,
+        rpc_ok: rpcOkCount,
+        rpc_fail: rpcFailCount,
+        rpc_first_error: rpcFirstErr,
+      },
+    }),
+    {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
-  })
+    },
+  )
 })
