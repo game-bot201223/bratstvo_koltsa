@@ -2580,6 +2580,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       await cloudOnce('pull:boss_fights', ()=>bossFightsCloudPull());
     } catch (e) {}
   }
+  async function bossFightStartCloud(bossId){
+    try {
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return null;
+      return await sbFnCall('boss_fight_start', { initData: tgInitData(), boss_id: bossId });
+    } catch (e) { return null; }
+  }
   async function bossFightHitCloud(bossId, dmg){
     try {
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return null;
@@ -6120,10 +6126,41 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
         if (!bossHasAccess(id)) { toast('Не хватает ключей','lose'); return; }
 
-        state.rings -= priceR2;
-        state.bosses.strikes = clamp((parseInt(state.bosses.strikes||0,10)||0) + 1, 0, 99);
-        toast('+1 атака','win');
-        save();
+        // HARD MODE: only apply local spend if server accepted the fight start
+        if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+          bossFightStartCloud(id).then((sr)=>{
+            try {
+              if (!(sr && sr.ok)) { toast('СЕРВЕР: ERR','lose'); return; }
+            } catch (e0) { toast('СЕРВЕР: ERR','lose'); return; }
+
+            state.rings -= priceR2;
+            state.bosses.strikes = clamp((parseInt(state.bosses.strikes||0,10)||0) + 1, 0, 99);
+            toast('+1 атака','win');
+            save();
+
+            state.bosses.pendingAttackId = id;
+            state.bosses.activeFightId = id;
+            window.__skipBossFightGuard = true;
+            window.__ignoreOverlayClickOnce = true;
+            showModal('mBossFight');
+            hideModal('mBossAttack');
+            try {
+              const f0 = bfEnsureFight(id);
+              if (f0 && sr && sr.fight && sr.fight.expires_at) {
+                f0.expiresTs = (new Date(String(sr.fight.expires_at))).getTime();
+                bfSetFight(id, f0);
+              }
+            } catch (e0) {}
+            try { bossFightsCloudPullMaybe(true); } catch (e9) {}
+            bfRender(id);
+            save();
+
+            renderBosses();
+            renderHUD();
+            haptic('light');
+          }).catch(()=>{ toast('СЕРВЕР: ERR','lose'); });
+          return;
+        }
 
         state.bosses.pendingAttackId = id;
         state.bosses.activeFightId = id;
@@ -6194,6 +6231,43 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
       if (!bossDailyCanStart(id)) { toast('Лимит боёв на сегодня: 10/10','lose'); return; }
 
+      // HARD MODE: persist fight on server immediately; apply local state only on ok
+      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+        bossFightStartCloud(id).then((sr)=>{
+          try {
+            if (!(sr && sr.ok)) { toast('СЕРВЕР: ERR','lose'); return; }
+          } catch (e0) { toast('СЕРВЕР: ERR','lose'); return; }
+
+          const f = bfEnsureFight(id);
+          if (!f) {
+            toast('Не удалось начать бой. Попробуй обновить страницу.','lose');
+            haptic('light');
+            return;
+          }
+          try {
+            if (sr && sr.fight && sr.fight.expires_at) {
+              f.expiresTs = (new Date(String(sr.fight.expires_at))).getTime();
+              bfSetFight(id, f);
+            }
+          } catch (e0) {}
+
+          bossDailyInc(id);
+          const rr = bossReq(id);
+          if (rr){
+            const have = bossKeyCount(rr.itemKey);
+            state.bosses.keys[String(rr.itemKey)] = Math.max(0, have - rr.need);
+          }
+          state.bosses.activeFightId = id;
+          window.__ignoreOverlayClickOnce = true;
+          hideModal('mBossAttack');
+          showModal('mBossFight');
+          try { bossFightsCloudPullMaybe(true); } catch (e9) {}
+          bfRender(id);
+          save();
+        }).catch(()=>{ toast('СЕРВЕР: ERR','lose'); });
+        return;
+      }
+
       const f = bfEnsureFight(id);
       if (!f) {
         toast('Не удалось начать бой. Попробуй обновить страницу.','lose');
@@ -6217,7 +6291,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   function doBossAttack(id){
     if ((state.bosses.strikes||0) <= 0){ toast('Нет ударов. Вернутся позже.','lose'); return; }
-    state.bosses.strikes -= 1;
+    if (!window.__bossHitInFlight) window.__bossHitInFlight = {};
+    try {
+      const k = String(id);
+      if (window.__bossHitInFlight[k]) return;
+      window.__bossHitInFlight[k] = true;
+    } catch (e0) {}
     const b = BOSSES.find(x=>x.id===id);
     if (!b) return;
     let tot = 0;
@@ -6225,18 +6304,32 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const stat = Math.max(0, Math.floor(Math.max(0, Math.floor(tot)) / 14));
     const raw = Math.max(1, 50 + stat);
     const dmg = raw;
-    const hp = bossHp(id);
-    const real = Math.min(parseInt(hp||0,10)||0, dmg);
-    bossFightHitCloud(id, real).then((r)=>{
+    const ff0 = bfGetFight(id);
+    const prevHp = ff0 ? (parseInt(ff0.hp||0,10)||0) : (parseInt(bossHp(id)||0,10)||0);
+    const wantApply = Math.min(Math.max(0, prevHp), dmg);
+    bossFightHitCloud(id, wantApply).then((r)=>{
       try {
         const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+        const applied = (fhp!==null) ? Math.max(0, prevHp - Math.max(0, fhp)) : wantApply;
+        const overflow = Math.max(0, dmg - applied);
+
+        // only now spend a strike (HARD MODE)
+        state.bosses.strikes = Math.max(0, (parseInt(state.bosses.strikes||0,10)||0) - 1);
+
         if (fhp!==null) {
           if (!state.bosses.cloud) state.bosses.cloud = {};
           state.bosses.cloud[String(id)] = Object.assign({}, (state.bosses.cloud[String(id)]||{}), { hp: fhp, max_hp: b.maxHP });
         }
       } catch (e0) {}
-      try { bossHelpSend(id, real); } catch (e0) {}
-      feedAdd('Ты ударил босса: '+b.name+' -'+real, 'BOSS');
+      try {
+        const fhp2 = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+        const applied2 = (fhp2!==null) ? Math.max(0, prevHp - Math.max(0, fhp2)) : wantApply;
+        const overflow2 = Math.max(0, dmg - applied2);
+        if (overflow2>0) bossHelpSend(id, overflow2);
+        feedAdd('Ты ударил босса: '+b.name+' -'+applied2, 'BOSS');
+      } catch (e0) {
+        feedAdd('Ты ударил босса: '+b.name+' -'+wantApply, 'BOSS');
+      }
       try { bossFightsCloudPullMaybe(); } catch (e1) {}
       save();
       renderAll();
@@ -6244,11 +6337,19 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         toast('БОСС ПОВЕРЖЕН. Забери награду.','win');
         haptic('heavy');
       } else {
-        toast('-'+real+' HP','tooth');
+        try {
+          const fhp3 = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+          const applied3 = (fhp3!==null) ? Math.max(0, prevHp - Math.max(0, fhp3)) : wantApply;
+          toast('-'+applied3+' HP','tooth');
+        } catch (e0) {
+          toast('-'+wantApply+' HP','tooth');
+        }
         haptic('light');
       }
     }).catch(()=>{
       toast('СЕРВЕР: ERR','lose');
+    }).finally(()=>{
+      try { if (window.__bossHitInFlight) delete window.__bossHitInFlight[String(id)]; } catch (e0) {}
     });
   }
 
