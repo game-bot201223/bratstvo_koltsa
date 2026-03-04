@@ -1383,11 +1383,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         try {
           if (!bossUiOpen()) return;
           const t = now();
-          if (__bossHelpLast && (t - __bossHelpLast) < 5000) return;
+          if (__bossHelpLast && (t - __bossHelpLast) < 1200) return;
           __bossHelpLast = t;
           bossHelpPullOnce().catch(()=>{});
         } catch (e0) {}
-      }, 6000);
+      }, 1500);
     } catch (e) {}
   }
 

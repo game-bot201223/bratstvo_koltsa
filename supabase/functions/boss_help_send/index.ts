@@ -192,6 +192,18 @@ function bossDef(bossId: number): { boss_id: number; max_hp: number } | null {
   return { boss_id: bossId, max_hp: maxHp }
 }
 
+function getActiveBossIdFromState(st: any): number {
+  try {
+    if (!st || typeof st !== "object") return 0
+    const bosses = (st as any).bosses
+    if (!bosses || typeof bosses !== "object") return 0
+    const bid = safeInt((bosses as any).activeFightId ?? (bosses as any).active_fight_id, 0)
+    return bid > 0 ? bid : 0
+  } catch (_e) {
+    return 0
+  }
+}
+
 async function postgrestGetPlayer(projectUrl: string, serviceKey: string, tgId: string): Promise<any | null> {
   const url = projectUrl.replace(/\/$/, "") +
     `/rest/v1/players?tg_id=eq.${encodeURIComponent(tgId)}&select=tg_id,name,state&limit=1`
@@ -551,29 +563,43 @@ Deno.serve(async (req: Request) => {
   const rows = await Promise.all(
     recArr.map(async (toTgId) => {
       let applied = 0
+      let targetBossId = bossId
+      let targetDef = def
       try {
         const pr = await postgrestGetPlayer(projectUrl, serviceKey, String(toTgId))
         const st = pr && typeof pr === "object" ? (pr as any).state : null
+
+        // Apply help to recipient's active boss (design requirement).
+        // If recipient does not have an active boss, fallback to sender bossId.
+        try {
+          const ab = getActiveBossIdFromState(st)
+          const dd = ab ? bossDef(ab) : null
+          if (dd) {
+            targetBossId = ab
+            targetDef = dd
+          }
+        } catch (_e0) {}
+
         if (clanId) {
           const lvlRaw = st && typeof st === "object" ? (st as any).friendHelpLvl : 0
           const lvl = clampInt(safeInt(lvlRaw, 0), 0, 10)
           const capPct = 0.10 + lvl * 0.01
-          const cap = Math.max(0, Math.floor(def.max_hp * capPct))
-          const used = await postgrestGetUsedHelpDamage(projectUrl, serviceKey, String(toTgId), senderTgId, bossId, windowStartIso)
+          const cap = Math.max(0, Math.floor(targetDef.max_hp * capPct))
+          const used = await postgrestGetUsedHelpDamage(projectUrl, serviceKey, String(toTgId), senderTgId, targetBossId, windowStartIso)
           const remain = Math.max(0, cap - Math.max(0, used))
           applied = Math.max(0, Math.min(dmg, remain))
         } else {
           const lvlRaw = st && typeof st === "object" ? (st as any).friendHelpLvl : 0
           const lvl = clampInt(safeInt(lvlRaw, 0), 0, 10)
           const capPct = 0.10 + lvl * 0.01
-          const cap = Math.max(0, Math.floor(def.max_hp * capPct))
+          const cap = Math.max(0, Math.floor(targetDef.max_hp * capPct))
           applied = Math.max(0, Math.min(dmg, cap))
         }
       } catch (_e) {
         const capPct = 0.10
-        const cap = Math.max(0, Math.floor(def.max_hp * capPct))
+        const cap = Math.max(0, Math.floor(targetDef.max_hp * capPct))
         if (clanId) {
-          const used = await postgrestGetUsedHelpDamage(projectUrl, serviceKey, String(toTgId), senderTgId, bossId, windowStartIso)
+          const used = await postgrestGetUsedHelpDamage(projectUrl, serviceKey, String(toTgId), senderTgId, targetBossId, windowStartIso)
           const remain = Math.max(0, cap - Math.max(0, used))
           applied = Math.max(0, Math.min(dmg, remain))
         } else {
@@ -583,7 +609,7 @@ Deno.serve(async (req: Request) => {
 
       try {
         if (applied > 0) {
-          const r = await postgrestApplyBossDamage(projectUrl, serviceKey, String(toTgId), bossId, applied, def.max_hp, expiresAt)
+          const r = await postgrestApplyBossDamage(projectUrl, serviceKey, String(toTgId), targetBossId, applied, targetDef.max_hp, expiresAt)
           if (r && r.ok) {
             rpcOkCount += 1
           } else {
@@ -592,6 +618,7 @@ Deno.serve(async (req: Request) => {
               rpcFirstErr = {
                 step: "rpc_apply_boss_damage_v2",
                 to_tg_id: String(toTgId),
+                boss_id: targetBossId,
                 status: r?.status,
                 status_text: r?.statusText,
                 body: r?.body,
@@ -618,7 +645,7 @@ Deno.serve(async (req: Request) => {
         to_tg_id: toTgId,
         from_tg_id: senderTgId,
         from_name: senderName,
-        boss_id: bossId,
+        boss_id: targetBossId,
         dmg: applied,
         clan_id: clanId || null,
         created_at: ts,
