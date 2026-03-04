@@ -299,9 +299,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
    font-weight:900; font-size:30px; letter-spacing:2px;
    box-shadow: 0 18px 45px rgba(45,30,18,.18), inset 0 1px 0 rgba(255,255,255,.22);
    cursor:pointer;
+   touch-action: manipulation;
+   user-select:none;
  }
  .dieBox:active{ transform: translateY(1px); }
  .dicePrimary{ margin-top:24px; padding:14px 16px; font-size:12px; letter-spacing:4px; width:min(320px, 76%); margin-left:auto; margin-right:auto; display:block; }
+
+  #diceRoll{ touch-action: manipulation; }
 
  .bossRow{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:flex-start;}
  .bossMini{width:140px;height:140px;border-radius:26px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:56px;}
@@ -6316,6 +6320,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     return out;
   }
 
+  let __diceClickTs = 0;
+  function diceClickOk(){
+    const t = now();
+    if (__diceClickTs && (t - __diceClickTs) < 60) return false;
+    __diceClickTs = t;
+    return true;
+  }
+
   function diceStart(){
     if ((state.gold||0) < 1){ toast('Нужно 1 🪙','lose'); return false; }
     state.gold -= 1;
@@ -6339,6 +6351,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   function diceRerollOne(i){
+    if (!diceClickOk()) return;
     const g = state.diceGame;
     if (!g || !g.active) return;
     const max = parseInt(g.max||10,10)||10;
@@ -6430,6 +6443,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   function rollDice(){
+    if (!diceClickOk()) return;
     const g = state.diceGame;
     if (g && g.active) {
       diceClaim();

@@ -219,8 +219,10 @@ async function postgrestGetClan(projectUrl: string, serviceKey: string, clanId: 
 }
 
 async function postgrestFindPlayerByNameLower(projectUrl: string, serviceKey: string, nameLower: string): Promise<any | null> {
+  // players table does not have a name_lower column; use case-insensitive match on name.
+  // NOTE: no wildcards; exact match but case-insensitive.
   const url = projectUrl.replace(/\/$/, "") +
-    `/rest/v1/players?name_lower=eq.${encodeURIComponent(nameLower)}&select=tg_id,name&limit=1`
+    `/rest/v1/players?name=ilike.${encodeURIComponent(nameLower)}&select=tg_id,name&limit=1`
   const resp = await fetch(url, {
     method: "GET",
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
