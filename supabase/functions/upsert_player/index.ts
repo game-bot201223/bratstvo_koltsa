@@ -113,6 +113,26 @@ async function postgrestGetPlayerState(projectUrl: string, serviceKey: string, t
   return row && typeof row === "object" ? (row as any).state : null
 }
 
+async function postgrestFindNameOwner(projectUrl: string, serviceKey: string, name: string): Promise<string> {
+  try {
+    const nm = String(name || "").trim()
+    if (!nm) return ""
+    const url = projectUrl.replace(/\/$/, "") +
+      `/rest/v1/players?select=tg_id&name=ilike.${encodeURIComponent(nm)}&limit=1`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp.ok) return ""
+    const rows = await resp.json().catch(() => [])
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null
+    const tid = row && typeof row === "object" ? String((row as any).tg_id || "").trim() : ""
+    return tid
+  } catch (_e) {
+    return ""
+  }
+}
+
 async function creditReferrerGold(projectUrl: string, serviceKey: string, refTgId: string, amount: number): Promise<boolean> {
   const st = await postgrestGetPlayerState(projectUrl, serviceKey, refTgId)
   const stateObj = (st && typeof st === "object") ? st as Record<string, unknown> : {}
@@ -261,7 +281,19 @@ Deno.serve(async (req: Request) => {
   } catch (_e) {}
 
   const name = String(body?.name || verified.user?.first_name || verified.user?.username || "Player").trim() || "Player"
-  const photoUrl = String(body?.photo_url || verified.user?.photo_url || "")
+  // Prefer verified Telegram avatar; client may be stale.
+  const photoUrl = String(verified.user?.photo_url || body?.photo_url || "")
+
+  // Enforce unique nickname (case-insensitive) at the app level for better UX.
+  try {
+    const owner = await postgrestFindNameOwner(projectUrl, serviceKey, name)
+    if (owner && owner !== tgId) {
+      return new Response(JSON.stringify({ ok: false, error: "name_taken" }), {
+        status: 409,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+  } catch (_e) {}
 
   let state: unknown = null
   try {

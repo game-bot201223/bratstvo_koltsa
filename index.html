@@ -2629,9 +2629,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           }
         } catch (e0) {}
 
+        let photo = '';
+        try {
+          const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+          photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
+        } catch (e0) { photo = ''; }
+
         await sbFnCall('upsert_player', {
           initData,
           name: state.playerName,
+          photo_url: String(photo||'').trim(),
           level: state.level,
           arena_power: (state.arena && (state.arena.power||0)) || 0,
           arena_wins: (state.arena && (state.arena.wins||0)) || 0,
@@ -2647,6 +2654,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         __srvDirty = true;
         try {
           const msg = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim();
+          if (/name_taken/i.test(msg)) {
+            // keep local name; user will see the error when renaming
+            $('syncState').textContent = 'СЕЙВ: NAME TAKEN';
+            $('syncState').style.opacity = '1';
+            return;
+          }
           $('syncState').textContent = 'СЕЙВ: CLOUD ERR ' + msg.slice(0, 32);
           $('syncState').style.opacity = '1';
         } catch (e2) {}
@@ -7787,7 +7800,53 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     $('nameBtn').onclick = ()=>{
       const n = prompt('Имя персонажа:', state.playerName || 'PLAYER');
       if (!n) return;
-      state.playerName = String(n).trim().substring(0, 14) || 'PLAYER';
+      const prev = String(state.playerName||'PLAYER');
+      const next = String(n).trim().substring(0, 14) || 'PLAYER';
+
+      // Cloud: validate and save on server first, then apply locally.
+      try {
+        if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+          let photo = '';
+          try {
+            const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+            photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
+          } catch (e0) { photo = ''; }
+          const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
+          sbFnCall('upsert_player', {
+            initData: tgInitData(),
+            name: next,
+            photo_url: String(photo||'').trim(),
+            level: state.level,
+            arena_power: (state.arena && (state.arena.power||0)) || 0,
+            arena_wins: (state.arena && (state.arena.wins||0)) || 0,
+            arena_losses: (state.arena && (state.arena.losses||0)) || 0,
+            stats_sum: statsSum,
+            boss_wins: (state.bosses && state.bosses.wins) || 0,
+            referrer_tg_id: '',
+            state: cloudStateSnapshot(state)
+          }).then(()=>{
+            state.playerName = next;
+            save();
+            renderAll();
+            haptic('light');
+            try { __srvLastSent = now(); } catch (e0) {}
+          }).catch((e)=>{
+            const msg = String((e && e.message) || e || 'err');
+            if (/name_taken/i.test(msg)) {
+              state.playerName = prev;
+              save();
+              renderAll();
+              toast('Имя занято','lose');
+              return;
+            }
+            toast('СЕРВЕР: ERR','lose');
+          });
+          return;
+        }
+      } catch (e0) {}
+
+      // Local-only: apply immediately.
+      state.playerName = next;
       save();
       renderAll();
       haptic('light');
@@ -8043,9 +8102,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             try {
               const initData = tgInitData();
               const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
+              let photo = '';
+              try {
+                const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+                photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
+              } catch (e0) { photo = ''; }
               const ur = await sbFnCall('upsert_player', {
                 initData,
                 name: state.playerName,
+                photo_url: String(photo||'').trim(),
                 level: state.level,
                 arena_power: (state.arena && (state.arena.power||0)) || 0,
                 arena_wins: (state.arena && (state.arena.wins||0)) || 0,
