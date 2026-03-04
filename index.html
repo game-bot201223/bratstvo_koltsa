@@ -2566,7 +2566,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         name: String(name||'').trim().substring(0,18),
         photo_url: String(photo||'').trim()
       });
+      try { districtLeadersCloudPullMaybe(); } catch (e0) {}
     } catch (e) {}
+  }
+
+  async function topPlayersCloudList(kind, limit){
+    try {
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return [];
+      const r = await sbFnCall('top_players_list', { initData: tgInitData(), kind: String(kind||'LVL'), limit: Math.min(100, Math.max(1, parseInt(limit||100,10)||100)) });
+      return (r && Array.isArray(r.players)) ? r.players : [];
+    } catch (e) { return []; }
   }
 
   function cloudStateSnapshot(s){
@@ -5729,6 +5738,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             } catch (e4) {}
             save();
             try { bossFightsCloudPullMaybe(); } catch (e1) {}
+            try { bossLastWinnersCloudPullMaybe(true); } catch (e2) {}
             hideModal('mBossFightRes');
             openScreen('mBoss');
             renderBosses();
@@ -7663,7 +7673,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     $('settingsBtn').onclick = ()=>{ showModal('mSettings'); renderAll(); haptic('light'); };
     $('shopBtn').onclick = ()=>{ showModal('mShop'); renderShop(); haptic('light'); };
-    $('btnDistricts').onclick = ()=>{ openScreen('mDistricts'); renderAll(); haptic('light'); };
+    $('btnDistricts').onclick = ()=>{
+      openScreen('mDistricts');
+      try { districtLeadersCloudPullMaybe(); } catch (e0) {}
+      renderDistricts();
+      haptic('light');
+    };
     $('btnArena').onclick = ()=>{
       if (isGroupBattleActive()) {
         gfEnsureBattle();
@@ -7878,10 +7893,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function renderTop100(kind){
     const box = $('top100List');
     if (!box) return;
-    const me = state.playerName || 'PLAYER';
-    const lvl = parseInt(state.level||1,10)||1;
-    const stats = GYM_STATS.reduce((a,s)=>a + (parseInt(state.gym && state.gym[s.key] || 1,10) || 1), 0);
-    const bossesWins = 0;
+    kind = String(kind||'LVL').toUpperCase();
 
     if (kind==='CLANS'){
       try { clanDbSeed(); } catch (e0) {}
@@ -7916,36 +7928,29 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return;
     }
 
-    const rows = [];
-    for (let i=1;i<=99;i++){
-      rows.push({
-        name: 'Игрок ' + i,
-        lvl: 1 + Math.floor(Math.random()*60),
-        stats: 7 + Math.floor(Math.random()*900),
-        boss: Math.floor(Math.random()*60)
-      });
-    }
-    rows.push({ name: me+' (ты)', lvl, stats, boss: bossesWins });
-
-    let sorted = rows;
-    if (kind==='LVL') sorted = rows.slice().sort((a,b)=>b.lvl-a.lvl);
-    if (kind==='WEALTH') sorted = rows.slice().sort((a,b)=>b.stats-a.stats);
-    if (kind==='BOSS') sorted = rows.slice().sort((a,b)=>b.boss-a.boss);
-    sorted = sorted.slice(0,100);
-
-    box.innerHTML = sorted.map((r,idx)=>{
-      const medal = idx===0 ? '🥇' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
-      const mStyle = idx===0 ? 'color:var(--gold);' : (idx===1 ? 'color:rgba(226,232,240,.95);' : (idx===2 ? 'color:rgba(251,146,60,.95);' : ''));
-      const v = (kind==='LVL') ? ('УР. '+r.lvl) : (kind==='WEALTH' ? (String(r.stats)) : (String(r.boss)));
-      const left = medal ? ('<div class="badge" style="padding:6px 8px; font-size:11px; '+mStyle+'">'+medal+'</div>') : '';
-      return '<div class="row">'
-        + '<div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1">'
-        + left
-        + '<div style="min-width:0; font-size:12px; opacity:.9">#'+(idx+1)+' '+r.name+'</div>'
-        + '</div>'
-        + '<div class="badge" style="padding:6px 8px; font-size:11px">'+v+'</div>'
-        + '</div>';
-    }).join('');
+    box.innerHTML = '<div style="opacity:.75; font-size:12px">Загрузка...</div>';
+    topPlayersCloudList(kind, 100).then((rows)=>{
+      const list = Array.isArray(rows) ? rows : [];
+      box.innerHTML = list.length ? list.map((r,idx)=>{
+        const medal = idx===0 ? '🥇' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
+        const mStyle = idx===0 ? 'color:var(--gold);' : (idx===1 ? 'color:rgba(226,232,240,.95);' : (idx===2 ? 'color:rgba(251,146,60,.95);' : ''));
+        const v = (kind==='LVL') ? ('УР. '+(parseInt(r && r.level || 1,10)||1)) : (kind==='WEALTH' ? (String(parseInt(r && r.stats_sum || 0,10)||0)) : (String(parseInt(r && r.boss_wins || 0,10)||0)));
+        const left = medal ? ('<div class="badge" style="padding:6px 8px; font-size:11px; '+mStyle+'">'+medal+'</div>') : '';
+        const nm = r && r.name ? String(r.name) : '—';
+        const photo = r && r.photo_url ? String(r.photo_url) : '';
+        const ava = photo ? ('<img src="'+photo.replace(/"/g,'&quot;')+'" style="width:28px;height:28px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.45);" />') : '<div style="width:28px;height:28px;border-radius:999px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.20);"></div>';
+        return '<div class="row">'
+          + '<div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1">'
+          + left
+          + '<div style="min-width:0; display:flex; flex-direction:column; gap:6px;">'
+          + '<div style="min-width:0; font-size:12px; opacity:.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">#'+(idx+1)+' '+nm+'</div>'
+          + '<div style="display:flex; justify-content:flex-start;">'+ava+'</div>'
+          + '</div>'
+          + '</div>'
+          + '<div class="badge" style="padding:6px 8px; font-size:11px">'+v+'</div>'
+          + '</div>';
+      }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+    }).catch(()=>{ box.innerHTML = '<div style="opacity:.75; font-size:12px">—</div>'; });
   }
 
   // --- Clock
