@@ -270,19 +270,28 @@ async function bestEffortPropagateRename(
 
 async function postgrestFindNameOwner(projectUrl: string, serviceKey: string, name: string): Promise<string> {
   try {
-    const nm = String(name || "").trim()
+    const nm = sanitizeName(name)
     if (!nm) return ""
+    const nmNorm = normName(nm)
+    const likeExact = escapeLikeExact(nm)
     const url = projectUrl.replace(/\/$/, "") +
-      `/rest/v1/players?select=tg_id&name=ilike.${encodeURIComponent(nm)}&limit=1`
+      `/rest/v1/players?select=tg_id,name&name=ilike.${encodeURIComponent(likeExact)}&limit=5`
     const resp = await fetch(url, {
       method: "GET",
       headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
     })
     if (!resp.ok) return ""
     const rows = await resp.json().catch(() => [])
-    const row = Array.isArray(rows) && rows.length ? rows[0] : null
-    const tid = row && typeof row === "object" ? String((row as any).tg_id || "").trim() : ""
-    return tid
+    const arr = Array.isArray(rows) ? rows : []
+    for (const row of arr) {
+      if (!row || typeof row !== "object") continue
+      const n2 = String((row as any).name || "").trim()
+      if (!n2) continue
+      if (normName(n2) !== nmNorm) continue
+      const tid = String((row as any).tg_id || "").trim()
+      if (tid) return tid
+    }
+    return ""
   } catch (_e) {
     return ""
   }
@@ -344,10 +353,20 @@ async function addFriendToReferrer(
   return resp.ok
 }
 
-function safeNonNegInt(v: unknown): number {
+function safeNonNegInt(v: unknown, def = 0): number {
   const n = Number(v)
-  if (!Number.isFinite(n)) return 0
-  return Math.max(0, Math.floor(n))
+  if (!Number.isFinite(n)) return def
+  if (n < 0) return def
+  return Math.floor(n)
+}
+
+function sanitizeName(s: unknown): string {
+  return String(s || "").trim().slice(0, 18)
+}
+
+function escapeLikeExact(s: string): string {
+  // Escape LIKE wildcards so user names containing %/_ won't match other rows.
+  return String(s || "").replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
 }
 
 async function postgrestRateLimitAllow(
@@ -436,7 +455,7 @@ Deno.serve(async (req: Request) => {
   } catch (_e) {}
 
   const prevName = await postgrestGetPlayerName(projectUrl, serviceKey, tgId).catch(() => "")
-  const name = String(body?.name || verified.user?.first_name || verified.user?.username || "Player").trim() || "Player"
+  const name = sanitizeName(body?.name || verified.user?.first_name || verified.user?.username || "Player") || "Player"
   // Prefer verified Telegram avatar; client may be stale.
   const photoUrl = String(verified.user?.photo_url || body?.photo_url || "")
 
