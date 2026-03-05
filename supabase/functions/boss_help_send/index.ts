@@ -84,7 +84,7 @@ async function postgrestFindActiveBossFightMetaForBoss(
   serviceKey: string,
   ownerTgId: string,
   bossId: number,
-): Promise<{ boss_id: number; updated_at: string } | null> {
+): Promise<{ boss_id: number; fight_started_at: string } | null> {
   try {
     const bid = safeInt(bossId, 0)
     if (bid <= 0) return null
@@ -95,7 +95,7 @@ async function postgrestFindActiveBossFightMetaForBoss(
       `&reward_claimed=eq.false` +
       `&hp=gt.0` +
       `&or=${encodeURIComponent(`(expires_at.is.null,expires_at.gt.${nowIso})`)}` +
-      `&select=boss_id,updated_at&order=updated_at.desc&limit=1`
+      `&select=boss_id,fight_started_at&order=updated_at.desc&limit=1`
     const resp = await fetch(url, {
       method: "GET",
       headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
@@ -104,9 +104,9 @@ async function postgrestFindActiveBossFightMetaForBoss(
     const rows = await resp.json().catch(() => [])
     const row = Array.isArray(rows) && rows.length ? rows[0] : null
     const bid2 = safeInt(row && typeof row === "object" ? (row as any).boss_id : 0, 0)
-    const upd = row && typeof row === "object" ? String((row as any).updated_at || "").trim() : ""
+    const started = row && typeof row === "object" ? String((row as any).fight_started_at || "").trim() : ""
     if (bid2 <= 0) return null
-    return { boss_id: bid2, updated_at: upd }
+    return { boss_id: bid2, fight_started_at: started }
   } catch (_e) {
     return null
   }
@@ -230,7 +230,7 @@ function bossDef(bossId: number): { boss_id: number; max_hp: number } | null {
   return { boss_id: bossId, max_hp: maxHp }
 }
 
-type ActiveFightMeta = { boss_id: number; updated_at: string }
+type ActiveFightMeta = { boss_id: number; fight_started_at: string }
 
 async function postgrestFindActiveBossFightMeta(
   projectUrl: string,
@@ -244,7 +244,7 @@ async function postgrestFindActiveBossFightMeta(
       `&reward_claimed=eq.false` +
       `&hp=gt.0` +
       `&or=${encodeURIComponent(`(expires_at.is.null,expires_at.gt.${nowIso})`)}` +
-      `&select=boss_id,updated_at&order=updated_at.desc&limit=1`
+      `&select=boss_id,fight_started_at&order=updated_at.desc&limit=1`
     const resp = await fetch(url, {
       method: "GET",
       headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
@@ -253,9 +253,9 @@ async function postgrestFindActiveBossFightMeta(
     const rows = await resp.json().catch(() => [])
     const row = Array.isArray(rows) && rows.length ? rows[0] : null
     const bid = safeInt(row && typeof row === "object" ? (row as any).boss_id : 0, 0)
-    const upd = row && typeof row === "object" ? String((row as any).updated_at || "").trim() : ""
+    const started = row && typeof row === "object" ? String((row as any).fight_started_at || "").trim() : ""
     if (bid <= 0) return null
-    return { boss_id: bid, updated_at: upd }
+    return { boss_id: bid, fight_started_at: started }
   } catch (_e) {
     return null
   }
@@ -740,7 +740,7 @@ Deno.serve(async (req: Request) => {
         const st = pr && typeof pr === "object" ? (pr as any).state : null
 
         // used-help scope: for clan help we reset the per-sender cap when recipient starts a new fight.
-        // We do that by counting used help since the active fight's updated_at (best proxy for fight start/reset).
+        // We do that by counting used help since the active fight's fight_started_at (stable anchor).
         let usedSinceIso = windowStartIso
         let hasActiveFight = false
 
@@ -751,7 +751,7 @@ Deno.serve(async (req: Request) => {
           if (dd) {
             targetBossId = ab
             targetDef = dd
-            if (abm && abm.updated_at) usedSinceIso = String(abm.updated_at)
+            if (abm && abm.fight_started_at) usedSinceIso = String(abm.fight_started_at)
             hasActiveFight = true
           }
         } catch (_e1) {
