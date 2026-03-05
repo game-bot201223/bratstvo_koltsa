@@ -545,8 +545,29 @@ Deno.serve(async (req: Request) => {
   if (!clanId) {
     try {
       const st = senderRow?.state
-      const cid = st && typeof st === "object" ? String((st as any)?.clan?.id || "").trim().toUpperCase() : ""
-      clanId = sanitizeClanId(cid)
+      let cid = ""
+      if (st && typeof st === "object") {
+        // Preferred: state.clan.id
+        try { cid = String((st as any)?.clan?.id || "").trim() } catch (_e0) {}
+
+        // Some clients store clan id flat
+        if (!cid) {
+          try { cid = String((st as any)?.clanId || "").trim() } catch (_e1) {}
+        }
+        if (!cid) {
+          try { cid = String((st as any)?.clan_id || "").trim() } catch (_e2) {}
+        }
+
+        // Some clients store state.clan as string or as {id:...}
+        if (!cid) {
+          try {
+            const c = (st as any)?.clan
+            if (typeof c === "string") cid = String(c || "").trim()
+            else if (c && typeof c === "object") cid = String((c as any).id || "").trim()
+          } catch (_e3) {}
+        }
+      }
+      clanId = sanitizeClanId(String(cid || "").trim().toUpperCase())
     } catch (_e) {
       // ignore
     }
