@@ -8345,6 +8345,41 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   // --- Events
   function bindUI(){
+    try {
+      if (!window.__rapidClickMap) window.__rapidClickMap = {};
+      if (!window.__rapidClickBound) {
+        window.__rapidClickBound = true;
+        document.addEventListener('click', (ev)=>{
+          try {
+            if (!ev || !ev.target) return;
+            const t = ev.target;
+            const el = (t && t.closest) ? t.closest('button, a, [role="button"], .btn, .iconBtn') : null;
+            if (!el) return;
+            if (el && el.getAttribute && el.getAttribute('data-rapid-allow') === '1') return;
+            try { if (el && el.disabled) return; } catch (e0) {}
+            const tag = (el && el.tagName) ? String(el.tagName) : '';
+            const id = (el && el.id) ? String(el.id) : '';
+            const dk = (el && el.getAttribute) ? String(el.getAttribute('data-rapid-key')||'') : '';
+            let cls = '';
+            try { cls = (el && el.className) ? String(el.className) : ''; } catch (e1) { cls = ''; }
+            let txt = '';
+            try { txt = (el && el.textContent) ? String(el.textContent||'').replace(/\s+/g,' ').trim().slice(0,24) : ''; } catch (e2) { txt = ''; }
+            const key = dk || (tag + '|' + id + '|' + cls + '|' + txt);
+            const n = now();
+            const last = parseInt(window.__rapidClickMap[key]||0, 10) || 0;
+            const TH = 420;
+            if (last && (n - last) < TH) {
+              try { ev.preventDefault(); } catch (e3) {}
+              try { ev.stopPropagation(); } catch (e4) {}
+              try { ev.stopImmediatePropagation(); } catch (e5) {}
+              return;
+            }
+            window.__rapidClickMap[key] = n;
+          } catch (e6) {}
+        }, true);
+      }
+    } catch (e) {}
+
     document.querySelectorAll('[data-close]').forEach(b=>{
       b.onclick = ()=>hideModal(b.getAttribute('data-close'));
     });
