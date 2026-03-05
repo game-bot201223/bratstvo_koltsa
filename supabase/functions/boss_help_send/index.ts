@@ -720,37 +720,17 @@ Deno.serve(async (req: Request) => {
         // We do that by counting used help since the active fight's updated_at (best proxy for fight start/reset).
         let usedSinceIso = windowStartIso
 
-        // Prefer help to the same boss the sender hit IF recipient has an active fight for that boss.
-        // Otherwise fallback to recipient latest active boss fight.
         try {
-          const same = await postgrestFindActiveBossFightMetaForBoss(projectUrl, serviceKey, String(toTgId), bossId)
-          if (same && same.boss_id) {
-            const ddSame = bossDef(same.boss_id)
-            if (ddSame) {
-              targetBossId = same.boss_id
-              targetDef = ddSame
-              if (same.updated_at) usedSinceIso = String(same.updated_at)
-            }
+          const abm = await postgrestFindActiveBossFightMeta(projectUrl, serviceKey, String(toTgId))
+          const ab = abm && abm.boss_id ? abm.boss_id : 0
+          const dd = ab ? bossDef(ab) : null
+          if (dd) {
+            targetBossId = ab
+            targetDef = dd
+            if (abm && abm.updated_at) usedSinceIso = String(abm.updated_at)
           }
-        } catch (_e0) {
+        } catch (_e1) {
           // ignore
-        }
-
-        if (targetBossId === bossId) {
-          // already set to sender boss if possible
-        } else {
-          try {
-            const abm = await postgrestFindActiveBossFightMeta(projectUrl, serviceKey, String(toTgId))
-            const ab = abm && abm.boss_id ? abm.boss_id : 0
-            const dd = ab ? bossDef(ab) : null
-            if (dd) {
-              targetBossId = ab
-              targetDef = dd
-              if (abm && abm.updated_at) usedSinceIso = String(abm.updated_at)
-            }
-          } catch (_e1) {
-            // ignore
-          }
         }
 
         if (clanId) {
