@@ -1333,16 +1333,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             __lastCloudTs = now();
             dbgUpdate();
           }
-          // Surface only meaningful info to user.
-          try {
-            const t = now();
-            if (!window.__bossHelpToastTs || (t - window.__bossHelpToastTs) > 1200) {
-              window.__bossHelpToastTs = t;
-              if (rec<=0) toast('ПОМОЩЬ: некому (rec=0)','lose');
-              else if (ins<=0 && reason==='cap_reached') toast('ПОМОЩЬ: лимит исчерпан','gold');
-              else if (ins<=0) toast('ПОМОЩЬ: не доставлено (ins=0)','lose');
-            }
-          } catch (e8) {}
+          // No user-facing toast in prod; diagnostics only in dev.
+          if (IS_DEV) {
+            try {
+              const t = now();
+              if (!window.__bossHelpToastTs || (t - window.__bossHelpToastTs) > 1200) {
+                window.__bossHelpToastTs = t;
+                if (rec<=0) toast('HELP rec=0','lose');
+                else if (ins<=0 && reason==='cap_reached') toast('HELP cap_reached','gold');
+                else if (ins<=0) toast('HELP ins=0','lose');
+              }
+            } catch (e8) {}
+          }
         }
       } catch (e2) {}
     } catch (e) {}
