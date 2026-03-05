@@ -8645,36 +8645,50 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
                 }
               }
             } catch (e2) {}
-            state = JSON.parse(JSON.stringify(defaults));
-            try { state.playerName = tgSuggestedName(); } catch (e0) {}
-            try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e3) {}
-            __skipCloudPull = true;
+
             try {
-              const initData = tgInitData();
-              const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
-              let photo = '';
-              try {
-                const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
-                photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
-              } catch (e0) { photo = ''; }
-              const ur = await sbFnCall('upsert_player', {
-                initData,
-                name: state.playerName,
-                photo_url: String(photo||'').trim(),
-                level: state.level,
-                arena_power: (state.arena && (state.arena.power||0)) || 0,
-                arena_wins: (state.arena && (state.arena.wins||0)) || 0,
-                arena_losses: (state.arena && (state.arena.losses||0)) || 0,
-                stats_sum: statsSum,
-                boss_wins: (state.bosses && state.bosses.wins) || 0,
-                referrer_tg_id: '',
-                state: cloudStateSnapshot(state)
-              });
-              if (ur && ur.ok) {
-                try { localStorage.setItem(rk, '1'); } catch (e4) {}
+              const gr = await sbFnCall('get_player', { initData: tgInitData() });
+              const ps0 = gr && gr.player && gr.player.state;
+              if (ps0 && typeof ps0 === 'object') {
+                state = Object.assign({}, state, ps0);
+                try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e0) {}
+                try { localStorage.setItem(rk, '1'); } catch (e1) {}
+                __skipCloudPull = true;
               }
-              __srvLastSent = now();
-            } catch (e5) {}
+            } catch (e00) {}
+
+            if (!__skipCloudPull) {
+              state = JSON.parse(JSON.stringify(defaults));
+              try { state.playerName = tgSuggestedName(); } catch (e0) {}
+              try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e3) {}
+              __skipCloudPull = true;
+              try {
+                const initData = tgInitData();
+                const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
+                let photo = '';
+                try {
+                  const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+                  photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
+                } catch (e0) { photo = ''; }
+                const ur = await sbFnCall('upsert_player', {
+                  initData,
+                  name: state.playerName,
+                  photo_url: String(photo||'').trim(),
+                  level: state.level,
+                  arena_power: (state.arena && (state.arena.power||0)) || 0,
+                  arena_wins: (state.arena && (state.arena.wins||0)) || 0,
+                  arena_losses: (state.arena && (state.arena.losses||0)) || 0,
+                  stats_sum: statsSum,
+                  boss_wins: (state.bosses && state.bosses.wins) || 0,
+                  referrer_tg_id: '',
+                  state: cloudStateSnapshot(state)
+                });
+                if (ur && ur.ok) {
+                  try { localStorage.setItem(rk, '1'); } catch (e4) {}
+                }
+                __srvLastSent = now();
+              } catch (e5) {}
+            }
           }
         } catch (e6) {}
 
