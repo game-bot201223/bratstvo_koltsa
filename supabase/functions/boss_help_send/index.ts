@@ -716,6 +716,7 @@ Deno.serve(async (req: Request) => {
   let rpcFirstErr: any = null
   let skippedCapCount = 0
   let skippedOtherCount = 0
+  let skippedNoActiveCount = 0
 
   // Apply damage server-side immediately so recipient boss HP updates even if offline
   // Best-effort: failure here should not block logging events.
@@ -731,6 +732,7 @@ Deno.serve(async (req: Request) => {
         // used-help scope: for clan help we reset the per-sender cap when recipient starts a new fight.
         // We do that by counting used help since the active fight's updated_at (best proxy for fight start/reset).
         let usedSinceIso = windowStartIso
+        let hasActiveFight = false
 
         try {
           const abm = await postgrestFindActiveBossFightMeta(projectUrl, serviceKey, String(toTgId))
@@ -740,9 +742,17 @@ Deno.serve(async (req: Request) => {
             targetBossId = ab
             targetDef = dd
             if (abm && abm.updated_at) usedSinceIso = String(abm.updated_at)
+            hasActiveFight = true
           }
         } catch (_e1) {
           // ignore
+        }
+
+        // Requirement: help should be delivered ONLY to recipients who already have an active boss fight.
+        // Do NOT start a new fight via apply_boss_damage_v2.
+        if (!hasActiveFight) {
+          skippedNoActiveCount += 1
+          return null
         }
 
         if (clanId) {
@@ -840,6 +850,7 @@ Deno.serve(async (req: Request) => {
       debug: {
         reason,
         recipients: recArr.length,
+        skipped_no_active: skippedNoActiveCount,
         skipped_cap: skippedCapCount,
         skipped_other: skippedOtherCount,
         rpc_ok: rpcOkCount,
@@ -882,6 +893,7 @@ return new Response(
     inserted: rows.length,
     debug: {
       recipients: recArr.length,
+      skipped_no_active: skippedNoActiveCount,
       rpc_ok: rpcOkCount,
       rpc_fail: rpcFailCount,
       rpc_first_err: rpcFirstErr,
