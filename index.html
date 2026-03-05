@@ -626,6 +626,45 @@ body{
    padding: 12px;
    padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
+/* Площадь: карта на весь экран без отступов */
+#mPloshchad .sheetBody{
+   padding: 0;
+   overflow: hidden;
+   display: flex;
+   flex-direction: column;
+}
+.ploshchadMap{
+   position: relative;
+   flex: 1;
+   min-height: 0;
+   width: 100%;
+   display: block;
+}
+.ploshchadMap img{
+   display: block;
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+   pointer-events: none;
+}
+.ploshchadHotspot{
+   position: absolute;
+   cursor: pointer;
+   background: transparent;
+   border: none;
+   padding: 0;
+   margin: 0;
+   -webkit-tap-highlight-color: transparent;
+   transition: background 0.15s ease;
+}
+.ploshchadHotspot:hover,
+.ploshchadHotspot:focus-visible{
+   background: rgba(255,255,255,0.12);
+   outline: none;
+}
+.ploshchadHotspot:active{
+   background: rgba(255,255,255,0.25);
+}
 #mDistricts .sheetHead, #mBoss .sheetHead, #mClans .sheetHead, #mPloshchad .sheetHead{
    padding-top: calc(14px + env(safe-area-inset-top));
 }
@@ -1455,7 +1494,14 @@ body{
       <div style="width:44px"></div>
     </div>
     <div class="sheetBody" id="ploshchadBody">
-      <div class="card"><div class="row"><div class="k">ПЛОЩАДЬ</div></div><div style="margin-top:10px; font-size:12px; opacity:.8;">Здесь будет контент площади.</div></div>
+      <div class="ploshchadMap" id="ploshchadMap">
+        <img src="площадь.jpg" alt="Площадь">
+        <button type="button" class="ploshchadHotspot" id="ploshchadArena" aria-label="Арена" style="left:12%;top:2%;width:76%;height:38%;"></button>
+        <button type="button" class="ploshchadHotspot" id="ploshchadHallOfFame" aria-label="Зал славы" style="left:8%;top:40%;width:32%;height:28%;"></button>
+        <button type="button" class="ploshchadHotspot" id="ploshchadGym" aria-label="Спортзал" style="left:42%;top:42%;width:30%;height:26%;"></button>
+        <button type="button" class="ploshchadHotspot" id="ploshchadShop" aria-label="Торговая лавка" style="left:2%;top:62%;width:30%;height:34%;"></button>
+        <button type="button" class="ploshchadHotspot" id="ploshchadDice" aria-label="Игра в кости" style="left:62%;top:68%;width:34%;height:28%;"></button>
+      </div>
     </div>
   </div>
 </div>
@@ -8834,6 +8880,19 @@ body{
       haptic('light');
     };
     $('btnSets').onclick = ()=>{ openScreen('mPloshchad'); haptic('light'); };
+
+    try {
+      const openArena = ()=>{ openScreen('mArena'); haptic('light'); };
+      const openHallOfFame = ()=>{ openScreen('mTop'); renderTop100('LVL'); haptic('light'); };
+      const openGym = ()=>{ openScreen('mArena'); haptic('light'); };
+      const openShop = ()=>{ hideModal('mPloshchad'); showModal('mShop'); renderShop(); haptic('light'); };
+      const openDiceGame = ()=>{ openScreen('mDice'); renderDice(); haptic('light'); };
+      const a = $('ploshchadArena'); if (a) a.onclick = openArena;
+      const h = $('ploshchadHallOfFame'); if (h) h.onclick = openHallOfFame;
+      const g = $('ploshchadGym'); if (g) g.onclick = openGym;
+      const s = $('ploshchadShop'); if (s) s.onclick = openShop;
+      const d = $('ploshchadDice'); if (d) d.onclick = openDiceGame;
+    } catch (e) {}
 
     try {
       const ob = $('openTopBros');
