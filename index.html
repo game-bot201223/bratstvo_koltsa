@@ -8571,7 +8571,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Clock
   function tickUTC(){
     const d = new Date();
-    $('utc').textContent = 'UTC: ' + pad2(d.getUTCHours()) + ':' + pad2(d.getUTCMinutes()) + ':' + pad2(d.getUTCSeconds());
+    try {
+      const u = $('utc');
+      if (u) u.textContent = 'UTC: ' + pad2(d.getUTCHours()) + ':' + pad2(d.getUTCMinutes()) + ':' + pad2(d.getUTCSeconds());
+    } catch (e0) {}
     try { bizRewardBtnUpdate(); } catch (e) {}
   }
 
@@ -8594,9 +8597,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     // seed starting items
     firstRunSeed();
 
-    $('setSound').checked = !!state.settings.sound;
-    $('setHaptics').checked = !!state.settings.haptics;
-    $('setReduced').checked = !!state.settings.reduced;
+    try { const a = $('setSound'); if (a) a.checked = !!state.settings.sound; } catch (e0) {}
+    try { const a = $('setHaptics'); if (a) a.checked = !!state.settings.haptics; } catch (e0) {}
+    try { const a = $('setReduced'); if (a) a.checked = !!state.settings.reduced; } catch (e0) {}
 
     bindUI();
     renderAll();
@@ -8605,11 +8608,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     // main loop
     tickUTC();
     setInterval(()=>{
-      tickUTC();
-      tickEnergy();
-      tickStrikes();
-      tickBattle();
-      tickGF1010();
+      try {
+        tickUTC();
+        tickEnergy();
+        tickStrikes();
+        tickBattle();
+        tickGF1010();
+      } catch (e0) {}
 
       const bid = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
       if (bid){
@@ -8647,7 +8652,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
       } catch (e) {}
 
-      $('energyTimer').textContent = energyTimerText();
+      try { const et = $('energyTimer'); if (et) et.textContent = energyTimerText(); } catch (e0) {}
 
       if ($('mArena').classList.contains('show')) {
         renderArena();
