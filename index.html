@@ -1620,57 +1620,57 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e) { return 0; }
   }
   function gfClamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
-  function gfMaxHp(eh){
-    const HP0 = 100;
-    const aH = 1.4;
-    return Math.max(1, Math.floor(HP0 * (1 + aH * eh)));
+
+  function gfSafePos(v){
+    v = parseFloat(v);
+    if (!isFinite(v) || isNaN(v) || v < 0) v = 0;
+    return v;
+  }
+  function gfRatio01(a,b){
+    a = gfSafePos(a);
+    b = gfSafePos(b);
+    const d = a + b;
+    if (d <= 0) return 0.5;
+    return a / d;
+  }
+  function gfMaxHp(health){
+    return Math.max(1, Math.round(gfSafePos(health) * 18));
   }
   function gfFirstStrikeChance(attI, defI){
-    const kI = 0.22;
-    return gfClamp(0.5 + kI * (attI - defI), 0.15, 0.85);
+    return gfRatio01(attI, defI);
   }
   function gfHitChance(attA, defA, hitBonus){
-    const kA = 0.25;
-    return gfClamp(0.80 + kA * (attA - defA) + (hitBonus||0)*0.15, 0.20, 0.95);
+    let hc = 0.25 + 0.5 * gfRatio01(attA, defA);
+    if (hitBonus && hitBonus > 0) hc += gfClamp(hitBonus, 0, 0.60) * 0.10;
+    return gfClamp(hc, 0.25, 0.75);
   }
-  function gfMitigation(defEnd){
-    const mitMax = 0.60;
-    const Cend = 2.0;
-    return gfClamp(mitMax * defEnd / (defEnd + Cend), 0, mitMax);
+  function gfArmorFactor(strAtt, endDef){
+    return 0.4 + 0.6 * gfRatio01(strAtt, endDef);
   }
-  function gfArmorPen(attA){
-    const penMax = 0.45;
-    const Cpen = 2.0;
-    return gfClamp(penMax * attA / (attA + Cpen), 0, penMax);
+  function gfCritChance(mAtt, mDef){
+    const cc = 0.05 + 0.35 * gfRatio01(mAtt, mDef);
+    return gfClamp(cc, 0.05, 0.40);
   }
-  function gfCritChance(attM, defEnd){
-    const kM = 0.18;
-    return gfClamp(0.06 + kM * (attM - defEnd*0.25), 0.03, 0.30);
-  }
-  function gfCritMul(attM, defEnd){
-    const base = 1.35 + 0.45 * (attM / (attM + 2.0));
-    const anti = 1 - 0.35 * (defEnd / (defEnd + 2.0));
-    return 1 + (base - 1) * anti;
+  function gfCritMultiplier(){
+    return 1.5 + Math.random() * 0.5;
   }
   function gfDoHit(att, def, hpDef, allowCrit){
-    const baseFrac = 0.17;
-    const kS = 0.22;
     const hc = gfHitChance(att.a, def.a, 0);
     if (Math.random() > hc) return { dmg: 0, crit:false, dodge:true };
 
-    let dmg = hpDef * baseFrac * (1 + kS * att.s);
-    const mit = gfMitigation(def.e);
-    const pen = gfArmorPen(att.a);
-    const mitEff = mit * (1 - pen);
-    dmg = dmg * (1 - gfClamp(mitEff, 0, 0.85));
+    let dmg = gfSafePos(att.s) * 3;
+    dmg = dmg * gfArmorFactor(att.s, def.e);
 
     let isCrit = false;
-    if (allowCrit && Math.random() < gfCritChance(att.m, def.e)) {
-      isCrit = true;
-      dmg = dmg * gfCritMul(att.m, def.e);
+    if (allowCrit) {
+      const cc = gfCritChance(att.m, def.m);
+      if (Math.random() < cc) {
+        isCrit = true;
+        dmg = dmg * gfCritMultiplier();
+      }
     }
 
-    dmg = dmg * (0.90 + Math.random()*0.20);
+    dmg = dmg * (0.85 + Math.random() * 0.30);
     dmg = Math.max(1, Math.round(dmg));
     return { dmg:dmg, crit:isCrit, dodge:false };
   }
@@ -4803,12 +4803,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const might = gfEffStat('might');
 
     const pStats = {
-      h: gfEffForMatch(health),
-      s: gfEffForMatch(strength),
-      a: gfEffForMatch(agility),
-      i: gfEffForMatch(initiative),
-      e: gfEffForMatch(endurance),
-      m: gfEffForMatch(might)
+      h: gfSafePos(health),
+      s: gfSafePos(strength),
+      a: gfSafePos(agility),
+      i: gfSafePos(initiative),
+      e: gfSafePos(endurance),
+      m: gfSafePos(might)
     };
     // mirror enemy stats for now (group fight is PvE-like). If later you want PvP/team stats,
     // replace this with enemy roster aggregation.
