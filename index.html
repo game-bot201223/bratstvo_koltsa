@@ -1606,38 +1606,67 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     return cur + add;
   }
   function gfEffForMatch(v){
-    v = parseFloat(v);
-    if (isNaN(v) || v < 0) v = 0;
-    return Math.log10(1 + v);
+    try {
+      v = parseFloat(v);
+      if (isNaN(v) || v < 0) v = 0;
+      const S = 100000;
+      return Math.log(1 + (v / S));
+    } catch (e) { return 0; }
   }
   function gfClamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
-  function gfMitigation(ee){
-    return gfClamp(ee * 0.07, 0, 0.45);
-  }
-  function gfDodgeChance(ea){
-    return gfClamp(ea * 0.04, 0, 0.25);
-  }
-  function gfCritChance(em){
-    return gfClamp(em * 0.05, 0, 0.35);
-  }
   function gfMaxHp(eh){
-    return Math.floor(140 + eh * 80);
+    const HP0 = 100;
+    const aH = 1.4;
+    return Math.max(1, Math.floor(HP0 * (1 + aH * eh)));
   }
-  function gfBaseDamage(es){
-    return (18 + es * 18);
+  function gfFirstStrikeChance(attI, defI){
+    const kI = 0.22;
+    return gfClamp(0.5 + kI * (attI - defI), 0.15, 0.85);
   }
-  function gfDoHit(attDmgBase, attCritChance, defDodgeChance, defMit, allowCrit){
-    const dodged = Math.random() < defDodgeChance;
-    if (dodged) return { dmg: 0, crit: false, dodge: true };
-    let dmg = attDmgBase * (0.90 + Math.random() * 0.20);
+  function gfHitChance(attA, defA, hitBonus){
+    const kA = 0.25;
+    return gfClamp(0.80 + kA * (attA - defA) + (hitBonus||0)*0.15, 0.20, 0.95);
+  }
+  function gfMitigation(defEnd){
+    const mitMax = 0.60;
+    const Cend = 2.0;
+    return gfClamp(mitMax * defEnd / (defEnd + Cend), 0, mitMax);
+  }
+  function gfArmorPen(attA){
+    const penMax = 0.45;
+    const Cpen = 2.0;
+    return gfClamp(penMax * attA / (attA + Cpen), 0, penMax);
+  }
+  function gfCritChance(attM, defEnd){
+    const kM = 0.18;
+    return gfClamp(0.06 + kM * (attM - defEnd*0.25), 0.03, 0.30);
+  }
+  function gfCritMul(attM, defEnd){
+    const base = 1.35 + 0.45 * (attM / (attM + 2.0));
+    const anti = 1 - 0.35 * (defEnd / (defEnd + 2.0));
+    return 1 + (base - 1) * anti;
+  }
+  function gfDoHit(att, def, hpDef, allowCrit){
+    const baseFrac = 0.17;
+    const kS = 0.22;
+    const hc = gfHitChance(att.a, def.a, 0);
+    if (Math.random() > hc) return { dmg: 0, crit:false, dodge:true };
+
+    let dmg = hpDef * baseFrac * (1 + kS * att.s);
+    const mit = gfMitigation(def.e);
+    const pen = gfArmorPen(att.a);
+    const mitEff = mit * (1 - pen);
+    dmg = dmg * (1 - gfClamp(mitEff, 0, 0.85));
+
     let isCrit = false;
-    if (allowCrit && Math.random() < attCritChance) {
+    if (allowCrit && Math.random() < gfCritChance(att.m, def.e)) {
       isCrit = true;
-      dmg = dmg * (1.5 + Math.random() * 0.5);
+      dmg = dmg * gfCritMul(att.m, def.e);
     }
-    dmg = dmg * (1 - defMit);
-    dmg = Math.max(1, Math.floor(dmg));
-    return { dmg: dmg, crit: isCrit, dodge: false };
+
+    dmg = dmg * (0.90 + Math.random()*0.20);
+    dmg = Math.max(1, Math.round(dmg));
+    return { dmg:dmg, crit:isCrit, dodge:false };
   }
 
   function districtFearLeaderUpdate(dIdx){
@@ -4164,6 +4193,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         return cur + add;
       }
 
+      function effCombat(v){
+        try {
+          v = parseFloat(v);
+          if (isNaN(v) || v < 0) v = 0;
+          const S = 100000;
+          return Math.log(1 + (v / S));
+        } catch (e) { return 0; }
+      }
+
       const pRaw = {
         health: gymVal('health'),
         strength: gymVal('strength'),
@@ -4194,41 +4232,90 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const bonus = clamp(state.nextWinBonus||0, 0, 0.60);
       state.nextWinBonus = 0;
 
-      let pHP = Math.max(1, Math.round(60 + p.health * 6));
-      let eHP = Math.max(1, Math.round(60 + e.health * 6));
+      const pe = {
+        h: effCombat(p.health),
+        s: effCombat(p.strength),
+        a: effCombat(p.agility),
+        i: effCombat(p.initiative),
+        e: effCombat(p.endurance),
+        m: effCombat(p.might)
+      };
+      const ee = {
+        h: effCombat(e.health),
+        s: effCombat(e.strength),
+        a: effCombat(e.agility),
+        i: effCombat(e.initiative),
+        e: effCombat(e.endurance),
+        m: effCombat(e.might)
+      };
+
+      const HP0 = 100;
+      const aH = 1.4;
+      let pHP = Math.max(1, Math.round(HP0 * (1 + aH * pe.h)));
+      let eHP = Math.max(1, Math.round(HP0 * (1 + aH * ee.h)));
       let youDmg = 0;
       let enemyDmg = 0;
       let rounds = 0;
       const combatLog = [];
 
-      function hitChance(attAgi, defAgi, hitBonus){
-        const rel = (attAgi - defAgi) / Math.max(1, (attAgi + defAgi));
-        return clamp(0.80 + rel*0.35 + (hitBonus||0)*0.45, 0.10, 0.95);
+      const kI = 0.22;
+      const kA = 0.25;
+      const kS = 0.22;
+      const mitMax = 0.60;
+      const Cend = 2.0;
+      const penMax = 0.45;
+      const Cpen = 2.0;
+      const kM = 0.18;
+      const baseFrac = 0.17;
+
+      function firstStrikeChance(){
+        return clamp(0.5 + kI * (pe.i - ee.i), 0.15, 0.85);
       }
-      function critChance(attM, defM){
-        return clamp(0.06 + (attM / Math.max(1, attM + defM + 30)) * 0.28, 0.05, 0.30);
+
+      function hitChance(effAgiAtt, effAgiDef, hitBonus){
+        return clamp(0.80 + kA * (effAgiAtt - effAgiDef) + (hitBonus||0)*0.15, 0.20, 0.95);
       }
-      function dmgReduction(defEnd, attStr){
-        return clamp((defEnd / Math.max(1, defEnd + attStr + 60)) * 0.35, 0, 0.35);
+
+      function mitigation(effEndDef){
+        return mitMax * effEndDef / (effEndDef + Cend);
       }
-      function baseDamage(attStr){
-        return 5 + attStr * 1.25;
+
+      function armorPen(effAgiAtt){
+        return penMax * effAgiAtt / (effAgiAtt + Cpen);
+      }
+
+      function critChance(effMightAtt, effEndDef){
+        return clamp(0.06 + kM * (effMightAtt - effEndDef*0.25), 0.03, 0.30);
+      }
+
+      function critMul(effMightAtt, effEndDef){
+        const base = 1.35 + 0.45 * (effMightAtt / (effMightAtt + 2.0));
+        const anti = 1 - 0.35 * (effEndDef / (effEndDef + 2.0));
+        return 1 + (base - 1) * anti;
       }
 
       function doAttack(isPlayer, round){
-        const A = isPlayer ? p : e;
-        const D = isPlayer ? e : p;
+        const A = isPlayer ? pe : ee;
+        const D = isPlayer ? ee : pe;
         const hpRef = isPlayer ? 'e' : 'p';
-        const hc = hitChance(A.agility, D.agility, isPlayer ? bonus : 0);
+        const hc = hitChance(A.a, D.a, isPlayer ? bonus : 0);
         if (Math.random() > hc) {
           combatLog.push({ round: round, who: isPlayer ? 'YOU' : 'ENEMY', miss:true, crit:false, dmg:0 });
           return;
         }
 
-        let dmg = baseDamage(A.strength);
-        const isCrit = Math.random() < critChance(A.might, D.might);
-        if (isCrit) dmg *= (1.5 + Math.random()*0.5);
-        dmg *= (1 - dmgReduction(D.endurance, A.strength));
+        const hpDef = (hpRef==='e') ? eHP : pHP;
+        let dmg = hpDef * baseFrac * (1 + kS * A.s);
+
+        const mit = mitigation(D.e);
+        const pen = armorPen(A.a);
+        const mitEff = mit * (1 - pen);
+        dmg = dmg * (1 - clamp(mitEff, 0, 0.85));
+
+        const isCrit = Math.random() < critChance(A.m, D.e);
+        if (isCrit) dmg = dmg * critMul(A.m, D.e);
+
+        dmg = dmg * (0.90 + Math.random()*0.20);
         dmg = Math.max(1, Math.round(dmg));
 
         combatLog.push({ round: round, who: isPlayer ? 'YOU' : 'ENEMY', miss:false, crit:isCrit, dmg:dmg });
@@ -4240,11 +4327,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           pHP = Math.max(0, pHP - dmg);
           enemyDmg += dmg;
         }
-      }
-
-      function firstStrikeChance(){
-        const rel = (p.initiative - e.initiative) / Math.max(1, (p.initiative + e.initiative));
-        return clamp(0.5 + rel*0.35, 0.10, 0.90);
       }
 
       while (pHP>0 && eHP>0 && rounds<20) {
@@ -4691,32 +4773,28 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const initiative = gfEffStat('initiative');
     const endurance = gfEffStat('endurance');
     const might = gfEffStat('might');
-    const p = {
-      eh: gfEffForMatch(health),
-      es: gfEffForMatch(strength),
-      ea: gfEffForMatch(agility),
-      ei: gfEffForMatch(initiative),
-      ee: gfEffForMatch(endurance),
-      em: gfEffForMatch(might)
+
+    const pStats = {
+      h: gfEffForMatch(health),
+      s: gfEffForMatch(strength),
+      a: gfEffForMatch(agility),
+      i: gfEffForMatch(initiative),
+      e: gfEffForMatch(endurance),
+      m: gfEffForMatch(might)
     };
-    const e = {
-      eh: p.eh,
-      es: p.es,
-      ea: p.ea,
-      ei: p.ei,
-      ee: p.ee,
-      em: p.em
+    // mirror enemy stats for now (group fight is PvE-like). If later you want PvP/team stats,
+    // replace this with enemy roster aggregation.
+    const eStats = {
+      h: pStats.h,
+      s: pStats.s,
+      a: pStats.a,
+      i: pStats.i,
+      e: pStats.e,
+      m: pStats.m
     };
-    const myMaxHp = Math.max(1, gfMaxHp(p.eh));
-    const enemyMaxHp = Math.max(1, gfMaxHp(e.eh));
-    const pMit = gfMitigation(p.ee);
-    const eMit = gfMitigation(e.ee);
-    const pDodge = gfDodgeChance(p.ea);
-    const eDodge = gfDodgeChance(e.ea);
-    const pCrit = gfCritChance(p.em);
-    const eCrit = gfCritChance(e.em);
-    const pDmgBase = gfBaseDamage(p.es);
-    const eDmgBase = gfBaseDamage(e.es);
+
+    const myMaxHp = Math.max(1, gfMaxHp(pStats.h));
+    const enemyMaxHp = Math.max(1, gfMaxHp(eStats.h));
     const cost = gfCost(startTs);
     const battle = {
       startTs,
@@ -4729,14 +4807,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       myHp: myMaxHp,
       log: [],
       dmgBy: {},
-      pMit,
-      eMit,
-      pDodge,
-      eDodge,
-      pCrit,
-      eCrit,
-      pDmgBase,
-      eDmgBase,
+      pStats,
+      eStats,
       enemyMaxHp,
       myTarget: '',
       myTeam: [],
@@ -4951,7 +5023,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const t = b.targets.find(x=>x.id===id);
     if (!t || (t.hp||0)<=0) return;
 
-    const h = gfDoHit(parseFloat(b.pDmgBase||0)||0, parseFloat(b.pCrit||0)||0, parseFloat(b.eDodge||0)||0, parseFloat(b.eMit||0)||0, true);
+    const h = gfDoHit(b.pStats, b.eStats, parseInt(t.hp||0,10)||0, true);
     const real = Math.min((parseInt(t.hp||0,10)||0), parseInt(h.dmg||0,10)||0);
     t.hp = Math.max(0, (parseInt(t.hp||0,10)||0) - real);
     b.acted = true;
@@ -5001,7 +5073,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const t = battleWeakestTarget(b);
     if (!t) return;
 
-    const h = gfDoHit(parseFloat(b.pDmgBase||0)||0, parseFloat(b.pCrit||0)||0, parseFloat(b.eDodge||0)||0, parseFloat(b.eMit||0)||0, true);
+    const h = gfDoHit(b.pStats, b.eStats, parseInt(t.hp||0,10)||0, true);
     const real = Math.min((parseInt(t.hp||0,10)||0), parseInt(h.dmg||0,10)||0);
     t.hp = Math.max(0, (parseInt(t.hp||0,10)||0) - real);
     b.acted = true;
@@ -5030,7 +5102,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (uhp<=0) continue;
       const tgt = aliveTargets[Math.floor(Math.random()*aliveTargets.length)];
       if (!tgt || (parseInt(tgt.hp||0,10)||0) <= 0) continue;
-      const h = gfDoHit(parseFloat(b.pDmgBase||0)||0, parseFloat(b.pCrit||0)||0, parseFloat(b.eDodge||0)||0, parseFloat(b.eMit||0)||0, true);
+
+      const h = gfDoHit(b.pStats, b.eStats, parseInt(tgt.hp||0,10)||0, true);
       const real = Math.min((parseInt(tgt.hp||0,10)||0), parseInt(h.dmg||0,10)||0);
       tgt.hp = Math.max(0, (parseInt(tgt.hp||0,10)||0) - real);
       try {
@@ -5064,12 +5137,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const hits = Math.max(1, aliveEnemies.length);
     for (let i=0;i<hits;i++){
       if (!aliveUnits.length) break;
-      const h = gfDoHit(parseFloat(b.eDmgBase||0)||0, parseFloat(b.eCrit||0)||0, parseFloat(b.pDodge||0)||0, parseFloat(b.pMit||0)||0, true);
 
+      // Enemies hit the player team using the same stat model.
       const pick = aliveUnits[Math.floor(Math.random()*aliveUnits.length)];
       const pid = String(pick.id||'');
       const pname = String(pick.name||pid||'');
       const curHp = (pid==='YOU') ? (parseInt(b.myHp||0,10)||0) : (parseInt(pick.hp||0,10)||0);
+      const h = gfDoHit(b.eStats, b.pStats, curHp, true);
+
       const real = Math.min(curHp, parseInt(h.dmg||0,10)||0);
       const nextHp = Math.max(0, curHp - real);
       if (pid==='YOU') b.myHp = nextHp;
@@ -8167,14 +8242,47 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (b.turnLeft>0) return;
 
     // end of turn
-    if (!b.acted) battleAutoHit();
+    // order by initiative (no extra actions)
+    let pFirst = true;
+    try {
+      const ps = b.pStats;
+      const es = b.eStats;
+      if (ps && es) pFirst = (Math.random() < gfFirstStrikeChance(parseFloat(ps.i||0)||0, parseFloat(es.i||0)||0));
+    } catch (e0) { pFirst = true; }
 
-    // simulate allies
-    battleAlliesTurn();
+    if (pFirst){
+      if (!b.acted) battleAutoHit();
+      battleAlliesTurn();
+      const aliveAfter = Array.isArray(b.targets) ? b.targets.some(x=>(parseInt(x.hp||0,10)||0) > 0) : false;
+      if (!aliveAfter){
+        const rr = gfBattleComputeReward(b, true);
+        b.log.unshift({ kind:'SYS', text:'Победа команды! Награда: +' + (parseInt(rr.gold||0,10)||0) + ' 🪙' });
+        state.groupFight.pendingReward = rr;
+        state.groupFight.joined = false;
+        state.groupFight.startTs = 0;
+        state.groupFight.resolvedTs = now();
+        // keep battle for view until close
+        feedAdd('Победа в групповом бою!','GF');
+        toast('ПОБЕДА','win');
+        save();
+        renderAll();
+        haptic('heavy');
+        gfShowBattleResult(true);
+        return;
+      }
 
-    // check win after player/auto hit
-    const aliveAfter = Array.isArray(b.targets) ? b.targets.some(x=>(parseInt(x.hp||0,10)||0) > 0) : false;
-    if (!aliveAfter){
+      battleEnemyTurn();
+    } else {
+      battleEnemyTurn();
+      if ((parseInt(b.myHp||0,10)||0) > 0) {
+        if (!b.acted) battleAutoHit();
+        battleAlliesTurn();
+      }
+    }
+
+    // check win after full round
+    const aliveAfter2 = Array.isArray(b.targets) ? b.targets.some(x=>(parseInt(x.hp||0,10)||0) > 0) : false;
+    if (!aliveAfter2){
       const rr = gfBattleComputeReward(b, true);
       b.log.unshift({ kind:'SYS', text:'Победа команды! Награда: +' + (parseInt(rr.gold||0,10)||0) + ' 🪙' });
       state.groupFight.pendingReward = rr;
@@ -8189,8 +8297,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       gfShowBattleResult(true);
       return;
     }
-
-    battleEnemyTurn();
     if ((parseInt(b.myHp||0,10)||0) <= 0) return;
 
     // next round
