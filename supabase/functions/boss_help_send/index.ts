@@ -239,7 +239,7 @@ async function postgrestGetPlayer(projectUrl: string, serviceKey: string, tgId: 
 
 async function postgrestGetClan(projectUrl: string, serviceKey: string, clanId: string): Promise<any | null> {
   const url = projectUrl.replace(/\/$/, "") +
-    `/rest/v1/clans?id=eq.${encodeURIComponent(clanId)}&select=id,data&limit=1`
+    `/rest/v1/clans?id=eq.${encodeURIComponent(clanId)}&select=id,owner_tg_id,data&limit=1`
   const resp = await fetch(url, {
     method: "GET",
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
@@ -515,7 +515,24 @@ Deno.serve(async (req: Request) => {
     const list: any[] = Array.isArray(fr) ? fr : []
     let resolvedByName = 0
     for (const it of list.slice(0, 80)) {
-      const tid = String(it?.tg_id || "").trim()
+      if (typeof it === "string") {
+        const nm0 = String(it || "").trim().slice(0, 18)
+        if (!nm0) continue
+        const nl0 = nm0.toLowerCase()
+        if (nl0 === senderNameLower) continue
+        if (resolvedByName >= 20) continue
+        try {
+          const pr = await postgrestFindPlayerByNameLower(projectUrl, serviceKey, nl0)
+          const tid2 = String(pr?.tg_id || "").trim()
+          if (!tid2) continue
+          if (tid2 === senderTgId) continue
+          recipients.add(tid2)
+          resolvedByName += 1
+        } catch (_e0) {}
+        continue
+      }
+
+      const tid = String((it && typeof it === "object" ? ((it as any).tg_id || (it as any).tgId) : "") || "").trim()
       if (tid) {
         if (tid === senderTgId) continue
         recipients.add(tid)
@@ -560,13 +577,37 @@ Deno.serve(async (req: Request) => {
       const clanObj = (clanRow && typeof clanRow === "object") ? (clanRow as any).data : null
       const c = clanObj && typeof clanObj === "object" ? clanObj : {}
       const mem = Array.isArray((c as any).members) ? (c as any).members : []
-      const leader = String((c as any).leader || "").trim()
-      const deputy = String((c as any).deputy || "").trim()
+      const leaderRaw = (c as any).leader
+      const deputyRaw = (c as any).deputy
+      const leader = (leaderRaw && typeof leaderRaw === "object") ? String((leaderRaw as any).name || "").trim() : String(leaderRaw || "").trim()
+      const deputy = (deputyRaw && typeof deputyRaw === "object") ? String((deputyRaw as any).name || "").trim() : String(deputyRaw || "").trim()
+
+      // If clan row has owner_tg_id, always include it.
+      try {
+        const ownerTid = String((clanRow as any)?.owner_tg_id || "").trim()
+        if (ownerTid && ownerTid !== senderTgId) recipients.add(ownerTid)
+      } catch (_e0) {}
 
       const names: string[] = []
       if (leader) names.push(leader)
       if (deputy) names.push(deputy)
-      for (const m of mem) names.push(String(m || "").trim())
+      for (const m of mem) {
+        if (!m) continue
+        if (typeof m === "string") {
+          names.push(String(m || "").trim())
+          continue
+        }
+        if (typeof m === "object") {
+          const tid = String((m as any).tg_id || (m as any).tgId || "").trim()
+          if (tid) {
+            if (tid !== senderTgId) recipients.add(tid)
+          }
+          const nm = String((m as any).name || (m as any).nm || "").trim()
+          if (nm) names.push(nm)
+          continue
+        }
+        names.push(String(m).trim())
+      }
 
       const uniq = new Set<string>()
       for (const n of names) {
