@@ -6107,8 +6107,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             try {
               const nextReq = bossReq(bossId+1);
               if (nextReq){
-                bossKeyAdd(nextReq.itemKey, nextReq.need);
-                feedAdd('Добыто: '+nextReq.need+'× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS');
+                bossKeyAdd(nextReq.itemKey, 1);
+                feedAdd('Добыто: 1× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS');
               }
             } catch (e5) {}
 
@@ -6156,8 +6156,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       try {
         const nextReq = bossReq(bossId+1);
         if (nextReq){
-          bossKeyAdd(nextReq.itemKey, nextReq.need);
-          feedAdd('Добыто: '+nextReq.need+'× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS');
+          bossKeyAdd(nextReq.itemKey, 1);
+          feedAdd('Добыто: 1× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS');
         }
       } catch (e5) {}
 

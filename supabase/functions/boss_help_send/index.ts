@@ -79,6 +79,39 @@ function decodeUriMaybe(s: string): string {
   }
 }
 
+async function postgrestFindActiveBossFightMetaForBoss(
+  projectUrl: string,
+  serviceKey: string,
+  ownerTgId: string,
+  bossId: number,
+): Promise<{ boss_id: number; updated_at: string } | null> {
+  try {
+    const bid = safeInt(bossId, 0)
+    if (bid <= 0) return null
+    const nowIso = new Date().toISOString()
+    const url = projectUrl.replace(/\/$/, "") +
+      `/rest/v1/player_boss_fights?owner_tg_id=eq.${encodeURIComponent(ownerTgId)}` +
+      `&boss_id=eq.${encodeURIComponent(String(bid))}` +
+      `&reward_claimed=eq.false` +
+      `&hp=gt.0` +
+      `&or=${encodeURIComponent(`(expires_at.is.null,expires_at.gt.${nowIso})`)}` +
+      `&select=boss_id,updated_at&order=updated_at.desc&limit=1`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp.ok) return null
+    const rows = await resp.json().catch(() => [])
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null
+    const bid2 = safeInt(row && typeof row === "object" ? (row as any).boss_id : 0, 0)
+    const upd = row && typeof row === "object" ? String((row as any).updated_at || "").trim() : ""
+    if (bid2 <= 0) return null
+    return { boss_id: bid2, updated_at: upd }
+  } catch (_e) {
+    return null
+  }
+}
+
 async function verifyTelegramInitData(initData: string, botToken: string): Promise<{ ok: boolean; user?: any }>{
   if (!initData || !botToken) return { ok: false }
   const secretKey = await hmacSha256Bytes("WebAppData", botToken)
@@ -687,19 +720,37 @@ Deno.serve(async (req: Request) => {
         // We do that by counting used help since the active fight's updated_at (best proxy for fight start/reset).
         let usedSinceIso = windowStartIso
 
-        // Option B: apply help to recipient's active boss fight if any.
-        // If recipient has no active fight, apply to requested boss_id (will create fight row).
+        // Prefer help to the same boss the sender hit IF recipient has an active fight for that boss.
+        // Otherwise fallback to recipient latest active boss fight.
         try {
-          const abm = await postgrestFindActiveBossFightMeta(projectUrl, serviceKey, String(toTgId))
-          const ab = abm && abm.boss_id ? abm.boss_id : 0
-          const dd = ab ? bossDef(ab) : null
-          if (dd) {
-            targetBossId = ab
-            targetDef = dd
-            if (abm && abm.updated_at) usedSinceIso = String(abm.updated_at)
+          const same = await postgrestFindActiveBossFightMetaForBoss(projectUrl, serviceKey, String(toTgId), bossId)
+          if (same && same.boss_id) {
+            const ddSame = bossDef(same.boss_id)
+            if (ddSame) {
+              targetBossId = same.boss_id
+              targetDef = ddSame
+              if (same.updated_at) usedSinceIso = String(same.updated_at)
+            }
           }
         } catch (_e0) {
           // ignore
+        }
+
+        if (targetBossId === bossId) {
+          // already set to sender boss if possible
+        } else {
+          try {
+            const abm = await postgrestFindActiveBossFightMeta(projectUrl, serviceKey, String(toTgId))
+            const ab = abm && abm.boss_id ? abm.boss_id : 0
+            const dd = ab ? bossDef(ab) : null
+            if (dd) {
+              targetBossId = ab
+              targetDef = dd
+              if (abm && abm.updated_at) usedSinceIso = String(abm.updated_at)
+            }
+          } catch (_e1) {
+            // ignore
+          }
         }
 
         if (clanId) {
