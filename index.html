@@ -7788,6 +7788,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const topFear = top && (typeof top.fear !== 'undefined') ? (parseInt(top.fear||0,10)||0) : 0;
       const dayTop = dayBox && dayBox[fk] ? dayBox[fk] : null;
       const dayName = dayTop && dayTop.name ? dayTop.name : '—';
+      const dayPhoto = dayTop && dayTop.photo ? String(dayTop.photo) : '';
       const dayFear = dayTop && (typeof dayTop.fear !== 'undefined') ? (parseInt(dayTop.fear||0,10)||0) : 0;
       const idx = i-1;
       const unlocked = districtUnlocked(idx);
@@ -7827,7 +7828,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '</div>'
         + '<div style="min-width:0">'
         + '<div class="districtTag" style="text-align:left">СТРАШИЛА ДНЯ</div>'
-        + '<div class="districtNick" style="margin-top:4px">'+String(dayName).toUpperCase()+'</div>'
+        + '<div class="districtNick" style="margin-top:4px; display:flex; align-items:center; gap:8px">'
+        + (dayPhoto ? ('<img src="'+encodeURI(dayPhoto)+'" style="width:52px; height:52px; border-radius:999px; object-fit:cover; border:1px solid rgba(255,255,255,.22)"/>') : '<div style="width:52px; height:52px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.12);"></div>')
+        + '<span style="min-width:0; overflow:hidden; text-overflow:ellipsis;">'+String(dayName).toUpperCase()+'</span>'
+        + '</div>'
         + '<div class="districtStatBox" style="margin-top:6px">'
         + '<div class="districtStatRow">'
         + '<div class="districtFear">😱 '+fmt4(dayFear)+'</div>'
