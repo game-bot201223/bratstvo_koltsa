@@ -5846,7 +5846,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         bfLogPush(bossId, state.playerName||'PLAYER', applied);
         bfTopAdd(bossId, state.playerName||'PLAYER', applied);
         clanAddBossDamage(applied, state.playerName||'PLAYER');
-        try { bossHelpSend(bossId, dmg); } catch (e0) {}
+        try { bossHelpSend(bossId, applied); } catch (e0) {}
         bfCheckWin(bossId);
         try { bossFightsCloudPullMaybe(); } catch (e2) {}
         save();
@@ -5920,7 +5920,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         bfLogPush(bossId, state.playerName||'PLAYER', applied);
         bfTopAdd(bossId, state.playerName||'PLAYER', applied);
         clanAddBossDamage(applied);
-        try { bossHelpSend(bossId, dmg); } catch (e0) {}
+        try { bossHelpSend(bossId, applied); } catch (e0) {}
         bfCheckWin(bossId);
         try { bossFightsCloudPullMaybe(); } catch (e2) {}
         save();
@@ -6499,10 +6499,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const applied2 = (fhp2!==null) ? Math.max(0, prevHp - Math.max(0, fhp2)) : wantApply;
         // Help damage should be sent on every successful hit.
         // Fight log/top uses only `applied2` to avoid "damage > hp" artifacts.
-        bossHelpSend(id, dmg);
+        bossHelpSend(id, applied2);
         feedAdd('Ты ударил босса: '+b.name+' -'+applied2, 'BOSS');
       } catch (e0) {
         feedAdd('Ты ударил босса: '+b.name+' -'+wantApply, 'BOSS');
+        bossHelpSend(id, wantApply);
+        toast('Босс: -'+wantApply, 'win');
       }
       try { bossFightsCloudPullMaybe(); } catch (e1) {}
       save();
