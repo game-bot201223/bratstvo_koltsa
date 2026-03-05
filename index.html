@@ -626,26 +626,41 @@ body{
    padding: 12px;
    padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
-/* Площадь: карта на весь экран без отступов */
+/* Площадь: карта на весь экран без отступов, привязка зон к зданиям на любых экранах */
 #mPloshchad .sheetBody{
    padding: 0;
    overflow: hidden;
    display: flex;
    flex-direction: column;
+   align-items: center;
+   justify-content: center;
 }
 .ploshchadMap{
-   position: relative;
    flex: 1;
    min-height: 0;
    width: 100%;
-   display: block;
+   display: flex;
+   align-items: center;
+   justify-content: center;
 }
-.ploshchadMap img{
+/* Внутренний блок с соотношением сторон картинки — зоны в % привязаны к нему */
+.ploshchadMapInner{
+   position: relative;
+   width: 100%;
+   height: auto;
+   max-height: 100%;
+   max-width: 100%;
+   aspect-ratio: 3/2;
+   flex-shrink: 0;
+}
+.ploshchadMapInner img{
    display: block;
    width: 100%;
    height: 100%;
-   object-fit: cover;
+   object-fit: contain;
    pointer-events: none;
+   position: absolute;
+   inset: 0;
 }
 .ploshchadHotspot{
    position: absolute;
@@ -1495,12 +1510,14 @@ body{
     </div>
     <div class="sheetBody" id="ploshchadBody">
       <div class="ploshchadMap" id="ploshchadMap">
-        <img src="площадь.jpg" alt="Площадь">
-        <button type="button" class="ploshchadHotspot" id="ploshchadArena" aria-label="Арена" style="left:12%;top:2%;width:76%;height:38%;"></button>
-        <button type="button" class="ploshchadHotspot" id="ploshchadHallOfFame" aria-label="Зал славы" style="left:8%;top:40%;width:32%;height:28%;"></button>
-        <button type="button" class="ploshchadHotspot" id="ploshchadGym" aria-label="Спортзал" style="left:42%;top:42%;width:30%;height:26%;"></button>
-        <button type="button" class="ploshchadHotspot" id="ploshchadShop" aria-label="Торговая лавка" style="left:2%;top:62%;width:30%;height:34%;"></button>
-        <button type="button" class="ploshchadHotspot" id="ploshchadDice" aria-label="Игра в кости" style="left:62%;top:68%;width:34%;height:28%;"></button>
+        <div class="ploshchadMapInner" id="ploshchadMapInner">
+          <img src="площадь.jpg" alt="Площадь" id="ploshchadImg">
+          <button type="button" class="ploshchadHotspot" id="ploshchadArena" aria-label="Арена" style="left:12%;top:2%;width:76%;height:38%;"></button>
+          <button type="button" class="ploshchadHotspot" id="ploshchadHallOfFame" aria-label="Зал славы" style="left:8%;top:40%;width:32%;height:28%;"></button>
+          <button type="button" class="ploshchadHotspot" id="ploshchadGym" aria-label="Спортзал" style="left:42%;top:42%;width:30%;height:26%;"></button>
+          <button type="button" class="ploshchadHotspot" id="ploshchadShop" aria-label="Торговая лавка" style="left:2%;top:62%;width:30%;height:34%;"></button>
+          <button type="button" class="ploshchadHotspot" id="ploshchadDice" aria-label="Игра в кости" style="left:62%;top:68%;width:34%;height:28%;"></button>
+        </div>
       </div>
     </div>
   </div>
@@ -8880,6 +8897,17 @@ body{
       haptic('light');
     };
     $('btnSets').onclick = ()=>{ openScreen('mPloshchad'); haptic('light'); };
+
+    (function setPloshchadAspectRatio(){
+      const img = $('ploshchadImg');
+      const inner = $('ploshchadMapInner');
+      if (!img || !inner) return;
+      if (img.complete && img.naturalWidth) {
+        inner.style.aspectRatio = img.naturalWidth + '/' + img.naturalHeight;
+        return;
+      }
+      img.onload = function(){ inner.style.aspectRatio = img.naturalWidth + '/' + img.naturalHeight; };
+    })();
 
     try {
       const openArena = ()=>{ openScreen('mArena'); haptic('light'); };
