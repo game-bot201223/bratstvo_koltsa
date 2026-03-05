@@ -131,49 +131,57 @@ async function postgrestListWinners(projectUrl: string, serviceKey: string): Pro
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ ok: false, error: "method_not_allowed" }), {
-      status: 405,
+  try {
+    if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
+    if (req.method !== "POST") {
+      return new Response(JSON.stringify({ ok: false, error: "method_not_allowed" }), {
+        status: 405,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+
+    const botToken = String(Deno.env.get("TELEGRAM_BOT_TOKEN") || "").trim()
+    const projectUrl = String(Deno.env.get("PROJECT_URL") || "").trim()
+    const serviceKey = String(Deno.env.get("SERVICE_ROLE_KEY") || "").trim()
+    if (!botToken || !projectUrl || !serviceKey) {
+      return new Response(JSON.stringify({ ok: false, error: "missing_secrets" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+
+    let body: any = {}
+    try {
+      body = await req.json()
+    } catch (_) {
+      body = {}
+    }
+
+    const initData = String(body?.initData || req.headers.get("x-telegram-init-data") || "").trim()
+    if (!initData) {
+      return new Response(JSON.stringify({ ok: false, error: "missing_init_data" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+
+    const verified = await verifyTelegramInitData(initData, botToken)
+    if (!verified.ok || !verified.user?.id) {
+      return new Response(JSON.stringify({ ok: false, error: "unauthorized", reason: "bad_init_data" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+
+    const winners = await postgrestListWinners(projectUrl, serviceKey)
+    return new Response(JSON.stringify({ ok: true, winners }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
-  }
-
-  const botToken = String(Deno.env.get("TELEGRAM_BOT_TOKEN") || "").trim()
-  const projectUrl = String(Deno.env.get("PROJECT_URL") || "").trim()
-  const serviceKey = String(Deno.env.get("SERVICE_ROLE_KEY") || "").trim()
-  if (!botToken || !projectUrl || !serviceKey) {
-    return new Response(JSON.stringify({ ok: false, error: "missing_secrets" }), {
+  } catch (e) {
+    const msg = String((e && (e.message || e.name)) || e || "err").replace(/\s+/g, " ").trim()
+    return new Response(JSON.stringify({ ok: false, error: "exception", details: msg.slice(0, 200) }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
   }
-
-  let body: any = {}
-  try {
-    body = await req.json()
-  } catch (_) {
-    body = {}
-  }
-
-  const initData = String(body?.initData || req.headers.get("x-telegram-init-data") || "").trim()
-  if (!initData) {
-    return new Response(JSON.stringify({ ok: false, error: "missing_init_data" }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    })
-  }
-
-  const verified = await verifyTelegramInitData(initData, botToken)
-  if (!verified.ok || !verified.user?.id) {
-    return new Response(JSON.stringify({ ok: false, error: "unauthorized", reason: "bad_init_data" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    })
-  }
-
-  const winners = await postgrestListWinners(projectUrl, serviceKey)
-  return new Response(JSON.stringify({ ok: true, winners }), {
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  })
 })
