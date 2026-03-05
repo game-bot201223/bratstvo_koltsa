@@ -8232,6 +8232,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   // --- Events
   function bindUI(){
+    function safeOn(id, fn){
+      try {
+        const el = $(id);
+        if (el) el.onclick = fn;
+      } catch (e) {}
+    }
     document.querySelectorAll('[data-close]').forEach(b=>{
       b.onclick = ()=>hideModal(b.getAttribute('data-close'));
     });
@@ -8260,22 +8266,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e0) {}
 
-    $('overlay').onclick = ()=>{
+    safeOn('overlay', ()=>{
       if (window.__ignoreOverlayClickOnce) { window.__ignoreOverlayClickOnce = false; return; }
       const top = (Array.isArray(stack) && stack.length) ? stack[stack.length-1] : '';
       if (top === 'mBossFight') return;
       hideTop();
-    };
+    });
 
-    $('settingsBtn').onclick = ()=>{ showModal('mSettings'); renderAll(); haptic('light'); };
-    $('shopBtn').onclick = ()=>{ showModal('mShop'); renderShop(); haptic('light'); };
-    $('btnDistricts').onclick = ()=>{
+    safeOn('settingsBtn', ()=>{ showModal('mSettings'); renderAll(); haptic('light'); });
+    safeOn('shopBtn', ()=>{ showModal('mShop'); renderShop(); haptic('light'); });
+    safeOn('btnDistricts', ()=>{
       openScreen('mDistricts');
       try { districtLeadersCloudPullMaybe(true); } catch (e0) {}
       renderDistricts();
       haptic('light');
-    };
-    $('btnArena').onclick = ()=>{
+    });
+    safeOn('btnArena', ()=>{
       if (isGroupBattleActive()) {
         gfEnsureBattle();
         openScreen('mBattle');
@@ -8285,8 +8291,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         renderAll();
       }
       haptic('light');
-    };
-    $('btnBoss').onclick = ()=>{
+    });
+    safeOn('btnBoss', ()=>{
       const bid = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
       const f = bid ? bfGetFight(bid) : null;
       const alive = f && (parseInt(f.hp||0,10)||0) > 0;
@@ -8308,15 +8314,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       openScreen('mBoss');
       renderBosses();
       haptic('light');
-    };
-    $('btnTop').onclick = ()=>{ openScreen('mTop'); renderTop100('LVL'); haptic('light'); };
-    $('btnDice').onclick = ()=>{ openScreen('mDice'); renderDice(); haptic('light'); };
-    $('btnClans').onclick = ()=>{
+    });
+    safeOn('btnTop', ()=>{ openScreen('mTop'); renderTop100('LVL'); haptic('light'); });
+    safeOn('btnDice', ()=>{ openScreen('mDice'); renderDice(); haptic('light'); });
+    safeOn('btnClans', ()=>{
       openScreen('mClans');
       try { clansCloudPullMaybe().then(()=>{ try { renderClans(); } catch (e2) {} }).catch(()=>{}); } catch (e3) {}
       renderClans();
       haptic('light');
-    };
+    });
 
     try {
       const ob = $('openTopBros');
@@ -8354,9 +8360,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       };
     } catch (e) {}
 
-    $('arenaWeak').onclick = ()=>tryArenaFight('WEAK');
-    $('arenaNorm').onclick = ()=>tryArenaFight('NORMAL');
-    $('arenaElite').onclick = ()=>tryArenaFight('ELITE');
+    safeOn('arenaWeak', ()=>tryArenaFight('WEAK'));
+    safeOn('arenaNorm', ()=>tryArenaFight('NORMAL'));
+    safeOn('arenaElite', ()=>tryArenaFight('ELITE'));
 
     try {
       const ac = $('arenaConsOpen');
@@ -8367,8 +8373,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (bc) bc.onclick = ()=>consOpen('battle');
     } catch (e) {}
 
-    $('gfEnter').onclick = ()=>{ gfEnterBattle(); };
-    $('gf1010Open').onclick = ()=>{
+    safeOn('gfEnter', ()=>{ gfEnterBattle(); });
+    safeOn('gf1010Open', ()=>{
       if (isGroupBattleActive()) {
         gfEnterBattle();
         haptic('light');
@@ -8377,10 +8383,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       showModal('mGFJoin');
       renderGFJoinMini();
       haptic('light');
-    };
-    $('gfJoinBtn').onclick = ()=>{ gfJoin(); renderGroupFightUI(); renderGFJoinMini(); };
-    $('gf10Join').onclick = ()=>{ gf1010Join(); };
-    $('gf10Leave').onclick = ()=>{ gf1010Leave(); };
+    });
+    safeOn('gfJoinBtn', ()=>{ gfJoin(); renderGroupFightUI(); renderGFJoinMini(); });
+    safeOn('gf10Join', ()=>{ gf1010Join(); });
+    safeOn('gf10Leave', ()=>{ gf1010Leave(); });
 
     try {
       const leave = $('bLeave');
@@ -8399,8 +8405,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e) {}
 
-    $('diceRoll').onclick = ()=>rollDice();
-    $('diceRewardOk').onclick = ()=>hideModal('mDiceReward');
+    safeOn('diceRoll', ()=>rollDice());
+    safeOn('diceRewardOk', ()=>hideModal('mDiceReward'));
 
     const bsk = $('bfShopBuyKick');
     if (bsk) bsk.onclick = ()=>bfShopBuy('kick', 3);
@@ -8409,7 +8415,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const bse = $('bfShopBuyEnema');
     if (bse) bse.onclick = ()=>bfShopBuy('enema', 8);
 
-    $('nameBtn').onclick = ()=>{
+    safeOn('nameBtn', ()=>{
       const n = prompt('Имя персонажа:', state.playerName || 'PLAYER');
       if (!n) return;
       const prev = String(state.playerName||'PLAYER');
@@ -8463,10 +8469,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
       // Local-only: apply immediately.
       state.playerName = next;
+      try { renameEverywhere(prev, next); } catch (e9) {}
       save();
       renderAll();
       haptic('light');
-    };
+    });
 
     try {
       const it = $('inviteBtn');
