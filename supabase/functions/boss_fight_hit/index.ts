@@ -255,17 +255,6 @@ Deno.serve(async (req: Request) => {
   const bossId = Math.max(1, safeInt(body?.boss_id ?? body?.bossId, 0))
   const dmg = Math.max(0, Math.min(1_000_000_000, safeInt(body?.dmg, 0)))
 
-  // Soft rate limit: ignore spam/double-clicks without error.
-  try {
-    const rlKey = `boss_hit:${ownerTgId}`
-    const rl = await postgrestRateLimitAllow(projectUrl, serviceKey, rlKey, 650)
-    if (rl.ok && !rl.allowed) {
-      return new Response(JSON.stringify({ ok: true, skipped: true, reason: "rate_limited", next_allow_at: rl.next_allow_at || null }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      })
-    }
-  } catch (_e) {}
-
   const def = bossDef(bossId)
   if (!def) {
     return new Response(JSON.stringify({ ok: false, error: "bad_boss_id" }), {
