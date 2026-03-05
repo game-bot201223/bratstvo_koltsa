@@ -1432,6 +1432,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
       const r = await sbFnCall('boss_help_pull', { initData: tgInitData(), limit: 30 });
       const ev = (r && r.events && Array.isArray(r.events)) ? r.events : [];
+      try {
+        if (IS_DEV && ev) {
+          __lastCloudFn = 'boss_help_pull got=' + String(ev.length||0);
+          __lastCloudTs = now();
+          dbgUpdate();
+        }
+      } catch (e0) {}
       ev.forEach(e=>{
         try { bossHelpApplyEvent(e && e.boss_id, e && e.from_name, e && e.dmg, e && e.clan_id); } catch (e2) {}
       });
@@ -1762,6 +1769,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const next = curVal + Math.max(0, parseInt(addFear||0,10)||0);
       if (!state.districtDailyFear.byDistrict || typeof state.districtDailyFear.byDistrict !== 'object') state.districtDailyFear.byDistrict = {};
       state.districtDailyFear.byDistrict[fk] = { name:(state.playerName||'PLAYER'), fear: next, ts: now() };
+      try {
+        let photo = '';
+        try {
+          const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+          photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
+        } catch (e0) { photo = ''; }
+        districtDailyLeaderCloudUpsert(fk, next, (state.playerName||'PLAYER'), photo);
+      } catch (e1) {}
     } catch (e) {}
   }
 
@@ -2739,6 +2754,48 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       const force = arguments && arguments.length ? !!arguments[0] : false;
       await cloudOnce('pull:district_leaders', ()=>districtLeadersCloudPull());
+    } catch (e) {}
+  }
+
+  async function districtDailyLeadersCloudPull(){
+    try {
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
+      const dayKey = utcDayKey();
+      const r = await sbFnCall('district_daily_leaders_list', { initData: tgInitData(), day: dayKey });
+      const rows = (r && Array.isArray(r.leaders)) ? r.leaders : [];
+      const next = {};
+      rows.forEach(it=>{
+        try {
+          const k = String(it && it.district_key || '').trim();
+          if (!k) return;
+          const nm = it && it.name ? String(it.name) : '—';
+          const fear = Math.max(0, parseInt(it && it.fear || 0, 10) || 0);
+          const photo = it && it.photo_url ? String(it.photo_url) : '';
+          const ts = it && it.updated_at ? Date.parse(String(it.updated_at)) : 0;
+          next[k] = { name: nm, fear: fear, ts: ts || now(), photo: photo };
+        } catch (e0) {}
+      });
+      state.districtDailyFearCloud = { day: dayKey, byDistrict: next };
+      save();
+    } catch (e) {}
+  }
+  async function districtDailyLeadersCloudPullMaybe(){
+    try {
+      await cloudOnce('pull:district_daily_leaders', ()=>districtDailyLeadersCloudPull());
+    } catch (e) {}
+  }
+  async function districtDailyLeaderCloudUpsert(districtKey, fear, name, photo){
+    try {
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
+      await sbFnCall('district_daily_leader_upsert', {
+        initData: tgInitData(),
+        day: utcDayKey(),
+        district_key: String(districtKey||''),
+        fear: Math.max(0, parseInt(fear||0,10)||0),
+        name: String(name||'').trim().substring(0,18),
+        photo_url: String(photo||'').trim()
+      });
+      try { districtDailyLeadersCloudPullMaybe().catch(()=>{}); } catch (e0) {}
     } catch (e) {}
   }
   async function districtLeaderCloudUpsert(districtKey, fear, name, photo){
@@ -7686,13 +7743,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
         districtLeadersCloudPullMaybe(true).catch(()=>{});
+        districtDailyLeadersCloudPullMaybe().catch(()=>{});
       }
     } catch (e0) {}
     let html = '';
     try { districtLeadersCloudPullMaybe().catch(()=>{}); } catch (e0) {}
+    try { districtDailyLeadersCloudPullMaybe().catch(()=>{}); } catch (e1) {}
     const data = districtData();
     const dayKey = utcDayKey();
-    const dayBox = (state.districtDailyFear && state.districtDailyFear.day===dayKey) ? state.districtDailyFear.byDistrict : null;
+    const dayBox = (state.districtDailyFearCloud && state.districtDailyFearCloud.day===dayKey) ? state.districtDailyFearCloud.byDistrict : ((state.districtDailyFear && state.districtDailyFear.day===dayKey) ? state.districtDailyFear.byDistrict : null);
 
     try {
       const btn = $('bizRewardBtn');
