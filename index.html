@@ -605,13 +605,14 @@ body{
 #mBoss .sheet{ border-radius: 0; border: none; box-shadow: none; background: var(--ivory); }
 .sheetScreen .sheetBody{ padding: 0; }
 
-/* Районы, Боссы, Кланы — на весь экран */
-#mDistricts.modalPage, #mBoss.modalPage, #mClans.modalPage{
+/* Районы, Боссы, Кланы, Площадь — на весь экран поверх всего, без закруглений */
+#mDistricts.modalPage, #mBoss.modalPage, #mClans.modalPage, #mPloshchad.modalPage{
    padding: 0;
    align-items: stretch;
    justify-content: stretch;
+   z-index: 5100;
 }
-#mDistricts .sheet, #mBoss .sheet, #mClans .sheet{
+#mDistricts .sheet, #mBoss .sheet, #mClans .sheet, #mPloshchad .sheet{
    width: 100vw;
    max-width: none;
    height: 100vh;
@@ -621,11 +622,11 @@ body{
    border: none;
    box-shadow: none;
 }
-#mDistricts .sheetBody, #mBoss .sheetBody, #mClans .sheetBody{
+#mDistricts .sheetBody, #mBoss .sheetBody, #mClans .sheetBody, #mPloshchad .sheetBody{
    padding: 12px;
    padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
-#mDistricts .sheetHead, #mBoss .sheetHead, #mClans .sheetHead{
+#mDistricts .sheetHead, #mBoss .sheetHead, #mClans .sheetHead, #mPloshchad .sheetHead{
    padding-top: calc(14px + env(safe-area-inset-top));
 }
 
@@ -917,7 +918,7 @@ body{
   <div class="main">
     <div class="mainCharacter">
       <img src="персонаж.png" alt="">
-      <button type="button" class="btn dockBtn setsBtn" id="btnSets" aria-label="Сеты"><img src="сеты.jpg" alt=""></button>
+      <button type="button" class="btn dockBtn setsBtn" id="btnSets" aria-label="Площадь"><img src="сеты.jpg" alt=""></button>
     </div>
     <div class="bottomStack">
       <div class="dock">
@@ -1441,6 +1442,20 @@ body{
     <div class="sheetBody">
       <div id="districtBizRewardColumn" style="display:none; margin:10px 10px 0 10px;"></div>
       <div style="margin:10px; display:flex; flex-direction:column; gap:10px;" id="districtList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Площадь (полный экран) -->
+<div class="modal modalPage" id="mPloshchad" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mPloshchad">‹</button>
+      <div class="title">ПЛОЩАДЬ</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody" id="ploshchadBody">
+      <div class="card"><div class="row"><div class="k">ПЛОЩАДЬ</div></div><div style="margin-top:10px; font-size:12px; opacity:.8;">Здесь будет контент площади.</div></div>
     </div>
   </div>
 </div>
@@ -3956,7 +3971,7 @@ body{
   // --- Modal system
   const overlay = $('overlay');
   const stack = [];
-  const SCREEN_IDS = new Set(['mArena','mBoss','mTop','mDice','mDistricts','mBattle']);
+  const SCREEN_IDS = new Set(['mArena','mBoss','mTop','mDice','mDistricts','mBattle','mPloshchad']);
   function setOverlay(){
     if (!overlay) return;
     const top = stack.length ? stack[stack.length-1] : '';
@@ -8818,6 +8833,7 @@ body{
       renderClans();
       haptic('light');
     };
+    $('btnSets').onclick = ()=>{ openScreen('mPloshchad'); haptic('light'); };
 
     try {
       const ob = $('openTopBros');
