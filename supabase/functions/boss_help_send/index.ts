@@ -335,16 +335,28 @@ async function postgrestListPlayersByClanId(projectUrl: string, serviceKey: stri
     const out1 = Array.isArray(rows1) ? rows1 : []
     if (out1.length) return out1
 
-    // Fallback: json-path filter: state->clan->>id = 'CLN...'
+    // Fallback: json-path filter. IMPORTANT: clan id in state might have inconsistent casing,
+    // so use case-insensitive match.
     const url2 = projectUrl.replace(/\/$/, "") +
-      `/rest/v1/players?state->clan->>id=eq.${encodeURIComponent(clanId)}&select=tg_id,name&limit=200`
+      `/rest/v1/players?state->clan->>id=ilike.${encodeURIComponent(clanId)}&select=tg_id,name&limit=200`
     const resp2 = await fetch(url2, {
       method: "GET",
       headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
     })
-    if (!resp2.ok) return []
-    const rows2 = await resp2.json().catch(() => [])
-    return Array.isArray(rows2) ? rows2 : []
+    const rows2 = resp2.ok ? await resp2.json().catch(() => []) : []
+    const out2 = Array.isArray(rows2) ? rows2 : []
+    if (out2.length) return out2
+
+    // Extra fallback: if PostgREST treats ilike as pattern, try lowercase variant.
+    const url3 = projectUrl.replace(/\/$/, "") +
+      `/rest/v1/players?state->clan->>id=ilike.${encodeURIComponent(String(clanId || "").toLowerCase())}&select=tg_id,name&limit=200`
+    const resp3 = await fetch(url3, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp3.ok) return []
+    const rows3 = await resp3.json().catch(() => [])
+    return Array.isArray(rows3) ? rows3 : []
   } catch (_e) {
     return []
   }
