@@ -180,6 +180,7 @@ async function postgrestApplyBossDamage(
   dmg: number,
   maxHp: number,
   expiresAt: string,
+  source?: string,
 ): Promise<{ ok: boolean; fight?: any; status?: number; statusText?: string; body?: string }> {
   const url = projectUrl.replace(/\/$/, "") + "/rest/v1/rpc/apply_boss_damage_v2"
   const resp = await fetch(url, {
@@ -195,6 +196,7 @@ async function postgrestApplyBossDamage(
       p_dmg: dmg,
       p_max_hp: maxHp,
       p_expires_at: expiresAt,
+      p_source: source || "hit",
     }),
   })
 
@@ -264,7 +266,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
-  const ar = await postgrestApplyBossDamage(projectUrl, serviceKey, ownerTgId, bossId, dmg, def.max_hp, expiresAt)
+  const ar = await postgrestApplyBossDamage(projectUrl, serviceKey, ownerTgId, bossId, dmg, def.max_hp, expiresAt, "hit")
   if (!ar.ok || !ar.fight) {
     return new Response(JSON.stringify({
       ok: false,

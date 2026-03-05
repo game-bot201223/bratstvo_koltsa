@@ -421,6 +421,10 @@ async function postgrestApplyBossDamage(
   dmg: number,
   maxHp: number,
   expiresAt: string,
+  source?: string,
+  fromTgId?: string,
+  fromName?: string,
+  clanId?: string,
 ): Promise<{ ok: boolean; status?: number; statusText?: string; body?: string }> {
   try {
     const url = projectUrl.replace(/\/$/, "") + "/rest/v1/rpc/apply_boss_damage_v2"
@@ -437,6 +441,10 @@ async function postgrestApplyBossDamage(
         p_dmg: dmg,
         p_max_hp: maxHp,
         p_expires_at: expiresAt,
+        p_source: source || "hit",
+        p_from_tg_id: fromTgId || null,
+        p_from_name: fromName || null,
+        p_clan_id: clanId || null,
       }),
     })
     const text = await resp.text().catch(() => "")
@@ -794,7 +802,19 @@ Deno.serve(async (req: Request) => {
 
       try {
         if (applied > 0) {
-          const r = await postgrestApplyBossDamage(projectUrl, serviceKey, String(toTgId), targetBossId, applied, targetDef.max_hp, expiresAt)
+          const r = await postgrestApplyBossDamage(
+            projectUrl,
+            serviceKey,
+            String(toTgId),
+            targetBossId,
+            applied,
+            targetDef.max_hp,
+            expiresAt,
+            "help",
+            senderTgId,
+            senderName,
+            clanId || undefined,
+          )
           if (r && r.ok) {
             rpcOkCount += 1
           } else {
