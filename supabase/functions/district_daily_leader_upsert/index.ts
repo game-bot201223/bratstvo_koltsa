@@ -141,6 +141,35 @@ function sanitizeName(s: unknown): string {
   return String(s || "").trim().slice(0, 18)
 }
 
+async function postgrestGetBestLeader24h(
+  projectUrl: string,
+  serviceKey: string,
+  districtKey: string,
+  sinceIso: string,
+): Promise<{ fear: number; updated_at: string } | null> {
+  try {
+    const base = projectUrl.replace(/\/$/, "")
+    const url = base +
+      `/rest/v1/district_daily_leaders?district_key=eq.${encodeURIComponent(districtKey)}` +
+      `&updated_at=gte.${encodeURIComponent(sinceIso)}` +
+      `&select=fear,updated_at&order=fear.desc,updated_at.desc&limit=1`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp.ok) return null
+    const rows = await resp.json().catch(() => [])
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null
+    if (!row || typeof row !== "object") return null
+    const fear = safeInt((row as any).fear, 0)
+    const updatedAt = String((row as any).updated_at || "").trim()
+    if (!updatedAt) return null
+    return { fear: Math.max(0, fear), updated_at: updatedAt }
+  } catch (_e) {
+    return null
+  }
+}
+
 async function postgrestGetPlayerPhoto(projectUrl: string, serviceKey: string, tgId: string): Promise<string> {
   try {
     const url = projectUrl.replace(/\/$/, "") +
@@ -276,6 +305,18 @@ Deno.serve(async (req: Request) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
   }
+
+  // Enforce "scary of the day" as best fear in last 24 hours.
+  // If someone already has more fear within 24h, a smaller update cannot displace them.
+  try {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const best = await postgrestGetBestLeader24h(projectUrl, serviceKey, districtKey, since)
+    if (best && Number.isFinite(best.fear) && best.fear >= fear) {
+      return new Response(JSON.stringify({ ok: true, skipped: true, reason: "not_best_24h", best_fear: best.fear }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+  } catch (_e) {}
 
   const row = {
     day,

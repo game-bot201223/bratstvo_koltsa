@@ -125,9 +125,9 @@ async function verifyTelegramInitData(initData: string, botToken: string): Promi
   return { ok: false }
 }
 
-async function postgrestList(projectUrl: string, serviceKey: string, day: string): Promise<any[]> {
+async function postgrestList(projectUrl: string, serviceKey: string, sinceIso: string): Promise<any[]> {
   const url = projectUrl.replace(/\/$/, "") +
-    `/rest/v1/district_daily_leaders?day=eq.${encodeURIComponent(day)}&select=day,district_key,tg_id,name,fear,photo_url,updated_at`
+    `/rest/v1/district_daily_leaders?updated_at=gte.${encodeURIComponent(sinceIso)}&select=day,district_key,tg_id,name,fear,photo_url,updated_at`
   const resp = await fetch(url, {
     method: "GET",
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
@@ -179,15 +179,9 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  const day = String(body?.day || new Date().toISOString().slice(0, 10)).slice(0, 16)
-  if (!day || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(day)) {
-    return new Response(JSON.stringify({ ok: false, error: "bad_day" }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    })
-  }
-
-  const rows = await postgrestList(projectUrl, serviceKey, day)
+  // Rolling window: last 24 hours.
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const rows = await postgrestList(projectUrl, serviceKey, since)
   return new Response(JSON.stringify({ ok: true, leaders: rows }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   })
