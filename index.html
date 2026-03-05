@@ -1293,6 +1293,19 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   let __bossHelpPollT = 0;
   let __bossHelpLast = 0;
+  function bossHelpShouldRun(){
+    try {
+      if (bossUiOpen()) return true;
+    } catch (e0) {}
+    try {
+      const id = parseInt(state && state.bosses && state.bosses.activeFightId || 0, 10) || 0;
+      if (id > 0) {
+        const f = bfGetFight(id);
+        if (f && (parseInt(f.hp||0,10)||0) > 0) return true;
+      }
+    } catch (e1) {}
+    return false;
+  }
   function bossUiOpen(){
     try {
       const bf = $('mBossFight');
@@ -1437,7 +1450,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (__bossHelpPollT) return;
       __bossHelpPollT = setInterval(()=>{
         try {
-          if (!bossUiOpen()) return;
+          if (!bossHelpShouldRun()) return;
           const t = now();
           if (__bossHelpLast && (t - __bossHelpLast) < 1000) return;
           __bossHelpLast = t;
@@ -5069,6 +5082,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     box.querySelectorAll('[data-gym]').forEach(btn=>{
       btn.onclick = ()=>{
+        try {
+          if (window.__gymClickLockUntil && now() < window.__gymClickLockUntil) return;
+          window.__gymClickLockUntil = now() + 420;
+        } catch (e0) {}
         const key = btn.getAttribute('data-gym');
         const cur = gymVal(key);
         const cost = gymCost(cur);
