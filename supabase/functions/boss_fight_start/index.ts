@@ -172,34 +172,56 @@ async function postgrestRateLimitAllow(
 async function postgrestStartFight(projectUrl: string, serviceKey: string, ownerTgId: string, bossId: number, maxHp: number, expiresAt: string): Promise<any | null> {
   const base = projectUrl.replace(/\/$/, "")
 
-  async function callRpc(rpcName: string): Promise<any | null> {
+  async function callRpc(rpcName: string): Promise<{ ok: true; row: any } | { ok: false; status?: number; body?: string }> {
     const url = base + "/rest/v1/rpc/" + rpcName
-    const resp = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
-      },
-      body: JSON.stringify({
-        p_owner_tg_id: ownerTgId,
-        p_boss_id: bossId,
-        p_dmg: 0,
-        p_max_hp: maxHp,
-        p_expires_at: expiresAt,
-      }),
-    })
-    if (!resp.ok) return null
-    const rows = await resp.json().catch(() => [])
-    const row = Array.isArray(rows) && rows.length ? rows[0] : null
-    return row && typeof row === "object" ? row : null
+    try {
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+        },
+        body: JSON.stringify({
+          p_owner_tg_id: ownerTgId,
+          p_boss_id: bossId,
+          p_dmg: 0,
+          p_max_hp: maxHp,
+          p_expires_at: expiresAt,
+        }),
+      })
+
+      if (!resp.ok) {
+        const txt = await resp.text().catch(() => "")
+        const body = String(txt || "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 180)
+        return { ok: false, status: resp.status, body: body || undefined }
+      }
+
+      const rows = await resp.json().catch(() => [])
+      const row = Array.isArray(rows) && rows.length ? rows[0] : null
+      if (!row || typeof row !== "object") return { ok: false, status: resp.status, body: "bad_rpc_response" }
+      return { ok: true, row }
+    } catch (_e) {
+      return { ok: false, body: "rpc_fetch_failed" }
+    }
   }
 
   // Prefer v2, but keep fallback to legacy in case migrations are not applied yet.
   const v2 = await callRpc("apply_boss_damage_v2")
-  if (v2) return v2
+  if (v2.ok) return v2.row
   const legacy = await callRpc("apply_boss_damage")
-  return legacy
+  if (legacy.ok) return legacy.row
+
+  // attach debug info for caller
+  const err: any = new Error("rpc_failed")
+  ;(err as any).debug = {
+    v2: { status: (v2 as any).status, body: (v2 as any).body },
+    legacy: { status: (legacy as any).status, body: (legacy as any).body },
+  }
+  throw err
 }
 
 Deno.serve(async (req: Request) => {
@@ -266,7 +288,16 @@ Deno.serve(async (req: Request) => {
   } catch (_e) {}
 
   const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
-  const fight = await postgrestStartFight(projectUrl, serviceKey, ownerTgId, bossId, def.max_hp, expiresAt)
+  let fight: any | null = null
+  try {
+    fight = await postgrestStartFight(projectUrl, serviceKey, ownerTgId, bossId, def.max_hp, expiresAt)
+  } catch (e) {
+    const dbg = (e && typeof e === "object" && (e as any).debug) ? (e as any).debug : undefined
+    return new Response(JSON.stringify({ ok: false, error: "supabase_error_start_fight", debug: dbg || null }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    })
+  }
   if (!fight) {
     return new Response(JSON.stringify({ ok: false, error: "supabase_error_start_fight" }), {
       status: 500,
