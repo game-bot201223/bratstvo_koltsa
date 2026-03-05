@@ -442,6 +442,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   #mBattle #bEnemyTeam .hpBar{width:100% !important; max-width:none !important; border-color:rgba(45,30,18,.20) !important; background:rgba(255,255,255,.22) !important; box-shadow:none !important;}
   #mBattle #bMyTeam .hpIn,
   #mBattle #bEnemyTeam .hpIn{color:rgba(45,30,18,.92) !important; text-shadow:none !important;}
+  #mBattle .bAva{width:24px;height:24px;border-radius:999px;object-fit:cover;flex:0 0 auto;border:1px solid rgba(45,30,18,.22);background:rgba(255,255,255,.22);}
+  #mBattle .bNmRow{display:flex;align-items:center;gap:8px;min-width:0;}
+  #mBattle .bNmTxt{min-width:0;overflow:hidden;text-overflow:ellipsis;}
  #mBattle .battleTeamsGrid{max-width:100%; gap:2px !important;}
  #mBattle .battleCol{background:rgba(45,30,18,.09) !important; border:1px solid rgba(45,30,18,.16) !important; border-radius:16px !important; padding:6px !important;}
  #mBattle .battleAtkCol{background:rgba(45,30,18,.12) !important;}
@@ -4605,6 +4608,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           initData,
           start_ts: new Date(startTs).toISOString(),
           name: String(state.playerName||'Player'),
+          photo_url: (function(){ try { const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null; return (u && u.photo_url) ? String(u.photo_url||'') : ''; } catch (e0) { return ''; } })(),
           stats_sum: parseInt(statsSum||0,10)||0
         }).then((r)=>{
           if (r===null) return;
@@ -4756,7 +4760,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           }
 
           // Sort stable by stats_sum desc already done server-side; just use as is.
-          const you = { tg_id: (meId || 'YOU'), name: String(state.playerName||'ТЫ') };
+          let __youPhoto = '';
+          try {
+            const u0 = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+            __youPhoto = (u0 && u0.photo_url) ? String(u0.photo_url||'') : '';
+          } catch (e0) { __youPhoto = ''; }
+          const you = { tg_id: (meId || 'YOU'), name: String(state.playerName||'ТЫ'), photo_url: String(__youPhoto||'') };
           const hasYou = arr.some(e=>String(e && e.tg_id||'')===String(meId));
           const pool = (hasYou ? arr : ([you].concat(arr))).slice();
 
@@ -4783,20 +4792,25 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
           if (!teamA.length || !teamB.length) return;
 
-          battle.myTeam = teamA.map((e, i)=>({
-            id: (String(e && e.tg_id||'')===String(meId)) ? 'YOU' : ('A'+(i+1)),
-            name: String(e && e.name || ((String(e && e.tg_id||'')===String(meId)) ? (state.playerName||'ТЫ') : ('Союзник '+(i+1)))),
-            hp: myMaxHp,
-            maxHp: myMaxHp
-          }));
+          battle.myTeam = teamA.map((e, i)=>(
+            {
+              id: (String(e && e.tg_id||'')===String(meId)) ? 'YOU' : ('A'+(i+1)),
+              name: String(e && e.name || ((String(e && e.tg_id||'')===String(meId)) ? (state.playerName||'ТЫ') : ('Союзник '+(i+1)))),
+              photo: (String(e && e.tg_id||'')===String(meId) && __youPhoto) ? String(__youPhoto||'') : String((e && (e.photo_url||e.photoUrl)) || ''),
+              hp: myMaxHp,
+              maxHp: myMaxHp
+            }
+          ));
 
-          battle.targets = teamB.map((e, i)=>({
-            id: 'E'+(i+1),
-            name: String(e && e.name || ('Враг '+(i+1))),
-            hp: enemyMaxHp,
-            maxHp: enemyMaxHp
-          }));
-
+          battle.targets = teamB.map((e, i)=>(
+            {
+              id: 'E'+(i+1),
+              name: String(e && e.name || ('Враг '+(i+1))),
+              photo: String((e && (e.photo_url||e.photoUrl)) || ''),
+              hp: enemyMaxHp,
+              maxHp: enemyMaxHp
+            }
+          ));
           try {
             if (!battle.dmgBy || typeof battle.dmgBy !== 'object') battle.dmgBy = {};
             (battle.myTeam||[]).forEach(u=>{ const id = String(u.id||''); if (id) battle.dmgBy[id] = 0; });
@@ -4840,6 +4854,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       b.myTeam.forEach(p=>{
         const id = String(p.id||'');
         const nm = String(p.name||id||'—');
+        const ph = String(p.photo||'');
         const hp0 = (id==='YOU') ? myHp : (parseInt(p.hp||0,10)||0);
         const mx0raw = (id==='YOU') ? myMax : (parseInt(p.maxHp||0,10)||0);
         const mx0 = mx0raw>0 ? mx0raw : Math.max(1, hp0);
@@ -4853,8 +4868,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           el.style.border = '2px solid rgba(59,130,246,.9)';
           el.style.boxShadow = '0 0 0 3px rgba(59,130,246,.18)';
         }
+        const safePh = ph ? String(ph).replace(/"/g,'').trim() : '';
         el.innerHTML = ''
-          + '<div style="font-weight:900; letter-spacing:1px; font-size:11px; line-height:1.1">'+nm+'</div>'
+          + '<div class="bNmRow">'
+          + (safePh ? ('<img class="bAva" src="'+safePh+'" onerror="this.style.display=\'none\'">') : '')
+          + '<div class="bNmTxt" style="font-weight:900; letter-spacing:1px; font-size:11px; line-height:1.1">'+nm+'</div>'
+          + '</div>'
           + '<div style="font-size:11px; font-weight:900; opacity:.92; letter-spacing:1px; width:100%; text-align:center;">'+(dead?'DEAD':(hp0+'/'+mx0))+'</div>';
         myTeam.appendChild(el);
       });
@@ -4868,12 +4887,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const mxRaw = parseInt(t.maxHp||0,10)||0;
       const mx = mxRaw>0 ? mxRaw : Math.max(1, hp);
       const dead = hp<=0;
+      const ph = String(t.photo||'');
       const el = document.createElement('div');
       el.className = 'badge';
       el.style.padding = '8px 10px';
       el.style.opacity = dead ? '.45' : '1';
+      const safePh = ph ? String(ph).replace(/"/g,'').trim() : '';
       el.innerHTML = ''
-        + '<div style="font-weight:900; letter-spacing:1px; font-size:11px; line-height:1.1">'+String((t && (t.name||t.id))||t.id)+'</div>'
+        + '<div class="bNmRow">'
+        + (safePh ? ('<img class="bAva" src="'+safePh+'" onerror="this.style.display=\'none\'">') : '')
+        + '<div class="bNmTxt" style="font-weight:900; letter-spacing:1px; font-size:11px; line-height:1.1">'+String((t && (t.name||t.id))||t.id)+'</div>'
+        + '</div>'
         + '<div style="font-size:11px; font-weight:900; opacity:.92; letter-spacing:1px; width:100%; text-align:center;">'+(dead?'DEAD':(hp+'/'+mx))+'</div>';
       enemyTeam.appendChild(el);
 
