@@ -673,11 +673,24 @@ Deno.serve(async (req: Request) => {
   const rows0 = await Promise.all(
     recArr.map(async (toTgId) => {
       let applied = 0
-      const targetBossId = bossId
-      const targetDef = def
+      let targetBossId = bossId
+      let targetDef = def
       try {
         const pr = await postgrestGetPlayer(projectUrl, serviceKey, String(toTgId))
         const st = pr && typeof pr === "object" ? (pr as any).state : null
+
+        // Option B: apply help to recipient's active boss fight if any.
+        // If recipient has no active fight, apply to requested boss_id (will create fight row).
+        try {
+          const ab = await postgrestFindActiveBossFightId(projectUrl, serviceKey, String(toTgId))
+          const dd = ab ? bossDef(ab) : null
+          if (dd) {
+            targetBossId = ab
+            targetDef = dd
+          }
+        } catch (_e0) {
+          // ignore
+        }
 
         if (clanId) {
           const lvlRaw = st && typeof st === "object" ? (st as any).friendHelpLvl : 0
