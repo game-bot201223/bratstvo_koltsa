@@ -76,9 +76,9 @@ body{
   padding-top:env(safe-area-inset-top);
 }
 
-/* Top HUD */
+/* Top HUD — компактнее по вертикали (~−30%) */
 .hud{
-   padding: 14px 16px 0;
+   padding: 10px 16px 0;
    background: var(--ivory);
    border-bottom: 1px solid var(--ivory-border);
    box-shadow: 0 2px 12px var(--ivory-shadow);
@@ -86,9 +86,9 @@ body{
    top: 0;
    z-index: 9001;
 }
-.hudRow{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.hudRow{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .name{
-   display:flex; align-items:center; gap:10px;
+   display:flex; align-items:center; gap:7px;
    min-width:0;
    font-weight:900;
    letter-spacing:1.5px;
@@ -97,13 +97,13 @@ body{
 }
 .name:active{opacity:.88;}
 .name span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52vw;}
-.nameCol{display:flex;flex-direction:column;min-width:0;gap:2px;}
-.nameLine{display:flex;align-items:center;gap:8px;min-width:0;}
-.utcRow{display:flex;align-items:baseline;gap:6px;opacity:.78;}
+.nameCol{display:flex;flex-direction:column;min-width:0;gap:1px;}
+.nameLine{display:flex;align-items:center;gap:6px;min-width:0;}
+.utcRow{display:flex;align-items:baseline;gap:4px;opacity:.78;}
 .utcTag{font-size:9px;letter-spacing:2px;opacity:.75;}
 .lvl{
-   font-size: 11px; opacity: .92;
-   padding: 6px 12px;
+   font-size: 10px; opacity: .92;
+   padding: 4px 8px;
    border-radius: 999px;
    border: 1px solid var(--ivory-border);
    background: var(--ivory);
@@ -111,28 +111,28 @@ body{
    transition: transform var(--durFast) var(--ease);
 }
 
-.pills{display:flex;align-items:center;gap:8px;}
+.pills{display:flex;align-items:center;gap:6px;}
 .pill{
-   display: flex; align-items: center; gap: 8px;
-   padding: 8px 12px;
+   display: flex; align-items: center; gap: 6px;
+   padding: 6px 9px;
    border-radius: 999px;
    border: 1px solid var(--ivory-border);
    background: var(--ivory);
-   font-size: 12px;
+   font-size: 11px;
    box-shadow: var(--shadowBtn);
    transition: transform var(--durFast) var(--ease);
 }
 .pill:active{transform: scale(0.98);}
-.energyPill{flex-direction:column;align-items:flex-start;gap:2px;line-height:1.05;}
-.energyPill .eRow{display:flex;align-items:center;gap:8px;}
-.energyPill .eTimer{font-size:10px;letter-spacing:2px;opacity:.70;margin-left:22px;}
+.energyPill{flex-direction:column;align-items:flex-start;gap:1px;line-height:1.05;}
+.energyPill .eRow{display:flex;align-items:center;gap:6px;}
+.energyPill .eTimer{font-size:9px;letter-spacing:1.5px;opacity:.70;margin-left:16px;}
 .pill strong{font-weight:900;letter-spacing:1px;}
 
 .xp{
    margin-top: 0;
-   margin-bottom: 8px;
+   margin-bottom: 5px;
    position: relative;
-   height: 24px;
+   height: 17px;
    border-radius: 999px;
    background: var(--ivory);
    border: 1px solid var(--ivory-border);
@@ -149,10 +149,10 @@ body{
 .xpText{
    position: relative;
    z-index: 1;
-   font-size: 11px;
-   letter-spacing: 2px;
+   font-size: 10px;
+   letter-spacing: 1.5px;
    text-align: center;
-   line-height: 24px;
+   line-height: 17px;
    opacity: .92;
    color: var(--ink);
 }
@@ -243,33 +243,33 @@ body{
 .timeCenter{margin:12px 16px 0; text-align:center; font-size:11px; letter-spacing:2px; opacity:.78;}
 .timeTop{padding:10px 16px 0; text-align:center; font-size:11px; letter-spacing:2px; opacity:.78;}
 
-.heroGrid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; padding:0 10px 10px;}
+.heroGrid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; padding:0 10px 7px;}
 .tile{
    border-radius: var(--r3);
    border: 1px solid var(--ivory-border);
    background: var(--ivory);
-   padding: 8px 8px;
-   min-height: 44px;
+   padding: 5px 6px;
+   min-height: 30px;
    display: flex;
    flex-direction: column;
    justify-content: center;
-   gap: 4px;
+   gap: 3px;
    box-shadow: var(--shadowBtn);
    transition: transform var(--durFast) var(--ease);
 }
 .tile:active{transform: scale(0.98);}
-.tile .k{font-size:10px; opacity:.78; letter-spacing:2px;}
-.tile .v{font-weight:900; letter-spacing:1px; font-size:9px;}
+.tile .k{font-size:9px; opacity:.78; letter-spacing:2px;}
+.tile .v{font-weight:900; letter-spacing:1px; font-size:8px;}
 .tile.gold,.tile.silver,.tile.tooth{align-items:center; text-align:center;}
-.tile.gold .v,.tile.silver .v,.tile.tooth .v{font-size:14px; line-height:1;}
-.tile.shop{padding:8px;}
-.tile.shop .k{margin-bottom:2px;}
-.tile.shop{padding:6px;}
-.tile.shop .k{font-size:9px; letter-spacing:2px;}
-.tile.shop .shopMini{width:100%; height:30px; border-radius: var(--r3); font-size:9px; letter-spacing:1px; padding:0 8px;}
+.tile.gold .v,.tile.silver .v,.tile.tooth .v{font-size:12px; line-height:1;}
+.tile.shop{padding:5px 6px;}
+.tile.shop .k{margin-bottom:1px;}
+.tile.shop{padding:5px 6px;}
+.tile.shop .k{font-size:8px; letter-spacing:2px;}
+.tile.shop .shopMini{width:100%; height:22px; border-radius: var(--r3); font-size:8px; letter-spacing:1px; padding:0 6px;}
 .shopIconBtn{
    width: 100%;
-   height: 30px;
+   height: 22px;
    border-radius: var(--r3);
    border: 1px solid var(--ivory-border);
    background: var(--ivory);
@@ -286,7 +286,7 @@ body{
    inset: 0;
    background-repeat: no-repeat;
    background-position: center;
-   background-size: 18px 18px;
+   background-size: 14px 14px;
    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='white' fill-opacity='0.92' d='M6 7h15l-1.5 8.5a2 2 0 0 1-2 1.5H9a2 2 0 0 1-2-1.6L5.3 4H2V2h4a1 1 0 0 1 .97.76L7.4 5H22v2H6.6l.4 2z'/%3E%3Cpath fill='white' fill-opacity='0.92' d='M9 22a2 2 0 1 1 0-4a2 2 0 0 1 0 4zm10 0a2 2 0 1 1 0-4a2 2 0 0 1 0 4z'/%3E%3C/svg%3E");
 }
 .statGrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:12px;}
@@ -605,6 +605,30 @@ body{
 #mBoss .sheet{ border-radius: 0; border: none; box-shadow: none; background: var(--ivory); }
 .sheetScreen .sheetBody{ padding: 0; }
 
+/* Районы, Боссы, Кланы — на весь экран */
+#mDistricts.modalPage, #mBoss.modalPage, #mClans.modalPage{
+   padding: 0;
+   align-items: stretch;
+   justify-content: stretch;
+}
+#mDistricts .sheet, #mBoss .sheet, #mClans .sheet{
+   width: 100vw;
+   max-width: none;
+   height: 100vh;
+   max-height: none;
+   min-height: 100vh;
+   border-radius: 0;
+   border: none;
+   box-shadow: none;
+}
+#mDistricts .sheetBody, #mBoss .sheetBody, #mClans .sheetBody{
+   padding: 12px;
+   padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+#mDistricts .sheetHead, #mBoss .sheetHead, #mClans .sheetHead{
+   padding-top: calc(14px + env(safe-area-inset-top));
+}
+
 .sheetHead{
    padding: 14px 16px;
    border-bottom: 1px solid var(--ivory-border);
@@ -821,8 +845,8 @@ body{
 @media (max-width:420px){
   .dockRow{gap:0;}
   .btn{font-size:11px;}
-  .heroGrid{gap:5px; padding:0 10px 10px;}
-  .tile{min-height:40px; padding:6px;}
+  .heroGrid{gap:4px; padding:0 10px 7px;}
+  .tile{min-height:28px; padding:4px 5px;}
   .tile.shop .shopMini{height:28px; font-size:9px;}
 }
 
