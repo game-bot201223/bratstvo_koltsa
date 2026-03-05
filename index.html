@@ -581,6 +581,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         </div>
         <button class="iconBtn" id="settingsBtn" aria-label="Настройки">⚙️</button>
         <div class="badge" id="syncState" style="opacity:.8;">СЕЙВ: OK</div>
+        <div class="badge" id="buildId" style="opacity:.75;">BUILD: —</div>
         <div class="badge" id="dbgPanel" style="display:none;max-width:78vw;white-space:normal;line-height:1.15;opacity:.92;">
           DEBUG
         </div>
@@ -2167,6 +2168,29 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     clearTimeout(window.__toastT);
     window.__toastT = setTimeout(()=>{ el.classList.remove('show'); }, 1400);
   }
+
+  const BUILD_DIAG = 'diag-20260305-0305';
+  try {
+    const b = $('buildId');
+    if (b) b.textContent = 'BUILD: ' + BUILD_DIAG + ' / ' + String(BUILD_ID||'');
+  } catch (e0) {}
+
+  try {
+    let __lastErrToastTs = 0;
+    function __errToast(prefix, err){
+      const t = now();
+      if (__lastErrToastTs && (t - __lastErrToastTs) < 1200) return;
+      __lastErrToastTs = t;
+      const msg = String((err && (err.message||err.name)) || err || 'err').replace(/\s+/g,' ').trim();
+      toast(prefix + msg.slice(0, 120), 'lose');
+    }
+    window.addEventListener('error', (ev)=>{
+      try { __errToast('JS ERR: ', (ev && ev.message) ? ev.message : ev); } catch (e0) {}
+    });
+    window.addEventListener('unhandledrejection', (ev)=>{
+      try { __errToast('PROMISE: ', (ev && ev.reason) ? ev.reason : ev); } catch (e0) {}
+    });
+  } catch (e0) {}
 
   function haptic(style){
     try {
