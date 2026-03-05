@@ -6598,14 +6598,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try { bossLastWinnersCloudPullMaybe().catch(()=>{}); } catch (e1) {}
     const box = $('bossList');
     let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
-    const status = bossMechanicsStatus();
-    const statusHtml = status ? String(status).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
-    if (statusHtml){
-      html += '<div class="card">'
-        + '<div class="row"><div class="k">СТАТУС БОССОВ</div><div style="width:44px"></div></div>'
-        + '<div style="margin-top:6px; font-size:11px; opacity:.8; white-space:pre-wrap; word-break:break-word;">'+statusHtml+'</div>'
-        + '</div>';
-    }
     html += '<div class="card">'
       + '<div class="row"><div style="min-width:0"><div class="k">НАВЫК</div><div style="font-size:12px;opacity:.75;margin-top:4px">Помощь братков</div></div>'
       + '<button class="btn btnSmall" id="friendHelpOpen">ПОМОЩЬ БРАТКОВ</button></div>'
