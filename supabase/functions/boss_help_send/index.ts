@@ -502,17 +502,6 @@ Deno.serve(async (req: Request) => {
   let clanId = sanitizeClanId(body?.clan_id ?? body?.clanId)
   const fromName = sanitizeName(body?.from_name ?? body?.from ?? body?.member_name ?? body?.name)
 
-  // Soft rate limit: ignore spam/double-clicks without error.
-  try {
-    const rlKey = `boss_help_send:${senderTgId}`
-    const rl = await postgrestRateLimitAllow(projectUrl, serviceKey, rlKey, 900)
-    if (rl.ok && !rl.allowed) {
-      return new Response(JSON.stringify({ ok: true, skipped: true, reason: "rate_limited", next_allow_at: rl.next_allow_at || null }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      })
-    }
-  } catch (_e) {}
-
   const def = bossDef(bossId)
   if (!def) {
     return new Response(JSON.stringify({ ok: false, error: "bad_boss_id" }), {
