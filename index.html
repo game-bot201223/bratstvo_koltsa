@@ -304,7 +304,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
    user-select:none;
    transform: rotate(0deg);
  }
- .dice.rolling{ transition: transform .85s ease-in-out; transform: rotate(720deg); }
+ .dice.rolling{ transition: transform .425s ease-in-out; transform: rotate(720deg); }
  .dice .pip{ width:10px; height:10px; border-radius:50%; background:#000; opacity:0;
    justify-self:center; align-self:center;
  }
@@ -4637,29 +4637,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       const box = $('gfJoinPeopleList');
       const cnt = $('gfJoinPeopleCnt');
+      const card = $('gfJoinPeopleCard');
       if (box) box.innerHTML = '';
       if (cnt) cnt.textContent = '0';
+      if (box) box.style.display = 'none';
       gfFetchEntries(startTs).then((entries)=>{
         try {
           const arr = Array.isArray(entries) ? entries.slice(0, 50) : [];
           if (cnt) cnt.textContent = String(arr.length);
-          if (!box) return;
-          box.innerHTML = '';
-          arr.forEach((e)=>{
-            const row = document.createElement('div');
-            row.className = 'gfItem';
-            const nm = (e && e.name) ? String(e.name).trim().substring(0, 18) : '—';
-            const ph = (e && (e.photo_url || e.photoUrl)) ? String(e.photo_url || e.photoUrl) : '';
-            const sum = Math.max(0, parseInt(e && e.stats_sum || 0, 10) || 0);
-            row.innerHTML = '<div style="display:flex; align-items:center; gap:10px; min-width:0">'
-              + (ph ? ('<img class="bAva" src="'+encodeURI(ph)+'" alt=""/>') : '<div class="bAva" style="background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.12);"></div>')
-              + '<div style="min-width:0">'
-              + '<div class="nm" style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">'+nm+'</div>'
-              + '<div class="meta">'+fmt4(sum)+'</div>'
-              + '</div>'
-              + '</div>';
-            box.appendChild(row);
-          });
+          if (card) card.style.display = '';
         } catch (e0) {}
       }).catch(()=>{});
     } catch (e0) {}
@@ -7081,7 +7067,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     save();
     renderDice();
 
-    const ms = 700 + Math.floor(Math.random()*301);
+    const ms = 350 + Math.floor(Math.random()*151);
     const nodes = document.querySelectorAll('#diceRow .dice');
     try {
       nodes.forEach(n=>{
@@ -7119,7 +7105,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const used = parseInt(g.rolls||0,10)||0;
     if (used >= max){ toast('Перебросы закончились','lose'); return; }
     if (!Array.isArray(g.dice) || g.dice.length!==5) g.dice = [1,1,1,1,1];
-    const ms = 700 + Math.floor(Math.random()*301);
+    const ms = 350 + Math.floor(Math.random()*151);
     try {
       const node = document.querySelectorAll('#diceRow .dice')[i];
       if (node) {
