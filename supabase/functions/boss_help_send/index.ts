@@ -737,7 +737,7 @@ Deno.serve(async (req: Request) => {
           const lvlRaw = st && typeof st === "object" ? (st as any).friendHelpLvl : 0
           const lvl = clampInt(safeInt(lvlRaw, 0), 0, 10)
           const capPct = 0.10 + lvl * 0.01
-          const cap = Math.max(0, Math.floor(targetDef.max_hp * capPct))
+          const cap = Math.max(500, Math.floor(targetDef.max_hp * capPct))
           const used = await postgrestGetUsedHelpDamage(projectUrl, serviceKey, String(toTgId), senderTgId, targetBossId, usedSinceIso)
           const remain = Math.max(0, cap - Math.max(0, used))
           applied = Math.max(0, Math.min(dmg, remain))
@@ -745,12 +745,12 @@ Deno.serve(async (req: Request) => {
           const lvlRaw = st && typeof st === "object" ? (st as any).friendHelpLvl : 0
           const lvl = clampInt(safeInt(lvlRaw, 0), 0, 10)
           const capPct = 0.10 + lvl * 0.01
-          const cap = Math.max(0, Math.floor(targetDef.max_hp * capPct))
+          const cap = Math.max(500, Math.floor(targetDef.max_hp * capPct))
           applied = Math.max(0, Math.min(dmg, cap))
         }
       } catch (_e) {
         const capPct = 0.10
-        const cap = Math.max(0, Math.floor(targetDef.max_hp * capPct))
+        const cap = Math.max(500, Math.floor(targetDef.max_hp * capPct))
         if (clanId) {
           const used = await postgrestGetUsedHelpDamage(projectUrl, serviceKey, String(toTgId), senderTgId, targetBossId, windowStartIso)
           const remain = Math.max(0, cap - Math.max(0, used))
