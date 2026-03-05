@@ -673,32 +673,11 @@ Deno.serve(async (req: Request) => {
   const rows0 = await Promise.all(
     recArr.map(async (toTgId) => {
       let applied = 0
-      let targetBossId = bossId
-      let targetDef = def
+      const targetBossId = bossId
+      const targetDef = def
       try {
         const pr = await postgrestGetPlayer(projectUrl, serviceKey, String(toTgId))
         const st = pr && typeof pr === "object" ? (pr as any).state : null
-
-        // Help should apply even if the recipient has not started a fight yet.
-        // If an active fight exists, apply to that active boss_id; otherwise apply to requested boss_id,
-        // which will create a fight row on first help hit.
-        let hasActiveFight = false
-        try {
-          const ab = await postgrestFindActiveBossFightId(projectUrl, serviceKey, String(toTgId))
-          const dd = ab ? bossDef(ab) : null
-          if (dd) {
-            hasActiveFight = true
-            targetBossId = ab
-            targetDef = dd
-          }
-        } catch (_e0) {
-          hasActiveFight = false
-        }
-
-        if (!hasActiveFight) {
-          targetBossId = bossId
-          targetDef = def
-        }
 
         if (clanId) {
           const lvlRaw = st && typeof st === "object" ? (st as any).friendHelpLvl : 0
