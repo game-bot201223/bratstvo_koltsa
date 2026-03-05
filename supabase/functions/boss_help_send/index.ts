@@ -197,11 +197,13 @@ function bossDef(bossId: number): { boss_id: number; max_hp: number } | null {
   return { boss_id: bossId, max_hp: maxHp }
 }
 
-async function postgrestFindActiveBossFightId(
+type ActiveFightMeta = { boss_id: number; updated_at: string }
+
+async function postgrestFindActiveBossFightMeta(
   projectUrl: string,
   serviceKey: string,
   ownerTgId: string,
-): Promise<number> {
+): Promise<ActiveFightMeta | null> {
   try {
     const nowIso = new Date().toISOString()
     const url = projectUrl.replace(/\/$/, "") +
@@ -214,13 +216,15 @@ async function postgrestFindActiveBossFightId(
       method: "GET",
       headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
     })
-    if (!resp.ok) return 0
+    if (!resp.ok) return null
     const rows = await resp.json().catch(() => [])
     const row = Array.isArray(rows) && rows.length ? rows[0] : null
     const bid = safeInt(row && typeof row === "object" ? (row as any).boss_id : 0, 0)
-    return bid > 0 ? bid : 0
+    const upd = row && typeof row === "object" ? String((row as any).updated_at || "").trim() : ""
+    if (bid <= 0) return null
+    return { boss_id: bid, updated_at: upd }
   } catch (_e) {
-    return 0
+    return null
   }
 }
 
@@ -679,14 +683,20 @@ Deno.serve(async (req: Request) => {
         const pr = await postgrestGetPlayer(projectUrl, serviceKey, String(toTgId))
         const st = pr && typeof pr === "object" ? (pr as any).state : null
 
+        // used-help scope: for clan help we reset the per-sender cap when recipient starts a new fight.
+        // We do that by counting used help since the active fight's updated_at (best proxy for fight start/reset).
+        let usedSinceIso = windowStartIso
+
         // Option B: apply help to recipient's active boss fight if any.
         // If recipient has no active fight, apply to requested boss_id (will create fight row).
         try {
-          const ab = await postgrestFindActiveBossFightId(projectUrl, serviceKey, String(toTgId))
+          const abm = await postgrestFindActiveBossFightMeta(projectUrl, serviceKey, String(toTgId))
+          const ab = abm && abm.boss_id ? abm.boss_id : 0
           const dd = ab ? bossDef(ab) : null
           if (dd) {
             targetBossId = ab
             targetDef = dd
+            if (abm && abm.updated_at) usedSinceIso = String(abm.updated_at)
           }
         } catch (_e0) {
           // ignore
@@ -697,7 +707,7 @@ Deno.serve(async (req: Request) => {
           const lvl = clampInt(safeInt(lvlRaw, 0), 0, 10)
           const capPct = 0.10 + lvl * 0.01
           const cap = Math.max(0, Math.floor(targetDef.max_hp * capPct))
-          const used = await postgrestGetUsedHelpDamage(projectUrl, serviceKey, String(toTgId), senderTgId, targetBossId, windowStartIso)
+          const used = await postgrestGetUsedHelpDamage(projectUrl, serviceKey, String(toTgId), senderTgId, targetBossId, usedSinceIso)
           const remain = Math.max(0, cap - Math.max(0, used))
           applied = Math.max(0, Math.min(dmg, remain))
         } else {
