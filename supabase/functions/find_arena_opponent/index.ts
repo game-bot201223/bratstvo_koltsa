@@ -40,6 +40,24 @@ function parseInitData(initData: string): Map<string, string> {
   return out
 }
 
+function parseInitDataRaw(initData: string): Map<string, string> {
+  const out = new Map<string, string>()
+  try {
+    const parts = String(initData || "").split("&")
+    for (const p of parts) {
+      if (!p) continue
+      const idx = p.indexOf("=")
+      if (idx <= 0) continue
+      const k = p.slice(0, idx)
+      const v = p.slice(idx + 1)
+      out.set(k, v)
+    }
+  } catch (_e) {
+    // ignore
+  }
+  return out
+}
+
 function buildDataCheckString(map: Map<string, string>): string {
   const pairs: string[] = []
   for (const [k, v] of map.entries()) {
@@ -50,6 +68,16 @@ function buildDataCheckString(map: Map<string, string>): string {
   return pairs.join("\n")
 }
 
+function decodeUriMaybe(s: string): string {
+  try {
+    if (!s) return s
+    if (!/%[0-9A-Fa-f]{2}/.test(s)) return s
+    return decodeURIComponent(s)
+  } catch (_e) {
+    return s
+  }
+}
+
 async function verifyTelegramInitData(
   initData: string,
   botToken: string,
@@ -57,23 +85,42 @@ async function verifyTelegramInitData(
   if (!botToken) return { ok: false, reason: "missing_bot_token" }
   if (!String(botToken).includes(":")) return { ok: false, reason: "bad_bot_token_format" }
   if (!initData) return { ok: false, reason: "missing_init_data" }
-  const map = parseInitData(initData)
-  const hash = map.get("hash") || ""
-  if (!hash) return { ok: false, reason: "missing_hash" }
 
-  const dataCheckString = buildDataCheckString(map)
-  const secretKey = await hmacSha256Bytes("WebAppData", botToken)
-  const computed = await hmacSha256Hex(secretKey, dataCheckString)
-  if (!timingSafeEqual(computed, String(hash).toLowerCase())) return { ok: false, reason: "hash_mismatch" }
+  const initBase = String(initData || "")
+  const initPlusLit = initBase.replace(/\+/g, "%2B")
+  const initPlusSpace = initBase.replace(/\+/g, "%20")
+  const initDecoded = decodeUriMaybe(initBase)
+  const initDecodedPlusLit = decodeUriMaybe(initPlusLit)
+  const initDecodedPlusSpace = decodeUriMaybe(initPlusSpace)
+  const candidates = [initBase, initPlusLit, initPlusSpace, initDecoded, initDecodedPlusLit, initDecodedPlusSpace]
 
-  let user: any = undefined
-  try {
-    const u = map.get("user")
-    if (u) user = JSON.parse(u)
-  } catch (_){
-    user = undefined
+  const variants: Array<{ map: Map<string, string>; userJsonNeedsDecode: boolean }> = []
+  for (const c of candidates) {
+    try { variants.push({ map: parseInitData(c), userJsonNeedsDecode: false }) } catch (_e) {}
+    try { variants.push({ map: parseInitDataRaw(c), userJsonNeedsDecode: true }) } catch (_e) {}
   }
-  return { ok: true, user }
+
+  const secretKey = await hmacSha256Bytes("WebAppData", botToken)
+  for (const v of variants) {
+    const map = v.map
+    const hash = map.get("hash") || ""
+    if (!hash) continue
+
+    const dataCheckString = buildDataCheckString(map)
+    const computed = await hmacSha256Hex(secretKey, dataCheckString)
+    if (!timingSafeEqual(computed, String(hash).toLowerCase())) continue
+
+    let user: any = undefined
+    try {
+      const u = map.get("user")
+      if (u) user = JSON.parse(v.userJsonNeedsDecode ? decodeURIComponent(u) : u)
+    } catch (_){
+      user = undefined
+    }
+    return { ok: true, user }
+  }
+
+  return { ok: false, reason: "hash_mismatch" }
 }
 
 function safeNonNegInt(v: unknown): number {
