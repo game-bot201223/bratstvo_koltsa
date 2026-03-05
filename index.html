@@ -4195,15 +4195,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         return gymVal(k);
       }
 
-      function effCombat(v){
-        try {
-          v = parseFloat(v);
-          if (isNaN(v) || v < 0) v = 0;
-          const S = 100000;
-          return Math.log(1 + (v / S));
-        } catch (e) { return 0; }
-      }
-
       const pRaw = {
         health: gymVal('health'),
         strength: gymVal('strength'),
@@ -4234,92 +4225,79 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const bonus = clamp(state.nextWinBonus||0, 0, 0.60);
       state.nextWinBonus = 0;
 
-      const pe = {
-        h: effCombat(p.health),
-        s: effCombat(p.strength),
-        a: effCombat(p.agility),
-        i: effCombat(p.initiative),
-        e: effCombat(p.endurance),
-        m: effCombat(p.might)
-      };
-      const ee = {
-        h: effCombat(e.health),
-        s: effCombat(e.strength),
-        a: effCombat(e.agility),
-        i: effCombat(e.initiative),
-        e: effCombat(e.endurance),
-        m: effCombat(e.might)
-      };
+      function safePos(v){
+        v = parseFloat(v);
+        if (!isFinite(v) || isNaN(v) || v < 0) v = 0;
+        return v;
+      }
 
-      const HP0 = 100;
-      const aH = 1.4;
-      let pHP = Math.max(1, Math.round(HP0 * (1 + aH * pe.h)));
-      let eHP = Math.max(1, Math.round(HP0 * (1 + aH * ee.h)));
-      const pHP0 = pHP;
-      const eHP0 = eHP;
+      function ratio01(a,b){
+        a = safePos(a);
+        b = safePos(b);
+        const d = a + b;
+        if (d <= 0) return 0.5;
+        return a / d;
+      }
+
+      // HP = Health * 18
+      let pHP = Math.max(1, Math.round(safePos(p.health) * 18));
+      let eHP = Math.max(1, Math.round(safePos(e.health) * 18));
       let youDmg = 0;
       let enemyDmg = 0;
       let rounds = 0;
       const combatLog = [];
 
-      const kI = 0.22;
-      const kA = 0.25;
-      const kS = 0.22;
-      const mitMax = 0.60;
-      const Cend = 2.0;
-      const penMax = 0.45;
-      const Cpen = 2.0;
-      const kM = 0.18;
-      const baseFrac = 0.17;
-
+      // FirstStrikeChance = Init1 / (Init1 + Init2)
       function firstStrikeChance(){
-        return clamp(0.5 + kI * (pe.i - ee.i), 0.15, 0.85);
+        return ratio01(p.initiative, e.initiative);
       }
 
-      function hitChance(effAgiAtt, effAgiDef, hitBonus){
-        return clamp(0.80 + kA * (effAgiAtt - effAgiDef) + (hitBonus||0)*0.15, 0.20, 0.95);
+      // HitChance = 0.25 + 0.5 * (Agi_att / (Agi_att + Agi_def)), capped [0.25..0.75]
+      function hitChance(agiAtt, agiDef, hitBonus){
+        let hc = 0.25 + 0.5 * ratio01(agiAtt, agiDef);
+        // optional small win-streak bonus, kept but bounded by caps
+        if (hitBonus && hitBonus > 0) hc += clamp(hitBonus, 0, 0.60) * 0.10;
+        return clamp(hc, 0.25, 0.75);
       }
 
-      function mitigation(effEndDef){
-        return mitMax * effEndDef / (effEndDef + Cend);
+      // ArmorFactor = 0.4 + 0.6 * (Str_att / (Str_att + End_def))
+      function armorFactor(strAtt, endDef){
+        return 0.4 + 0.6 * ratio01(strAtt, endDef);
       }
 
-      function armorPen(effAgiAtt){
-        return penMax * effAgiAtt / (effAgiAtt + Cpen);
+      // CritChance = 0.05 + 0.35 * (Might_att / (Might_att + Might_def)), capped [0.05..0.40]
+      function critChance(mAtt, mDef){
+        const cc = 0.05 + 0.35 * ratio01(mAtt, mDef);
+        return clamp(cc, 0.05, 0.40);
       }
 
-      function critChance(effMightAtt, effEndDef){
-        return clamp(0.06 + kM * (effMightAtt - effEndDef*0.25), 0.03, 0.30);
-      }
-
-      function critMul(effMightAtt, effEndDef){
-        const base = 1.35 + 0.45 * (effMightAtt / (effMightAtt + 2.0));
-        const anti = 1 - 0.35 * (effEndDef / (effEndDef + 2.0));
-        return 1 + (base - 1) * anti;
+      function critMultiplier(){
+        return 1.5 + Math.random() * 0.5;
       }
 
       function doAttack(isPlayer, round){
-        const A = isPlayer ? pe : ee;
-        const D = isPlayer ? ee : pe;
+        const A = isPlayer ? p : e;
+        const D = isPlayer ? e : p;
         const hpRef = isPlayer ? 'e' : 'p';
-        const hc = hitChance(A.a, D.a, isPlayer ? bonus : 0);
+        const hc = hitChance(A.agility, D.agility, isPlayer ? bonus : 0);
         if (Math.random() > hc) {
           combatLog.push({ round: round, who: isPlayer ? 'YOU' : 'ENEMY', miss:true, crit:false, dmg:0 });
           return;
         }
 
-        const hpDefMax = (hpRef==='e') ? eHP0 : pHP0;
-        let dmg = hpDefMax * baseFrac * (1 + kS * A.s);
+        // BaseDamage = Strength * 3
+        let dmg = safePos(A.strength) * 3;
 
-        const mit = mitigation(D.e);
-        const pen = armorPen(A.a);
-        const mitEff = mit * (1 - pen);
-        dmg = dmg * (1 - clamp(mitEff, 0, 0.85));
+        // Defense via endurance
+        dmg = dmg * armorFactor(A.strength, D.endurance);
 
-        const isCrit = Math.random() < critChance(A.m, D.e);
-        if (isCrit) dmg = dmg * critMul(A.m, D.e);
+        // Crit (roll)
+        const cc = critChance(A.might, D.might);
+        const isCrit = Math.random() < cc;
+        if (isCrit) dmg = dmg * critMultiplier();
 
-        dmg = dmg * (0.90 + Math.random()*0.20);
+        // RandomFactor = random(0.85, 1.15)
+        dmg = dmg * (0.85 + Math.random() * 0.30);
         dmg = Math.max(1, Math.round(dmg));
 
         combatLog.push({ round: round, who: isPlayer ? 'YOU' : 'ENEMY', miss:false, crit:isCrit, dmg:dmg });
