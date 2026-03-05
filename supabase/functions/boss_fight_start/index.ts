@@ -170,26 +170,36 @@ async function postgrestRateLimitAllow(
 }
 
 async function postgrestStartFight(projectUrl: string, serviceKey: string, ownerTgId: string, bossId: number, maxHp: number, expiresAt: string): Promise<any | null> {
-  const url = projectUrl.replace(/\/$/, "") + "/rest/v1/rpc/apply_boss_damage_v2"
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
-    },
-    body: JSON.stringify({
-      p_owner_tg_id: ownerTgId,
-      p_boss_id: bossId,
-      p_dmg: 0,
-      p_max_hp: maxHp,
-      p_expires_at: expiresAt,
-    }),
-  })
-  if (!resp.ok) return null
-  const rows = await resp.json().catch(() => [])
-  const row = Array.isArray(rows) && rows.length ? rows[0] : null
-  return row && typeof row === "object" ? row : null
+  const base = projectUrl.replace(/\/$/, "")
+
+  async function callRpc(rpcName: string): Promise<any | null> {
+    const url = base + "/rest/v1/rpc/" + rpcName
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({
+        p_owner_tg_id: ownerTgId,
+        p_boss_id: bossId,
+        p_dmg: 0,
+        p_max_hp: maxHp,
+        p_expires_at: expiresAt,
+      }),
+    })
+    if (!resp.ok) return null
+    const rows = await resp.json().catch(() => [])
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null
+    return row && typeof row === "object" ? row : null
+  }
+
+  // Prefer v2, but keep fallback to legacy in case migrations are not applied yet.
+  const v2 = await callRpc("apply_boss_damage_v2")
+  if (v2) return v2
+  const legacy = await callRpc("apply_boss_damage")
+  return legacy
 }
 
 Deno.serve(async (req: Request) => {
@@ -258,7 +268,7 @@ Deno.serve(async (req: Request) => {
   const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
   const fight = await postgrestStartFight(projectUrl, serviceKey, ownerTgId, bossId, def.max_hp, expiresAt)
   if (!fight) {
-    return new Response(JSON.stringify({ ok: false, error: "supabase_error" }), {
+    return new Response(JSON.stringify({ ok: false, error: "supabase_error_start_fight" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
