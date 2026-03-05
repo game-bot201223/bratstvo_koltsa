@@ -8640,58 +8640,71 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const already = localStorage.getItem(rk);
           if (!already) {
             try {
-              for (let i = localStorage.length - 1; i >= 0; i--) {
-                const k = localStorage.key(i);
-                if (!k) continue;
-                if (/^mora_mobile_save_v2/.test(String(k))) {
-                  try { localStorage.removeItem(k); } catch (e1) {}
-                }
-              }
-            } catch (e2) {}
-
-            try {
               const gr = await sbFnCall('get_player', { initData: tgInitData() });
               const ps0 = gr && gr.player && gr.player.state;
-              if (ps0 && typeof ps0 === 'object') {
+              const __cloudOk = !!(gr && typeof gr === 'object' && gr.ok === true);
+              const __cloudHasPlayer = !!(gr && typeof gr === 'object' && gr.player && typeof gr.player === 'object' && gr.player.state && typeof gr.player.state === 'object');
+              const __cloudIsNewPlayer = !!(__cloudOk && (gr.player === null || typeof gr.player === 'undefined'));
+
+              if (__cloudHasPlayer && ps0 && typeof ps0 === 'object') {
                 state = Object.assign({}, state, ps0);
                 try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e0) {}
                 try { localStorage.setItem(rk, '1'); } catch (e1) {}
                 __skipCloudPull = true;
               }
-            } catch (e00) {}
 
-            if (!__skipCloudPull) {
-              state = JSON.parse(JSON.stringify(defaults));
-              try { state.playerName = tgSuggestedName(); } catch (e0) {}
-              try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e3) {}
-              __skipCloudPull = true;
-              try {
-                const initData = tgInitData();
-                const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
-                let photo = '';
-                try {
-                  const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
-                  photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
-                } catch (e0) { photo = ''; }
-                const ur = await sbFnCall('upsert_player', {
-                  initData,
-                  name: state.playerName,
-                  photo_url: String(photo||'').trim(),
-                  level: state.level,
-                  arena_power: (state.arena && (state.arena.power||0)) || 0,
-                  arena_wins: (state.arena && (state.arena.wins||0)) || 0,
-                  arena_losses: (state.arena && (state.arena.losses||0)) || 0,
-                  stats_sum: statsSum,
-                  boss_wins: (state.bosses && state.bosses.wins) || 0,
-                  referrer_tg_id: '',
-                  state: cloudStateSnapshot(state)
-                });
-                if (ur && ur.ok) {
-                  try { localStorage.setItem(rk, '1'); } catch (e4) {}
+              if (!__skipCloudPull) {
+                // Only treat as "new player" if get_player succeeded and explicitly returned null.
+                // On transient errors/unauthorized, do NOT overwrite local or server state.
+                if (!__cloudIsNewPlayer) {
+                  __skipCloudPull = true;
+                  try { $('syncState').textContent = 'СЕЙВ: CLOUD ERR'; $('syncState').style.opacity = '.85'; } catch (e2) {}
                 }
-                __srvLastSent = now();
-              } catch (e5) {}
-            }
+
+                if (__cloudIsNewPlayer) {
+                  try {
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                      const k = localStorage.key(i);
+                      if (!k) continue;
+                      if (/^mora_mobile_save_v2/.test(String(k))) {
+                        try { localStorage.removeItem(k); } catch (e1) {}
+                      }
+                    }
+                  } catch (e2) {}
+
+                  state = JSON.parse(JSON.stringify(defaults));
+                  try { state.playerName = tgSuggestedName(); } catch (e0) {}
+                  try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e3) {}
+                  __skipCloudPull = true;
+                  try {
+                    const initData = tgInitData();
+                    const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
+                    let photo = '';
+                    try {
+                      const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+                      photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
+                    } catch (e0) { photo = ''; }
+                    const ur = await sbFnCall('upsert_player', {
+                      initData,
+                      name: state.playerName,
+                      photo_url: String(photo||'').trim(),
+                      level: state.level,
+                      arena_power: (state.arena && (state.arena.power||0)) || 0,
+                      arena_wins: (state.arena && (state.arena.wins||0)) || 0,
+                      arena_losses: (state.arena && (state.arena.losses||0)) || 0,
+                      stats_sum: statsSum,
+                      boss_wins: (state.bosses && state.bosses.wins) || 0,
+                      referrer_tg_id: '',
+                      state: cloudStateSnapshot(state)
+                    });
+                    if (ur && ur.ok) {
+                      try { localStorage.setItem(rk, '1'); } catch (e4) {}
+                    }
+                    __srvLastSent = now();
+                  } catch (e5) {}
+                }
+              }
+            } catch (e00) {}
           }
         } catch (e6) {}
 
