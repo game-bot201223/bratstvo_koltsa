@@ -1324,12 +1324,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const me = clanMyName();
       const r = await sbFnCall('boss_help_send', { initData: tgInitData(), boss_id: bossId, dmg: dmg, clan_id: cid, from_name: me });
       try {
-        if (IS_DEV && r && typeof r === 'object') {
+        if (r && typeof r === 'object') {
           const ins = parseInt(r.inserted||0,10)||0;
           const rec = r.debug && typeof r.debug === 'object' ? (parseInt(r.debug.recipients||0,10)||0) : 0;
-          __lastCloudFn = 'boss_help_send ins=' + ins + ' rec=' + rec;
-          __lastCloudTs = now();
-          dbgUpdate();
+          if (IS_DEV) {
+            __lastCloudFn = 'boss_help_send ins=' + ins + ' rec=' + rec;
+            __lastCloudTs = now();
+            dbgUpdate();
+          }
+          // Always surface if help likely did not reach anyone.
+          try {
+            const t = now();
+            if (!window.__bossHelpToastTs || (t - window.__bossHelpToastTs) > 1200) {
+              window.__bossHelpToastTs = t;
+              if (rec<=0 || ins<=0) toast('HELP rec='+rec+' ins='+ins,'lose');
+            }
+          } catch (e8) {}
         }
       } catch (e2) {}
     } catch (e) {}

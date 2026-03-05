@@ -590,7 +590,17 @@ Deno.serve(async (req: Request) => {
 
   const recArr = Array.from(recipients)
   if (!recArr.length) {
-    return new Response(JSON.stringify({ ok: true, inserted: 0 }), {
+    return new Response(JSON.stringify({
+      ok: true,
+      inserted: 0,
+      debug: {
+        reason: "no_recipients",
+        recipients: 0,
+        boss_id: bossId,
+        clan_id: clanId || null,
+        from_name: senderName,
+      },
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
   }
