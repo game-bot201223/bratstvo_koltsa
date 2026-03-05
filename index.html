@@ -4281,6 +4281,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const hh = new Date(startTs).getUTCHours();
     return (hh % 2 === 0) ? 20 : 2;
   }
+  function gfCost(startTs){
+    return gfBuildBattle(startTs);
+  }
   function gfFmt(ts){
     const d = new Date(ts);
     return pad2(d.getUTCHours())+':'+pad2(d.getUTCMinutes());
