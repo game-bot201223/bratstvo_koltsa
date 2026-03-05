@@ -4726,7 +4726,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
         const initData = tgInitData();
-        const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
+        let statsSum = 0;
+        try {
+          const pct = gymBonusPct();
+          statsSum = GYM_STATS.reduce((a,s)=>{
+            const cur = (gymVal(s.key)||0);
+            let add = Math.round(cur*pct);
+            if (pct>0 && cur>0 && add<=0) add = 1;
+            return a + (cur + add);
+          }, 0);
+        } catch (e0) {
+          statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
+        }
         sbFnCallSkipNull('join_group_fight', {
           initData,
           start_ts: new Date(startTs).toISOString(),
