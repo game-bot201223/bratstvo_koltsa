@@ -221,11 +221,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
  .petRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;}
  .petCard{border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.10);padding:8px;display:flex;flex-direction:column;gap:6px;min-height:96px;}
-.petCard .pTop{display:flex;align-items:center;justify-content:center;}
-.petCard .petPic{position:relative;width:100%;aspect-ratio:1/1;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.16);display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.petCard .pIco{font-size:28px;}
-.petCard .petPct{position:absolute;left:0;right:0;bottom:0;padding:4px 6px;font-size:10px;letter-spacing:1px;text-align:center;background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%);}
-.petCard .pBtn{margin-top:auto;}
+ .petCard .pTop{display:flex;align-items:center;justify-content:center;}
+ .petCard .petPic{position:relative;width:100%;aspect-ratio:1/1;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.16);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+ .petCard .petImg{width:100%;height:100%;object-fit:contain;display:block;}
+ .petCard .pIco{font-size:28px;}
+ .petCard .petPct{position:absolute;left:0;right:0;bottom:0;padding:4px 6px;font-size:10px;letter-spacing:1px;text-align:center;background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%);}
+ .petCard .pBtn{margin-top:auto;}
 
 .costRow{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;}
 .ctaMini{padding:9px 12px;border-radius:999px;font-size:11px;letter-spacing:1px;white-space:nowrap;justify-self:center;}
@@ -1197,9 +1198,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div style="width:44px"></div>
     </div>
     <div class="sheetBody">
-      <div class="card" style="font-size:12px; opacity:.8; line-height:1.35">Для идеального mobile-first сделаю Supabase-топ во 2-й итерации. Сейчас — локальный топ-100.</div>
       <div class="card" style="margin-top:12px;">
-        <div class="row"><div class="k">ТОП-100</div><div style="font-size:12px;opacity:.75">локально</div></div>
+        <div class="row"><div class="k">ТОП-100</div><div style="font-size:12px;opacity:.75"></div></div>
         <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn btnSmall" id="top100Lvl">УРОВЕНЬ</button>
           <button class="btn btnSmall" id="top100Wealth">ХАРАКТЕРИСТИКИ</button>
@@ -2923,10 +2923,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   ];
 
   const PETS = [
-    { id:1, name:'Страж Пепла', emoji:'🐾', cost:100, pct:0.20 },
-    { id:2, name:'Волк Ночи', emoji:'🐺', cost:300, pct:0.30 },
-    { id:3, name:'Тень Дракона', emoji:'🐉', cost:700, pct:0.40 },
-    { id:4, name:'Морской Феникс', emoji:'🦅', cost:1500, pct:0.50 }
+    { id:1, name:'Страж Пепла', emoji:'🐾', img:'10.png', cost:100, pct:0.10 },
+    { id:2, name:'Волк Ночи', emoji:'🐺', img:'20.png', cost:300, pct:0.20 },
+    { id:3, name:'Тень Дракона', emoji:'🐉', img:'30.png', cost:700, pct:0.30 },
+    { id:4, name:'Морской Феникс', emoji:'🦅', img:'40.jpg', cost:1500, pct:0.40 }
   ];
 
   const BOSSES = [
@@ -3019,22 +3019,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
   } catch (e0) {}
   // normalize
-  if (!state.settings) state.settings = Object.assign({}, defaults.settings);
+  if (!state.settings || typeof state.settings !== 'object') state.settings = Object.assign({}, defaults.settings);
   if (typeof state.totalXp !== 'number') state.totalXp = 0;
   if (!Array.isArray(state.inventory)) state.inventory = Array(9).fill(' ');
-  if (!state.petsOwned) state.petsOwned = {};
-  if (!state.gym) state.gym = {};
-  if (!state.arena) state.arena = Object.assign({}, defaults.arena);
-  if (!state.groupFight) state.groupFight = Object.assign({}, defaults.groupFight);
+  if (!state.petsOwned || typeof state.petsOwned !== 'object') state.petsOwned = {};
+  if (!state.gym || typeof state.gym !== 'object') state.gym = {};
+  if (!state.arena || typeof state.arena !== 'object') state.arena = Object.assign({}, defaults.arena);
+  if (!state.groupFight || typeof state.groupFight !== 'object') state.groupFight = Object.assign({}, defaults.groupFight);
   if (typeof state.groupFight.autoShownStartTs !== 'number') state.groupFight.autoShownStartTs = 0;
   if (typeof state.groupFight.resolvedTs !== 'number') state.groupFight.resolvedTs = 0;
   if (typeof state.groupFight.pendingReward === 'undefined') state.groupFight.pendingReward = null;
-  if (!state.gf1010) state.gf1010 = Object.assign({}, defaults.gf1010);
-  if (!state.diceGame) state.diceGame = Object.assign({}, defaults.diceGame);
-  if (!state.consumables) state.consumables = Object.assign({}, defaults.consumables);
+  if (!state.gf1010 || typeof state.gf1010 !== 'object') state.gf1010 = Object.assign({}, defaults.gf1010);
+  if (!state.diceGame || typeof state.diceGame !== 'object') state.diceGame = Object.assign({}, defaults.diceGame);
+  if (!state.consumables || typeof state.consumables !== 'object') state.consumables = Object.assign({}, defaults.consumables);
   if (typeof state.consumables.med !== 'number') state.consumables.med = 0;
   if (typeof state.consumables.nade !== 'number') state.consumables.nade = 0;
-  if (!state.clan) state.clan = Object.assign({}, defaults.clan);
+  if (!state.clan || typeof state.clan !== 'object') state.clan = Object.assign({}, defaults.clan);
   if (typeof state.clan.createdTs !== 'number') state.clan.createdTs = 0;
   if (typeof state.clan.id !== 'string') state.clan.id = '';
   if (typeof state.clan.name !== 'string') state.clan.name = '';
@@ -3042,7 +3042,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (typeof state.clan.role !== 'string') state.clan.role = '';
   if (typeof state.clan.deputy !== 'string') state.clan.deputy = '';
   if (typeof state.clan.joinedTs !== 'number') state.clan.joinedTs = 0;
-  if (!state.clansDb) state.clansDb = Object.assign({}, defaults.clansDb);
+  if (!state.clansDb || typeof state.clansDb !== 'object') state.clansDb = Object.assign({}, defaults.clansDb);
   if (typeof state.clansDb.nextId !== 'number') state.clansDb.nextId = 1;
   if (!Array.isArray(state.clansDb.order)) state.clansDb.order = [];
   if (!state.clansDb.clans || typeof state.clansDb.clans !== 'object') state.clansDb.clans = {};
@@ -3067,7 +3067,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       });
     }
   } catch (e) {}
-  if (!state.bosses) state.bosses = Object.assign({}, defaults.bosses);
+  if (!state.bosses || typeof state.bosses !== 'object') state.bosses = Object.assign({}, defaults.bosses);
   if (!state.bosses.hp) state.bosses.hp = {};
   if (typeof state.bosses.wins !== 'number') state.bosses.wins = 0;
   if (!state.bosses.lastWinners) state.bosses.lastWinners = {};
@@ -3081,6 +3081,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (!state.bosses || typeof state.bosses.toothNextTs === 'undefined') state.bosses.toothNextTs = 0;
   if (typeof state.bosses.shopQty !== 'number') state.bosses.shopQty = 1;
   if (typeof state.bosses.hitUseQty !== 'number') state.bosses.hitUseQty = 1;
+  if (typeof state.bosses.strikes !== 'number') state.bosses.strikes = 10;
+  if (typeof state.bosses.lastStrikeTs !== 'number') state.bosses.lastStrikeTs = now();
   if (typeof state.rings !== 'number') state.rings = 0;
   if (!state.promoUsedCodes || typeof state.promoUsedCodes !== 'object') state.promoUsedCodes = {};
   // Fix invalid activeFightId (only bosses 1-12 exist)
@@ -3942,7 +3944,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
       const meta = document.createElement('div');
       meta.className = 'pTop';
-      meta.innerHTML = '<div class="petPic"><div class="pIco">'+p.emoji+'</div><div class="petPct">+'+Math.round(p.pct*100)+'%</div></div>';
+      const img = (p && p.img) ? String(p.img) : '';
+      const bonus = '+'+Math.round((p.pct||0)*100)+'%';
+      meta.innerHTML = '<div class="petPic">'
+        + (img ? ('<img class="petImg" alt="" src="'+img.replace(/"/g,'&quot;')+'" onerror="this.style.display=\'none\'; try{var ico=this.parentNode.querySelector(\'.pIco\'); if(ico) ico.style.display=\'flex\';}catch(e){}">') : '')
+        + '<div class="pIco" style="'+(img ? 'display:none;' : '')+'">'+p.emoji+'</div>'
+        + '<div class="petPct">'+bonus+'</div>'
+        + '</div>';
       card.appendChild(meta);
 
       if (!owned) {
@@ -7966,7 +7974,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   // strikes regen
   function tickStrikes(){
-    state.bosses.strikes = clamp(parseInt(state.bosses.strikes||0,10)||0, 0, 99);
+    try {
+      if (!state.bosses || typeof state.bosses !== 'object') state.bosses = {};
+      if (typeof state.bosses.strikes !== 'number') state.bosses.strikes = 10;
+      state.bosses.strikes = clamp(parseInt(state.bosses.strikes||0,10)||0, 0, 99);
+    } catch (e) { return; }
     // regen 1 strike per 6 minutes up to 10
     if (!state.bosses.lastStrikeTs) state.bosses.lastStrikeTs = now();
     const per = 6*60*1000;
@@ -8386,62 +8398,64 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     // main loop
     tickUTC();
     setInterval(()=>{
-      tickUTC();
-      tickEnergy();
-      tickStrikes();
-      tickBattle();
-      tickGF1010();
+      try {
+        tickUTC();
+        tickEnergy();
+        tickStrikes();
+        tickBattle();
+        tickGF1010();
 
-      const bid = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
-      if (bid){
-        bfEnsureFight(bid);
-        try {
-          const f2 = bfGetFight(bid);
-          if (f2 && (parseInt(f2.hp||0,10)||0) <= 0) {
-            bfCheckWin(bid);
-          } else {
+        const bid = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
+        if (bid){
+          bfEnsureFight(bid);
+          try {
+            const f2 = bfGetFight(bid);
+            if (f2 && (parseInt(f2.hp||0,10)||0) <= 0) {
+              bfCheckWin(bid);
+            } else {
+              if ($('mBossFight').classList.contains('show') || $('mBfShop').classList.contains('show')) bfRender(bid);
+            }
+          } catch (e) {
             if ($('mBossFight').classList.contains('show') || $('mBfShop').classList.contains('show')) bfRender(bid);
           }
-        } catch (e) {
-          if ($('mBossFight').classList.contains('show') || $('mBfShop').classList.contains('show')) bfRender(bid);
         }
-      }
 
-      // auto-open group fight battle when start time comes (popup over arena)
-      try {
-        const st = parseInt(state.groupFight && state.groupFight.startTs || 0, 10) || 0;
-        const joined = !!(state.groupFight && state.groupFight.joined);
-        if (joined && st && now() >= st) {
-          try {
-            gfCancelIfNoParticipants(st).catch(()=>{});
-          } catch (e0) {}
-          const b = gfEnsureBattle();
-          if (b && $('mArena').classList.contains('show')) {
-            if ((parseInt(state.groupFight.autoShownStartTs||0,10)||0) !== st) {
-              state.groupFight.autoShownStartTs = st;
-              showModal('mBattle');
-              renderBattle();
-              toast('Групповой бой начался','gold');
-              haptic('light');
+        // auto-open group fight battle when start time comes (popup over arena)
+        try {
+          const st = parseInt(state.groupFight && state.groupFight.startTs || 0, 10) || 0;
+          const joined = !!(state.groupFight && state.groupFight.joined);
+          if (joined && st && now() >= st) {
+            try {
+              gfCancelIfNoParticipants(st).catch(()=>{});
+            } catch (e0) {}
+            const b = gfEnsureBattle();
+            if (b && $('mArena').classList.contains('show')) {
+              if ((parseInt(state.groupFight.autoShownStartTs||0,10)||0) !== st) {
+                state.groupFight.autoShownStartTs = st;
+                showModal('mBattle');
+                renderBattle();
+                toast('Групповой бой начался','gold');
+                haptic('light');
+              }
             }
           }
+        } catch (e) {}
+
+        $('energyTimer').textContent = energyTimerText();
+
+        if ($('mArena').classList.contains('show')) {
+          renderArena();
+          renderGym();
+          renderArenaPetShop();
         }
-      } catch (e) {}
+        if ($('mBoss').classList.contains('show')) renderBosses();
+        if ($('mBattle').classList.contains('show')) renderBattle();
+        if ($('mGF1010').classList.contains('show')) gf1010Render();
+        if ($('mGFJoin').classList.contains('show')) renderGFJoinMini();
 
-      $('energyTimer').textContent = energyTimerText();
-
-      if ($('mArena').classList.contains('show')) {
-        renderArena();
-        renderGym();
-        renderArenaPetShop();
-      }
-      if ($('mBoss').classList.contains('show')) renderBosses();
-      if ($('mBattle').classList.contains('show')) renderBattle();
-      if ($('mGF1010').classList.contains('show')) gf1010Render();
-      if ($('mGFJoin').classList.contains('show')) renderGFJoinMini();
-
-      renderHUD();
-      save();
+        renderHUD();
+        save();
+      } catch (e0) {}
     }, 1000);
 
     // save on hide
