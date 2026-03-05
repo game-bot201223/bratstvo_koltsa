@@ -129,11 +129,16 @@ function safeNonNegInt(v: unknown): number {
   return Math.max(0, Math.floor(n))
 }
 
-async function postgrestFindOpponent(projectUrl: string, serviceKey: string, tgId: string, minP: number, maxP: number): Promise<Response> {
+async function postgrestFindOpponent(projectUrl: string, serviceKey: string, tgId: string, minP: number, maxP: number, minSum: number, maxSum: number): Promise<Response> {
   const base = projectUrl.replace(/\/$/, "")
+  const useSum = minSum > 0 && maxSum > 0 && maxSum >= minSum
+  const filter = useSum
+    ? `&stats_sum=gte.${minSum}&stats_sum=lte.${maxSum}&order=stats_sum.asc`
+    : `&arena_power=gte.${minP}&arena_power=lte.${maxP}&order=arena_power.asc`
   const url = base +
     `/rest/v1/players?select=tg_id,name,photo_url,arena_power,stats_sum,level&tg_id=neq.${encodeURIComponent(tgId)}` +
-    `&arena_power=gte.${minP}&arena_power=lte.${maxP}&order=arena_power.asc&limit=25`
+    filter +
+    `&limit=25`
   return await fetch(url, {
     method: "GET",
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
@@ -181,14 +186,18 @@ Deno.serve(async (req: Request) => {
   const tgId = String(verified.user.id)
   const minPower = safeNonNegInt(body?.min_power ?? body?.minPower)
   const maxPower = safeNonNegInt(body?.max_power ?? body?.maxPower)
-  if (!minPower || !maxPower || maxPower < minPower) {
+  const minSum = safeNonNegInt(body?.min_sum ?? body?.minSum)
+  const maxSum = safeNonNegInt(body?.max_sum ?? body?.maxSum)
+  const hasSumRange = minSum > 0 && maxSum > 0 && maxSum >= minSum
+  const hasPowerRange = minPower > 0 && maxPower > 0 && maxPower >= minPower
+  if (!hasSumRange && !hasPowerRange) {
     return new Response(JSON.stringify({ ok: false, error: "bad_range" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
   }
 
-  const resp = await postgrestFindOpponent(projectUrl, serviceKey, tgId, minPower, maxPower)
+  const resp = await postgrestFindOpponent(projectUrl, serviceKey, tgId, minPower, maxPower, minSum, maxSum)
   if (!resp.ok) {
     const text = await resp.text().catch(() => "")
     return new Response(JSON.stringify({ ok: false, error: "supabase_error", details: text.slice(0, 500) }), {
