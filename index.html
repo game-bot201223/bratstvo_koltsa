@@ -442,6 +442,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   #mBattle #bEnemyTeam .hpBar{width:100% !important; max-width:none !important; border-color:rgba(45,30,18,.20) !important; background:rgba(255,255,255,.22) !important; box-shadow:none !important;}
   #mBattle #bMyTeam .hpIn,
   #mBattle #bEnemyTeam .hpIn{color:rgba(45,30,18,.92) !important; text-shadow:none !important;}
+  .bAva{width:24px;height:24px;border-radius:999px;object-fit:cover;flex:0 0 auto;border:1px solid rgba(45,30,18,.22);background:rgba(255,255,255,.22);}
   #mBattle .bAva{width:24px;height:24px;border-radius:999px;object-fit:cover;flex:0 0 auto;border:1px solid rgba(45,30,18,.22);background:rgba(255,255,255,.22);}
   #mBattle .bNmRow{display:flex;align-items:center;gap:8px;min-width:0;}
   #mBattle .bNmTxt{min-width:0;overflow:hidden;text-overflow:ellipsis;}
@@ -653,6 +654,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div style="margin-top:12px; display:flex; gap:10px; align-items:center;">
           <button class="btn" style="flex:1" id="gfJoinBtn">ПОДАТЬ ЗАЯВКУ</button>
           <div class="badge" id="gfJoinBtnTimer">--:--</div>
+        </div>
+
+        <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;" id="gfJoinPeopleCard">
+          <div class="row"><div class="k">УЧАСТНИКИ</div><div class="badge" id="gfJoinPeopleCnt">0</div></div>
+          <div class="gfList" id="gfJoinPeopleList"></div>
         </div>
       </div>
     </div>
@@ -4665,6 +4671,36 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         t.textContent = fmtMMSS(Math.max(0, openAt - nowTs));
       }
     }
+
+    try {
+      const box = $('gfJoinPeopleList');
+      const cnt = $('gfJoinPeopleCnt');
+      if (box) box.innerHTML = '';
+      if (cnt) cnt.textContent = '0';
+      gfFetchEntries(startTs).then((entries)=>{
+        try {
+          const arr = Array.isArray(entries) ? entries.slice(0, 50) : [];
+          if (cnt) cnt.textContent = String(arr.length);
+          if (!box) return;
+          box.innerHTML = '';
+          arr.forEach((e)=>{
+            const row = document.createElement('div');
+            row.className = 'gfItem';
+            const nm = (e && e.name) ? String(e.name).trim().substring(0, 18) : '—';
+            const ph = (e && (e.photo_url || e.photoUrl)) ? String(e.photo_url || e.photoUrl) : '';
+            const sum = Math.max(0, parseInt(e && e.stats_sum || 0, 10) || 0);
+            row.innerHTML = '<div style="display:flex; align-items:center; gap:10px; min-width:0">'
+              + (ph ? ('<img class="bAva" src="'+encodeURI(ph)+'" alt=""/>') : '<div class="bAva" style="background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.12);"></div>')
+              + '<div style="min-width:0">'
+              + '<div class="nm" style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">'+nm+'</div>'
+              + '<div class="meta">'+fmt4(sum)+'</div>'
+              + '</div>'
+              + '</div>';
+            box.appendChild(row);
+          });
+        } catch (e0) {}
+      }).catch(()=>{});
+    } catch (e0) {}
   }
 
   function isGroupBattleActive(){
