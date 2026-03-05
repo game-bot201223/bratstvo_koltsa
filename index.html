@@ -334,9 +334,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   #diceRoll{ touch-action: manipulation; }
 
- .bossRow{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:flex-start;}
- .bossMiniWrap{position:relative;width:140px;height:140px;}
- .bossMini{width:140px;height:140px;border-radius:26px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:56px;}
+ .bossRow{display:grid;grid-template-columns:147px 1fr;gap:12px;align-items:flex-start;}
+ .bossMiniWrap{position:relative;width:147px;height:147px;}
+ .bossMini{width:147px;height:147px;border-radius:26px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:56px;}
  .bossWinnerAva{position:absolute;right:-10px;bottom:10px;width:44px;height:44px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:rgba(45,30,18,.28);object-fit:cover;}
  .bossName{font-weight:900;letter-spacing:2px;line-height:1.15;}
  .bossSub{font-size:11px;opacity:.75;margin-top:4px;}
@@ -6753,6 +6753,58 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try { bossFightsCloudPullMaybe().catch(()=>{}); } catch (e0) {}
     try { bossLastWinnersCloudPullMaybe().catch(()=>{}); } catch (e1) {}
     const box = $('bossList');
+
+    function updateBossToothTimerOnly(){
+      try {
+        const btn = $('bossToothBtn');
+        const tm = $('bossToothTimer');
+        if (btn && tm){
+          const nextTs = parseInt(state.bosses && state.bosses.toothNextTs || 0, 10) || 0;
+          const ready = now() >= nextTs;
+          btn.classList.toggle('ready', ready);
+          const left = Math.max(0, nextTs - now());
+          const mm = String(Math.floor(left/60000)).padStart(2,'0');
+          const ss = String(Math.floor((left%60000)/1000)).padStart(2,'0');
+          tm.textContent = ready ? '+100' : (mm+':'+ss);
+        }
+      } catch (e) {}
+    }
+
+    // Prevent flicker: if boss list state did not change, do not rebuild DOM.
+    try {
+      const cloudOnSig = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
+      const parts = [];
+      parts.push(cloudOnSig ? 'C1' : 'C0');
+      for (let i=0;i<BOSSES.length;i++){
+        const b = BOSSES[i];
+        if (!b) continue;
+        const id = parseInt(b.id||0,10)||0;
+        if (!id) continue;
+        let hpSig = bossHp(id);
+        let claimedSig = '';
+        try {
+          if (cloudOnSig) {
+            const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)];
+            if (cc && typeof cc === 'object' && typeof cc.hp !== 'undefined') hpSig = (parseInt(cc.hp||0,10)||0);
+            claimedSig = (cc && typeof cc === 'object' && cc.reward_claimed) ? '1' : '0';
+          }
+        } catch (e0) {}
+        const lockedSig = bossHasAccess(id) ? '0' : '1';
+        let lwSig = '';
+        try {
+          const lwCloud = (state.bosses && state.bosses.lastWinnersCloud && state.bosses.lastWinnersCloud[String(id)]) || null;
+          lwSig = (lwCloud && lwCloud.name) ? String(lwCloud.name) : '';
+        } catch (e1) { lwSig = ''; }
+        parts.push(String(id)+':'+String(hpSig)+':'+claimedSig+':'+lockedSig+':'+lwSig);
+      }
+      const sig = parts.join('|');
+      if (window.__bossListSig === sig && box && box.__bossListBuilt){
+        updateBossToothTimerOnly();
+        return;
+      }
+      window.__bossListSig = sig;
+    } catch (eSig) {}
+
     let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
     html += '<div class="card">'
       + '<div class="row"><div style="min-width:0"><div class="k">НАВЫК</div><div style="font-size:12px;opacity:.75;margin-top:4px">Помощь братков</div></div>'
@@ -6844,6 +6896,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     });
     html += '</div>';
     box.innerHTML = html;
+    try { box.__bossListBuilt = true; } catch (e0) {}
 
     const fho = $('friendHelpOpen');
     if (fho) fho.onclick = ()=>{ showModal('mFriendHelp'); renderFriendHelp(); haptic('light'); };
