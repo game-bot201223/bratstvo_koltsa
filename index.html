@@ -1297,6 +1297,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       if (bossUiOpen()) return true;
     } catch (e0) {}
+
+    try {
+      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+        const cid = clanFindMyClanId();
+        const frOk = Array.isArray(state && state.friends) && state.friends.length > 0;
+        if (cid || frOk) return true;
+      }
+    } catch (e2) {}
+
     try {
       const id = parseInt(state && state.bosses && state.bosses.activeFightId || 0, 10) || 0;
       if (id > 0) {
@@ -2772,7 +2781,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const fear = Math.max(0, parseInt(it && it.fear || 0, 10) || 0);
           const photo = it && it.photo_url ? String(it.photo_url) : '';
           const ts = it && it.updated_at ? Date.parse(String(it.updated_at)) : 0;
-          next[k] = { name: nm, fear: fear, ts: ts || now(), photo: photo };
+          const cur = next[k];
+          const curFear = cur && typeof cur.fear !== 'undefined' ? (parseInt(cur.fear||0,10)||0) : -1;
+          const curTs = cur && typeof cur.ts !== 'undefined' ? (parseInt(cur.ts||0,10)||0) : 0;
+          const ts2 = ts || now();
+          if (!cur || fear > curFear || (fear === curFear && ts2 > curTs)) {
+            next[k] = { name: nm, fear: fear, ts: ts2, photo: photo };
+          }
         } catch (e0) {}
       });
       state.districtDailyFearCloud = { day: dayKey, byDistrict: next };
