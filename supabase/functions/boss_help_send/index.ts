@@ -665,6 +665,8 @@ Deno.serve(async (req: Request) => {
   let rpcOkCount = 0
   let rpcFailCount = 0
   let rpcFirstErr: any = null
+  let skippedCapCount = 0
+  let skippedOtherCount = 0
 
   // Apply damage server-side immediately so recipient boss HP updates even if offline
   // Best-effort: failure here should not block logging events.
@@ -770,6 +772,13 @@ Deno.serve(async (req: Request) => {
           created_at: ts,
         }
       } else {
+        if (dmg > 0) {
+          // Best-effort classify 0-applied.
+          // If we didn't even attempt RPC (applied computed as 0) => cap reached.
+          // If RPC failed, it's counted separately above.
+          if (rpcFailCount > 0) skippedOtherCount += 1
+          else skippedCapCount += 1
+        }
         return null
       }
     }),
@@ -777,7 +786,22 @@ Deno.serve(async (req: Request) => {
 
   const rows = (Array.isArray(rows0) ? rows0 : []).filter((x) => !!x)
   if (!rows.length) {
-    return new Response(JSON.stringify({ ok: true, inserted: 0, debug: { recipients: recArr.length, rpc_ok: rpcOkCount, rpc_fail: rpcFailCount } }), {
+    const reason = (rpcFailCount > 0)
+      ? "rpc_failed"
+      : (skippedCapCount > 0 ? "cap_reached" : "no_effect")
+    return new Response(JSON.stringify({
+      ok: true,
+      inserted: 0,
+      debug: {
+        reason,
+        recipients: recArr.length,
+        skipped_cap: skippedCapCount,
+        skipped_other: skippedOtherCount,
+        rpc_ok: rpcOkCount,
+        rpc_fail: rpcFailCount,
+        rpc_first_err: rpcFirstErr,
+      },
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
   }

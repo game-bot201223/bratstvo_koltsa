@@ -1327,17 +1327,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (r && typeof r === 'object') {
           const ins = parseInt(r.inserted||0,10)||0;
           const rec = r.debug && typeof r.debug === 'object' ? (parseInt(r.debug.recipients||0,10)||0) : 0;
+          const reason = (r.debug && typeof r.debug === 'object' && r.debug.reason) ? String(r.debug.reason) : '';
           if (IS_DEV) {
             __lastCloudFn = 'boss_help_send ins=' + ins + ' rec=' + rec;
             __lastCloudTs = now();
             dbgUpdate();
           }
-          // Always surface if help likely did not reach anyone.
+          // Surface only meaningful info to user.
           try {
             const t = now();
             if (!window.__bossHelpToastTs || (t - window.__bossHelpToastTs) > 1200) {
               window.__bossHelpToastTs = t;
-              if (rec<=0 || ins<=0) toast('HELP rec='+rec+' ins='+ins,'lose');
+              if (rec<=0) toast('ПОМОЩЬ: некому (rec=0)','lose');
+              else if (ins<=0 && reason==='cap_reached') toast('ПОМОЩЬ: лимит исчерпан','gold');
+              else if (ins<=0) toast('ПОМОЩЬ: не доставлено (ins=0)','lose');
             }
           } catch (e8) {}
         }
@@ -1395,25 +1398,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (add<=0) return;
         bfLogPush(bid, nm, add);
         bfTopAdd(bid, nm, add);
-
-        // Visual immediate apply: if you have an active local fight for this boss,
-        // apply help dmg to local HP too, then let cloud pull correct it.
-        try {
-          const f0 = bfGetFight(bid);
-          if (f0 && (parseInt(f0.hp||0,10)||0) > 0) {
-            const hp0 = parseInt(f0.hp||0,10)||0;
-            const applied = Math.min(add, hp0);
-            if (applied>0) {
-              f0.hp = Math.max(0, hp0 - applied);
-              bfSetFight(bid, f0);
-              try {
-                const cur = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
-                if (cur === bid && bossUiOpen()) bfRender(bid);
-              } catch (e4) {}
-            }
-          }
-        } catch (e3) {}
-
         save();
         try { bossFightsCloudPullMaybe(true); } catch (e0) {}
         return;
