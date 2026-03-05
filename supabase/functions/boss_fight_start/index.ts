@@ -188,6 +188,11 @@ async function postgrestStartFight(projectUrl: string, serviceKey: string, owner
           p_dmg: 0,
           p_max_hp: maxHp,
           p_expires_at: expiresAt,
+          // Provide extended params to disambiguate overloaded RPCs.
+          p_source: "start",
+          p_from_tg_id: null,
+          p_from_name: null,
+          p_clan_id: null,
         }),
       })
 
