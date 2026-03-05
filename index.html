@@ -4192,11 +4192,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     function runArenaFightWith(mult, oppName){
       function effStat(k){
-        const cur = gymVal(k);
-        const pct = gymBonusPct();
-        let add = Math.round(cur*pct);
-        if (pct>0 && cur>0 && add<=0) add = 1;
-        return cur + add;
+        return gymVal(k);
       }
 
       function effCombat(v){
