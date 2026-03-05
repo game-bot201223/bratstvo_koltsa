@@ -225,6 +225,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .petCard{border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.10);padding:8px;display:flex;flex-direction:column;gap:6px;min-height:96px;}
 .petCard .pTop{display:flex;align-items:center;justify-content:center;}
 .petCard .petPic{position:relative;width:100%;aspect-ratio:1/1;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.16);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.petCard .petImg{width:100%;height:100%;object-fit:contain;display:block;}
 .petCard .pIco{font-size:28px;}
 .petCard .petPct{position:absolute;left:0;right:0;bottom:0;padding:4px 6px;font-size:10px;letter-spacing:1px;text-align:center;background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%);}
 .petCard .pBtn{margin-top:auto;}
@@ -3030,10 +3031,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   ];
 
   const PETS = [
-    { id:1, name:'Страж Пепла', emoji:'🐾', cost:100, pct:0.20 },
-    { id:2, name:'Волк Ночи', emoji:'🐺', cost:300, pct:0.30 },
-    { id:3, name:'Тень Дракона', emoji:'🐉', cost:700, pct:0.40 },
-    { id:4, name:'Морской Феникс', emoji:'🦅', cost:1500, pct:0.50 }
+    { id:1, name:'Страж Пепла', emoji:'🐾', img:'10.png', cost:100, pct:0.10 },
+    { id:2, name:'Волк Ночи', emoji:'🐺', img:'20.png', cost:300, pct:0.20 },
+    { id:3, name:'Тень Дракона', emoji:'🐉', img:'30.png', cost:700, pct:0.30 },
+    { id:4, name:'Морской Феникс', emoji:'🦅', img:'40.jpg', cost:1500, pct:0.40 }
   ];
 
   const BOSSES = [
@@ -4059,7 +4060,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
       const meta = document.createElement('div');
       meta.className = 'pTop';
-      meta.innerHTML = '<div class="petPic"><div class="pIco">'+p.emoji+'</div><div class="petPct">+'+Math.round(p.pct*100)+'%</div></div>';
+      const img = (p && p.img) ? String(p.img) : '';
+      const bonus = '+'+Math.round((p.pct||0)*100)+'%';
+      meta.innerHTML = '<div class="petPic">'
+        + (img ? ('<img class="petImg" alt="" src="'+img.replace(/"/g,'&quot;')+'" onerror="this.style.display=\'none\'; try{var ico=this.parentNode.querySelector(\'.pIco\'); if(ico) ico.style.display=\'flex\';}catch(e){}">') : '')
+        + '<div class="pIco" style="'+(img ? 'display:none;' : '')+'">'+p.emoji+'</div>'
+        + '<div class="petPct">'+bonus+'</div>'
+        + '</div>';
       card.appendChild(meta);
 
       if (!owned) {
