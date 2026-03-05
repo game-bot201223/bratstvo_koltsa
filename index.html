@@ -6449,7 +6449,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
           bossFightStartCloud(id).then((sr)=>{
             try {
-              if (!(sr && sr.ok)) { toast('СЕРВЕР: ERR','lose'); return; }
+              if (!(sr && sr.ok)) {
+                const em = (sr && sr.error) ? String(sr.error||'') : '';
+                toast('СЕРВЕР: ' + (em ? em.slice(0, 22) : 'ERR'),'lose');
+                return;
+              }
             } catch (e0) { toast('СЕРВЕР: ERR','lose'); return; }
 
             state.rings -= priceR2;
@@ -6554,7 +6558,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
         bossFightStartCloud(id).then((sr)=>{
           try {
-            if (!(sr && sr.ok)) { toast('СЕРВЕР: ERR','lose'); return; }
+            if (!(sr && sr.ok)) {
+              const em = (sr && sr.error) ? String(sr.error||'') : '';
+              toast('СЕРВЕР: ' + (em ? em.slice(0, 22) : 'ERR'),'lose');
+              return;
+            }
           } catch (e0) { toast('СЕРВЕР: ERR','lose'); return; }
 
           const f = bfEnsureFight(id);
