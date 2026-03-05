@@ -151,11 +151,65 @@ async function verifyTelegramInitData(initData: string, botToken: string): Promi
   return { ok: false }
 }
 
-function sanitizeClanId(id: unknown): string {
-  const s = String(id || "").trim().toUpperCase()
-  if (!s) return ""
-  if (!/^CLN\d{1,20}$/.test(s)) return ""
-  return s
+function sanitizeClanId(v: unknown): string {
+  const raw = String(v || "").trim().toUpperCase()
+  if (!raw) return ""
+  // keep only letters, numbers, underscore, dash
+  const clean = raw.replace(/[^A-Z0-9_\-]/g, "")
+  return clean.slice(0, 24)
+}
+
+function inferClanIdFromState(st: any): string {
+  try {
+    if (!st || typeof st !== "object") return ""
+    let cid = ""
+    try { cid = String((st as any)?.clan?.id || "").trim() } catch (_e0) {}
+    if (!cid) {
+      try { cid = String((st as any)?.clanId || "").trim() } catch (_e1) {}
+    }
+    if (!cid) {
+      try { cid = String((st as any)?.clan_id || "").trim() } catch (_e2) {}
+    }
+    if (!cid) {
+      try {
+        const c = (st as any)?.clan
+        if (typeof c === "string") cid = String(c || "").trim()
+        else if (c && typeof c === "object") cid = String((c as any).id || "").trim()
+      } catch (_e3) {}
+    }
+    return sanitizeClanId(cid)
+  } catch (_e) {
+    return ""
+  }
+}
+
+function recipientAllowsSenderHelp(recipientState: any, senderTgId: string, senderNameLower: string, senderClanId: string): boolean {
+  try {
+    // Clanmates are bros automatically
+    const rcid = inferClanIdFromState(recipientState)
+    if (rcid && senderClanId && rcid === senderClanId) return true
+
+    // Otherwise must be in recipient friends list
+    const fr = recipientState && typeof recipientState === "object" ? (recipientState as any).friends : null
+    const list: any[] = Array.isArray(fr) ? fr : []
+    for (const it of list.slice(0, 200)) {
+      if (!it) continue
+      if (typeof it === "string") {
+        const nl = String(it || "").trim().slice(0, 18).toLowerCase()
+        if (nl && nl === senderNameLower) return true
+        continue
+      }
+      if (typeof it === "object") {
+        const tid = String((it as any).tg_id || (it as any).tgId || "").trim()
+        if (tid && tid === senderTgId) return true
+        const nm = String((it as any).name || "").trim().slice(0, 18).toLowerCase()
+        if (nm && nm === senderNameLower) return true
+      }
+    }
+    return false
+  } catch (_e) {
+    return false
+  }
 }
 
 function escapeLikeExact(s: string): string {
@@ -746,6 +800,13 @@ Deno.serve(async (req: Request) => {
       try {
         const pr = await postgrestGetPlayer(projectUrl, serviceKey, String(toTgId))
         const st = pr && typeof pr === "object" ? (pr as any).state : null
+
+        // New rule: help is only allowed from recipient's bros list.
+        // Bros list = recipient friends + clanmates.
+        if (!recipientAllowsSenderHelp(st, senderTgId, senderNameLower, clanId || "")) {
+          skippedOtherCount += 1
+          return null
+        }
 
         // used-help scope: for clan help we reset the per-sender cap when recipient starts a new fight.
         // We do that by counting used help since the active fight's fight_started_at (stable anchor).
