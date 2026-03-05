@@ -1289,6 +1289,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     return !!state.shopX2;
   }
 
+  const GF_BOTS_TEST = true;
+
   let __bossHelpPollT = 0;
   let __bossHelpLast = 0;
   function bossUiOpen(){
@@ -1370,6 +1372,25 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (add<=0) return;
         bfLogPush(bid, nm, add);
         bfTopAdd(bid, nm, add);
+
+        // Visual immediate apply: if you have an active local fight for this boss,
+        // apply help dmg to local HP too, then let cloud pull correct it.
+        try {
+          const f0 = bfGetFight(bid);
+          if (f0 && (parseInt(f0.hp||0,10)||0) > 0) {
+            const hp0 = parseInt(f0.hp||0,10)||0;
+            const applied = Math.min(add, hp0);
+            if (applied>0) {
+              f0.hp = Math.max(0, hp0 - applied);
+              bfSetFight(bid, f0);
+              try {
+                const cur = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
+                if (cur === bid && bossUiOpen()) bfRender(bid);
+              } catch (e4) {}
+            }
+          }
+        } catch (e3) {}
+
         save();
         try { bossFightsCloudPullMaybe(true); } catch (e0) {}
         return;
@@ -4550,6 +4571,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const entries = await gfFetchEntries(st);
       const cnt = Array.isArray(entries) ? entries.length : 0;
       if (cnt >= 2) return false;
+
+      if (GF_BOTS_TEST) return false;
 
       const refund = gfCost(st);
       state.gold = (parseInt(state.gold||0,10)||0) + refund;
