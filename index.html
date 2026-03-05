@@ -2735,7 +2735,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
       } catch (e0) {}
       return r1;
-    } catch (e) { return null; }
+    } catch (e) {
+      try {
+        const msg = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim();
+        return { ok:false, error: msg || 'boss_fight_start_failed' };
+      } catch (e0) {
+        return { ok:false, error: 'boss_fight_start_failed' };
+      }
+    }
   }
   async function bossFightHitCloud(bossId, dmg){
     try {
