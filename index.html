@@ -4255,6 +4255,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const aH = 1.4;
       let pHP = Math.max(1, Math.round(HP0 * (1 + aH * pe.h)));
       let eHP = Math.max(1, Math.round(HP0 * (1 + aH * ee.h)));
+      const pHP0 = pHP;
+      const eHP0 = eHP;
       let youDmg = 0;
       let enemyDmg = 0;
       let rounds = 0;
@@ -4306,8 +4308,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           return;
         }
 
-        const hpDef = (hpRef==='e') ? eHP : pHP;
-        let dmg = hpDef * baseFrac * (1 + kS * A.s);
+        const hpDefMax = (hpRef==='e') ? eHP0 : pHP0;
+        let dmg = hpDefMax * baseFrac * (1 + kS * A.s);
 
         const mit = mitigation(D.e);
         const pen = armorPen(A.a);
