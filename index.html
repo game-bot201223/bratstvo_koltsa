@@ -506,14 +506,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .modalPage{
   padding:0;
  }
-/* Площадь: страница с фото на весь экран, кнопка назад поверх, без отступов */
+/* Площадь: картинка на весь экран, кнопка назад как у всех */
 #mPloshchad.modalPage{padding:0;align-items:stretch;justify-content:stretch;}
 #mPloshchad.modalPage .sheet{width:100vw;max-width:none;height:100vh;max-height:none;min-height:100vh;border-radius:0;border:none;box-shadow:none;}
-#mPloshchad .sheetBody{padding:0;margin:0;display:flex;flex-direction:column;min-height:0;overflow:auto;position:relative;flex:1;}
-#mPloshchad .ploshchadBackBtn{position:absolute;top:calc(12px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));z-index:20;width:44px;height:44px;border-radius:50%;border:1px solid rgba(32,22,14,.3);background:rgba(255,255,255,.92);box-shadow:0 2px 12px rgba(0,0,0,.2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1;-webkit-tap-highlight-color:transparent;}
-#mPloshchad .ploshchadMap{flex:1;min-height:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
-#mPloshchad .ploshchadMapInner{position:relative;width:100%;height:auto;max-height:100%;max-width:100%;aspect-ratio:3/2;flex-shrink:0;}
-#mPloshchad .ploshchadMapInner img{display:block;width:100%;height:100%;object-fit:contain;object-position:center;position:absolute;inset:0;pointer-events:none;}
+#mPloshchad .sheetBody{padding:0;margin:0;display:flex;flex-direction:column;min-height:0;overflow:hidden;position:relative;flex:1;}
+#mPloshchad .sheetBody > .iconBtn[data-close="mPloshchad"]{position:absolute;top:calc(12px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));z-index:20;}
+#mPloshchad .ploshchadMap{flex:1;min-height:0;width:100%;height:100%;display:block;position:relative;}
+#mPloshchad .ploshchadMapInner{position:absolute;inset:0;width:100%;height:100%;}
+#mPloshchad .ploshchadMapInner img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;position:absolute;inset:0;pointer-events:none;}
 .ploshchadHotspot{position:absolute;cursor:pointer;background:transparent;border:none;padding:0;margin:0;-webkit-tap-highlight-color:transparent;transition:background .15s ease;}
 .ploshchadHotspot:hover,.ploshchadHotspot:focus-visible{background:rgba(255,255,255,.12);outline:none;}
 .ploshchadHotspot:active{background:rgba(255,255,255,.25);}
@@ -1180,15 +1180,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div style="width:44px"></div>
     </div>
     <div class="sheetBody" id="ploshchadBody">
-      <button type="button" class="iconBtn ploshchadBackBtn" data-close="mPloshchad" aria-label="Назад">‹</button>
+      <button type="button" class="iconBtn" data-close="mPloshchad" aria-label="Назад">‹</button>
       <div class="ploshchadMap" id="ploshchadMap">
         <div class="ploshchadMapInner" id="ploshchadMapInner">
           <img src="площадь.jpg" alt="Площадь" id="ploshchadImg">
-          <button type="button" class="ploshchadHotspot" id="ploshchadArena" aria-label="Арена" style="left:18%;top:0%;width:64%;height:42%;"></button>
-          <button type="button" class="ploshchadHotspot" id="ploshchadHallOfFame" aria-label="Зал славы" style="left:5%;top:40%;width:28%;height:26%;"></button>
-          <button type="button" class="ploshchadHotspot" id="ploshchadGym" aria-label="Спортзал" style="left:38%;top:44%;width:30%;height:24%;"></button>
-          <button type="button" class="ploshchadHotspot" id="ploshchadShop" aria-label="Торговая лавка" style="left:0%;top:68%;width:30%;height:30%;"></button>
-          <button type="button" class="ploshchadHotspot" id="ploshchadDice" aria-label="Игра в кости" style="left:66%;top:70%;width:32%;height:28%;"></button>
+          <button type="button" class="ploshchadHotspot" id="ploshchadArena" aria-label="Арена" style="left:15%;top:10%;width:77%;height:20%;"></button>
+          <button type="button" class="ploshchadHotspot" id="ploshchadHallOfFame" aria-label="Зал славы" style="left:5%;top:30%;width:45%;height:22%;"></button>
+          <button type="button" class="ploshchadHotspot" id="ploshchadGym" aria-label="Спортзал" style="left:62%;top:35%;width:60%;height:28%;"></button>
+          <button type="button" class="ploshchadHotspot" id="ploshchadShop" aria-label="Торговая лавка" style="left:0%;top:73%;width:40%;height:30%;"></button>
+          <button type="button" class="ploshchadHotspot" id="ploshchadDice" aria-label="Игра в кости" style="left:60%;top:85%;width:92%;height:98%;"></button>
         </div>
       </div>
     </div>
