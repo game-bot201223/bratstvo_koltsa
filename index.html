@@ -91,10 +91,28 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   z-index:9001;
   transition: transform var(--transition-fast);
 }
+/* Главная: блок над картинкой на 40% компактнее по вертикали */
+.hud{padding:6px 14px 5px;}
+.hudRow{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.hud .hudRow{gap:5px;}
+.hud .name{gap:5px;}
+.hud .nameCol{gap:1px;}
+.hud .nameLine{gap:4px;}
+.hud .lvl{font-size:9px;padding:3px 8px;}
+.hud .pills{gap:5px;}
+.hud .pill{padding:4px 8px;font-size:9px;}
+.hud .energyPill{gap:1px;}
+.hud .energyPill .eTimer{font-size:8px;margin-left:10px;}
+.hud .xpRow{gap:6px;}
+.hud .xp{height:12px;margin-bottom:4px;}
+.hud .xp .xpText{font-size:9px;line-height:12px;}
+.heroGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:0 10px 8px;}
+.heroGrid{gap:4px;padding:0 10px 5px;}
+.heroGrid .tile .v{font-size:11px;}
 .hud::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:transparent;pointer-events:none;}
 .hudRow{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .name{display:flex;align-items:center;gap:8px;min-width:0;font-weight:900;letter-spacing:1.5px;cursor:pointer;}
-.name span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52vw;}
+.name span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62vw;}
 .nameCol{display:flex;flex-direction:column;min-width:0;gap:2px;}
 .nameLine{display:flex;align-items:center;gap:6px;min-width:0;}
 .utcRow{display:flex;align-items:baseline;gap:4px;opacity:.78;}
@@ -109,6 +127,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .energyPill .eTimer{font-size:9px;letter-spacing:1.5px;opacity:.70;margin-left:16px;}
 .pill strong{font-weight:900;letter-spacing:1px;}
 
+.xpRow{display:flex;align-items:center;gap:8px;}
+.xpRow .xp{flex:1;min-width:0;}
+.xpRow .lvl{flex:0 0 auto;white-space:nowrap;}
 .xp{margin-top:0;margin-bottom:6px;position:relative;height:20px;border-radius:999px;background:var(--caramel);border:1px solid var(--paperLine);overflow:hidden;}
 .xpFill{position:absolute;inset:0;width:0%;background:var(--caramel);transition: width 0.5s var(--ease-out);}
 .xpText{position:relative;z-index:1;font-size:10px;letter-spacing:1.5px;text-align:center;line-height:20px;opacity:.96;font-weight:800;}
@@ -755,7 +776,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="name" id="nameBtn">
         <div style="opacity:.9">👑</div>
         <div class="nameCol">
-          <div class="nameLine"><span id="playerName">PLAYER</span><div class="lvl" id="playerLevel">1</div></div>
+          <div class="nameLine"><span id="playerName">PLAYER</span></div>
           <div class="utcRow"><span class="utcMini" id="utc">00:00</span><span class="utcTag">UTC</span></div>
         </div>
       </div>
@@ -764,17 +785,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <div class="eRow">⚡ <strong id="energy">100</strong>/<span id="energyMax">100</span></div>
           <div class="eTimer" id="energyTimer">02:00</div>
         </div>
-        <button class="iconBtn" id="settingsBtn" aria-label="Настройки">⚙️</button>
-        <div class="badge" id="syncState" style="opacity:.8;">СЕЙВ: OK</div>
-        <div class="badge" id="buildId" style="opacity:.75;">BUILD: —</div>
-        <div class="badge" id="dbgPanel" style="display:none;max-width:78vw;white-space:normal;line-height:1.15;opacity:.92;">
-          DEBUG
-        </div>
       </div>
     </div>
-    <div class="xp">
-      <div class="xpFill" id="xpFill"></div>
-      <div class="xpText" id="xpText">0 / 0 XP</div>
+    <div class="xpRow">
+      <div class="xp">
+        <div class="xpFill" id="xpFill"></div>
+        <div class="xpText" id="xpText">0 / 0 XP</div>
+      </div>
+      <div class="lvl" id="playerLevel">УР. 1</div>
     </div>
 
     <div class="heroGrid">
@@ -1230,8 +1248,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         </div>
       </div>
       <div class="card" style="margin-top:12px;" id="clanAppsCard">
-        <div class="row"><div class="k">ЗАЯВКИ</div><div class="badge" id="clanAppsBadge">—</div></div>
-        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="clanAppsList">—</div>
+        <div class="row">
+          <div class="k">ЗАЯВКИ</div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <div class="badge" id="clanAppsBadge">—</div>
+            <button class="btn btnMini" id="clanAppsOpenBtn">ОТКРЫТЬ</button>
+          </div>
+        </div>
       </div>
       <div class="card" style="margin-top:12px;" id="clanListCard">
         <div class="row"><div class="k">СПИСОК КЛАНОВ</div><div class="badge" id="clanListBadge">—</div></div>
@@ -1240,10 +1263,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="card" style="margin-top:12px;" id="clanBankCard">
         <div class="row"><div class="k">БАНК КЛАНА</div><div class="badge" style="color:var(--gold)" id="clanBankGold">—</div></div>
         <button class="btn" style="margin-top:12px;" id="clanBankAdd">ВНЕСТИ 🪙</button>
-      </div>
-      <div class="card" style="margin-top:12px;" id="clanLogCard">
-        <div class="row"><div class="k">ЛОГИ КЛАНА</div><div class="badge" id="clanLogBadge">—</div></div>
-        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="clanLogList">—</div>
       </div>
     </div>
   </div>
@@ -1303,6 +1322,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <input id="clanChatInputFull" type="text" placeholder="Сообщение..." style="flex:1; min-width:0; padding:12px 12px; border-radius:14px; border:1px solid rgba(36,24,14,.20); background:rgba(255,255,255,.12); outline:none; font-size:12px;" />
           <button class="btn" id="clanChatSendFull">ОТПРАВИТЬ</button>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Clan Apps -->
+<div class="modal modalPage" id="mClanApps" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen">
+    <div class="sheetHead">
+      <button class="iconBtn" id="clanAppsBack">‹</button>
+      <div class="title">ЗАЯВКИ</div>
+      <div class="badge" id="clanAppsBadgeFull">—</div>
+    </div>
+    <div class="sheetBody">
+      <div class="card">
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="clanAppsListFull">—</div>
       </div>
     </div>
   </div>
@@ -3483,8 +3518,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       try { serverMarkDirty(); } catch (e1) {}
     } catch (e) {
       try {
-        $('syncState').textContent = 'СЕЙВ: ERR';
-        $('syncState').style.opacity = '1';
+        const el = $('syncState');
+        if (el) { el.textContent = 'СЕЙВ: ERR'; el.style.opacity = '1'; }
       } catch (e2) {}
     }
   }
@@ -3543,8 +3578,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     { id:6, name:'Батончик инициатива', img:'и.jpg', price:5, type:'buff', stat:'initiative', pct:0.30, hours:4, desc:'+30% к инициативе на 4 ч, только в ГБ' },
     { id:7, name:'Аптечка', img:'аптечка.jpg', price:15, type:'heal', pct:0.80, desc:'Восстанавливает 80% HP, только в ГБ, 1 раз за ход, пропуск хода' },
     { id:8, name:'Бинт', img:'бинт.jpg', price:5, type:'heal', pct:0.50, desc:'Восстанавливает 50% HP, только в ГБ, 1 раз за ход, пропуск хода' },
-    { id:9, name:'Динамит', img:'динамит.jpg', price:10, type:'dmg', pct:0.30, targets:3, desc:'30% от макс. HP трём случайным противникам, пропуск хода' },
-    { id:10, name:'Бомба', img:'бомба.jpg', price:20, type:'dmg', pct:0.20, targets:3, desc:'20% от макс. HP трём случайным противникам, пропуск хода' }
+    { id:9, name:'Динамит', img:'динамит.jpg', price:20, type:'dmg', pct:0.30, targets:3, desc:'30% от макс. HP трём случайным противникам, пропуск хода' },
+    { id:10, name:'Бомба', img:'бомба.jpg', price:10, type:'dmg', pct:0.20, targets:3, desc:'20% от макс. HP трём случайным противникам, пропуск хода' }
   ];
   const CONSUMABLES_DROP_CHANCES = [ 13, 13, 13, 13, 13, 13, 3, 8, 3, 8 ];
 
@@ -3619,6 +3654,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // normalize
   if (!state.settings || typeof state.settings !== 'object') state.settings = Object.assign({}, defaults.settings);
   if (typeof state.totalXp !== 'number') state.totalXp = 0;
+  if (typeof state.playerName !== 'string') state.playerName = 'PLAYER';
+  state.playerName = String(state.playerName||'').trim().substring(0, 16) || 'PLAYER';
   if (!Array.isArray(state.inventory)) state.inventory = Array(9).fill(' ');
   if (!state.petsOwned || typeof state.petsOwned !== 'object') state.petsOwned = {};
   if (!state.gym || typeof state.gym !== 'object') state.gym = {};
@@ -4436,6 +4473,45 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       try {
         if (inp) inp.onkeydown = (ev)=>{ if (ev && ev.key==='Enter'){ clanChatSend(); } };
       } catch (e4) {}
+    } catch (e) {}
+  }
+
+  function renderClanAppsModal(){
+    try {
+      const box = $('clanAppsListFull');
+      const badge = $('clanAppsBadgeFull');
+      const back = $('clanAppsBack');
+      if (!box || !badge) return;
+      try { if (back) back.onclick = ()=>{ openScreen('mClans'); renderClans(); haptic('light'); }; } catch (e0) {}
+
+      const c = clanGetMyClan();
+      if (!c) {
+        badge.textContent = '—';
+        box.innerHTML = '<div style="opacity:.75; font-size:12px">—</div>';
+        return;
+      }
+      const apps = Array.isArray(c.apps) ? c.apps : [];
+      const cid = clanFindMyClanId();
+      const can = clanCanManage(c);
+      badge.textContent = String(apps.length);
+      if (!apps.length){
+        box.innerHTML = '<div style="opacity:.75; font-size:12px">—</div>';
+        return;
+      }
+      box.innerHTML = apps.map(nm=>{
+        const btns = can ? ('<button class="btn btnMini" data-ca="'+encodeURIComponent(nm)+'" data-cid="'+encodeURIComponent(cid)+'">ПРИНЯТЬ</button>'
+          + '<button class="btn btnMini" data-cr="'+encodeURIComponent(nm)+'" style="opacity:.85">ОТКЛОН</button>') : '';
+        return '<div class="row">'
+          + '<div style="min-width:0; font-size:12px; opacity:.9">'+String(nm)+'</div>'
+          + '<div style="display:flex; gap:6px">'+btns+'</div>'
+          + '</div>';
+      }).join('');
+      box.querySelectorAll('[data-ca]').forEach(b=>{
+        b.onclick = ()=>clanAccept(decodeURIComponent(b.getAttribute('data-cid')||''), decodeURIComponent(b.getAttribute('data-ca')||''));
+      });
+      box.querySelectorAll('[data-cr]').forEach(b=>{
+        b.onclick = ()=>clanReject(decodeURIComponent(b.getAttribute('data-cr')||''));
+      });
     } catch (e) {}
   }
 
@@ -7843,11 +7919,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   function clanLog(clanObj, text){
+    // Логи клана идут в чат клана (системные сообщения)
     try {
       if (!clanObj) return;
-      if (!Array.isArray(clanObj.log)) clanObj.log = [];
-      clanObj.log.unshift({ ts: now(), text: String(text||'') });
-      if (clanObj.log.length > 50) clanObj.log = clanObj.log.slice(0,50);
+      if (!Array.isArray(clanObj.chat)) clanObj.chat = [];
+      clanObj.chat.push({ ts: now(), from: 'СИСТЕМА', text: String(text||'') });
+      if (clanObj.chat.length > 120) clanObj.chat = clanObj.chat.slice(-120);
     } catch (e) {}
   }
   function clanApply(clanId){
@@ -8183,11 +8260,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       const a = $('clanAppsCard');
       const b = $('clanBankCard');
-      const l = $('clanLogCard');
       const lc = $('clanListCard');
       if (a) a.style.display = has ? '' : 'none';
       if (b) b.style.display = has ? '' : 'none';
-      if (l) l.style.display = has ? '' : 'none';
       if (lc) lc.style.display = has ? 'none' : '';
     } catch (e) {}
     try { $('clanStatus').textContent = has ? ('🏰 ' + myClan.name) : 'НЕТ'; } catch (e) {}
@@ -8271,36 +8346,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e) {}
 
     try {
-      const appsBox = $('clanAppsList');
       const appsBadge = $('clanAppsBadge');
-      if (appsBox && appsBadge){
-        if (!has){
-          appsBadge.textContent = '—';
-          appsBox.innerHTML = '<div style="opacity:.75; font-size:12px">—</div>';
-        } else {
-          const apps = Array.isArray(myClan.apps) ? myClan.apps : [];
-          const myClanId = clanFindMyClanId();
-          appsBadge.textContent = String(apps.length);
-          if (!apps.length){
-            appsBox.innerHTML = '<div style="opacity:.75; font-size:12px">—</div>';
-          } else {
-            const can = clanCanManage(myClan);
-            appsBox.innerHTML = apps.map(nm=>{
-              const btns = can ? ('<button class="btn btnMini" data-ca="'+encodeURIComponent(nm)+'" data-cid="'+encodeURIComponent(myClanId)+'">ПРИНЯТЬ</button>'
-                + '<button class="btn btnMini" data-cr="'+encodeURIComponent(nm)+'" style="opacity:.85">ОТКЛОН</button>') : '';
-              return '<div class="row">'
-                + '<div style="min-width:0; font-size:12px; opacity:.9">'+String(nm)+'</div>'
-                + '<div style="display:flex; gap:6px">'+btns+'</div>'
-                + '</div>';
-            }).join('');
-            appsBox.querySelectorAll('[data-ca]').forEach(b=>{
-              b.onclick = ()=>clanAccept(decodeURIComponent(b.getAttribute('data-cid')||''), decodeURIComponent(b.getAttribute('data-ca')));
-            });
-            appsBox.querySelectorAll('[data-cr]').forEach(b=>{
-              b.onclick = ()=>clanReject(decodeURIComponent(b.getAttribute('data-cr')));
-            });
-          }
-        }
+      const openBtn = $('clanAppsOpenBtn');
+      if (appsBadge) {
+        if (!has) appsBadge.textContent = '—';
+        else appsBadge.textContent = String((Array.isArray(myClan.apps) ? myClan.apps.length : 0));
+      }
+      if (openBtn){
+        openBtn.style.display = has ? '' : 'none';
+        openBtn.onclick = ()=>{ openScreen('mClanApps'); try { clansCloudPull().then(()=>{ try { renderClanAppsModal(); } catch (e2) {} }).catch(()=>{}); } catch (e3) { renderClanAppsModal(); } haptic('light'); };
       }
     } catch (e) {}
 
@@ -8353,22 +8407,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e) {}
 
-    try {
-      const logBox = $('clanLogList');
-      const logBadge = $('clanLogBadge');
-      if (logBox && logBadge){
-        if (!has){
-          logBadge.textContent = '—';
-          logBox.innerHTML = '<div style="opacity:.75; font-size:12px">—</div>';
-        } else {
-          const arr = Array.isArray(myClan.log) ? myClan.log : [];
-          logBadge.textContent = String(arr.length);
-          logBox.innerHTML = arr.length ? arr.slice(0, 30).map(e=>{
-            return '<div style="font-size:12px; opacity:.9; line-height:1.35">'+String(e.text||'—')+'</div>';
-          }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
-        }
-      }
-    } catch (e) {}
+    // Логи клана удалены — события идут в чат.
   }
   function clanCreate(){
     try {
@@ -8396,7 +8435,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     state.gold -= 1000;
     const id = 'CLN'+String(Date.now());
     const me = clanMyName();
-    const obj = { id:id, name:nm, leader: me, deputy:'', members:[me], apps:[], createdTs: now(), totalBossDmg:0, lvl:1, bossDmgByMember:{}, memberMeta:{}, log:[], bankGold:0, filters:{ minLvl:1, minStats:0 }, chat:[] };
+    const obj = { id:id, name:nm, leader: me, deputy:'', members:[me], apps:[], createdTs: now(), totalBossDmg:0, lvl:1, bossDmgByMember:{}, memberMeta:{}, bankGold:0, filters:{ minLvl:1, minStats:0 }, chat:[] };
     clanEnsureMemberMeta(obj);
     clanLog(obj, 'Клан создан');
     state.clansDb.clans[id] = obj;
@@ -8974,7 +9013,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       hideTop();
     };
 
-    $('settingsBtn').onclick = ()=>{ showModal('mSettings'); renderAll(); haptic('light'); };
+    const sb = $('settingsBtn'); if (sb) sb.onclick = ()=>{ showModal('mSettings'); renderAll(); haptic('light'); };
     $('shopBtn').onclick = ()=>{ showModal('mShop'); renderShop(); haptic('light'); };
     $('btnDistricts').onclick = ()=>{
       openScreen('mDistricts');
@@ -9134,7 +9173,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const n = prompt('Имя персонажа:', state.playerName || 'PLAYER');
       if (!n) return;
       const prev = String(state.playerName||'PLAYER');
-      const next = String(n).trim().substring(0, 14) || 'PLAYER';
+      const next = String(n).trim().substring(0, 16) || 'PLAYER';
 
       // Cloud: validate and save on server first, then apply locally.
       try {
