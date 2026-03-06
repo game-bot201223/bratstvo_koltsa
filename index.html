@@ -1284,6 +1284,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     </div>
     <div class="sheetBody">
       <div class="card">
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div id="clanPhotoWrap" style="width:150px; height:150px; flex:0 0 auto; border-radius:14px; border:1px solid rgba(255,255,255,.2); background:linear-gradient(145deg, rgba(255,255,255,.14), rgba(0,0,0,.08)); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; letter-spacing:1px; opacity:.85; color:rgba(45,30,18,.6); overflow:hidden;">
+            <img id="clanPhoto" src="" alt="" style="width:100%; height:100%; object-fit:cover; display:none;">
+            <span id="clanPhotoPlaceholder">ФОТО КЛАНА</span>
+          </div>
+          <div style="flex:1; min-width:0;">
         <div class="row"><div class="k">ТВОЙ КЛАН</div><div class="badge" id="clanStatus">—</div></div>
         <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.35" id="clanDesc">—</div>
         <button class="btn" style="margin-top:12px;" id="clanCreate">СОЗДАТЬ КЛАН ЗА 1000 🪙</button>
@@ -1295,6 +1301,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <button class="btn btnSmall" id="clanTransfer" style="display:none;">ПЕРЕДАТЬ</button>
           <button class="btn btnSmall" id="clanDelete" style="display:none; opacity:.9">УДАЛИТЬ</button>
           <button class="btn btnSmall" id="clanLeave" style="display:none;">ВЫЙТИ</button>
+        </div>
+          </div>
         </div>
       </div>
       <div class="card" style="margin-top:12px;" id="clanAppsCard">
@@ -8610,6 +8618,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e) {}
     try { $('clanStatus').textContent = has ? ('🏰 ' + myClan.name) : 'НЕТ'; } catch (e) {}
     try {
+      const photoEl = $('clanPhoto');
+      const placeholderEl = $('clanPhotoPlaceholder');
+      if (photoEl && placeholderEl) {
+        const photoUrl = has && myClan.photo ? String(myClan.photo).trim() : '';
+        if (photoUrl) {
+          photoEl.src = photoUrl;
+          photoEl.style.display = '';
+          placeholderEl.style.display = 'none';
+        } else {
+          photoEl.removeAttribute('src');
+          photoEl.style.display = 'none';
+          placeholderEl.style.display = '';
+        }
+      }
+    } catch (e) {}
+    try {
       if (!has){
         $('clanDesc').textContent = 'Создай клан или подай заявку в клан.';
       } else {
@@ -8960,6 +8984,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         h += '<div style="background:rgba(210,190,156,.96); color:rgba(45,30,18,.98); border:1px solid rgba(45,30,18,.35); border-radius:16px; padding:12px; max-width:100%; overflow-x:hidden; box-sizing:border-box;">';
         h += '<div style="font-weight:900; letter-spacing:2px; font-size:12px; opacity:.95">'+nm.toUpperCase()+'</div>';
         h += '<div style="margin-top:6px; font-size:12px; opacity:.85; line-height:1.35">Ты кошмаришь район. Выбирай задание и выполняй за ⚡ энергию.</div>';
+
+        const rewardTable = [300,400,600,900,1200,1500,1800,2000,2200,2500,2800,3000];
+        const mult = rewardTable[i] ?? 300;
+        const bk = 'D'+String(i);
+        const allDone = districtAllTasksDone(i);
+        const clearedEver = !!(state.districtClearedEver && state.districtClearedEver[bk]);
+        if (allDone || clearedEver){
+          h += '<div style="margin-top:12px; margin-bottom:12px; padding:12px; border-radius:14px; background:linear-gradient(145deg, rgba(34,197,94,.4), rgba(22,163,74,.35)); border:1px solid rgba(34,197,94,.55); font-weight:900; letter-spacing:1px; font-size:13px;">';
+          if (allDone){
+            h += '✅ Все задания выполнены! Награда: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱';
+          } else {
+            h += '✅ Район пройден. Награда получена: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱';
+          }
+          h += '</div>';
+        }
+
         h += '<div style="margin-top:10px; border-top:1px solid rgba(45,30,18,.25)"></div>';
 
         h += '<div style="margin-top:10px; display:grid; grid-template-columns: minmax(0,1fr) 92px 62px 112px; gap:8px; align-items:center; font-size:11px; letter-spacing:2px; font-weight:900; opacity:.85">'
