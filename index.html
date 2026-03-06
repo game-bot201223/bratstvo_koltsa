@@ -251,24 +251,29 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  #arenaSectionGym .statTile .stMeta{font-size:9.5px;line-height:1.2;}
 
 .gymStatsColumnCard{margin-top:10px;}
-.gymStatsColumnLegend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;font-size:10px;opacity:.85;}
-.gymStatLeg::before{content:'';display:inline-block;width:10px;height:10px;margin-right:4px;vertical-align:middle;border-radius:2px;}
+.gymStatsColumnLegend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;font-size:10px;opacity:.88;letter-spacing:1px;}
+.gymStatLeg::before{content:'';display:inline-block;width:10px;height:10px;margin-right:4px;vertical-align:middle;border-radius:3px;}
 .gymStatLegGym::before{background:#c0392b;}
 .gymStatLegArmor::before{background:#27ae60;}
 .gymStatLegBiz::before{background:#2980b9;}
 .gymStatLegPet::before{background:#d35400;}
+.gymStatLegConsumables::before{background:#7d3c98;}
+.gymStatLegConsumables{color:#7d3c98;}
 .gymStatRow{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
 .gymStatRow:last-of-type{margin-bottom:0;}
+.gymStatRowConsumables .gymStatName{color:#7d3c98;font-weight:800;}
 .gymStatName{min-width:90px;font-size:11px;opacity:.9;}
-.gymStatBarWrap{flex:1;min-width:0;height:14px;background:rgba(0,0,0,.08);border-radius:6px;overflow:hidden;display:flex;}
+.gymStatBarWrap{flex:1;min-width:0;height:14px;background:rgba(36,24,14,.08);border-radius:var(--r3);overflow:hidden;display:flex;border:1px solid var(--paperLine);}
 .gymStatBarSeg{height:100%;min-width:0;}
 .gymStatBarSegGym{background:#c0392b;}
 .gymStatBarSegArmor{background:#27ae60;}
 .gymStatBarSegBiz{background:#2980b9;}
 .gymStatBarSegPet{background:#d35400;}
+.gymStatBarSegConsumables{background:#7d3c98;}
 .gymStatVal{min-width:44px;text-align:right;font-weight:900;font-size:12px;}
-.gymStatsSum{margin-top:10px;padding-top:8px;border-top:1px solid var(--paperLine);text-align:center;font-weight:900;color:var(--gold);font-size:12px;}
+.gymStatsSum{margin-top:10px;padding-top:8px;border-top:1px solid var(--paperLine);text-align:center;font-weight:900;color:#000;font-size:12px;}
 #mArena .gymStatsSum,#mArena .gymStatVal{color:#000;}
+#mArena .gymStatsColumnCard .k{font-size:11px;letter-spacing:2px;opacity:.88;}
 
 .petRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;}
 .petCard{
@@ -285,7 +290,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .petCard .petPic{position:relative;width:100%;aspect-ratio:1/1;border-radius:var(--r3);border:1px solid var(--paperLine);background:var(--caramel);display:flex;align-items:center;justify-content:center;overflow:hidden;}
  .petCard .petImg{width:100%;height:100%;object-fit:contain;display:block;transform:scale(1.10);transform-origin:center;}
  .petCard .pIco{font-size:28px;}
- .petCard .petPct{position:absolute;left:0;right:0;bottom:0;padding:4px 6px;font-size:10px;letter-spacing:1px;text-align:center;background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%);}
+ .petCard .petPct{position:absolute;left:0;right:0;bottom:0;padding:4px 6px;font-size:10px;letter-spacing:1px;text-align:center;background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%);color:#fff;}
  .petCard .pBtn{margin-top:auto;}
 
 .costRow{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;}
@@ -405,7 +410,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .diceTitle .ico{font-size:18px;}
  .dicePrice{margin-top:10px; text-align:center; font-size:12px; opacity:.85;}
  .diceGrid{margin-top:14px; display:grid; grid-template-columns:repeat(5,1fr); gap:14px;}
-.dice{width:60px;height:60px;background: var(--caramel);border-radius:var(--r3);border:1px solid var(--paperLine);display:grid;grid-template-columns:repeat(3, 1fr);grid-template-rows:repeat(3, 1fr);padding:8px;gap:6px;touch-action: manipulation;user-select:none;transform: rotate(0deg);}
+.dice{width:60px;height:60px;background:#fff;border-radius:var(--r3);border:1px solid var(--paperLine);display:grid;grid-template-columns:repeat(3, 1fr);grid-template-rows:repeat(3, 1fr);padding:8px;gap:6px;touch-action: manipulation;user-select:none;transform: rotate(0deg);}
  .dice.rolling{ transition: transform .425s ease-in-out; transform: rotate(720deg); }
  .dice .pip{ width:10px; height:10px; border-radius:50%; background:#000; opacity:0;
    justify-self:center; align-self:center;
@@ -624,10 +629,28 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 #mArena #arenaSectionGroup .row{align-items:center;}
 #mArena #arenaGroupHint{margin-top:6px !important;}
 #mArena .grid3{gap:8px;}
-#mArena .arenaTopImg{display:block;width:100%;margin:0;padding:0;vertical-align:top;max-height:28vh;object-fit:cover;}
+#mArena .arenaTopImg{display:block;width:100%;margin:0;padding:0;max-height:28vh;object-fit:cover;}
 #mArena .sheetBody > .card:first-of-type{padding:7px 10px;margin-top:6px !important;}
 #mArena .sheetBody > .card:first-of-type .row + div{margin-top:6px;}
 #mArena .sheetBody > .card:first-of-type .btnSmall{padding:5px 8px;}
+.arenaInventoryBtn{width:44px;height:44px;border-radius:var(--r2);border:1px solid var(--paperLine);background:var(--caramel);cursor:pointer;padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.arenaInventoryBtn img{width:100%;height:100%;object-fit:cover;}
+.arenaInventoryBtn:active{transform:scale(0.94);}
+#mInventory.inventoryFullScreen .sheet{width:100vw;max-width:none;height:100vh;max-height:none;border-radius:0;border:none;}
+#mLavka.lavkaFullScreen .sheet{width:100vw;max-width:none;height:100vh;max-height:none;border-radius:0;border:none;}
+.lavkaGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.lavkaProductBtn{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;border-radius:var(--r2);border:1px solid var(--paperLine);background:var(--caramel);cursor:pointer;text-align:center;}
+.lavkaProductBtn:active{transform:scale(0.98);}
+.lavkaProductBtn:disabled{opacity:.7;cursor:not-allowed;}
+.lavkaProductBtn img{width:80px;height:80px;object-fit:cover;border-radius:var(--r3);}
+.lavkaProductBtn .lavkaName{font-size:11px;font-weight:900;letter-spacing:1px;line-height:1.2;}
+.lavkaProductBtn .lavkaDesc{font-size:10px;opacity:.85;line-height:1.25;max-width:100%;}
+.lavkaProductBtn .lavkaPrice{font-size:12px;color:#000;}
+.inventoryList{display:flex;flex-direction:column;gap:10px;}
+.inventoryRow{display:flex;align-items:center;gap:12px;padding:10px;border-radius:var(--r2);border:1px solid var(--paperLine);background:rgba(0,0,0,.04);}
+.inventoryRow img{width:48px;height:48px;object-fit:cover;border-radius:8px;}
+.inventoryRow .inventoryQty{font-size:11px;opacity:.9;margin-left:4px;}
+.inventoryRow .btnUse{flex-shrink:0;}
 .sheetHead{padding:14px 14px;border-bottom:1px solid var(--paperLine);display:flex;align-items:center;justify-content:space-between;gap:10px;background: var(--caramel);}
 .sheetHead .title{font-weight:900;letter-spacing:4px;font-size:13px;opacity:.96;}
 .iconBtn{width:48px;height:44px;border-radius:var(--r2);border:1px solid var(--btnBorder);background: var(--caramel);color:#000;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;}
@@ -872,7 +895,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetHead">
       <button class="iconBtn" data-close="mArena">‹</button>
       <div class="title">АРЕНА</div>
-      <div style="width:44px"></div>
+      <button type="button" class="arenaInventoryBtn" id="arenaInventoryBtn" aria-label="Инвентарь" title="Инвентарь"><img src="инвентарь.jpg" alt="Инвентарь"></button>
     </div>
     <div class="sheetBody" id="arenaSheetBody">
       <img src="бк.png" alt="" class="arenaTopImg" id="arenaTopImg">
@@ -906,9 +929,26 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <span class="gymStatLeg gymStatLegArmor">Доспехи</span>
           <span class="gymStatLeg gymStatLegBiz">Бизнесы</span>
           <span class="gymStatLeg gymStatLegPet">Питомцы</span>
+          <span class="gymStatLeg gymStatLegConsumables">Расходники</span>
         </div>
         <div id="gymStatsColumn"></div>
         <div class="gymStatsSum" id="gymStatsSum">Сумма: 0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal modalPage inventoryFullScreen" id="mInventory" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen inventoryFullScreen">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mInventory">‹</button>
+      <div class="title">ИНВЕНТАРЬ</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody">
+      <div class="card">
+        <div class="k" style="margin-bottom:10px;">РАСХОДНИКИ</div>
+        <div class="inventoryList" id="inventoryList">—</div>
       </div>
     </div>
   </div>
@@ -1326,15 +1366,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 </div>
 
 <!-- Торговая лавка (новая страница, не магазин; с площади — назад на площадь) -->
-<div class="modal modalPage" id="mLavka" role="dialog" aria-modal="true">
-  <div class="sheet sheetOpaque sheetScreen">
+<div class="modal modalPage lavkaFullScreen" id="mLavka" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen lavkaFullScreen">
     <div class="sheetHead">
       <button class="iconBtn" data-close="mLavka">‹</button>
       <div class="title">ТОРГОВАЯ ЛАВКА</div>
-      <div style="width:44px"></div>
+      <div class="badge" style="color:#000" id="lavkaGold">0 🪙</div>
     </div>
     <div class="sheetBody">
-      <div class="card"><div class="k">Скоро контент</div></div>
+      <div class="k" style="margin-bottom:12px;">РАСХОДНИКИ — ПРИ ПОКУПКЕ ПОПАДАЮТ В ИНВЕНТАРЬ</div>
+      <div class="lavkaGrid" id="lavkaGrid"></div>
     </div>
   </div>
 </div>
@@ -1812,7 +1853,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const pct = gymBonusPct();
     let add = Math.round(cur*pct);
     if (pct>0 && cur>0 && add<=0) add = 1;
-    return cur + add;
+    let total = cur + add;
+    const until = state.consumablesBuffs && (parseInt(state.consumablesBuffs[k],10)||0);
+    if (until > now()){
+      total += Math.max(0, Math.round(cur * 0.30));
+    }
+    return total;
   }
   function gfEffForMatch(v){
     try {
@@ -2085,6 +2131,174 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     toast('Куплено','win');
     haptic('light');
   }
+
+  function renderInventory(){
+    const list = $('inventoryList');
+    if (!list) return;
+    const items = state.consumablesItems || {};
+    list.innerHTML = '';
+    CONSUMABLES_DATA.forEach(c=>{
+      const qty = parseInt(items[c.id]||0,10)||0;
+      if (qty<=0) return;
+      const isBuff = (c.type==='buff');
+      const inBattle = !!(state.groupFight && state.groupFight.battle);
+      const b = state.groupFight && state.groupFight.battle;
+      const myHp = b ? (parseInt(b.myHp||0,10)||0) : 0;
+      const canUseBuff = !inBattle;
+      const canUseInBattle = inBattle && myHp > 0 && b && !b.acted;
+      const useAllowed = isBuff ? canUseBuff : canUseInBattle;
+
+      const row = document.createElement('div');
+      row.className = 'inventoryRow';
+      row.innerHTML = '<img src="'+c.img+'" alt="">'
+        + '<div style="flex:1;min-width:0;">'
+        + '<div class="k">'+c.name+'</div>'
+        + '<div style="font-size:12px;opacity:.8">'+c.desc+'</div>'
+        + '<div class="inventoryQty">В наличии: <strong>'+qty+'</strong></div>'
+        + '</div>';
+      const useBtn = document.createElement('button');
+      useBtn.type = 'button';
+      useBtn.className = 'btn btnSmall btnUse';
+      useBtn.textContent = 'Использовать';
+      useBtn.disabled = !useAllowed;
+      if (useAllowed) useBtn.onclick = ()=>useConsumableItem(c.id);
+      row.appendChild(useBtn);
+      list.appendChild(row);
+    });
+    if (!list.children.length) list.innerHTML = '<div style="font-size:12px;opacity:.75">Пусто. Купи расходники в Торговой лавке.</div>';
+  }
+  function useConsumableItem(id){
+    const c = CONSUMABLES_DATA.find(x=>x.id===id);
+    if (!c){ toast('Не найден расходник','lose'); return; }
+    const items = state.consumablesItems || {};
+    const qty = parseInt(items[id]||0,10)||0;
+    if (qty<=0){ toast('Нет в наличии','lose'); return; }
+
+    if (c.type==='buff'){
+      if (state.groupFight && state.groupFight.battle){ toast('Батончик можно использовать только до боя','lose'); return; }
+      state.consumablesItems[id] = qty - 1;
+      if (!state.consumablesBuffs || typeof state.consumablesBuffs !== 'object') state.consumablesBuffs = { health:0, strength:0, agility:0, initiative:0, endurance:0, might:0, charisma:0 };
+      state.consumablesBuffs[c.stat] = now() + 4 * 60 * 60 * 1000;
+      save();
+      renderInventory();
+      renderAll();
+      toast('Активировано: '+c.name+' на 4 ч (в ГБ)','win');
+      haptic('light');
+      return;
+    }
+
+    const b = state.groupFight && state.groupFight.battle;
+    if (!b){ toast('Использование только в групповом бою','lose'); return; }
+    if ((parseInt(b.myHp||0,10)||0) <= 0){ toast('Ты наблюдатель','lose'); return; }
+    if (b.acted){ toast('Уже использовано действие в этот ход','lose'); return; }
+
+    if (c.type==='heal'){
+      state.consumablesItems[id] = qty - 1;
+      const myMaxHp = parseInt(b.myMaxHp||0,10)||0;
+      const heal = Math.max(1, Math.round(myMaxHp * (c.pct||0.5)));
+      const before = parseInt(b.myHp||0,10)||0;
+      b.myHp = clamp(before + heal, 0, myMaxHp);
+      b.acted = true;
+      b.log.unshift({ kind:'SYS', text:'Ты использовал '+c.name+' и восстановил ' + (b.myHp - before) + ' HP' });
+      save();
+      renderBattle();
+      renderInventory();
+      renderAll();
+      toast('Использовано','win');
+      haptic('light');
+      return;
+    }
+
+    if (c.type==='dmg'){
+      state.consumablesItems[id] = qty - 1;
+      const alive = (b.targets||[]).filter(t=>(parseInt(t.hp||0,10)||0) > 0);
+      const n = Math.min(3, alive.length);
+      const pct = c.pct || 0.3;
+      const hit = [];
+      for (let i = 0; i < n; i++){
+        const idx = Math.floor(Math.random() * alive.length);
+        const t = alive[idx];
+        alive.splice(idx, 1);
+        const maxHp = parseInt(t.maxHp||0,10)||Math.max(1, parseInt(t.hp||0,10)||0);
+        const dmg = Math.max(1, Math.round(maxHp * pct));
+        const curHp = parseInt(t.hp||0,10)||0;
+        t.hp = Math.max(0, curHp - dmg);
+        hit.push({ id: t.id, dmg });
+      }
+      b.acted = true;
+      const hitText = hit.map(x=>x.id+' -'+x.dmg).join(', ');
+      b.log.unshift({ kind:'SYS', text:'Ты использовал '+c.name+': '+hitText });
+      save();
+      renderBattle();
+      renderInventory();
+      renderAll();
+      toast('Использовано','win');
+      haptic('light');
+      return;
+    }
+
+    toast('Нельзя использовать здесь','lose');
+  }
+  function renderLavka(){
+    try { $('lavkaGold').textContent = (state.gold||0) + ' 🪙'; } catch(e){}
+    const grid = $('lavkaGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    CONSUMABLES_DATA.forEach(c=>{
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'lavkaProductBtn';
+      btn.setAttribute('data-lavka-id', String(c.id));
+      const canBuy = (state.gold||0) >= (c.price||0);
+      btn.disabled = !canBuy;
+      btn.innerHTML = '<img src="'+c.img+'" alt="">'
+        + '<span class="lavkaName">'+c.name+'</span>'
+        + '<span class="lavkaDesc">'+(c.desc||'')+'</span>'
+        + '<span class="lavkaPrice">'+c.price+' 🪙</span>'
+        + (canBuy ? '<span class="btn btnSmall">КУПИТЬ</span>' : '<span class="btn btnSmall" style="opacity:.6">Нужно '+c.price+' 🪙</span>');
+      btn.onclick = ()=>{ if ((state.gold||0) >= (c.price||0)) lavkaBuy(c.id); };
+      grid.appendChild(btn);
+    });
+  }
+  function lavkaBuy(id){
+    const c = CONSUMABLES_DATA.find(x=>x.id===id);
+    if (!c){ toast('Не найден товар','lose'); return; }
+    const price = parseInt(c.price||0,10)||0;
+    if ((state.gold||0) < price){ toast('Нужно '+price+' 🪙','lose'); return; }
+    state.gold -= price;
+    if (!state.consumablesItems) state.consumablesItems = { 1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0 };
+    state.consumablesItems[id] = (parseInt(state.consumablesItems[id]||0,10)||0) + 1;
+    save();
+    renderLavka();
+    renderInventory();
+    renderAll();
+    toast('Куплено: '+c.name,'win');
+    haptic('light');
+  }
+  function gfAddRandomConsumableReward(){
+    const chances = CONSUMABLES_DROP_CHANCES || [13,13,13,13,13,13,3,8,3,8];
+    let total = 0;
+    chances.forEach(x=>{ total += x; });
+    if (total<=0) return;
+    let r = Math.random() * total;
+    for (let i=0;i<chances.length;i++){
+      r -= chances[i];
+      if (r <= 0){
+        const id = i + 1;
+        if (!state.consumablesItems) state.consumablesItems = { 1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0 };
+        state.consumablesItems[id] = (parseInt(state.consumablesItems[id]||0,10)||0) + 1;
+        const item = CONSUMABLES_DATA.find(x=>x.id===id);
+        if (item) feedAdd('Награда ГБ: '+item.name,'GF');
+        save();
+        return;
+      }
+    }
+    const id = 1;
+    if (!state.consumablesItems) state.consumablesItems = { 1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0 };
+    state.consumablesItems[id] = (parseInt(state.consumablesItems[id]||0,10)||0) + 1;
+    save();
+  }
+
   function consUse(kind){
     if (String(state._consCtx||'')!=='battle'){ toast('Использование только в бою','lose'); return; }
     const b = state.groupFight && state.groupFight.battle;
@@ -3303,6 +3517,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     { key:'charisma', name:'Харизма' }
   ];
 
+  const CONSUMABLES_DATA = [
+    { id:1, name:'Батончик здоровье', img:'з.jpg', price:5, type:'buff', stat:'health', pct:0.30, hours:4, desc:'+30% к здоровью (спортзал) на 4 ч, только в ГБ' },
+    { id:2, name:'Батончик сила', img:'с.jpg', price:5, type:'buff', stat:'strength', pct:0.30, hours:4, desc:'+30% к силе на 4 ч, только в ГБ' },
+    { id:3, name:'Батончик выносливость', img:'в.jpg', price:5, type:'buff', stat:'endurance', pct:0.30, hours:4, desc:'+30% к выносливости на 4 ч, только в ГБ' },
+    { id:4, name:'Батончик мощь', img:'м.jpg', price:5, type:'buff', stat:'might', pct:0.30, hours:4, desc:'+30% к мощи на 4 ч, только в ГБ' },
+    { id:5, name:'Батончик ловкость', img:'л.jpg', price:5, type:'buff', stat:'agility', pct:0.30, hours:4, desc:'+30% к ловкости на 4 ч, только в ГБ' },
+    { id:6, name:'Батончик инициатива', img:'и.jpg', price:5, type:'buff', stat:'initiative', pct:0.30, hours:4, desc:'+30% к инициативе на 4 ч, только в ГБ' },
+    { id:7, name:'Аптечка', img:'аптечка.jpg', price:15, type:'heal', pct:0.80, desc:'Восстанавливает 80% HP, только в ГБ, 1 раз за ход, пропуск хода' },
+    { id:8, name:'Бинт', img:'бинт.jpg', price:5, type:'heal', pct:0.50, desc:'Восстанавливает 50% HP, только в ГБ, 1 раз за ход, пропуск хода' },
+    { id:9, name:'Динамит', img:'динамит.jpg', price:10, type:'dmg', pct:0.30, targets:3, desc:'30% от макс. HP трём случайным противникам, пропуск хода' },
+    { id:10, name:'Бомба', img:'бомба.jpg', price:20, type:'dmg', pct:0.20, targets:3, desc:'20% от макс. HP трём случайным противникам, пропуск хода' }
+  ];
+  const CONSUMABLES_DROP_CHANCES = [ 13, 13, 13, 13, 13, 13, 3, 8, 3, 8 ];
+
   // --- State
   const defaults = {
     v:2,
@@ -3328,6 +3556,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     gf1010:{ joined:false, startTs:0, costPaid:0, gathered:0, matchId:'', fight:{ round:1, turnLeft:10, myTarget:'', targets:[], log:[] } },
     diceGame:{ active:false, rolls:0, max:10, dice:[1,1,1,1,1] },
     consumables:{ med:0, nade:0 },
+    consumablesItems:{ 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0 },
+    consumablesBuffs:{ health:0, strength:0, agility:0, initiative:0, endurance:0, might:0, charisma:0 },
     clan:{ id:'', name:'', owner:'', createdTs:0, role:'', deputy:'', joinedTs:0 },
     clansDb:{ nextId:1, order:[], clans:{}, myApps:{} },
     promoUsedCodes:{},
@@ -3385,6 +3615,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (!state.consumables || typeof state.consumables !== 'object') state.consumables = Object.assign({}, defaults.consumables);
   if (typeof state.consumables.med !== 'number') state.consumables.med = 0;
   if (typeof state.consumables.nade !== 'number') state.consumables.nade = 0;
+  if (!state.consumablesItems || typeof state.consumablesItems !== 'object') state.consumablesItems = Object.assign({}, defaults.consumablesItems);
+  for (let i=1;i<=10;i++) if (typeof state.consumablesItems[i] !== 'number') state.consumablesItems[i] = 0;
+  if (!state.consumablesBuffs || typeof state.consumablesBuffs !== 'object') state.consumablesBuffs = { health:0, strength:0, agility:0, initiative:0, endurance:0, might:0, charisma:0 };
+  GYM_STATS.forEach(s=>{ if (typeof state.consumablesBuffs[s.key] !== 'number') state.consumablesBuffs[s.key] = 0; });
+  if (state.consumablesBuffUntil > now() && state.consumablesBuffStat){
+    try { state.consumablesBuffs[state.consumablesBuffStat] = state.consumablesBuffUntil; } catch(e){}
+  }
+  delete state.consumablesBuffUntil;
+  delete state.consumablesBuffStat;
   if (!state.clan || typeof state.clan !== 'object') state.clan = Object.assign({}, defaults.clan);
   if (typeof state.clan.createdTs !== 'number') state.clan.createdTs = 0;
   if (typeof state.clan.id !== 'string') state.clan.id = '';
@@ -5243,6 +5482,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const rr = gfBattleComputeReward(b, true);
       b.log.unshift({ kind:'SYS', text:'Победа команды! Награда: +' + (parseInt(rr.gold||0,10)||0) + ' 🪙' });
       state.groupFight.pendingReward = rr;
+      gfAddRandomConsumableReward();
       state.groupFight.joined = false;
       state.groupFight.startTs = 0;
       state.groupFight.resolvedTs = now();
@@ -5371,6 +5611,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!youAlive && !allyAlive){
       b.log.unshift({ kind:'SYS', text:'Поражение команды!' });
       state.groupFight.pendingReward = gfBattleComputeReward(b, false);
+      gfAddRandomConsumableReward();
       state.groupFight.joined = false;
       state.groupFight.startTs = 0;
       state.groupFight.resolvedTs = now();
@@ -5425,6 +5666,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!box) return;
     const petPct = petBonusPct();
     const bizPct = bizGymBonusPct();
+    const buffs = state.consumablesBuffs || {};
     const rows = [
       { name: 'Жизнь', key: 'health', mult: 18 }
     ];
@@ -5437,7 +5679,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const armor = 0;
       const biz = Math.round(gym * bizPct);
       const pet = Math.round(gym * petPct);
-      const total = gym + armor + biz + pet;
+      const buffUntil = parseInt(buffs[r.key],10)||0;
+      const consumables = buffUntil > now()
+        ? (r.mult === 18 ? Math.round(gymVal('health') * 0.30) * 18 : Math.max(0, Math.round(gym * 0.30)))
+        : 0;
+      const total = gym + armor + biz + pet + consumables;
       sumTotal += total;
       let segHtml = '';
       if (total > 0) {
@@ -5445,10 +5691,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const pA = (armor / total) * 100;
         const pB = (biz / total) * 100;
         const pP = (pet / total) * 100;
+        const pC = (consumables / total) * 100;
         if (pG > 0) segHtml += '<div class="gymStatBarSeg gymStatBarSegGym" style="width:'+pG+'%"></div>';
         if (pA > 0) segHtml += '<div class="gymStatBarSeg gymStatBarSegArmor" style="width:'+pA+'%"></div>';
         if (pB > 0) segHtml += '<div class="gymStatBarSeg gymStatBarSegBiz" style="width:'+pB+'%"></div>';
         if (pP > 0) segHtml += '<div class="gymStatBarSeg gymStatBarSegPet" style="width:'+pP+'%"></div>';
+        if (pC > 0) segHtml += '<div class="gymStatBarSeg gymStatBarSegConsumables" style="width:'+pC+'%"></div>';
       }
       html += '<div class="gymStatRow">'
         + '<span class="gymStatName">'+r.name+'</span>'
@@ -7479,6 +7727,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
     if ($('mDice').classList.contains('show')) renderDice();
     if ($('mClans').classList.contains('show')) renderClans();
+    if ($('mInventory').classList.contains('show')) renderInventory();
+    if ($('mLavka').classList.contains('show')) renderLavka();
   }
 
   function clanLevelFromDmg(dmg){
@@ -8585,6 +8835,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const rr = gfBattleComputeReward(b, true);
         b.log.unshift({ kind:'SYS', text:'Победа команды! Награда: +' + (parseInt(rr.gold||0,10)||0) + ' 🪙' });
         state.groupFight.pendingReward = rr;
+        gfAddRandomConsumableReward();
         state.groupFight.joined = false;
         state.groupFight.startTs = 0;
         state.groupFight.resolvedTs = now();
@@ -8613,6 +8864,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const rr = gfBattleComputeReward(b, true);
       b.log.unshift({ kind:'SYS', text:'Победа команды! Награда: +' + (parseInt(rr.gold||0,10)||0) + ' 🪙' });
       state.groupFight.pendingReward = rr;
+      gfAddRandomConsumableReward();
       state.groupFight.joined = false;
       state.groupFight.startTs = 0;
       state.groupFight.resolvedTs = now();
@@ -8759,7 +9011,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const pa = $('ploshchadArena'); if (pa) pa.onclick = ()=>{ openScreen('mArena'); renderAll(); haptic('light'); };
       const ph = $('ploshchadHallOfFame'); if (ph) ph.onclick = ()=>{ showModal('mTop'); renderTop100('LVL'); haptic('light'); };
       const pg = $('ploshchadGym'); if (pg) pg.onclick = ()=>{ showModal('mGym'); renderGym(); renderArenaPetShop(); haptic('light'); };
-      const ps = $('ploshchadShop'); if (ps) ps.onclick = ()=>{ showModal('mLavka'); haptic('light'); };
+      const ps = $('ploshchadShop'); if (ps) ps.onclick = ()=>{ showModal('mLavka'); renderLavka(); haptic('light'); };
       const pd = $('ploshchadDice'); if (pd) pd.onclick = ()=>{ showModal('mDice'); renderDice(); haptic('light'); };
     } catch (e) {}
     $('btnClans').onclick = ()=>{
@@ -8808,6 +9060,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     $('arenaWeak').onclick = ()=>tryArenaFight('WEAK');
     $('arenaNorm').onclick = ()=>tryArenaFight('NORMAL');
     $('arenaElite').onclick = ()=>tryArenaFight('ELITE');
+    const aib = $('arenaInventoryBtn'); if (aib) aib.onclick = ()=>{ showModal('mInventory'); renderInventory(); haptic('light'); };
 
     try {
       const ac = $('arenaConsOpen');
