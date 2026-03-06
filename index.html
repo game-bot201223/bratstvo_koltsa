@@ -514,14 +514,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .districtCardTop{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
  .districtCardBadge{flex:0 0 auto;}
 
- .bossFightHero{display:flex;align-items:flex-start;justify-content:flex-start;gap:14px;}
- .bossFightBig{width:140px;height:140px;border-radius:20px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:60px;flex:0 0 auto;}
+ .bossFightHero{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+ .bossFightBig{width:180px;height:180px;border-radius:34px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:78px;flex:0 0 auto;}
  .bossFightMeta{min-width:0;flex:1;}
- .bossAtkGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
- .bossAtkBtnBlock{display:flex !important;flex-direction:column;align-items:center;justify-content:center;padding:8px !important;text-align:center;}
- .bossAtkBtnBlock .bfHitImg{width:48px;height:48px;object-fit:contain;flex-shrink:0;border-radius:10px;margin-bottom:4px;}
- .bossAtkBtnBlock .bfHitDmg{font-size:11px;font-weight:900;letter-spacing:1px;}
- .bossAtkBtnBlock .bfHitQty{font-size:10px;opacity:.9;margin-top:2px;}
 
  .toothBtn{position:relative; width:44px; height:40px; border-radius:14px; border:1px solid rgba(217,70,239,.55); background:linear-gradient(180deg, rgba(217,70,239,.24) 0%, rgba(42,30,20,.70) 100%); color:rgba(217,70,239,.95); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1;}
  .toothBtn .ico{font-size:18px;}
@@ -533,9 +528,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  #bossToothBtn.ready{border-color: rgba(255,255,255,.95);}
 
  .bossAtkBtn{font-size:9px !important; padding:5px 7px !important; letter-spacing:1px; min-height:28px;}
-.bossAtkBtnWithImg{display:flex !important; align-items:center; gap:10px; justify-content:flex-start; text-align:left;}
-.bossAtkBtnWithImg .bfHitImg{width:36px;height:36px;object-fit:contain;flex-shrink:0;border-radius:8px;}
-.bossAtkBtnWithImg .bfHitLabel{flex:1;min-width:0;}
 
 /* Modals — божественные карамельные слои */
 .overlay{position:fixed;inset:0;background:rgba(36,28,20,.35);backdrop-filter: blur(20px) saturate(0.98);-webkit-backdrop-filter: blur(20px) saturate(0.98);display:none;z-index:4900;transition: opacity var(--transition-normal);}
@@ -549,24 +541,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   padding: calc(14px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
 }
 .modalBossFight{ z-index: 5300; }
-/* Бой с боссом — на весь экран, без закруглений */
-#mBossFight.modalBossFight{
-  padding: 0;
-  display: none;
-}
-#mBossFight.modalBossFight.show{
-  display: block;
-}
-#mBossFight .sheet{
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  max-height: none;
-  border-radius: 0;
-  border: none;
-}
 .modalBfShop{ z-index: 5400; }
 .modalBossFightRes{ z-index: 5500; }
 .modal.show{display:block;}
@@ -1071,14 +1045,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody">
       <div class="card">
         <div class="row"><div class="k">ВЫБРАН</div><div class="badge" id="baBossName">—</div></div>
-        <div class="row" style="margin-top:10px;"><div class="k">ХП БОССА</div><div class="badge" id="baHp">—</div></div>
         <div class="row" style="margin-top:10px;"><div class="k">ДОСТУП</div><div class="badge" id="baAccess">—</div></div>
-        <div style="margin-top:12px; display:flex; gap:10px; align-items:center;" id="baGoWrap">
+        <div style="margin-top:12px; display:flex; gap:10px; align-items:center;">
           <button class="btn" style="flex:1" id="baGo">В БОЙ</button>
           <button class="btn" style="width:56px; padding:0; font-size:20px; letter-spacing:0" id="baBuyRing" aria-label="Купить 1 атаку за козырные кольца">💍</button>
-        </div>
-        <div style="margin-top:12px; display:none;" id="baClaimWrap">
-          <button class="btn" style="width:100%" id="baClaim">ЗАБРАТЬ НАГРАДУ</button>
         </div>
       </div>
 
@@ -1104,18 +1074,19 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <div class="bossFightMeta">
             <div class="bossName" id="bfName">БОСС</div>
             <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center">
-              <div class="badge" id="bfHp">— хп</div>
+              <div class="badge" id="bfHp">HP —</div>
               <div class="badge" id="bfTimer">—</div>
+              <div class="badge" style="color:var(--gold); display:none" id="bfHits">УДАРЫ x0</div>
             </div>
-            <div class="bossAtkGrid" id="bfAtkGrid">
-              <button type="button" class="btn bossAtkBtnBlock" id="bfFreeHit"><img src="ногой.png" alt="" class="bfHitImg"><span class="bfHitDmg">—</span><span class="bfHitQty">—</span></button>
-              <button type="button" class="btn bossAtkBtnBlock" id="bfHit1"><img src="пинок.png" alt="" class="bfHitImg"><span class="bfHitDmg">—</span><span class="bfHitQty">—</span></button>
-              <button type="button" class="btn bossAtkBtnBlock" id="bfHit2"><img src="костетом.jpg" alt="" class="bfHitImg"><span class="bfHitDmg">—</span><span class="bfHitQty">—</span></button>
-              <button type="button" class="btn bossAtkBtnBlock" id="bfHit3"><img src="клизма.jpg" alt="" class="bfHitImg"><span class="bfHitDmg">—</span><span class="bfHitQty">—</span></button>
-            </div>
-            <div style="margin-top:8px; font-size:11px; opacity:.85">Ударов за нажатие:</div>
-            <div style="margin-top:4px; display:flex; gap:6px; flex-wrap:wrap" id="bfHitQty"></div>
+            <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end" id="bfHitQty"></div>
           </div>
+        </div>
+
+        <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
+          <button class="btn" id="bfFreeHit">ПИНОК ПОД ЗАД (БЕСПЛАТНО)</button>
+          <button class="btn" id="bfHit1">УДАР 2 (НОГОЙ)</button>
+          <button class="btn" id="bfHit2">УДАР 3 (КОСТЕТОМ)</button>
+          <button class="btn" id="bfHit3">УДАР 4 (КЛИЗМА)</button>
         </div>
 
         <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.3" id="bfHint">—</div>
@@ -1419,44 +1390,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody">
       <div id="districtBizRewardColumn" style="display:none; margin:10px 10px 0 10px;"></div>
       <div style="margin:10px; display:flex; flex-direction:column; gap:10px;" id="districtList"></div>
-    </div>
-  </div>
-</div>
-
-<!-- Награда за выполнение всех заданий в районах (Собрать все) -->
-<div class="modal modalMini" id="mDistrictBizReward" role="dialog" aria-modal="true">
-  <div class="sheet sheetMini">
-    <div class="sheetHead">
-      <div style="width:44px"></div>
-      <div class="title">НАГРАДА ЗА ЗАДАНИЯ В РАЙОНАХ</div>
-      <button class="iconBtn" data-close="mDistrictBizReward">‹</button>
-    </div>
-    <div class="sheetBody">
-      <div class="card">
-        <div style="text-align:center; padding:16px 0;">
-          <div style="font-size:14px; opacity:.9; margin-bottom:12px;">Ты собрал прибыль со всех бизнесов в районах:</div>
-          <div id="districtBizRewardPopupAmounts" style="display:flex; align-items:center; justify-content:center; gap:20px; font-size:20px; font-weight:900; letter-spacing:2px;">—</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Награда за выполнение всех 7 заданий в районе -->
-<div class="modal modalMini" id="mDistrictTasksReward" role="dialog" aria-modal="true">
-  <div class="sheet sheetMini">
-    <div class="sheetHead">
-      <div style="width:44px"></div>
-      <div class="title" id="districtTasksRewardTitle">НАГРАДА ЗА ВСЕ ЗАДАНИЯ РАЙОНА</div>
-      <button class="iconBtn" data-close="mDistrictTasksReward">‹</button>
-    </div>
-    <div class="sheetBody">
-      <div class="card">
-        <div style="text-align:center; padding:16px 0;">
-          <div style="font-size:14px; opacity:.9; margin-bottom:12px;">Ты выполнил все 7 заданий в районе!</div>
-          <div id="districtTasksRewardAmounts" style="display:flex; align-items:center; justify-content:center; gap:16px; font-size:18px; font-weight:900; letter-spacing:2px; flex-wrap:wrap;">—</div>
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -2143,11 +2076,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   function bizDailyClaimAll(){
     try {
-      if (!hasAnyBusiness()) { toast('Нет бизнесов','lose'); return null; }
+      if (!hasAnyBusiness()) { toast('Нет бизнесов','lose'); return; }
       const msLeft = bizRewardNextClaimMs();
       if (msLeft > 0) {
         toast('Следующая награда через ' + fmtHHMMSS(msLeft), 'lose');
-        return null;
+        return;
       }
 
       let addFearSum = 0;
@@ -2184,12 +2117,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         renderHUD();
         toast('БИЗНЕС: +' + fmt4(addFearSum) + ' 😱 · +' + fmt4(addGoldSum) + ' 🪙','win');
         haptic('heavy');
-        return { addFearSum, addGoldSum };
       } else {
         toast('Бизнес награда уже собрана','lose');
-        return null;
       }
-    } catch (e) { return null; }
+    } catch (e) {}
   }
   function districtDailyEnsure(){
     try {
@@ -4234,7 +4165,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       toast('НАГРАДА: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱','win');
       feedAdd('Награда района: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱','SYS');
       haptic('heavy');
-      showDistrictTasksRewardPopup(id, mult);
     } catch (e) {}
   }
 
@@ -4476,26 +4406,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   const overlay = $('overlay');
   const stack = [];
   const SCREEN_IDS = new Set(['mArena','mBoss','mTop','mDice','mDistricts','mBattle','mPloshchad','mGym','mLavka']);
-  function showDistrictBizRewardPopup(addFearSum, addGoldSum){
-    const el = $('districtBizRewardPopupAmounts');
-    if (el) {
-      let html = '';
-      if (addFearSum > 0) html += '<span title="Страх">😱 +' + fmt4(addFearSum) + '</span>';
-      if (addGoldSum > 0) html += '<span title="Золото">🪙 +' + fmt4(addGoldSum) + '</span>';
-      el.innerHTML = html || '—';
-    }
-    showModal('mDistrictBizReward');
-  }
-  function showDistrictTasksRewardPopup(dIdx, mult){
-    const data = districtData();
-    const d = data[dIdx];
-    const districtName = d && d.name ? d.name : 'Район';
-    const titleEl = $('districtTasksRewardTitle');
-    const amountsEl = $('districtTasksRewardAmounts');
-    if (titleEl) titleEl.textContent = 'Награда за все 7 заданий: ' + districtName.toUpperCase();
-    if (amountsEl) amountsEl.innerHTML = '<span title="Опыт">+'+fmt4(mult)+' XP</span><span title="Зубы">+'+fmt4(mult)+' 🦷</span><span title="Страх">+'+fmt4(mult)+' 😱</span>';
-    showModal('mDistrictTasksReward');
-  }
   function setOverlay(){
     if (!overlay) return;
     const top = stack.length ? stack[stack.length-1] : '';
@@ -6785,7 +6695,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e0) {}
     $('bfName').textContent = b.name;
-    $('bfHp').textContent = (parseInt(f.hp||0,10)||0) + ' хп';
+    $('bfHp').textContent = 'HP ' + (parseInt(f.hp||0,10)||0) + ' / ' + b.maxHP;
     const left = Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now());
     $('bfTimer').textContent = left>0 ? ('ВРЕМЯ: ' + fmtHHMMSS(left)) : 'ВРЕМЯ: 00:00:00';
     const hs = state.bosses.hitStocks || { kick:0, knuckle:0, enema:0 };
@@ -6819,50 +6729,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const hitBtn1 = $('bfHit1');
     const hitBtn2 = $('bfHit2');
     const hitBtn3 = $('bfHit3');
-    function bfAnyHitBusy(){
-      try { return !!(window.__bfHitBusy && window.__bfHitBusy[String(bossId)]); } catch (e) { return false; }
-    }
-    function bfSetHitBusy(v){
-      try {
-        if (!window.__bfHitBusy) window.__bfHitBusy = {};
-        if (v) window.__bfHitBusy[String(bossId)] = 1;
-        else delete window.__bfHitBusy[String(bossId)];
-      } catch (e) {}
-      try {
-        const busy = bfAnyHitBusy();
-        const btns = [freeBtn, hitBtn1, hitBtn2, hitBtn3].filter(Boolean);
-        btns.forEach(bb=>{
-          bb.classList.toggle('loading', busy);
-          bb.style.pointerEvents = busy ? 'none' : '';
-        });
-      } catch (e) {}
-    }
     const alive = (parseInt(f.hp||0,10)||0) > 0;
     const inTime = left > 0;
-    const busyNow = bfAnyHitBusy();
-    freeBtn.disabled = busyNow || (!alive || !inTime || !!f.freeUsed);
+    freeBtn.disabled = (!alive || !inTime || !!f.freeUsed);
     freeBtn.style.opacity = freeBtn.disabled ? '.6' : '1';
     const useQ = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
-    hitBtn1.disabled = busyNow || (!alive || !inTime || hk<useQ);
-    hitBtn2.disabled = busyNow || (!alive || !inTime || hn<useQ);
-    hitBtn3.disabled = busyNow || (!alive || !inTime || he<useQ);
+    hitBtn1.disabled = (!alive || !inTime || hk<useQ);
+    hitBtn2.disabled = (!alive || !inTime || hn<useQ);
+    hitBtn3.disabled = (!alive || !inTime || he<useQ);
     hitBtn1.style.opacity = hitBtn1.disabled ? '.6' : '1';
     hitBtn2.style.opacity = hitBtn2.disabled ? '.6' : '1';
     hitBtn3.style.opacity = hitBtn3.disabled ? '.6' : '1';
 
     try {
       const q2 = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
-      const setDmgQty = (btn, dmgVal, qtyTxt) => {
-        if (!btn) return;
-        const dEl = btn.querySelector('.bfHitDmg');
-        const qEl = btn.querySelector('.bfHitQty');
-        if (dEl) dEl.textContent = dmgVal;
-        if (qEl) qEl.textContent = qtyTxt;
-      };
-      setDmgQty(freeBtn, 'УРОН ' + Math.max(1, bossHitDmg(14, 50)), '1 раз');
-      setDmgQty(hitBtn1, 'УРОН ' + (Math.max(1, bossHitDmg(10, 70)) * q2), ''+hk);
-      setDmgQty(hitBtn2, 'УРОН ' + (Math.max(1, bossHitDmg(7, 85)) * q2), ''+hn);
-      setDmgQty(hitBtn3, 'УРОН ' + (Math.max(1, bossHitDmg(4, 100)) * q2), ''+he);
+      freeBtn.textContent = 'БЕСПЛАТНО · УРОН ' + Math.max(1, bossHitDmg(14, 50));
+      hitBtn1.textContent = 'НОГОЙ ('+hk+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(10, 70)) * q2);
+      hitBtn2.textContent = 'КОСТЕТОМ ('+hn+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(7, 85)) * q2);
+      hitBtn3.textContent = 'КЛИЗМА ('+he+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(4, 100)) * q2);
     } catch (e) {}
 
     if (!inTime && alive){
@@ -6883,7 +6767,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!window.__bfHitLock) window.__bfHitLock = {};
       const lk = 'free:' + String(bossId);
       try { if (window.__bfHitLock[lk]) return; window.__bfHitLock[lk] = true; } catch (e0) {}
-      try { if (bfAnyHitBusy()) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; } } catch (e0) {}
       const ff = bfGetFight(bossId);
       if (!ff) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
       const left2 = Math.max(0, (parseInt(ff.expiresTs||0,10)||0) - now());
@@ -6891,7 +6774,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const prevHp = Math.max(0, parseInt(ff.hp||0,10)||0);
       const dmg = bossHitDmg(14, 50);
       const wantApply = Math.min(prevHp, dmg);
-      bfSetHitBusy(true);
       bossFightHitCloud(bossId, wantApply).then((r)=>{
         try {
           if (r && typeof r === 'object' && r.skipped) {
@@ -6927,17 +6809,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
         renderAll();
         haptic('light');
-      }).catch(()=>{}).finally(()=>{
-        try { bfSetHitBusy(false); } catch (e0) {}
-        try { delete window.__bfHitLock[lk]; } catch (e0) {}
-      });
+      }).catch(()=>{}).finally(()=>{ try { delete window.__bfHitLock[lk]; } catch (e0) {} });
     };
 
     function doTokenHit(kind){
       if (!window.__bfHitLock) window.__bfHitLock = {};
       const lk = 'tok:' + String(bossId) + ':' + String(kind||'');
       try { if (window.__bfHitLock[lk]) return; window.__bfHitLock[lk] = true; } catch (e0) {}
-      try { if (bfAnyHitBusy()) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; } } catch (e0) {}
 
       const f2 = bfEnsureFight(bossId);
       if (!f2) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
@@ -6961,13 +6839,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
       ff.lastFriendTs = now();
       const one = (kind==='kick') ? bossHitDmg(10, 70) : ((kind==='knuckle') ? bossHitDmg(7, 85) : bossHitDmg(4, 100));
+      const dmg = Math.max(1, one) * q;
       const prevHp = Math.max(0, parseInt(ff.hp||0,10)||0);
-      const oneSafe = Math.max(1, one);
-      const needHits = clamp(Math.max(1, Math.ceil(prevHp / oneSafe)), 1, q);
-      const dmg = oneSafe * needHits;
       const wantApply = Math.min(prevHp, dmg);
-
-      bfSetHitBusy(true);
 
       bossFightHitCloud(bossId, wantApply).then((r)=>{
         try {
@@ -6980,9 +6854,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         } catch (e0) {}
 
         // HARD MODE: spend token only after server ok
-        if (kind==='kick') hs2.kick = Math.max(0, (hs2.kick||0) - needHits);
-        if (kind==='knuckle') hs2.knuckle = Math.max(0, (hs2.knuckle||0) - needHits);
-        if (kind==='enema') hs2.enema = Math.max(0, (hs2.enema||0) - needHits);
+        if (kind==='kick') hs2.kick = Math.max(0, (hs2.kick||0) - q);
+        if (kind==='knuckle') hs2.knuckle = Math.max(0, (hs2.knuckle||0) - q);
+        if (kind==='enema') hs2.enema = Math.max(0, (hs2.enema||0) - q);
         state.bosses.hitStocks = hs2;
 
         const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
@@ -7009,10 +6883,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
         renderAll();
         haptic('light');
-      }).catch(()=>{}).finally(()=>{
-        try { bfSetHitBusy(false); } catch (e0) {}
-        try { delete window.__bfHitLock[lk]; } catch (e0) {}
-      });
+      }).catch(()=>{}).finally(()=>{ try { delete window.__bfHitLock[lk]; } catch (e0) {} });
     }
 
     hitBtn1.onclick = ()=>doTokenHit('kick');
@@ -7346,26 +7217,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const b = BOSSES.find(x=>x.id===selectedId);
     $('baBossName').textContent = b ? b.name : '—';
 
-    const cloudOn = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
-    let hp = bossHp(selectedId);
-    let hpCloud = null;
-    try {
-      if (cloudOn) {
-        const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(selectedId)];
-        if (cc && typeof cc === 'object' && typeof cc.hp !== 'undefined') hpCloud = (parseInt(cc.hp||0,10)||0);
-      }
-    } catch (e0) {}
-    const dead = cloudOn ? (hpCloud!==null && (parseInt(hpCloud||0,10)||0) <= 0) : ((parseInt(hp||0,10)||0) <= 0);
-    const claimed = !!(cloudOn && state.bosses && state.bosses.cloud && state.bosses.cloud[String(selectedId)] && state.bosses.cloud[String(selectedId)].reward_claimed);
-    const canClaim = dead && !claimed;
-    const displayHp = (cloudOn && hpCloud!==null) ? Math.max(0, hpCloud) : (parseInt(hp||0,10)||0);
-    const baHpEl = $('baHp');
-    const baGoWrap = $('baGoWrap');
-    const baClaimWrap = $('baClaimWrap');
-    if (baHpEl) baHpEl.textContent = dead ? 'ПОВЕРЖЕН · 0 хп' : (displayHp + ' хп');
-    if (baGoWrap) baGoWrap.style.display = canClaim ? 'none' : '';
-    if (baClaimWrap) baClaimWrap.style.display = canClaim ? 'block' : 'none';
-
     const req = bossReq(selectedId);
     let accessText = 'БЕСПЛАТНО';
     let canGo = true;
@@ -7575,60 +7426,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       showModal('mBossFight');
       bfRender(id);
       save();
-    };
-  }
-
-  const baClaimBtn = $('baClaim');
-  if (baClaimBtn) {
-    baClaimBtn.onclick = ()=>{
-      const id = parseInt(state.bosses.pendingAttackId||0,10)||0;
-      if (!id) return;
-      try {
-        if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) {
-          bossLocalClaim(id);
-          hideModal('mBossAttack');
-          renderBosses();
-          renderHUD();
-          return;
-        }
-      } catch (e0) {}
-      bossFightClaimCloud(id).then((r)=>{
-        try {
-          if (!(r && r.ok && r.can_claim)) {
-            try { bossFightsCloudPullMaybe(true); } catch (e0) {}
-            try { renderBossAttackModal(id); } catch (e00) {}
-            try {
-              const hp = (r && (r.hp === null || typeof r.hp === 'undefined')) ? null : (parseInt(r.hp,10)||0);
-              const claimed = !!(r && r.reward_claimed);
-              if (claimed) { toast('Награда уже получена','lose'); return; }
-              if (hp===null) { toast('Нет боя на сервере','lose'); return; }
-              if (hp>0) { toast('Босс ещё жив (HP '+String(hp)+')','lose'); return; }
-            } catch (e9) {}
-            toast('Нельзя забрать награду','lose');
-            return;
-          }
-          const rew = r && r.reward ? r.reward : null;
-          const rxp = rew ? (parseInt(rew.xp||0,10)||0) : 0;
-          const rm = rew ? (parseInt(rew.tooth||0,10)||0) : 0;
-          const rg = rew ? (parseInt(rew.gold||0,10)||0) : 0;
-          if (rm>0) state.tooth += rm;
-          if (rg>0) state.gold += rg;
-          if (rxp>0) addXp(rxp);
-          try {
-            const nextReq = bossReq(id+1);
-            if (nextReq){ bossKeyAdd(nextReq.itemKey, nextReq.need); feedAdd('Добыто: '+nextReq.need+'× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS'); }
-          } catch (e5) {}
-          try { if (state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)]) delete state.bosses.cloud[String(id)]; } catch (e3) {}
-          try { const b2 = BOSSES.find(x=>x.id===id); if (b2) setBossHp(id, b2.maxHP); } catch (e4) {}
-          save();
-          try { bossFightsCloudPullMaybe(true); } catch (e1) {}
-          hideModal('mBossAttack');
-          renderBosses();
-          renderHUD();
-          toast('Награда получена','win');
-          haptic('heavy');
-        } catch (e2) { toast('Не удалось забрать награду','lose'); }
-      }).catch(()=>toast('Не удалось забрать награду','lose'));
     };
   }
 
@@ -7880,7 +7677,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const claimed = !!(cc && typeof cc === 'object' && cc.reward_claimed);
         canClaim = !!(hpCloud!==null && (parseInt(hpCloud||0,10)||0) <= 0 && !claimed);
       }
-      // На странице выбора все боссы показываются живыми со 100% HP — только выбор, кого атаковать
       html += '<div class="card">'
         + '<div class="bossWinnerTop">ПОСЛЕДНИЙ ПОБЕДИТЕЛЬ</div>'
         + '<div class="bossWinnerNm">'+lwName+'</div>'
@@ -7892,14 +7688,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '</div>'
         + '<div style="min-width:0">'
         + '<div class="bossName">'+b.name+'</div>'
-        + '<div class="bossSub">'+(b.maxHP + ' хп')+lockText+'</div>'
+        + '<div class="bossSub">'+(dead ? ('ПОВЕРЖЕН · HP 0 / '+b.maxHP) : ('HP '+hp+' / '+b.maxHP))+lockText+'</div>'
         + '<div class="bossReward">'
         + (rm>0 ? ('<span class="badge" style="color:rgba(0,0,0,.92); padding:6px 8px; font-size:11px">+'+rm+'🦷</span>') : '')
         + (rg>0 ? ('<span class="badge" style="color:var(--gold); padding:6px 8px; font-size:11px">+'+rg+'🪙</span>') : '')
         + (rxp>0 ? ('<span class="badge" style="padding:6px 8px; font-size:11px">+'+rxp+' XP</span>') : '')
         + '</div>'
         + '<div style="margin-top:6px; display:flex; flex-direction:column; gap:6px">'
-        + '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
+        + (dead
+            ? (canClaim
+                ? '<button class="btn btnMini bossAtkBtn" data-boss-claim="'+b.id+'">ЗАБРАТЬ НАГРАДУ</button>'
+                : '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
+              )
+            : '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
+          )
         + '</div>'
         + '</div>'
         + '</div>'
@@ -7916,7 +7718,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       btn.onclick = ()=>{
         const id = parseInt(btn.getAttribute('data-boss-attack')||'0',10)||0;
         if (!id) return;
+        if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+          const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)];
+          const dead = cc && typeof cc === 'object' && (parseInt(cc.hp||0,10)||0) <= 0;
+          const claimed = !!(cc && typeof cc === 'object' && cc.reward_claimed);
+          if (dead && !claimed) { toast('Босс повержен. Забери награду.','lose'); return; }
+        } else {
+          if ((parseInt(bossHp(id)||0,10)||0) <= 0) { toast('Босс повержен. Забери награду.','lose'); return; }
+        }
         if (!bossHasAccess(id)) {
+          // No keys: open pass shop directly
           showModal('mBossAttack');
           renderBossAttackModal(id);
           haptic('light');
@@ -8961,13 +8772,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           + '<button type="button" class="btn btnSmall" id="bizRewardColumnCollect" ' + (canClaim ? '' : 'disabled') + '>Собрать все</button>'
           + '</div>';
         const collectBtn = $('bizRewardColumnCollect');
-        if (collectBtn) collectBtn.onclick = ()=>{
-          try {
-            const r = bizDailyClaimAll();
-            renderDistricts();
-            if (r && (r.addFearSum > 0 || r.addGoldSum > 0)) showDistrictBizRewardPopup(r.addFearSum, r.addGoldSum);
-          } catch (e2) {}
-        };
+        if (collectBtn) collectBtn.onclick = ()=>{ try { bizDailyClaimAll(); renderDistricts(); } catch (e2) {} };
       } else {
         bizCol.style.display = 'none';
         bizCol.innerHTML = '';
@@ -9186,12 +8991,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return { cost:cost, gold:gold, xp:xp, fear:fear, max:max };
     }
 
-    // Брийские земли: награда XP и страха за каждое задание = энергия на выполнение
+    // Брийские земли: 7 заданий, по 5 выполнений, суммарно как было (500), парные числа
     if (dIdx===1){
       const costArr = [4,8,10,14,18,20,26];
       const cost = costArr[idx] ?? costArr[costArr.length-1] ?? 4;
-      const xp = cost;
-      const fear = cost;
+      const xpArr = [8,10,12,14,16,18,22];
+      const fearArr = [8,10,12,14,16,18,22];
+      const xp = xpArr[idx] ?? 22;
+      const fear = fearArr[idx] ?? 22;
       return { cost, gold:0, xp, fear, max:5 };
     }
 
