@@ -128,6 +128,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .energyPill{flex-direction:column;align-items:flex-start;gap:2px;line-height:1.05;}
 .energyPill .eRow{display:flex;align-items:center;gap:6px;}
 .energyPill .eTimer{font-size:9px;letter-spacing:1.5px;opacity:.70;margin-left:16px;}
+.energyRefillBtn{flex-shrink:0;width:20px;height:20px;padding:0;border-radius:50%;border:1px solid rgba(34,211,238,.5);background:rgba(34,211,238,.25);color:var(--energy);font-size:14px;line-height:1;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s, background .15s;}
+.energyRefillBtn:hover{background:rgba(34,211,238,.4);}
+.energyRefillBtn:active{transform:scale(0.9);}
 .pill strong{font-weight:900;letter-spacing:1px;}
 
 .xpRow{display:flex;align-items:center;gap:8px;}
@@ -514,9 +517,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .districtCardTop{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
  .districtCardBadge{flex:0 0 auto;}
 
- .bossFightHero{display:flex;align-items:center;justify-content:space-between;gap:12px;}
- .bossFightBig{width:180px;height:180px;border-radius:34px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:78px;flex:0 0 auto;}
+ .bossFightHero{display:flex;align-items:flex-start;justify-content:flex-start;gap:14px;}
+ .bossFightBig{width:280px;height:280px;border-radius:20px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:80px;flex:0 0 auto;}
  .bossFightMeta{min-width:0;flex:1;}
+ .bfHpBarWrap{margin-top:8px;width:100%;max-width:280px;}
+ .bfHpBar{height:20px;border-radius:10px;border:1px solid rgba(45,30,18,.2);background:rgba(0,0,0,.2);overflow:hidden;position:relative;}
+ .bfHpBarFill{height:100%;background:linear-gradient(90deg, #22c55e, #16a34a);transition:width .2s ease;}
+ .bfHpBarIn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);pointer-events:none;}
+ .bfHitQtyGrid{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+ .bossAtkGrid{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+ .bossAtkCell{display:flex;flex-direction:column;align-items:center;gap:2px;}
+ .bossAtkBtn50{width:50px;height:50px;padding:0 !important;min-height:50px !important;border-radius:12px !important;display:flex !important;align-items:center;justify-content:center;overflow:hidden;}
+ .bossAtkBtn50 .bfHitImg{width:100%;height:100%;object-fit:contain;}
+ .bossAtkCell .bfHitDmg{font-size:9px;font-weight:900;line-height:1.1;}
+ .bossAtkCell .bfHitQty{font-size:8px;opacity:.9;}
 
  .toothBtn{position:relative; width:44px; height:40px; border-radius:14px; border:1px solid rgba(217,70,239,.55); background:linear-gradient(180deg, rgba(217,70,239,.24) 0%, rgba(42,30,20,.70) 100%); color:rgba(217,70,239,.95); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1;}
  .toothBtn .ico{font-size:18px;}
@@ -541,6 +555,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   padding: calc(14px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
 }
 .modalBossFight{ z-index: 5300; }
+#mBossFight.modalBossFight{ padding: 0; display: none; }
+#mBossFight.modalBossFight.show{ display: block; }
+#mBossFight .sheet{ position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; border-radius: 0; border: none; }
 .modalBfShop{ z-index: 5400; }
 .modalBossFightRes{ z-index: 5500; }
 .modal.show{display:block;}
@@ -805,7 +822,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       </div>
       <div class="pills">
         <div class="pill energyPill" style="border-color:rgba(34,211,238,.20)">
-          <div class="eRow">⚡ <strong id="energy">100</strong>/<span id="energyMax">100</span></div>
+          <div class="eRow">⚡ <strong id="energy">100</strong>/<span id="energyMax">100</span>
+            <button type="button" class="energyRefillBtn" id="energyRefillBtn" aria-label="Восстановить энергию" title="Восстановить 100% энергии за 10 🪙">+</button>
+          </div>
           <div class="eTimer" id="energyTimer">02:00</div>
         </div>
       </div>
@@ -1070,23 +1089,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody">
       <div class="card">
         <div class="bossFightHero">
-          <div class="bossFightBig" id="bfEmoji">👹</div>
+          <div>
+            <div class="bossFightBig" id="bfEmoji">👹</div>
+            <div class="bfHpBarWrap">
+              <div class="bfHpBar"><div class="bfHpBarFill" id="bfHpBarFill" style="width:100%"></div><div class="bfHpBarIn" id="bfHpBarIn">—</div></div>
+            </div>
+          </div>
           <div class="bossFightMeta">
             <div class="bossName" id="bfName">БОСС</div>
-            <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center">
-              <div class="badge" id="bfHp">HP —</div>
-              <div class="badge" id="bfTimer">—</div>
-              <div class="badge" style="color:var(--gold); display:none" id="bfHits">УДАРЫ x0</div>
+            <div style="margin-top:6px; font-size:12px; opacity:.85" id="bfTimer">—</div>
+            <div style="margin-top:8px; font-size:11px; opacity:.85">Ударов за нажатие:</div>
+            <div class="bfHitQtyGrid" style="margin-top:4px" id="bfHitQty"></div>
+            <div class="bossAtkGrid" style="margin-top:10px">
+              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfFreeHit"><img src="ногой.png" alt="" class="bfHitImg"></button><span class="bfHitDmg" id="bfFreeHitDmg">—</span><span class="bfHitQty" id="bfFreeHitQty">—</span></div>
+              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfHit1"><img src="пинок.png" alt="" class="bfHitImg"></button><span class="bfHitDmg" id="bfHit1Dmg">—</span><span class="bfHitQty" id="bfHit1Qty">—</span></div>
+              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfHit2"><img src="костетом.jpg" alt="" class="bfHitImg"></button><span class="bfHitDmg" id="bfHit2Dmg">—</span><span class="bfHitQty" id="bfHit2Qty">—</span></div>
+              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfHit3"><img src="клизма.jpg" alt="" class="bfHitImg"></button><span class="bfHitDmg" id="bfHit3Dmg">—</span><span class="bfHitQty" id="bfHit3Qty">—</span></div>
             </div>
-            <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end" id="bfHitQty"></div>
           </div>
-        </div>
-
-        <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
-          <button class="btn" id="bfFreeHit">ПИНОК ПОД ЗАД (БЕСПЛАТНО)</button>
-          <button class="btn" id="bfHit1">УДАР 2 (НОГОЙ)</button>
-          <button class="btn" id="bfHit2">УДАР 3 (КОСТЕТОМ)</button>
-          <button class="btn" id="bfHit3">УДАР 4 (КЛИЗМА)</button>
         </div>
 
         <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.3" id="bfHint">—</div>
@@ -1602,9 +1622,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div class="row"><div class="k">НАГРАДЫ</div><div style="font-size:12px;opacity:.75">за 4 одинаковых</div></div>
         <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px; font-size:12px; opacity:.9; line-height:1.25">
           <div class="row"><div style="min-width:0">4×1</div><div class="badge">15 💍 Козырных колец</div></div>
-          <div class="row"><div style="min-width:0">4×2</div><div class="badge">+1 Пинок</div></div>
-          <div class="row"><div style="min-width:0">4×3</div><div class="badge">+1 Костет</div></div>
-          <div class="row"><div style="min-width:0">4×4</div><div class="badge">+1 Клизма</div></div>
+          <div class="row"><div style="min-width:0">4×2</div><div class="badge">+ 1 удар ногой</div></div>
+          <div class="row"><div style="min-width:0">4×3</div><div class="badge">+ 1 удар костетом</div></div>
+          <div class="row"><div style="min-width:0">4×4</div><div class="badge">+ 1 клизма</div></div>
           <div class="row"><div style="min-width:0">4×5</div><div class="badge">Кольцо на босса «Паучиха»</div></div>
           <div class="row"><div style="min-width:0">4×6</div><div class="badge">Кольцо на босса «Сарумян»</div></div>
         </div>
@@ -6702,14 +6722,30 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e0) {}
     $('bfName').textContent = b.name;
-    $('bfHp').textContent = 'HP ' + (parseInt(f.hp||0,10)||0) + ' / ' + b.maxHP;
+    const curHp = parseInt(f.hp||0,10)||0;
+    const maxHp = b.maxHP||1;
+    const hpPct = maxHp>0 ? Math.min(100, (curHp/maxHp)*100) : 0;
+    const bfHpBarFill = $('bfHpBarFill');
+    const bfHpBarIn = $('bfHpBarIn');
+    if (bfHpBarFill) bfHpBarFill.style.width = hpPct + '%';
+    if (bfHpBarIn) bfHpBarIn.textContent = curHp + ' / ' + maxHp;
     const left = Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now());
     $('bfTimer').textContent = left>0 ? ('ВРЕМЯ: ' + fmtHHMMSS(left)) : 'ВРЕМЯ: 00:00:00';
     const hs = state.bosses.hitStocks || { kick:0, knuckle:0, enema:0 };
     const hk = parseInt(hs.kick||0,10)||0;
     const hn = parseInt(hs.knuckle||0,10)||0;
     const he = parseInt(hs.enema||0,10)||0;
-    $('bfHits').textContent = '';
+    try {
+      const q2 = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
+      const setDmgQty = (dmgEl, qtyEl, dmgVal, qtyTxt) => {
+        if (dmgEl) dmgEl.textContent = dmgVal;
+        if (qtyEl) qtyEl.textContent = qtyTxt;
+      };
+      setDmgQty($('bfFreeHitDmg'), $('bfFreeHitQty'), 'УРОН ' + Math.max(1, bossHitDmg(14, 50)), '1 раз');
+      setDmgQty($('bfHit1Dmg'), $('bfHit1Qty'), 'УРОН ' + (Math.max(1, bossHitDmg(10, 70)) * q2), ''+hk);
+      setDmgQty($('bfHit2Dmg'), $('bfHit2Qty'), 'УРОН ' + (Math.max(1, bossHitDmg(7, 85)) * q2), ''+hn);
+      setDmgQty($('bfHit3Dmg'), $('bfHit3Qty'), 'УРОН ' + (Math.max(1, bossHitDmg(4, 100)) * q2), ''+he);
+    } catch (e) {}
 
     try {
       const q = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
@@ -6748,14 +6784,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     hitBtn2.style.opacity = hitBtn2.disabled ? '.6' : '1';
     hitBtn3.style.opacity = hitBtn3.disabled ? '.6' : '1';
 
-    try {
-      const q2 = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
-      freeBtn.textContent = 'БЕСПЛАТНО · УРОН ' + Math.max(1, bossHitDmg(14, 50));
-      hitBtn1.textContent = 'НОГОЙ ('+hk+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(10, 70)) * q2);
-      hitBtn2.textContent = 'КОСТЕТОМ ('+hn+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(7, 85)) * q2);
-      hitBtn3.textContent = 'КЛИЗМА ('+he+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(4, 100)) * q2);
-    } catch (e) {}
-
     if (!inTime && alive){
       $('bfHint').textContent = 'Время вышло — попытка проиграна.';
       bfCheckLose(bossId);
@@ -6788,6 +6816,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             return;
           }
         } catch (e0) {}
+
+        try {
+          if (!(r && r.ok && r.fight && typeof r.fight.hp !== 'undefined')) {
+            try { bossFightsCloudPullMaybe(true); } catch (e1) {}
+            toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ','lose');
+            return;
+          }
+        } catch (e9) {
+          try { bossFightsCloudPullMaybe(true); } catch (e1) {}
+          toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ','lose');
+          return;
+        }
 
         ff.freeUsed = true;
         ff.lastFriendTs = now();
@@ -6860,10 +6900,23 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           }
         } catch (e0) {}
 
+        try {
+          if (!(r && r.ok && r.fight && typeof r.fight.hp !== 'undefined')) {
+            try { bossFightsCloudPullMaybe(true); } catch (e1) {}
+            toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ','lose');
+            return;
+          }
+        } catch (e9) {
+          try { bossFightsCloudPullMaybe(true); } catch (e1) {}
+          toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ','lose');
+          return;
+        }
+
         // HARD MODE: spend token only after server ok
         if (kind==='kick') hs2.kick = Math.max(0, (hs2.kick||0) - q);
         if (kind==='knuckle') hs2.knuckle = Math.max(0, (hs2.knuckle||0) - q);
         if (kind==='enema') hs2.enema = Math.max(0, (hs2.enema||0) - q);
+
         state.bosses.hitStocks = hs2;
 
         const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
@@ -7695,7 +7748,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '</div>'
         + '<div style="min-width:0">'
         + '<div class="bossName">'+b.name+'</div>'
-        + '<div class="bossSub">'+fmtBossHpShort(b.maxHP)+' хп'+lockText+'</div>'
+        + '<div class="bossSub">'+(dead ? ('ПОВЕРЖЕН · HP 0 / '+fmtBossHpShort(b.maxHP)) : ('HP '+fmtBossHpShort(hp)+' / '+fmtBossHpShort(b.maxHP)))+lockText+'</div>'
         + '<div class="bossReward">'
         + (rm>0 ? ('<span class="badge" style="color:rgba(0,0,0,.92); padding:6px 8px; font-size:11px">+'+rm+'🦷</span>') : '')
         + (rg>0 ? ('<span class="badge" style="color:var(--gold); padding:6px 8px; font-size:11px">+'+rg+'🪙</span>') : '')
@@ -8038,15 +8091,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       } else if (face===2){
         if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
         state.bosses.hitStocks.kick = clamp((parseInt(state.bosses.hitStocks.kick||0,10)||0) + 1, 0, 999999);
-        rewardText = '1 Удар ногой';
+        rewardText = '+ 1 удар ногой';
       } else if (face===3){
         if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
         state.bosses.hitStocks.knuckle = clamp((parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + 1, 0, 999999);
-        rewardText = '1 Удар костетом';
+        rewardText = '+ 1 удар костетом';
       } else if (face===4){
         if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
         state.bosses.hitStocks.enema = clamp((parseInt(state.bosses.hitStocks.enema||0,10)||0) + 1, 0, 999999);
-        rewardText = '1 Клизма';
+        rewardText = '+ 1 клизма';
       } else if (face===5){
         const r6 = bossReq(6);
         if (r6) bossKeyAdd(r6.itemKey, r6.need);
@@ -9309,6 +9362,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     const sb = $('settingsBtn'); if (sb) sb.onclick = ()=>{ showModal('mSettings'); renderAll(); haptic('light'); };
     $('shopBtn').onclick = ()=>{ showModal('mShop'); renderShop(); haptic('light'); };
+    (function(){
+      const eb = $('energyRefillBtn');
+      if (eb) eb.onclick = ()=>{
+        const gold = Math.floor(state.gold||0);
+        const maxE = Math.floor(state.energyMax||100);
+        const curE = Math.floor(state.energy||0);
+        if (curE >= maxE){ toast('Энергия уже полная','gold'); haptic('light'); return; }
+        if (gold < 10){ toast('Нужно 10 🪙','lose'); haptic('light'); return; }
+        state.gold = gold - 10;
+        state.energy = maxE;
+        save();
+        renderHUD();
+        toast('Энергия восстановлена','win');
+        haptic('medium');
+      };
+    })();
     $('btnDistricts').onclick = ()=>{
       openScreen('mDistricts');
       try { districtLeadersCloudPullMaybe(true); } catch (e0) {}
