@@ -230,6 +230,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .tile .v{font-weight:900;letter-spacing:1px;font-size:9px;}
 .tile.gold,.tile.silver,.tile.tooth{align-items:center;text-align:center;}
 .tile.gold .v,.tile.silver .v,.tile.tooth .v{font-size:11px;line-height:1;}
+.goldIcon{height:1.5em;width:auto;vertical-align:middle;object-fit:contain;}
+.silverIcon{height:1.5em;width:auto;vertical-align:middle;object-fit:contain;}
+.fearIcon{height:1.5em;width:auto;vertical-align:middle;object-fit:contain;}
+.toothIcon{height:1.5em;width:auto;vertical-align:middle;object-fit:contain;}
 .tile.shop{padding:6px;background:var(--caramel);}
 .tile.shop .k{margin-bottom:2px;}
 .tile.shop .k{font-size:8px;letter-spacing:2px;}
@@ -850,9 +854,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     </div>
 
     <div class="heroGrid">
-      <div class="tile gold" id="tileGold"><div class="v">🪙 <span id="gold">0</span></div></div>
-      <div class="tile silver" id="tileSilver"><div class="v">⚪ <span id="silver">0</span></div></div>
-      <div class="tile tooth" id="tileTooth"><div class="v">🦷 <span id="tooth">0</span></div></div>
+      <div class="tile gold" id="tileGold"><div class="v"><img src="голд.png" alt="Золото" class="goldIcon"><span id="gold">0</span></div></div>
+      <div class="tile silver" id="tileSilver"><div class="v"><img src="сильвер.png" alt="Серебро" class="silverIcon"><span id="silver">0</span></div></div>
+      <div class="tile tooth" id="tileTooth"><div class="v"><img src="зуб.png" alt="Золотые зубы" class="toothIcon"><span id="tooth">0</span></div></div>
       <div class="tile shop" id="tileShop"><button class="shopIconBtn" id="shopBtn" aria-label="Магазин"></button></div>
     </div>
   </div>
@@ -1662,7 +1666,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <div class="row"><div style="min-width:0">4×5</div><div class="badge">Кольцо на босса «Паучиха»</div></div>
           <div class="row"><div style="min-width:0">4×6</div><div class="badge">Кольцо на босса «Сарумян»</div></div>
         </div>
-        <div style="margin-top:10px; font-size:11px; opacity:.75; line-height:1.35">Если 4 одинаковых не собраны — награда: <b>+50 зубов</b></div>
+        <div style="margin-top:10px; font-size:11px; opacity:.75; line-height:1.35">Если 4 одинаковых не собраны — награда: <b>+50 золотых зубов</b></div>
         <div style="margin-top:8px; font-size:11px; opacity:.75; line-height:1.35">Если собраны <b>5 одинаковых</b> — дополнительно: <b>+20 🪙</b></div>
       </div>
     </div>
@@ -2518,7 +2522,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const PRICES = [0, 50000, 1000000, 5000000, 10000000, 20000000, 50000000, 100000000, 200000000, 500000000, 1000000000];
         const nextLvl = lvl + 1;
         const cost = (lvl>=10) ? 0 : (PRICES[nextLvl] || 0);
-        btn.textContent = (lvl>=10) ? 'МАКС. УРОВЕНЬ' : ('ПРОКАЧАТЬ ЗА ' + cost + ' зубов');
+        btn.textContent = (lvl>=10) ? 'МАКС. УРОВЕНЬ' : ('ПРОКАЧАТЬ ЗА ' + cost + ' золотых зубов');
         btn.disabled = lvl>=10;
         btn.style.opacity = btn.disabled ? '.6' : '1';
         btn.onclick = ()=>{
@@ -2526,7 +2530,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (cur>=10) return;
           const PRICES2 = [0, 50000, 1000000, 5000000, 10000000, 20000000, 50000000, 100000000, 200000000, 500000000, 1000000000];
           const cost2 = (PRICES2[cur+1] || 0);
-          if ((state.tooth||0) < cost2){ toast('Нужно '+cost2+' зубов','lose'); return; }
+          if ((state.tooth||0) < cost2){ toast('Нужно '+cost2+' золотых зубов','lose'); return; }
           state.tooth -= cost2;
           state.friendHelpLvl = cur + 1;
           save();
@@ -6309,7 +6313,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       + '<div style="min-width:0; flex:1">'
       + '<div class="k">ПРОМОКОД</div>'
       + '<div style="font-size:12px;opacity:.75;margin-top:4px">'+(promoOk ? (promoTxt ? ('Введи промокод и получи награду ' + promoTxt) : 'Награда промокода отключена') : 'Промокод больше не активен')+'</div>'
-      + '<div style="font-size:12px;opacity:.6;margin-top:4px">🦷 — зубы</div>'
+      + '<div style="font-size:12px;opacity:.6;margin-top:4px">🦷 — золотые зубы</div>'
        + '<input id="promoInput" placeholder="Промокод" autocomplete="off" spellcheck="false" style="margin-top:10px; width:100%; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08); color:rgba(255,255,255,.92); padding:0 12px; font-family:inherit; font-weight:800; letter-spacing:1px; outline:none" />'
        + '</div>'
        + '<button class="btn btnSmall" id="promoApply" '+(promoDisabled?'disabled':'')+'>'+(promoWasUsed?'ИСПОЛЬЗОВАН':(promoOk?'ПРИМЕНИТЬ':'НЕ АКТИВЕН'))+'</button>'
@@ -6348,7 +6352,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (String(it.cost||'').includes('$')) { toast('Это реальная покупка за деньги','lose'); return; }
         const cost = shopCostValue(it.cost);
         if (it.currency==='TOOTH'){
-          if ((state.tooth||0) < cost){ toast('Нужно '+shopCostLabel(it)+' зубов','lose'); return; }
+          if ((state.tooth||0) < cost){ toast('Нужно '+shopCostLabel(it)+' золотых зубов','lose'); return; }
           state.tooth -= cost;
           if (it.goldAdd){
             const add = (parseInt(it.goldAdd||0,10)||0) * (shopX2Enabled() ? 2 : 1);
@@ -7104,7 +7108,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           html += '<div class="row"><div style="min-width:0">Бонус клана</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--gold)">+'+Math.round(bp*100)+'%</div></div>';
         }
       } catch (e) {}
-      if (rm>0) html += '<div class="row"><div style="min-width:0">+'+rm+' зубов</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--tooth)">+'+rm+' 🦷</div></div>';
+      if (rm>0) html += '<div class="row"><div style="min-width:0">+'+rm+' золотых зубов</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--tooth)">+'+rm+' 🦷</div></div>';
       if (rg>0) html += '<div class="row"><div style="min-width:0">+'+rg+' золота</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--gold)">+'+rg+' 🪙</div></div>';
       if (rxp>0) html += '<div class="row"><div style="min-width:0">+'+rxp+' XP</div><div class="badge" style="padding:6px 8px; font-size:11px">+'+rxp+' XP</div></div>';
       reward.innerHTML = html || '<div style="opacity:.75; font-size:12px">—</div>';
@@ -7923,7 +7927,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           save();
           renderBosses();
           renderHUD();
-          toast('+100 зубов','win');
+          toast('+100 золотых зубов','win');
           haptic('light');
         };
       }
@@ -8887,7 +8891,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         bizCol.innerHTML = '<div class="card districtStatBox" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:12px;">'
           + '<div><div style="font-size:11px; opacity:.85; margin-bottom:4px">Ближайшая прибыль:</div><div id="bizRewardColumnTimer" style="font-size:14px; font-weight:900; letter-spacing:1px">' + (canClaim ? 'Готово' : fmtHHMMSS(msLeft)) + '</div></div>'
           + '<div><div style="font-size:11px; opacity:.85; margin-bottom:4px">Общая прибыль:</div><div style="display:flex; align-items:center; gap:10px; font-size:14px; font-weight:900">'
-          + '<span title="Страх">😱 '+fmt4(fearSum)+'</span>'
+          + '<span title="Страх"><img src="страх.png" alt="Страх" class="fearIcon"> '+fmt4(fearSum)+'</span>'
           + '<span title="Золото">🪙 '+fmt4(goldSum)+'</span>'
           + '</div></div>'
           + '<button type="button" class="btn btnSmall" id="bizRewardColumnCollect" ' + (canClaim ? '' : 'disabled') + '>Собрать все</button>'
@@ -8948,7 +8952,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '</div>'
         + '<div class="districtStatBox" style="margin-top:6px">'
         + '<div class="districtStatRow">'
-        + '<div class="districtFear">😱 '+fmt4(topFear)+'</div>'
+        + '<div class="districtFear"><img src="страх.png" alt="Страх" class="fearIcon"> '+fmt4(topFear)+'</div>'
         + '</div>'
         + '</div>'
         + '</div>'
@@ -8960,7 +8964,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '</div>'
         + '<div class="districtStatBox" style="margin-top:6px">'
         + '<div class="districtStatRow">'
-        + '<div class="districtFear">😱 '+fmt4(dayFear)+'</div>'
+        + '<div class="districtFear"><img src="страх.png" alt="Страх" class="fearIcon"> '+fmt4(dayFear)+'</div>'
         + '</div>'
         + '</div>'
         + '</div>'
@@ -9058,7 +9062,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             + '<div style="font-size:11px; font-weight:900; opacity:.78; white-space:nowrap">'+cnt+'/'+meta.max+'</div>'
             + '</div>'
             + '</div>';
-          h += '<div style="text-align:center; font-size:12px; font-weight:900; opacity:.95; overflow:hidden">'+(meta.fear ? ('😱 '+fmt4(meta.fear)) : ('🪙 '+fmt4(meta.gold)))+'<div style="font-size:10px; opacity:.8; margin-top:2px">+ '+meta.xp+' XP</div></div>';
+          h += '<div style="text-align:center; font-size:12px; font-weight:900; opacity:.95; overflow:hidden">'+(meta.fear ? ('<img src="страх.png" alt="Страх" class="fearIcon"> '+fmt4(meta.fear)) : ('🪙 '+fmt4(meta.gold)))+'<div style="font-size:10px; opacity:.8; margin-top:2px">+ '+meta.xp+' XP</div></div>';
           h += '<div style="text-align:center; font-size:12px; font-weight:900; opacity:.95">⚡ '+meta.cost+'</div>';
           h += '<div style="text-align:right">'
             + '<button class="btn btnSmall" style="'+btnStyle+' max-width:100%; width:112px; padding:0 10px;" data-dtask="'+i+':'+k+'" '+(can ? '' : 'disabled')+'>'+btnTxt+'</button>'
