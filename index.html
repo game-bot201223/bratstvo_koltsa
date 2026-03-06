@@ -572,10 +572,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .modal.modalMini.show{ display:flex; }
 .modal.modalMini.modalBfShop{ z-index: 5400; }
 .modal.modalMini.modalBossFightRes{ z-index: 5500; }
-.modalEnergyRefillConfirm{ padding: 0; align-items: flex-start; justify-content: center; padding-top: 50px; }
-.modalEnergyRefillConfirm .sheet{ width: 260px; max-width: 92vw; min-height: auto; border-radius: 16px; padding: 14px; }
-.modalEnergyRefillConfirm .energyRefillConfirmBtns{ display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
-.modalEnergyRefillConfirm .energyRefillConfirmBtns .btn{ width: 50px; height: 50px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; }
+.modalEnergyRefillConfirm{ padding: 0; align-items: flex-start; justify-content: center; padding-top: 50px; z-index: 9999; position: fixed; inset: 0; background: rgba(0,0,0,.5); }
+.modalEnergyRefillConfirm .sheet{ width: 180px; max-width: 92vw; min-height: auto; border-radius: 12px; padding: 10px; background: #e2d6bc !important; border: 1px solid rgba(45,30,18,.25); box-shadow: 0 4px 20px rgba(0,0,0,.25); opacity: 1; }
+.modalEnergyRefillConfirm .sheet > div:first-child{ font-size: 11px; line-height: 1.3; }
+.modalEnergyRefillConfirm .energyRefillConfirmBtns{ display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+.modalEnergyRefillConfirm .energyRefillConfirmBtns .btn{ width: 50px; height: 50px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; background: #e2d6bc !important; }
 .sheet{
   height:100%;
   border-radius:26px;
@@ -4211,6 +4212,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       } catch (e1) {}
 
       districtResetTasks(id);
+
+      if (!state.districtClearedBannerTs || typeof state.districtClearedBannerTs !== 'object') state.districtClearedBannerTs = {};
+      state.districtClearedBannerTs[bk] = now();
 
       toast('НАГРАДА: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱','win');
       feedAdd('Награда района: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱','SYS');
@@ -9005,14 +9009,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const mult = rewardTable[i] ?? 300;
         const bk = 'D'+String(i);
         const allDone = districtAllTasksDone(i);
-        const clearedEver = !!(state.districtClearedEver && state.districtClearedEver[bk]);
-        if (allDone || clearedEver){
+        const bannerTs = (state.districtClearedBannerTs && state.districtClearedBannerTs[bk]) ? parseInt(state.districtClearedBannerTs[bk],10)||0 : 0;
+        const showRewardReceivedBanner = bannerTs && (now() - bannerTs <= 3000);
+        if (allDone){
           h += '<div style="margin-top:12px; margin-bottom:12px; padding:12px; border-radius:14px; background:linear-gradient(145deg, rgba(34,197,94,.4), rgba(22,163,74,.35)); border:1px solid rgba(34,197,94,.55); font-weight:900; letter-spacing:1px; font-size:13px;">';
-          if (allDone){
-            h += '✅ Все задания выполнены! Награда: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱';
-          } else {
-            h += '✅ Район пройден. Награда получена: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱';
-          }
+          h += '✅ Все задания выполнены! Награда: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱';
+          h += '</div>';
+        } else if (showRewardReceivedBanner){
+          h += '<div id="dnRewardBanner" style="margin-top:12px; margin-bottom:12px; padding:12px; border-radius:14px; background:linear-gradient(145deg, rgba(34,197,94,.4), rgba(22,163,74,.35)); border:1px solid rgba(34,197,94,.55); font-weight:900; letter-spacing:1px; font-size:13px;">';
+          h += '✅ Район пройден. Награда получена: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱';
           h += '</div>';
         }
 
@@ -9052,6 +9057,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
         h += '</div>';
         d.innerHTML = h;
+
+        if (showRewardReceivedBanner){
+          try { setTimeout(function(){ renderDistrictNightmare(); }, 3000); } catch (e4) {}
+        }
 
         try {
           d.querySelectorAll('[data-dtask]').forEach(btn=>{
