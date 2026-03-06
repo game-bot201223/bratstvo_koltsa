@@ -274,6 +274,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .gymStatsSum{margin-top:10px;padding-top:8px;border-top:1px solid var(--paperLine);text-align:center;font-weight:900;color:#000;font-size:12px;}
 #mArena .gymStatsSum,#mArena .gymStatVal{color:#000;}
 #mArena .gymStatsColumnCard .k{font-size:11px;letter-spacing:2px;opacity:.88;}
+#mArena .gymStatsColumnCard .gymStatsColumnLegend{margin-bottom:9px;gap:9px;}
+#mArena .gymStatsColumnCard .gymStatRow{margin-bottom:7px;}
+#mArena .gymStatsColumnCard .gymStatBarWrap{height:13px;}
+#mArena .gymStatsColumnCard .gymStatsSum{margin-top:9px;padding-top:7px;}
 
 .petRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;}
 .petCard{
@@ -619,33 +623,46 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   background: var(--caramel);
 }
 
-/* Arena compact */
-#mArena .sheetHead{padding:10px 10px;}
+/* Arena compact — на 7% компактнее по вертикали */
+#mArena .sheetHead{padding:9px 10px;}
 #mArena .sheetBody{padding:0;}
-#mArena .card{padding:10px; margin-top:6px !important; border-radius:16px;}
-#mArena .btn{padding:10px 10px;}
-#mArena .btnSmall{padding:7px 9px;}
-#mArena .badge{padding:6px 8px;}
+#mArena .card{padding:9px; margin-top:5px !important; border-radius:16px;}
+#mArena .btn{padding:9px 10px;}
+#mArena .btnSmall{padding:6px 8px;}
+#mArena .badge{padding:5px 7px;}
 #mArena #arenaSectionGroup .row{align-items:center;}
-#mArena #arenaGroupHint{margin-top:6px !important;}
-#mArena .grid3{gap:8px;}
-#mArena .arenaTopImg{display:block;width:100%;margin:0;padding:0;max-height:28vh;object-fit:cover;}
-#mArena .sheetBody > .card:first-of-type{padding:7px 10px;margin-top:6px !important;}
-#mArena .sheetBody > .card:first-of-type .row + div{margin-top:6px;}
-#mArena .sheetBody > .card:first-of-type .btnSmall{padding:5px 8px;}
+#mArena #arenaGroupHint{margin-top:5px !important;}
+#mArena .grid3{gap:7px;}
+#mArena .arenaTopImg{display:block;width:100%;margin:0;padding:0;max-height:26vh;object-fit:cover;}
+#mArena .sheetBody > .card:first-of-type{padding:6px 10px;margin-top:5px !important;}
+#mArena .sheetBody > .card:first-of-type .row + div{margin-top:5px;}
+#mArena .sheetBody > .card:first-of-type .btnSmall{padding:5px 7px;}
+#mArena #arenaSectionGroup [style*="margin-top:10px"]{margin-top:9px !important;}
+#mArena #arenaSectionGroup [style*="margin-top:12px"]{margin-top:11px !important;}
+#mArena #arenaSectionGroup [style*="gap:10px"]{gap:9px !important;}
 .arenaInventoryBtn{width:44px;height:44px;border-radius:var(--r2);border:1px solid var(--paperLine);background:var(--caramel);cursor:pointer;padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
 .arenaInventoryBtn img{width:100%;height:100%;object-fit:cover;}
 .arenaInventoryBtn:active{transform:scale(0.94);}
 #mInventory.inventoryFullScreen .sheet{width:100vw;max-width:none;height:100vh;max-height:none;border-radius:0;border:none;}
 #mLavka.lavkaFullScreen .sheet{width:100vw;max-width:none;height:100vh;max-height:none;border-radius:0;border:none;}
+#mLavka .sheetBody{padding:10px 14px;}
+#mLavka .sheetHead{padding:9px 10px;}
+#mLavka .k[style*="margin-bottom"]{margin-bottom:7px !important;}
 .lavkaGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+#mLavka .lavkaGrid{gap:8px;}
 .lavkaProductBtn{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;border-radius:var(--r2);border:1px solid var(--paperLine);background:var(--caramel);cursor:pointer;text-align:center;}
+#mLavka .lavkaProductBtn{gap:5px;padding:7px;}
 .lavkaProductBtn:active{transform:scale(0.98);}
 .lavkaProductBtn:disabled{opacity:.7;cursor:not-allowed;}
 .lavkaProductBtn img{width:80px;height:80px;object-fit:cover;border-radius:var(--r3);}
+#mLavka .lavkaProductBtn img{width:48px;height:48px;}
 .lavkaProductBtn .lavkaName{font-size:11px;font-weight:900;letter-spacing:1px;line-height:1.2;}
+#mLavka .lavkaProductBtn .lavkaName{font-size:10px;line-height:1.15;}
 .lavkaProductBtn .lavkaDesc{font-size:10px;opacity:.85;line-height:1.25;max-width:100%;}
+#mLavka .lavkaProductBtn .lavkaDesc{font-size:9px;line-height:1.2;}
 .lavkaProductBtn .lavkaPrice{font-size:12px;color:#000;}
+#mLavka .lavkaProductBtn .lavkaPrice{font-size:10px;}
+#mLavka .lavkaProductBtn .btnSmall{padding:5px 8px;font-size:10px;}
 .inventoryList{display:flex;flex-direction:column;gap:10px;}
 .inventoryRow{display:flex;align-items:center;gap:12px;padding:10px;border-radius:var(--r2);border:1px solid var(--paperLine);background:rgba(0,0,0,.04);}
 .inventoryRow img{width:48px;height:48px;object-fit:cover;border-radius:8px;}
@@ -908,7 +925,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         </div>
       </div>
 
-      <div class="card" style="margin-top:10px;" id="arenaSectionGroup">
+      <div class="card" style="margin-top:9px;" id="arenaSectionGroup">
         <div class="row"><div class="k">ГРУППОВОЙ БОЙ</div><button class="btn btnMini" id="gf1010Open">ВХОД</button></div>
         <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.35" id="arenaGroupHint"></div>
         <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
@@ -922,7 +939,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         </div>
       </div>
 
-      <div class="card gymStatsColumnCard" id="gymStatsColumnCard" style="margin-top:10px;">
+      <div class="card gymStatsColumnCard" id="gymStatsColumnCard" style="margin-top:9px;">
         <div class="k" style="margin-bottom:10px;">ХАРАКТЕРИСТИКИ</div>
         <div class="gymStatsColumnLegend">
           <span class="gymStatLeg gymStatLegGym">Спортзал</span>
