@@ -514,9 +514,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .districtCardTop{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
  .districtCardBadge{flex:0 0 auto;}
 
- .bossFightHero{display:flex;align-items:center;justify-content:space-between;gap:12px;}
- .bossFightBig{width:180px;height:180px;border-radius:34px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:78px;flex:0 0 auto;}
+ .bossFightHero{display:flex;align-items:flex-start;justify-content:flex-start;gap:14px;}
+ .bossFightBig{width:140px;height:140px;border-radius:20px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:60px;flex:0 0 auto;}
  .bossFightMeta{min-width:0;flex:1;}
+ .bossAtkGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+ .bossAtkBtnBlock{display:flex !important;flex-direction:column;align-items:center;justify-content:center;padding:8px !important;text-align:center;}
+ .bossAtkBtnBlock .bfHitImg{width:48px;height:48px;object-fit:contain;flex-shrink:0;border-radius:10px;margin-bottom:4px;}
+ .bossAtkBtnBlock .bfHitDmg{font-size:11px;font-weight:900;letter-spacing:1px;}
+ .bossAtkBtnBlock .bfHitQty{font-size:10px;opacity:.9;margin-top:2px;}
 
  .toothBtn{position:relative; width:44px; height:40px; border-radius:14px; border:1px solid rgba(217,70,239,.55); background:linear-gradient(180deg, rgba(217,70,239,.24) 0%, rgba(42,30,20,.70) 100%); color:rgba(217,70,239,.95); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1;}
  .toothBtn .ico{font-size:18px;}
@@ -544,6 +549,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   padding: calc(14px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
 }
 .modalBossFight{ z-index: 5300; }
+/* Бой с боссом — на весь экран, без закруглений */
+#mBossFight.modalBossFight{
+  padding: 0;
+  display: none;
+}
+#mBossFight.modalBossFight.show{
+  display: block;
+}
+#mBossFight .sheet{
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  border-radius: 0;
+  border: none;
+}
 .modalBfShop{ z-index: 5400; }
 .modalBossFightRes{ z-index: 5500; }
 .modal.show{display:block;}
@@ -1077,19 +1100,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <div class="bossFightMeta">
             <div class="bossName" id="bfName">БОСС</div>
             <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center">
-              <div class="badge" id="bfHp">HP —</div>
+              <div class="badge" id="bfHp">— хп</div>
               <div class="badge" id="bfTimer">—</div>
-              <div class="badge" style="color:var(--gold); display:none" id="bfHits">УДАРЫ x0</div>
             </div>
-            <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end" id="bfHitQty"></div>
+            <div class="bossAtkGrid" id="bfAtkGrid">
+              <button type="button" class="btn bossAtkBtnBlock" id="bfFreeHit"><img src="ногой.png" alt="" class="bfHitImg"><span class="bfHitDmg">—</span><span class="bfHitQty">—</span></button>
+              <button type="button" class="btn bossAtkBtnBlock" id="bfHit1"><img src="пинок.png" alt="" class="bfHitImg"><span class="bfHitDmg">—</span><span class="bfHitQty">—</span></button>
+              <button type="button" class="btn bossAtkBtnBlock" id="bfHit2"><img src="костетом.jpg" alt="" class="bfHitImg"><span class="bfHitDmg">—</span><span class="bfHitQty">—</span></button>
+              <button type="button" class="btn bossAtkBtnBlock" id="bfHit3"><img src="клизма.jpg" alt="" class="bfHitImg"><span class="bfHitDmg">—</span><span class="bfHitQty">—</span></button>
+            </div>
+            <div style="margin-top:8px; font-size:11px; opacity:.85">Ударов за нажатие:</div>
+            <div style="margin-top:4px; display:flex; gap:6px; flex-wrap:wrap" id="bfHitQty"></div>
           </div>
-        </div>
-
-        <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
-          <button class="btn bossAtkBtnWithImg" id="bfFreeHit"><img src="ногой.png" alt="" class="bfHitImg"><span class="bfHitLabel">ПИНОК ПОД ЗАД (БЕСПЛАТНО)</span></button>
-          <button class="btn bossAtkBtnWithImg" id="bfHit1"><img src="пинок.png" alt="" class="bfHitImg"><span class="bfHitLabel">НОГОЙ</span></button>
-          <button class="btn bossAtkBtnWithImg" id="bfHit2"><img src="костетом.jpg" alt="" class="bfHitImg"><span class="bfHitLabel">КОСТЕТОМ</span></button>
-          <button class="btn bossAtkBtnWithImg" id="bfHit3"><img src="клизма.jpg" alt="" class="bfHitImg"><span class="bfHitLabel">КЛИЗМА</span></button>
         </div>
 
         <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.3" id="bfHint">—</div>
@@ -1393,6 +1415,44 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody">
       <div id="districtBizRewardColumn" style="display:none; margin:10px 10px 0 10px;"></div>
       <div style="margin:10px; display:flex; flex-direction:column; gap:10px;" id="districtList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Награда за выполнение всех заданий в районах (Собрать все) -->
+<div class="modal modalMini" id="mDistrictBizReward" role="dialog" aria-modal="true">
+  <div class="sheet sheetMini">
+    <div class="sheetHead">
+      <div style="width:44px"></div>
+      <div class="title">НАГРАДА ЗА ЗАДАНИЯ В РАЙОНАХ</div>
+      <button class="iconBtn" data-close="mDistrictBizReward">‹</button>
+    </div>
+    <div class="sheetBody">
+      <div class="card">
+        <div style="text-align:center; padding:16px 0;">
+          <div style="font-size:14px; opacity:.9; margin-bottom:12px;">Ты собрал прибыль со всех бизнесов в районах:</div>
+          <div id="districtBizRewardPopupAmounts" style="display:flex; align-items:center; justify-content:center; gap:20px; font-size:20px; font-weight:900; letter-spacing:2px;">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Награда за выполнение всех 7 заданий в районе -->
+<div class="modal modalMini" id="mDistrictTasksReward" role="dialog" aria-modal="true">
+  <div class="sheet sheetMini">
+    <div class="sheetHead">
+      <div style="width:44px"></div>
+      <div class="title" id="districtTasksRewardTitle">НАГРАДА ЗА ВСЕ ЗАДАНИЯ РАЙОНА</div>
+      <button class="iconBtn" data-close="mDistrictTasksReward">‹</button>
+    </div>
+    <div class="sheetBody">
+      <div class="card">
+        <div style="text-align:center; padding:16px 0;">
+          <div style="font-size:14px; opacity:.9; margin-bottom:12px;">Ты выполнил все 7 заданий в районе!</div>
+          <div id="districtTasksRewardAmounts" style="display:flex; align-items:center; justify-content:center; gap:16px; font-size:18px; font-weight:900; letter-spacing:2px; flex-wrap:wrap;">—</div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -2079,11 +2139,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   function bizDailyClaimAll(){
     try {
-      if (!hasAnyBusiness()) { toast('Нет бизнесов','lose'); return; }
+      if (!hasAnyBusiness()) { toast('Нет бизнесов','lose'); return null; }
       const msLeft = bizRewardNextClaimMs();
       if (msLeft > 0) {
         toast('Следующая награда через ' + fmtHHMMSS(msLeft), 'lose');
-        return;
+        return null;
       }
 
       let addFearSum = 0;
@@ -2120,10 +2180,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         renderHUD();
         toast('БИЗНЕС: +' + fmt4(addFearSum) + ' 😱 · +' + fmt4(addGoldSum) + ' 🪙','win');
         haptic('heavy');
+        return { addFearSum, addGoldSum };
       } else {
         toast('Бизнес награда уже собрана','lose');
+        return null;
       }
-    } catch (e) {}
+    } catch (e) { return null; }
   }
   function districtDailyEnsure(){
     try {
@@ -4168,6 +4230,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       toast('НАГРАДА: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱','win');
       feedAdd('Награда района: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱','SYS');
       haptic('heavy');
+      showDistrictTasksRewardPopup(id, mult);
     } catch (e) {}
   }
 
@@ -4409,6 +4472,26 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   const overlay = $('overlay');
   const stack = [];
   const SCREEN_IDS = new Set(['mArena','mBoss','mTop','mDice','mDistricts','mBattle','mPloshchad','mGym','mLavka']);
+  function showDistrictBizRewardPopup(addFearSum, addGoldSum){
+    const el = $('districtBizRewardPopupAmounts');
+    if (el) {
+      let html = '';
+      if (addFearSum > 0) html += '<span title="Страх">😱 +' + fmt4(addFearSum) + '</span>';
+      if (addGoldSum > 0) html += '<span title="Золото">🪙 +' + fmt4(addGoldSum) + '</span>';
+      el.innerHTML = html || '—';
+    }
+    showModal('mDistrictBizReward');
+  }
+  function showDistrictTasksRewardPopup(dIdx, mult){
+    const data = districtData();
+    const d = data[dIdx];
+    const districtName = d && d.name ? d.name : 'Район';
+    const titleEl = $('districtTasksRewardTitle');
+    const amountsEl = $('districtTasksRewardAmounts');
+    if (titleEl) titleEl.textContent = 'Награда за все 7 заданий: ' + districtName.toUpperCase();
+    if (amountsEl) amountsEl.innerHTML = '<span title="Опыт">+'+fmt4(mult)+' XP</span><span title="Зубы">+'+fmt4(mult)+' 🦷</span><span title="Страх">+'+fmt4(mult)+' 😱</span>';
+    showModal('mDistrictTasksReward');
+  }
   function setOverlay(){
     if (!overlay) return;
     const top = stack.length ? stack[stack.length-1] : '';
@@ -6698,7 +6781,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e0) {}
     $('bfName').textContent = b.name;
-    $('bfHp').textContent = 'HP ' + (parseInt(f.hp||0,10)||0) + ' / ' + b.maxHP;
+    $('bfHp').textContent = (parseInt(f.hp||0,10)||0) + ' хп';
     const left = Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now());
     $('bfTimer').textContent = left>0 ? ('ВРЕМЯ: ' + fmtHHMMSS(left)) : 'ВРЕМЯ: 00:00:00';
     const hs = state.bosses.hitStocks || { kick:0, knuckle:0, enema:0 };
@@ -6765,17 +6848,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     try {
       const q2 = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
-      const freeLabel = freeBtn.querySelector('.bfHitLabel');
-      const l1 = hitBtn1 ? hitBtn1.querySelector('.bfHitLabel') : null;
-      const l2 = hitBtn2 ? hitBtn2.querySelector('.bfHitLabel') : null;
-      const l3 = hitBtn3 ? hitBtn3.querySelector('.bfHitLabel') : null;
-      if (freeLabel) freeLabel.textContent = 'БЕСПЛАТНО · УРОН ' + Math.max(1, bossHitDmg(14, 50));
-      if (l1) l1.textContent = 'НОГОЙ ('+hk+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(10, 70)) * q2);
-      if (l2) l2.textContent = 'КОСТЕТОМ ('+hn+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(7, 85)) * q2);
-      if (l3) l3.textContent = 'КЛИЗМА ('+he+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(4, 100)) * q2);
-      if (!l1 && hitBtn1) hitBtn1.textContent = 'НОГОЙ ('+hk+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(10, 70)) * q2);
-      if (!l2 && hitBtn2) hitBtn2.textContent = 'КОСТЕТОМ ('+hn+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(7, 85)) * q2);
-      if (!l3 && hitBtn3) hitBtn3.textContent = 'КЛИЗМА ('+he+') x'+q2+' · УРОН '+(Math.max(1, bossHitDmg(4, 100)) * q2);
+      const setDmgQty = (btn, dmgVal, qtyTxt) => {
+        if (!btn) return;
+        const dEl = btn.querySelector('.bfHitDmg');
+        const qEl = btn.querySelector('.bfHitQty');
+        if (dEl) dEl.textContent = dmgVal;
+        if (qEl) qEl.textContent = qtyTxt;
+      };
+      setDmgQty(freeBtn, 'УРОН ' + Math.max(1, bossHitDmg(14, 50)), '1 раз');
+      setDmgQty(hitBtn1, 'УРОН ' + (Math.max(1, bossHitDmg(10, 70)) * q2), ''+hk);
+      setDmgQty(hitBtn2, 'УРОН ' + (Math.max(1, bossHitDmg(7, 85)) * q2), ''+hn);
+      setDmgQty(hitBtn3, 'УРОН ' + (Math.max(1, bossHitDmg(4, 100)) * q2), ''+he);
     } catch (e) {}
 
     if (!inTime && alive){
@@ -7730,7 +7813,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '</div>'
         + '<div style="min-width:0">'
         + '<div class="bossName">'+b.name+'</div>'
-        + '<div class="bossSub">'+(dead ? ('ПОВЕРЖЕН · HP 0 / '+b.maxHP) : ('HP '+hp+' / '+b.maxHP))+lockText+'</div>'
+        + '<div class="bossSub">'+(dead ? '0 хп' : (hp + ' хп'))+lockText+'</div>'
         + '<div class="bossReward">'
         + (rm>0 ? ('<span class="badge" style="color:rgba(0,0,0,.92); padding:6px 8px; font-size:11px">+'+rm+'🦷</span>') : '')
         + (rg>0 ? ('<span class="badge" style="color:var(--gold); padding:6px 8px; font-size:11px">+'+rg+'🪙</span>') : '')
@@ -8814,7 +8897,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           + '<button type="button" class="btn btnSmall" id="bizRewardColumnCollect" ' + (canClaim ? '' : 'disabled') + '>Собрать все</button>'
           + '</div>';
         const collectBtn = $('bizRewardColumnCollect');
-        if (collectBtn) collectBtn.onclick = ()=>{ try { bizDailyClaimAll(); renderDistricts(); } catch (e2) {} };
+        if (collectBtn) collectBtn.onclick = ()=>{
+          try {
+            const r = bizDailyClaimAll();
+            renderDistricts();
+            if (r && (r.addFearSum > 0 || r.addGoldSum > 0)) showDistrictBizRewardPopup(r.addFearSum, r.addGoldSum);
+          } catch (e2) {}
+        };
       } else {
         bizCol.style.display = 'none';
         bizCol.innerHTML = '';
@@ -9033,14 +9122,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return { cost:cost, gold:gold, xp:xp, fear:fear, max:max };
     }
 
-    // Брийские земли: 7 заданий, по 5 выполнений, суммарно как было (500), парные числа
+    // Брийские земли: награда XP и страха за каждое задание = энергия на выполнение
     if (dIdx===1){
       const costArr = [4,8,10,14,18,20,26];
       const cost = costArr[idx] ?? costArr[costArr.length-1] ?? 4;
-      const xpArr = [8,10,12,14,16,18,22];
-      const fearArr = [8,10,12,14,16,18,22];
-      const xp = xpArr[idx] ?? 22;
-      const fear = fearArr[idx] ?? 22;
+      const xp = cost;
+      const fear = cost;
       return { cost, gold:0, xp, fear, max:5 };
     }
 
