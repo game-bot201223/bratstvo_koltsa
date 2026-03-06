@@ -532,21 +532,32 @@ Deno.serve(async (req: Request) => {
     state = null
   }
 
-  // invite bonus (idempotent per invitee by storing a flag in invitee state)
+  // invite bonus: 10 gold to referrer when invitee reaches level 5 (once per invitee)
+  // also ensure both sides have each other in братки: referrer already has invitee (addFriendToReferrer);
+  // add referrer to invitee's state.friends so invitee sees referrer in братки
   try {
     const refTgId = String(body?.referrer_tg_id ?? (body as any)?.referrerTgId ?? "").trim()
+    const inviteeLevel = Math.max(1, safeNonNegInt(body?.level))
     if (refTgId && refTgId !== tgId && state && typeof state === "object") {
       const so = state as any
-      const alreadyPaid = !!so._invBonusPaid
-      if (!alreadyPaid) {
-        so._invBonusPaid = true
-        so._invBonusBy = refTgId
-        so._invBonusAt = new Date().toISOString()
-        // best-effort credit; don't block save if referrer doesn't exist yet
-        await creditReferrerGold(projectUrl, serviceKey, refTgId, 10).catch(() => false)
+      let frList: any[] = Array.isArray(so.friends) ? so.friends.slice() : []
+      const hasRef = frList.some((f: any) => f && String(f.tg_id || f.tgId || "").trim() === refTgId)
+      if (!hasRef) {
+        const refName = await postgrestGetPlayerName(projectUrl, serviceKey, refTgId).catch(() => "") || "Браток"
+        frList.push({ tg_id: refTgId, name: refName.trim().slice(0, 18) || "Браток", lvl: 1, power: 0 })
+        so.friends = frList.slice(-200)
       }
 
-      // best-effort: ensure invitee appears in referrer's friends list
+      if (inviteeLevel >= 5) {
+        const alreadyPaid = !!so._invBonusPaid
+        if (!alreadyPaid) {
+          so._invBonusPaid = true
+          so._invBonusBy = refTgId
+          so._invBonusAt = new Date().toISOString()
+          await creditReferrerGold(projectUrl, serviceKey, refTgId, 10).catch(() => false)
+        }
+      }
+
       const friendName = String(body?.name || verified.user?.first_name || verified.user?.username || "Player").trim() || "Player"
       const friendLvl = Math.max(1, safeNonNegInt(body?.level))
       const friendPower = safeNonNegInt(body?.stats_sum ?? (body as any)?.statsSum)

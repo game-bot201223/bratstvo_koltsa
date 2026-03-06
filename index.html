@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
- <meta name="theme-color" content="#d6be9a" />
+ <meta name="theme-color" content="#e2d6bc" />
  <title>Братство Конца — Mobile TG Edition</title>
  <script src="https://telegram.org/js/telegram-web-app.js"></script>
  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&display=swap" rel="stylesheet">
  <style>
 :root{
   --tg-vh: 100dvh;
-  --caramel:#d6be9a;
+  --caramel:#e2d6bc;
   --paper:var(--caramel);
   --paper2:var(--caramel);
   --paper3:var(--caramel);
@@ -20,7 +20,8 @@
   --btn1:var(--caramel);
   --ink:#000;
   --inkMuted:rgba(0,0,0,.72);
-  --paperLine:rgba(36,24,14,.22);
+  --paperLine:rgba(56,42,28,.12);
+  --paperLineSoft:rgba(56,42,28,.08);
   --btnBorder:var(--paperLine);
   --surfaceCaramel:var(--caramel);
   --paperDark:var(--caramel);
@@ -52,6 +53,7 @@ body{
   overflow-y:auto;
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
 }
 ::selection{background:rgba(0,0,0,.08);color:#000;}
 :focus-visible{outline:2px solid var(--paperLine);outline-offset:2px;}
@@ -65,10 +67,10 @@ body{
 
  #mClans .card{background:var(--caramel);border:1px solid var(--paperLine);}
  #mClans .row .k{letter-spacing:2.5px}
- #mClans .badge{border:1px solid rgba(32,22,14,.22)}
+ #mClans .badge{border:1px solid var(--paperLine);}
 
-/* Background grain */
-body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
+/* Background grain — единая текстура без пятен */
+body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
 
 #app{
   position:relative;
@@ -77,6 +79,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   display:flex;
   flex-direction:column;
   padding-top:env(safe-area-inset-top);
+  background:var(--caramel);
 }
 
 /* Top HUD — божественный карамельный бар */
@@ -196,8 +199,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   background: var(--caramel);
   overflow:hidden;
   position:relative;
+  transition: border-color var(--transition-fast);
 }
-.hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:transparent;pointer-events:none;z-index:1;}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:rgba(255,255,255,.3);pointer-events:none;z-index:1;}
 .heroTop{padding:14px 14px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .heroTitle{font-weight:900;letter-spacing:4px;font-size:12px;opacity:.94;}
 .heroSub{font-size:11px;opacity:.82;margin-top:4px;letter-spacing:2px}
@@ -216,7 +220,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   flex-direction:column;
   justify-content:center;
   gap:2px;
-  transition: transform var(--transition-fast);
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
 }
 .tile:active{transform:scale(0.98);}
 .tile .k{font-size:9px;opacity:.85;letter-spacing:2px}
@@ -258,7 +262,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   display:flex;
   flex-direction:column;
   gap:6px;
-  transition: transform var(--transition-fast);
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
 }
 .statTile .stK{font-size:10px;letter-spacing:2px;opacity:.82;}
 .statTile .stV{font-weight:900;letter-spacing:1px;font-size:13px;}
@@ -284,7 +288,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .gymStatRow:last-of-type{margin-bottom:0;}
 .gymStatRowConsumables .gymStatName{color:#7d3c98;font-weight:800;}
 .gymStatName{min-width:90px;font-size:11px;opacity:.9;}
-.gymStatBarWrap{flex:1;min-width:0;height:14px;background:rgba(36,24,14,.08);border-radius:var(--r3);overflow:hidden;display:flex;border:1px solid var(--paperLine);}
+.gymStatBarWrap{flex:1;min-width:0;height:14px;background:var(--paperLineSoft);border-radius:var(--r3);overflow:hidden;display:flex;border:1px solid var(--paperLine);}
 .gymStatBarSeg{height:100%;min-width:0;}
 .gymStatBarSegGym{background:#c0392b;}
 .gymStatBarSegArmor{background:#27ae60;}
@@ -328,8 +332,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
    background: var(--caramel);
    overflow:hidden;
    position:relative;
+   transition: border-color var(--transition-fast);
  }
- .feed::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:transparent;pointer-events:none;}
+ .feed::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:rgba(255,255,255,.3);pointer-events:none;}
 .feedHead{padding:12px 14px;border-bottom:1px solid var(--paperLine);display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--caramel);}
 .feedHead .t{font-weight:900;letter-spacing:3px;font-size:11px;opacity:.94;}
 .feedBody{max-height:22vh;overflow:auto;padding:10px 14px;display:flex;flex-direction:column;gap:8px;}
@@ -342,10 +347,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   border-radius:var(--r2);
   border:1px solid var(--paperLineSoft);
   background: var(--caramel);
-  transition: transform var(--transition-fast);
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
 }
 
- /* Friends — божественный карамельный ТОП БРАТКОВ */
+ /* Братки — карусель на экране Районы */
  .friendsPanel{
    margin:0; width:100%; max-width:100%; flex:0 0 auto; border-radius:0; border-left:none; border-right:none; box-sizing:border-box;
    background: var(--caramel);
@@ -360,8 +365,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .friendsBody{padding:0;}
  .friendsRow{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;touch-action:pan-x;-webkit-overflow-scrolling:touch;padding:12px 14px;flex-wrap:nowrap;}
  .friendsRow::-webkit-scrollbar{height:6px;}
- .friendsRow::-webkit-scrollbar-track{background:rgba(36,24,14,.06);border-radius:999px;}
- .friendsRow::-webkit-scrollbar-thumb{background:var(--caramel);border-radius:999px;}
+ .friendsRow::-webkit-scrollbar-track{background:var(--paperLineSoft);border-radius:999px;}
+ .friendsRow::-webkit-scrollbar-thumb{background:var(--paperLine);border-radius:999px;}
  .friendCard{
    scroll-snap-align:start; min-width:90px; max-width:90px; border-radius:22px;
    border:1px solid var(--paperLine);
@@ -426,7 +431,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   font-weight:900;
   letter-spacing:1.3px;
   font-size:12px;
-  transition: transform var(--transition-fast);
+  transition: transform var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
 }
 .btn:active{transform:translateY(1px);}
 .btnSmall{font-size:11px;padding:9px 13px;}
@@ -525,7 +530,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .bossAtkBtn{font-size:9px !important; padding:5px 7px !important; letter-spacing:1px; min-height:28px;}
 
 /* Modals — божественные карамельные слои */
-.overlay{position:fixed;inset:0;background:rgba(36,24,14,.4);backdrop-filter: blur(16px) saturate(0.95);-webkit-backdrop-filter: blur(16px) saturate(0.95);display:none;z-index:4900;transition: opacity var(--transition-normal);}
+.overlay{position:fixed;inset:0;background:rgba(36,28,20,.35);backdrop-filter: blur(20px) saturate(0.98);-webkit-backdrop-filter: blur(20px) saturate(0.98);display:none;z-index:4900;transition: opacity var(--transition-normal);}
 .overlay.show{display:block;}
 
 .modal{
@@ -552,8 +557,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   display:flex;
   flex-direction:column;
   position:relative;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
-.sheet::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:transparent;pointer-events:none;z-index:1;}
+.sheet::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:rgba(255,255,255,.35);pointer-events:none;z-index:1;}
 
 .sheetScreen{
   border-radius:0;
@@ -706,16 +712,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .inventoryRow img{width:48px;height:48px;object-fit:cover;border-radius:8px;}
 .inventoryRow .inventoryQty{font-size:11px;opacity:.9;margin-left:4px;}
 .inventoryRow .btnUse{flex-shrink:0;}
-.sheetHead{padding:14px 14px;border-bottom:1px solid var(--paperLine);display:flex;align-items:center;justify-content:space-between;gap:10px;background: var(--caramel);}
+.sheetHead{padding:14px 14px;border-bottom:1px solid var(--paperLine);display:flex;align-items:center;justify-content:space-between;gap:10px;background: var(--caramel);transition: border-color var(--transition-fast);}
 .sheetHead .title{font-weight:900;letter-spacing:4px;font-size:13px;opacity:.96;}
 .iconBtn{width:48px;height:44px;border-radius:var(--r2);border:1px solid var(--btnBorder);background: var(--caramel);color:#000;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;}
 .iconBtn:active{transform:scale(0.94);}
 .sheetBody{flex:1;min-height:0;overflow:auto;padding:14px;}
 .sheetBody::-webkit-scrollbar{width:8px;}
-.sheetBody::-webkit-scrollbar-track{background:rgba(36,24,14,.05);border-radius:999px;}
-.sheetBody::-webkit-scrollbar-thumb{background:var(--caramel);border-radius:999px;}
+.sheetBody::-webkit-scrollbar-track{background:var(--paperLineSoft);border-radius:999px;}
+.sheetBody::-webkit-scrollbar-thumb{background:var(--paperLine);border-radius:999px;}
 
-.card{border-radius:var(--r);border:1px solid var(--paperLine);background: var(--caramel);padding:14px;}
+.card{border-radius:var(--r);border:1px solid var(--paperLine);background: var(--caramel);padding:14px;transition: border-color var(--transition-fast), background-color var(--transition-fast);}
 .row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .k{font-size:11px;opacity:.84;letter-spacing:2.5px}
 .v{font-weight:900;letter-spacing:1px;}
@@ -2621,7 +2627,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const statusEl = $('havchikStatus');
       const collectBtn = $('havchikCollect');
       const sendBtn = $('havchikSend');
-      const friends = Array.isArray(state.friends) ? state.friends : [];
+      const friends = getBratkiList();
       const n = friends.length;
       const nowTs = now();
       const lastSend = parseInt(state.havchikLastSendTs||0,10)||0;
@@ -4536,10 +4542,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     $('xpText').textContent = cur + ' / ' + need + ' XP';
   }
 
-  function renderFriends(){
-    const row = $('friendsRow');
-    if (!row) return;
-    row.innerHTML = '';
+  function getBratkiList(){
     const list = (Array.isArray(state.friends) ? state.friends.slice() : []);
     try {
       const c = clanGetMyClan();
@@ -4558,6 +4561,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         });
       }
     } catch (e) {}
+    return list;
+  }
+
+  function renderFriends(){
+    const row = $('friendsRow');
+    if (!row) return;
+    row.innerHTML = '';
+    const list = getBratkiList();
     if (!list.length){
       const d = document.createElement('div');
       d.className = 'friendCard';
@@ -6408,6 +6419,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       f = null;
     }
     if (!f || !f.startTs || !f.expiresTs || now() > f.expiresTs || f.bossMaxHP !== b.maxHP){
+      if (f && f.startTs && f.expiresTs && now() > f.expiresTs && (parseInt(f.hp||0,10)||0) > 0) {
+        bfCheckLose(id);
+        return null;
+      }
+      try { state.bosses._resShownLose = undefined; } catch (e0) {}
       f = { startTs: now(), expiresTs: now() + expiresIn, bossMaxHP: b.maxHP, hp: startHp, freeUsed:false, friendCap:{}, lastFriendTs: now(), dmgLog:[], dmgTop:{} };
       bfSetFight(id, f);
     }
@@ -6957,8 +6973,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e0) {}
     $('bfrName').textContent = b.name;
-    $('bfrTitle').textContent = win ? 'БОСС ПОВЕРЖЕН' : 'ПОРАЖЕНИЕ';
-    $('bfrOutcome').textContent = win ? 'БОСС ПОВЕРЖЕН' : 'ПОРАЖЕНИЕ';
+    $('bfrTitle').textContent = win ? 'БОСС ПОВЕРЖЕН' : 'Вы проиграли';
+    $('bfrOutcome').textContent = win ? 'БОСС ПОВЕРЖЕН' : 'Вы проиграли';
     $('bfrOutcome').style.color = win ? 'rgba(52,211,153,.95)' : 'rgba(251,113,133,.95)';
 
     const rewardCard = $('bfrRewardCard');
@@ -7182,9 +7198,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (parseInt(state.bosses._resShownLose||0,10) === bossId) return;
     state.bosses._resShownLose = bossId;
     state.bosses.activeFightId = 0;
-    toast('ПОРАЖЕНИЕ','lose');
+    try {
+      if (!state.bosses.lastTopByBoss || typeof state.bosses.lastTopByBoss !== 'object') state.bosses.lastTopByBoss = {};
+      state.bosses.lastTopByBoss[String(bossId)] = (f && f.dmgTop) ? f.dmgTop : {};
+    } catch (e0) {}
+    toast('Вы проиграли','lose');
 
-    // allow immediate new attempt (update state BEFORE showing result so UI refreshes instantly)
     setBossHp(bossId, b.maxHP);
     try {
       if (state.bosses && state.bosses.fights) delete state.bosses.fights[String(bossId)];
@@ -9316,6 +9335,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         haptic('light');
         return;
       }
+      if (bid && f && alive && !inTime && hasBoss) {
+        bfCheckLose(bid);
+        haptic('light');
+        return;
+      }
       if (bid && (!hasBoss || !hasCloudFight)) {
         try { state.bosses.activeFightId = 0; save(); } catch (e0) {}
       }
@@ -9839,6 +9863,23 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e) {
       try { $('syncState').textContent = 'СЕЙВ: CLOUD OFF'; $('syncState').style.opacity = '.85'; } catch (e2) {}
     }
+    try {
+      const sp = tgStartParam();
+      const refMatch = sp && sp.match(/^u(\d+)$/i);
+      const referrerTgId = refMatch ? String(refMatch[1]).trim() : '';
+      const myId = myTgUserId();
+      if (referrerTgId && myId && referrerTgId !== myId && SUPABASE_URL && SUPABASE_ANON_KEY) {
+        const refSentKey = SAVE_KEY_BASE + '_ref_sent_' + referrerTgId;
+        if (!localStorage.getItem(refSentKey)) {
+          try {
+            await sbFnCall('referral_accept', { initData: tgInitData(), referrer_tg_id: referrerTgId });
+            try { localStorage.setItem(refSentKey, '1'); } catch (e1) {}
+            state._refTgId = referrerTgId;
+            try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e2) {}
+          } catch (e0) {}
+        }
+      }
+    } catch (eRef) {}
     try { bossHelpPollStart(); } catch (e0) {}
     init();
   }
