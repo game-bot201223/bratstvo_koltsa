@@ -680,6 +680,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .havchikCollectCard .havchikName{font-size:11px;font-weight:900;text-align:center;line-height:1.2;}
 .havchikTypesGrid{display:grid;grid-template-columns:repeat(3,minmax(28vw,1fr));grid-template-rows:repeat(2,auto);gap:10px;margin-top:12px;}
 .havchikTypesGrid .havchikCollectCard{margin:0;}
+
+.havchikCardSelected{border-color:var(--gold) !important; box-shadow:0 0 0 2px rgba(200,160,80,.4);}
+.havchikCardLocked{opacity:.6;pointer-events:auto;}
 #mLavka .sheetBody{padding:8px 14px;}
 #mLavka .sheetHead{padding:7px 10px;}
 #mLavka .k[style*="margin-bottom"]{margin-bottom:5px !important;}
@@ -2485,63 +2488,132 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     { id:4, name:'Компот из крыжовника', energy:25, img:'ком.jpg' },
     { id:5, name:'Пирог "Братства Кольца"', energy:30, img:'пир.jpeg' }
   ];
+
+  const HAVCHIK_LEVEL_FOR_TYPE = [1, 10, 30, 60, 120, 200];
   function renderHavchikTypes(){
     try {
       const cont = $('havchikTypesGrid');
       if (!cont) return;
+      const playerLvl = Math.max(1, parseInt(state.level||1,10)||1);
+      const selected = Math.max(0, Math.min(5, parseInt(state.havchikSendTypeId||0,10)||0));
       let h = '';
       HAVCHIK_TYPES.forEach((t)=>{
-        h += '<div class="havchikCollectCard">';
+        const reqLvl = HAVCHIK_LEVEL_FOR_TYPE[t.id] ?? 1;
+        const locked = playerLvl < reqLvl;
+        const sel = !locked && (t.id === selected);
+        h += '<div class="havchikCollectCard'+(sel ? ' havchikCardSelected' : '')+(locked ? ' havchikCardLocked' : '')+'" data-havchik-type="'+t.id+'" data-locked="'+locked+'">';
         h += '<img src="'+t.img+'" alt="">';
         h += '<div class="havchikName">'+t.name+'</div>';
         h += '<div style="font-size:12px;font-weight:900;">+'+t.energy+' ⚡</div>';
+        if (locked) h += '<div style="font-size:10px;opacity:.85;">с ур. '+reqLvl+'</div>';
         h += '</div>';
       });
       cont.innerHTML = h;
+      cont.querySelectorAll('[data-havchik-type]').forEach(el=>{
+        const locked = el.getAttribute('data-locked') === 'true';
+        el.onclick = ()=>{
+          if (locked) return;
+          const id = parseInt(el.getAttribute('data-havchik-type')||'0',10)||0;
+          state.havchikSendTypeId = id;
+          renderHavchikTypes();
+          renderHavchik();
+          haptic('light');
+        };
+      });
     } catch (e) {}
   }
   function renderHavchikCollect(){
     try {
       const cont = $('havchikCollectScroll');
       if (!cont) return;
-      const inbox = Array.isArray(state.havchikInbox) ? state.havchikInbox : [];
-      if (inbox.length === 0) {
-        cont.innerHTML = '<div style="padding:20px;text-align:center;font-size:14px;opacity:.9;">Пока нет хавчика от братков.<br><span style="font-size:12px;opacity:.8;">Сюда придёт хавчик, который отправят братки.</span></div>';
+      const hasCloud = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
+      if (hasCloud) {
+        cont.innerHTML = '<div style="padding:20px;text-align:center;font-size:12px;opacity:.8;">Загрузка…</div>';
+        sbFnCall('havchik_inbox_pull', { initData: tgInitData(), limit: 50 })
+          .then((r)=>{
+            const items = (r && Array.isArray(r.items)) ? r.items : [];
+            renderHavchikCollectInner(cont, items, true);
+          })
+          .catch(()=>{
+            renderHavchikCollectInner(cont, Array.isArray(state.havchikInbox) ? state.havchikInbox : [], false);
+          });
         return;
       }
-      let h = '';
-      inbox.forEach((item, i)=>{
-        const t = HAVCHIK_TYPES[item.typeId];
-        const name = t ? t.name : ('+'+item.energy+' ⚡');
-        const from = item.from || 'Браток';
-        h += '<div class="havchikInboxCard" data-inbox-idx="'+i+'">';
-        h += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">';
-        h += '<img src="'+(t ? t.img : 'хав.jpeg')+'" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:10px;">';
-        h += '<div style="flex:1;min-width:0;">';
-        h += '<div style="font-weight:900;font-size:12px;">'+from+'</div>';
-        h += '<div style="font-size:11px;opacity:.85;">'+name+' · +'+item.energy+' ⚡</div>';
-        h += '</div>';
-        h += '<button type="button" class="btn btnSmall" data-havchik-inbox="'+i+'">Получить</button>';
-        h += '</div></div>';
-      });
-      cont.innerHTML = h;
-      cont.querySelectorAll('[data-havchik-inbox]').forEach(btn=>{
-        btn.onclick = ()=>{
-          const i = parseInt(btn.getAttribute('data-havchik-inbox')||'0',10)||0;
-          const inbox2 = Array.isArray(state.havchikInbox) ? state.havchikInbox.slice() : [];
-          const item = inbox2[i];
-          if (!item) return;
-          state.energy = Math.min(state.energyMax||100, (state.energy||0) + (item.energy||0));
-          state.havchikInbox = inbox2.filter((_, idx)=>idx !== i);
-          save();
-          renderHavchikCollect();
-          renderHUD();
-          toast('+' + item.energy + ' ⚡','win');
-          feedAdd('Хавчик от братка: +'+item.energy+' ⚡','SYS');
-          haptic('light');
-        };
-      });
+      const inbox = Array.isArray(state.havchikInbox) ? state.havchikInbox : [];
+      renderHavchikCollectInner(cont, inbox, false);
     } catch (e) {}
+  }
+  function renderHavchikCollectInner(cont, items, isCloud){
+    if (!cont) return;
+    if (items.length === 0) {
+      cont.innerHTML = '<div style="padding:20px;text-align:center;font-size:14px;opacity:.9;">Пока нет хавчика от братков.<br><span style="font-size:12px;opacity:.8;">Сюда придёт хавчик, который отправят братки.</span></div>';
+      return;
+    }
+    let h = '';
+    items.forEach((item, i)=>{
+      const id = isCloud ? (item.id) : i;
+      const from = item.from_name || item.from || 'Браток';
+      const typeId = parseInt(item.type_id!=null ? item.type_id : item.typeId,10)||0;
+      const energy = parseInt(item.energy!=null ? item.energy : 0,10)||0;
+      const t = HAVCHIK_TYPES[typeId];
+      const name = t ? t.name : ('+'+energy+' ⚡');
+      h += '<div class="havchikInboxCard" data-inbox-id="'+id+'" data-cloud="'+isCloud+'">';
+      h += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">';
+      h += '<img src="'+(t ? t.img : 'хав.jpeg')+'" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:10px;">';
+      h += '<div style="flex:1;min-width:0;">';
+      h += '<div style="font-weight:900;font-size:12px;">'+from+'</div>';
+      h += '<div style="font-size:11px;opacity:.85">'+name+' · +'+energy+' ⚡</div>';
+      h += '</div>';
+      h += '<button type="button" class="btn btnSmall" data-havchik-claim="'+id+'" data-cloud="'+isCloud+'">Получить</button>';
+      h += '</div></div>';
+    });
+    cont.innerHTML = h;
+    cont.querySelectorAll('[data-havchik-claim]').forEach(btn=>{
+      btn.onclick = ()=>{
+        const rawId = btn.getAttribute('data-havchik-claim');
+        const isCloud = btn.getAttribute('data-cloud') === 'true';
+        if (isCloud) {
+          const id = parseInt(rawId||'0',10)||0;
+          if (id<=0) return;
+          btn.disabled = true;
+            sbFnCall('havchik_claim', { initData: tgInitData(), id: id })
+            .then((res)=>{
+              if (res && res.ok && res.item) {
+                const e = parseInt(res.item.energy||0,10)||0;
+                state.energy = Math.min(state.energyMax||100, (state.energy||0) + e);
+                save();
+                renderHavchikCollect();
+                renderHUD();
+                toast('+'+e+' ⚡','win');
+                feedAdd('Хавчик от братка: +'+e+' ⚡','SYS');
+                haptic('light');
+              } else {
+                btn.disabled = false;
+                toast('Не удалось забрать','lose');
+              }
+            })
+            .catch((e)=>{
+              btn.disabled = false;
+              const msg = (e && e.message) ? String(e.message) : '';
+              if (msg.includes('daily_cap') || msg.includes('200')) toast('Лимит 200 ⚡ в сутки (сброс 00:00 UTC)','lose');
+              else toast('Ошибка сети','lose');
+            });
+          return;
+        }
+        const i = parseInt(rawId||'0',10)||0;
+        const inbox2 = Array.isArray(state.havchikInbox) ? state.havchikInbox.slice() : [];
+        const item = inbox2[i];
+        if (!item) return;
+        state.energy = Math.min(state.energyMax||100, (state.energy||0) + (item.energy||0));
+        state.havchikInbox = inbox2.filter((_, idx)=>idx !== i);
+        save();
+        renderHavchikCollect();
+        renderHUD();
+        toast('+' + (item.energy||0) + ' ⚡','win');
+        feedAdd('Хавчик от братка: +'+(item.energy||0)+' ⚡','SYS');
+        haptic('light');
+      };
+    });
   }
   function renderHavchik(){
     try {
@@ -2568,6 +2640,30 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         sendBtn.onclick = ()=>{
           if (!canSend){ toast('Раз в 24 ч','lose'); return; }
           if (n === 0){ toast('Нет братков','lose'); return; }
+          const typeId = Math.max(0, Math.min(5, parseInt(state.havchikSendTypeId||0,10)||0));
+          const hasCloud = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
+          if (hasCloud) {
+            sendBtn.disabled = true;
+            sbFnCall('havchik_send', { initData: tgInitData(), type_id: typeId })
+              .then((res)=>{
+                state.havchikLastSendTs = now();
+                save();
+                renderHavchik();
+                renderHUD();
+                const inserted = (res && typeof res.inserted === 'number') ? res.inserted : 0;
+                toast(inserted > 0 ? ('Хавчик отправлен '+inserted+' браткам') : 'Хавчик отправлен браткам','win');
+                feedAdd('Хавчик отправлен браткам','SYS');
+                haptic('light');
+              })
+              .catch((e)=>{
+                sendBtn.disabled = false;
+                const msg = (e && e.message) ? String(e.message) : '';
+                if (msg.includes('level_required') || msg.includes('403')) toast('Нужен уровень выше для этого хавчика','lose');
+                else if (msg.includes('one_send_per_day') || msg.includes('429')) toast('Один хавчик в сутки (сброс 00:00 UTC)','lose');
+                else toast('Ошибка отправки','lose');
+              });
+            return;
+          }
           state.havchikLastSendTs = nowTs;
           save();
           renderHavchik();
