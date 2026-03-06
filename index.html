@@ -7802,7 +7802,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const claimed = !!(cc && typeof cc === 'object' && cc.reward_claimed);
         canClaim = !!(hpCloud!==null && (parseInt(hpCloud||0,10)||0) <= 0 && !claimed);
       }
-      // На странице выбора все боссы показываются живыми со 100% HP — только выбор, кого атаковать
+      // Поверженный босс на странице боссов не показываем — только в модалке результата боя
+      if (dead) return;
       html += '<div class="card">'
         + '<div class="bossWinnerTop">ПОСЛЕДНИЙ ПОБЕДИТЕЛЬ</div>'
         + '<div class="bossWinnerNm">'+lwName+'</div>'
@@ -7814,14 +7815,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '</div>'
         + '<div style="min-width:0">'
         + '<div class="bossName">'+b.name+'</div>'
-        + '<div class="bossSub">'+(b.maxHP + ' хп')+lockText+'</div>'
+        + '<div class="bossSub">'+(dead ? '0 хп' : (hp + ' хп'))+lockText+'</div>'
         + '<div class="bossReward">'
         + (rm>0 ? ('<span class="badge" style="color:rgba(0,0,0,.92); padding:6px 8px; font-size:11px">+'+rm+'🦷</span>') : '')
         + (rg>0 ? ('<span class="badge" style="color:var(--gold); padding:6px 8px; font-size:11px">+'+rg+'🪙</span>') : '')
         + (rxp>0 ? ('<span class="badge" style="padding:6px 8px; font-size:11px">+'+rxp+' XP</span>') : '')
         + '</div>'
         + '<div style="margin-top:6px; display:flex; flex-direction:column; gap:6px">'
-        + '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
+        + (dead
+            ? (canClaim
+                ? '<button class="btn btnMini bossAtkBtn" data-boss-claim="'+b.id+'">ЗАБРАТЬ НАГРАДУ</button>'
+                : '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
+              )
+            : '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
+          )
         + '</div>'
         + '</div>'
         + '</div>'
