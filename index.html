@@ -664,8 +664,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .arenaInventoryBtn{width:44px;height:44px;border-radius:var(--r2);border:1px solid var(--paperLine);background:var(--caramel);cursor:pointer;padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
 .arenaInventoryBtn img{width:100%;height:100%;object-fit:cover;}
 .arenaInventoryBtn:active{transform:scale(0.94);}
+.havchikBtn{width:44px;height:44px;min-width:44px;border-radius:var(--r2);border:1px solid var(--paperLine);background:var(--caramel);cursor:pointer;padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.havchikBtn img{width:100%;height:100%;object-fit:cover;}
+.havchikBtn:active{transform:scale(0.94);}
+.havchikBtnImg{padding:0;}
+.havchikBtnImg img{width:100%;height:100%;object-fit:cover;}
 #mInventory.inventoryFullScreen .sheet{width:100vw;max-width:none;height:100vh;max-height:none;border-radius:0;border:none;}
 #mLavka.lavkaFullScreen .sheet{width:100vw;max-width:none;height:100vh;max-height:none;border-radius:0;border:none;}
+.havchikCollectFullScreen .sheet{width:100vw;max-width:none;height:100vh;max-height:none;border-radius:0;border:none;}
+.havchikCollectBody{overflow-x:auto;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch;}
+#havchikCollectScroll{display:flex;flex-direction:column;gap:10px;}
+.havchikInboxCard{border:1px solid var(--paperLine);border-radius:14px;padding:12px;background:rgba(255,255,255,.35);}
+.havchikCollectCard{border:1px solid var(--paperLine);border-radius:16px;background:rgba(255,255,255,.4);padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.havchikCollectCard img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;}
+.havchikCollectCard .havchikName{font-size:11px;font-weight:900;text-align:center;line-height:1.2;}
+.havchikTypesGrid{display:grid;grid-template-columns:repeat(3,minmax(28vw,1fr));grid-template-rows:repeat(2,auto);gap:10px;margin-top:12px;}
+.havchikTypesGrid .havchikCollectCard{margin:0;}
 #mLavka .sheetBody{padding:8px 14px;}
 #mLavka .sheetHead{padding:7px 10px;}
 #mLavka .k[style*="margin-bottom"]{margin-bottom:5px !important;}
@@ -1362,11 +1376,48 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetHead">
       <button class="iconBtn" data-close="mDistricts">‹</button>
       <div class="title">РАЙОНЫ</div>
-      <div style="width:44px"></div>
+      <button type="button" class="havchikBtn" id="havchikBtn" aria-label="Хавчик" title="Хавчик — энергия от братков и к браткам"><img src="хав.jpeg" alt="Хавчик"></button>
     </div>
     <div class="sheetBody">
       <div id="districtBizRewardColumn" style="display:none; margin:10px 10px 0 10px;"></div>
       <div style="margin:10px; display:flex; flex-direction:column; gap:10px;" id="districtList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Хавчик: получение/отправка энергии браткам -->
+<div class="modal modalPage" id="mHavchik" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mHavchik">‹</button>
+      <div class="title">ХАВЧИК</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody">
+      <div class="card" style="margin-top:10px;">
+        <div class="k" style="margin-bottom:8px;">Энергия от братков и к браткам</div>
+        <div style="font-size:12px;opacity:.85;line-height:1.4;">Хавчик увеличивает энергию: получай от братков и отправляй браткам.</div>
+        <div class="havchikTypesGrid" id="havchikTypesGrid"></div>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
+          <button type="button" class="btn" id="havchikCollect">Забрать хавчик</button>
+          <button type="button" class="btn" id="havchikSend">Отправить хавчик</button>
+        </div>
+        <div id="havchikStatus" style="margin-top:12px;font-size:11px;opacity:.8;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Забрать хавчик — хавчик, который отправили братки (входящие) -->
+<div class="modal modalPage havchikCollectFullScreen" id="mHavchikCollect" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mHavchikCollect">‹</button>
+      <div class="title">ЗАБРАТЬ ХАВЧИК</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody havchikCollectBody">
+      <div class="havchikCollectScroll" id="havchikCollectScroll"></div>
     </div>
   </div>
 </div>
@@ -1490,8 +1541,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody">
       <div class="card">
         <div class="row"><div class="k">УРОВЕНЬ</div><div class="badge" id="fhLvl">0</div></div>
-        <div class="row" style="margin-top:10px;"><div class="k">ЛИМИТ НА ДРУГА</div><div class="badge" id="fhPct">10%</div></div>
-        <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.35">Каждый уровень увеличивает лимит помощи друзей в бою с боссом на +1%.</div>
+        <div class="row" style="margin-top:10px;"><div class="k">ЛИМИТ НА БРАТКА</div><div class="badge" id="fhPct">10%</div></div>
+        <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.35">Каждый уровень увеличивает лимит помощи братков в бою с боссом на +1%.</div>
         <button class="btn" style="margin-top:12px;" id="fhUp">ПРОКАЧАТЬ</button>
       </div>
     </div>
@@ -2418,6 +2469,110 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           save();
           renderFriendHelp();
           renderHUD();
+          haptic('light');
+        };
+      }
+    } catch (e) {}
+  }
+
+  const HAVCHIK_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+  const HAVCHIK_ENERGY_PER_FRIEND = 3;
+  const HAVCHIK_TYPES = [
+    { id:0, name:'Шоколад "Урчонка"', energy:5, img:'шок.jpg' },
+    { id:1, name:'Салат "Зелёный Шир"', energy:10, img:'сал.jpg' },
+    { id:2, name:'Похлёбка "Вечный Поход"', energy:15, img:'суп.jpg' },
+    { id:3, name:'Голени "Пир Хоббитов"', energy:20, img:'мяс.jpg' },
+    { id:4, name:'Компот из крыжовника', energy:25, img:'ком.jpg' },
+    { id:5, name:'Пирог "Братства Кольца"', energy:30, img:'пир.jpeg' }
+  ];
+  function renderHavchikTypes(){
+    try {
+      const cont = $('havchikTypesGrid');
+      if (!cont) return;
+      let h = '';
+      HAVCHIK_TYPES.forEach((t)=>{
+        h += '<div class="havchikCollectCard">';
+        h += '<img src="'+t.img+'" alt="">';
+        h += '<div class="havchikName">'+t.name+'</div>';
+        h += '<div style="font-size:12px;font-weight:900;">+'+t.energy+' ⚡</div>';
+        h += '</div>';
+      });
+      cont.innerHTML = h;
+    } catch (e) {}
+  }
+  function renderHavchikCollect(){
+    try {
+      const cont = $('havchikCollectScroll');
+      if (!cont) return;
+      const inbox = Array.isArray(state.havchikInbox) ? state.havchikInbox : [];
+      if (inbox.length === 0) {
+        cont.innerHTML = '<div style="padding:20px;text-align:center;font-size:14px;opacity:.9;">Пока нет хавчика от братков.<br><span style="font-size:12px;opacity:.8;">Сюда придёт хавчик, который отправят братки.</span></div>';
+        return;
+      }
+      let h = '';
+      inbox.forEach((item, i)=>{
+        const t = HAVCHIK_TYPES[item.typeId];
+        const name = t ? t.name : ('+'+item.energy+' ⚡');
+        const from = item.from || 'Браток';
+        h += '<div class="havchikInboxCard" data-inbox-idx="'+i+'">';
+        h += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">';
+        h += '<img src="'+(t ? t.img : 'хав.jpeg')+'" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:10px;">';
+        h += '<div style="flex:1;min-width:0;">';
+        h += '<div style="font-weight:900;font-size:12px;">'+from+'</div>';
+        h += '<div style="font-size:11px;opacity:.85;">'+name+' · +'+item.energy+' ⚡</div>';
+        h += '</div>';
+        h += '<button type="button" class="btn btnSmall" data-havchik-inbox="'+i+'">Получить</button>';
+        h += '</div></div>';
+      });
+      cont.innerHTML = h;
+      cont.querySelectorAll('[data-havchik-inbox]').forEach(btn=>{
+        btn.onclick = ()=>{
+          const i = parseInt(btn.getAttribute('data-havchik-inbox')||'0',10)||0;
+          const inbox2 = Array.isArray(state.havchikInbox) ? state.havchikInbox.slice() : [];
+          const item = inbox2[i];
+          if (!item) return;
+          state.energy = Math.min(state.energyMax||100, (state.energy||0) + (item.energy||0));
+          state.havchikInbox = inbox2.filter((_, idx)=>idx !== i);
+          save();
+          renderHavchikCollect();
+          renderHUD();
+          toast('+' + item.energy + ' ⚡','win');
+          feedAdd('Хавчик от братка: +'+item.energy+' ⚡','SYS');
+          haptic('light');
+        };
+      });
+    } catch (e) {}
+  }
+  function renderHavchik(){
+    try {
+      renderHavchikTypes();
+      const statusEl = $('havchikStatus');
+      const collectBtn = $('havchikCollect');
+      const sendBtn = $('havchikSend');
+      const friends = Array.isArray(state.friends) ? state.friends : [];
+      const n = friends.length;
+      const nowTs = now();
+      const lastSend = parseInt(state.havchikLastSendTs||0,10)||0;
+      const canSend = (nowTs - lastSend) >= HAVCHIK_COOLDOWN_MS;
+      if (statusEl) {
+        let txt = 'Братков: ' + n + '. ';
+        if (canSend) txt += 'Можно отправить браткам.';
+        else if (lastSend) txt += 'Отправить снова через ' + formatCd(lastSend + HAVCHIK_COOLDOWN_MS - nowTs) + '.';
+        statusEl.textContent = txt;
+      }
+      if (collectBtn) {
+        collectBtn.onclick = ()=>{ showModal('mHavchikCollect'); renderHavchikCollect(); haptic('light'); };
+      }
+      if (sendBtn) {
+        sendBtn.disabled = !canSend || n === 0;
+        sendBtn.onclick = ()=>{
+          if (!canSend){ toast('Раз в 24 ч','lose'); return; }
+          if (n === 0){ toast('Нет братков','lose'); return; }
+          state.havchikLastSendTs = nowTs;
+          save();
+          renderHavchik();
+          toast('Хавчик отправлен браткам','win');
+          feedAdd('Хавчик отправлен браткам','SYS');
           haptic('light');
         };
       }
@@ -3627,10 +3782,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     _bizEnergyApplied:0,
     bosses:{ hp:{}, strikes:10, wins:0, lastWinners:{}, keys:{}, hitStocks:{ kick:0, knuckle:0, enema:0 }, shopQty:1, hitUseQty:1, fights:{}, dmgLog:{}, dmgTop:{}, daily:{ day:'', counts:{} }, toothNextTs:0 },
     friendHelpLvl:0,
+    havchikLastCollectTs:0,
+    havchikLastSendTs:0,
     vip:false,
     shopX2:false,
     feed:[],
-    friends:[]
+    friends:[],
+    havchikInbox:[]
   };
 
   let state = Object.assign({}, defaults, load()||{});
@@ -3676,6 +3834,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (state.consumablesBuffUntil > now() && state.consumablesBuffStat){
     try { state.consumablesBuffs[state.consumablesBuffStat] = state.consumablesBuffUntil; } catch(e){}
   }
+  if (!Array.isArray(state.havchikInbox)) state.havchikInbox = [];
   delete state.consumablesBuffUntil;
   delete state.consumablesBuffStat;
   if (!state.clan || typeof state.clan !== 'object') state.clan = Object.assign({}, defaults.clan);
@@ -3878,7 +4037,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       const id = clamp(parseInt(dIdx||0,10)||0, 0, 11);
       if (!districtAllTasksDone(id)) return;
-      const mult = (id + 1) * 100;
+      const rewardTable = [300,400,600,900,1200,1500,1800,2000,2200,2500,2800,3000];
+      const mult = rewardTable[id] ?? 300;
       const bk = 'D'+String(id);
 
       addXp(mult);
@@ -4306,7 +4466,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const d = document.createElement('div');
       d.className = 'friendCard';
       d.style.opacity = '0.75';
-      d.textContent = 'Пока нет друзей. Нажми + ДРУГ.';
+      d.textContent = 'Пока нет братков. Нажми + БРАТКА.';
       row.appendChild(d);
       return;
     }
@@ -4325,9 +4485,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const on = !!f.online;
       const medal = idx===0 ? '🥇' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
       c.innerHTML = ''
-        + '<div class="friendTop"><div class="friendName">'+(medal?('<span style="margin-right:6px">'+medal+'</span>'):'')+String(f.name||'Друг')+'</div><div class="dot '+(on?'on':'')+'"></div></div>'
+        + '<div class="friendTop"><div class="friendName">'+(medal?('<span style="margin-right:6px">'+medal+'</span>'):'')+String(f.name||'Браток')+'</div><div class="dot '+(on?'on':'')+'"></div></div>'
         + '<div class="friendMeta">Ур. '+(f.lvl||1)+' • Сила '+(f.power||0)+'</div>';
-      c.onclick = ()=>{ toast('#'+(idx+1)+' ' + (f.name||'Друг') + ' · ур. ' + (f.lvl||1)); haptic('light'); };
+      c.onclick = ()=>{ toast('#'+(idx+1)+' ' + (f.name||'Браток') + ' · ур. ' + (f.lvl||1)); haptic('light'); };
       row.appendChild(c);
     });
   }
@@ -7822,6 +7982,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if ($('mClans').classList.contains('show')) renderClans();
     if ($('mInventory').classList.contains('show')) renderInventory();
     if ($('mLavka').classList.contains('show')) renderLavka();
+    if ($('mHavchikCollect').classList.contains('show')) renderHavchikCollect();
   }
 
   function clanLevelFromDmg(dmg){
@@ -8715,10 +8876,21 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return { cost:cost, gold:gold, xp:xp, fear:fear, max:max };
     }
 
+    // Брийские земли: 7 заданий, по 5 выполнений, суммарно как было (500), парные числа
+    if (dIdx===1){
+      const costArr = [4,8,10,14,18,20,26];
+      const cost = costArr[idx] ?? costArr[costArr.length-1] ?? 4;
+      const xpArr = [8,10,12,14,16,18,22];
+      const fearArr = [8,10,12,14,16,18,22];
+      const xp = xpArr[idx] ?? 22;
+      const fear = fearArr[idx] ?? 22;
+      return { cost, gold:0, xp, fear, max:5 };
+    }
+
     const totals = [380,500,800,1000,1400,1600,2000,2200,2400,2600,2800,3000];
     const total = totals[clamp(parseInt(dIdx||0,10)||0, 0, 11)] || 500;
 
-    // 7 tasks * 10 levels => total per district spread across 70 completions
+    // 7 tasks * 10 levels => total per district
     const sumNeed = Math.max(7, Math.round(total / 10));
 
     const tpl = [2,6,8,10,14,16,20];
@@ -9021,6 +9193,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       renderDistricts();
       haptic('light');
     };
+    const hb = $('havchikBtn'); if (hb) hb.onclick = ()=>{ showModal('mHavchik'); renderHavchik(); haptic('light'); };
     $('btnArena').onclick = ()=>{
       if (isGroupBattleActive()) {
         gfEnsureBattle();
