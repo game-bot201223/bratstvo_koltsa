@@ -6732,33 +6732,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const hitBtn1 = $('bfHit1');
     const hitBtn2 = $('bfHit2');
     const hitBtn3 = $('bfHit3');
-    function bfAnyHitBusy(){
-      try { return !!(window.__bfHitBusy && window.__bfHitBusy[String(bossId)]); } catch (e) { return false; }
-    }
-    function bfSetHitBusy(v){
-      try {
-        if (!window.__bfHitBusy) window.__bfHitBusy = {};
-        if (v) window.__bfHitBusy[String(bossId)] = 1;
-        else delete window.__bfHitBusy[String(bossId)];
-      } catch (e) {}
-      try {
-        const busy = bfAnyHitBusy();
-        const btns = [freeBtn, hitBtn1, hitBtn2, hitBtn3].filter(Boolean);
-        btns.forEach(bb=>{
-          bb.classList.toggle('loading', busy);
-          bb.style.pointerEvents = busy ? 'none' : '';
-        });
-      } catch (e) {}
-    }
     const alive = (parseInt(f.hp||0,10)||0) > 0;
     const inTime = left > 0;
-    const busyNow = bfAnyHitBusy();
-    freeBtn.disabled = busyNow || (!alive || !inTime || !!f.freeUsed);
+    freeBtn.disabled = (!alive || !inTime || !!f.freeUsed);
     freeBtn.style.opacity = freeBtn.disabled ? '.6' : '1';
     const useQ = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
-    hitBtn1.disabled = busyNow || (!alive || !inTime || hk<useQ);
-    hitBtn2.disabled = busyNow || (!alive || !inTime || hn<useQ);
-    hitBtn3.disabled = busyNow || (!alive || !inTime || he<useQ);
+    hitBtn1.disabled = (!alive || !inTime || hk<useQ);
+    hitBtn2.disabled = (!alive || !inTime || hn<useQ);
+    hitBtn3.disabled = (!alive || !inTime || he<useQ);
     hitBtn1.style.opacity = hitBtn1.disabled ? '.6' : '1';
     hitBtn2.style.opacity = hitBtn2.disabled ? '.6' : '1';
     hitBtn3.style.opacity = hitBtn3.disabled ? '.6' : '1';
@@ -6796,7 +6777,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!window.__bfHitLock) window.__bfHitLock = {};
       const lk = 'free:' + String(bossId);
       try { if (window.__bfHitLock[lk]) return; window.__bfHitLock[lk] = true; } catch (e0) {}
-      try { if (bfAnyHitBusy()) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; } } catch (e0) {}
       const ff = bfGetFight(bossId);
       if (!ff) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
       const left2 = Math.max(0, (parseInt(ff.expiresTs||0,10)||0) - now());
@@ -6804,7 +6784,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const prevHp = Math.max(0, parseInt(ff.hp||0,10)||0);
       const dmg = bossHitDmg(14, 50);
       const wantApply = Math.min(prevHp, dmg);
-      bfSetHitBusy(true);
       bossFightHitCloud(bossId, wantApply).then((r)=>{
         try {
           if (r && typeof r === 'object' && r.skipped) {
@@ -6840,17 +6819,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
         renderAll();
         haptic('light');
-      }).catch(()=>{}).finally(()=>{
-        try { bfSetHitBusy(false); } catch (e0) {}
-        try { delete window.__bfHitLock[lk]; } catch (e0) {}
-      });
+      }).catch(()=>{}).finally(()=>{ try { delete window.__bfHitLock[lk]; } catch (e0) {} });
     };
 
     function doTokenHit(kind){
       if (!window.__bfHitLock) window.__bfHitLock = {};
       const lk = 'tok:' + String(bossId) + ':' + String(kind||'');
       try { if (window.__bfHitLock[lk]) return; window.__bfHitLock[lk] = true; } catch (e0) {}
-      try { if (bfAnyHitBusy()) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; } } catch (e0) {}
 
       const f2 = bfEnsureFight(bossId);
       if (!f2) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
@@ -6874,13 +6849,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
       ff.lastFriendTs = now();
       const one = (kind==='kick') ? bossHitDmg(10, 70) : ((kind==='knuckle') ? bossHitDmg(7, 85) : bossHitDmg(4, 100));
+      const dmg = Math.max(1, one) * q;
       const prevHp = Math.max(0, parseInt(ff.hp||0,10)||0);
-      const oneSafe = Math.max(1, one);
-      const needHits = clamp(Math.max(1, Math.ceil(prevHp / oneSafe)), 1, q);
-      const dmg = oneSafe * needHits;
       const wantApply = Math.min(prevHp, dmg);
-
-      bfSetHitBusy(true);
 
       bossFightHitCloud(bossId, wantApply).then((r)=>{
         try {
@@ -6893,9 +6864,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         } catch (e0) {}
 
         // HARD MODE: spend token only after server ok
-        if (kind==='kick') hs2.kick = Math.max(0, (hs2.kick||0) - needHits);
-        if (kind==='knuckle') hs2.knuckle = Math.max(0, (hs2.knuckle||0) - needHits);
-        if (kind==='enema') hs2.enema = Math.max(0, (hs2.enema||0) - needHits);
+        if (kind==='kick') hs2.kick = Math.max(0, (hs2.kick||0) - q);
+        if (kind==='knuckle') hs2.knuckle = Math.max(0, (hs2.knuckle||0) - q);
+        if (kind==='enema') hs2.enema = Math.max(0, (hs2.enema||0) - q);
         state.bosses.hitStocks = hs2;
 
         const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
@@ -6922,10 +6893,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
         renderAll();
         haptic('light');
-      }).catch(()=>{}).finally(()=>{
-        try { bfSetHitBusy(false); } catch (e0) {}
-        try { delete window.__bfHitLock[lk]; } catch (e0) {}
-      });
+      }).catch(()=>{}).finally(()=>{ try { delete window.__bfHitLock[lk]; } catch (e0) {} });
     }
 
     hitBtn1.onclick = ()=>doTokenHit('kick');
