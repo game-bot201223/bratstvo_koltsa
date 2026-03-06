@@ -1071,10 +1071,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody">
       <div class="card">
         <div class="row"><div class="k">ВЫБРАН</div><div class="badge" id="baBossName">—</div></div>
+        <div class="row" style="margin-top:10px;"><div class="k">ХП БОССА</div><div class="badge" id="baHp">—</div></div>
         <div class="row" style="margin-top:10px;"><div class="k">ДОСТУП</div><div class="badge" id="baAccess">—</div></div>
-        <div style="margin-top:12px; display:flex; gap:10px; align-items:center;">
+        <div style="margin-top:12px; display:flex; gap:10px; align-items:center;" id="baGoWrap">
           <button class="btn" style="flex:1" id="baGo">В БОЙ</button>
           <button class="btn" style="width:56px; padding:0; font-size:20px; letter-spacing:0" id="baBuyRing" aria-label="Купить 1 атаку за козырные кольца">💍</button>
+        </div>
+        <div style="margin-top:12px; display:none;" id="baClaimWrap">
+          <button class="btn" style="width:100%" id="baClaim">ЗАБРАТЬ НАГРАДУ</button>
         </div>
       </div>
 
@@ -7342,6 +7346,26 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const b = BOSSES.find(x=>x.id===selectedId);
     $('baBossName').textContent = b ? b.name : '—';
 
+    const cloudOn = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
+    let hp = bossHp(selectedId);
+    let hpCloud = null;
+    try {
+      if (cloudOn) {
+        const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(selectedId)];
+        if (cc && typeof cc === 'object' && typeof cc.hp !== 'undefined') hpCloud = (parseInt(cc.hp||0,10)||0);
+      }
+    } catch (e0) {}
+    const dead = cloudOn ? (hpCloud!==null && (parseInt(hpCloud||0,10)||0) <= 0) : ((parseInt(hp||0,10)||0) <= 0);
+    const claimed = !!(cloudOn && state.bosses && state.bosses.cloud && state.bosses.cloud[String(selectedId)] && state.bosses.cloud[String(selectedId)].reward_claimed);
+    const canClaim = dead && !claimed;
+    const displayHp = (cloudOn && hpCloud!==null) ? Math.max(0, hpCloud) : (parseInt(hp||0,10)||0);
+    const baHpEl = $('baHp');
+    const baGoWrap = $('baGoWrap');
+    const baClaimWrap = $('baClaimWrap');
+    if (baHpEl) baHpEl.textContent = dead ? 'ПОВЕРЖЕН · 0 хп' : (displayHp + ' хп');
+    if (baGoWrap) baGoWrap.style.display = canClaim ? 'none' : '';
+    if (baClaimWrap) baClaimWrap.style.display = canClaim ? 'block' : 'none';
+
     const req = bossReq(selectedId);
     let accessText = 'БЕСПЛАТНО';
     let canGo = true;
@@ -7551,6 +7575,60 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       showModal('mBossFight');
       bfRender(id);
       save();
+    };
+  }
+
+  const baClaimBtn = $('baClaim');
+  if (baClaimBtn) {
+    baClaimBtn.onclick = ()=>{
+      const id = parseInt(state.bosses.pendingAttackId||0,10)||0;
+      if (!id) return;
+      try {
+        if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) {
+          bossLocalClaim(id);
+          hideModal('mBossAttack');
+          renderBosses();
+          renderHUD();
+          return;
+        }
+      } catch (e0) {}
+      bossFightClaimCloud(id).then((r)=>{
+        try {
+          if (!(r && r.ok && r.can_claim)) {
+            try { bossFightsCloudPullMaybe(true); } catch (e0) {}
+            try { renderBossAttackModal(id); } catch (e00) {}
+            try {
+              const hp = (r && (r.hp === null || typeof r.hp === 'undefined')) ? null : (parseInt(r.hp,10)||0);
+              const claimed = !!(r && r.reward_claimed);
+              if (claimed) { toast('Награда уже получена','lose'); return; }
+              if (hp===null) { toast('Нет боя на сервере','lose'); return; }
+              if (hp>0) { toast('Босс ещё жив (HP '+String(hp)+')','lose'); return; }
+            } catch (e9) {}
+            toast('Нельзя забрать награду','lose');
+            return;
+          }
+          const rew = r && r.reward ? r.reward : null;
+          const rxp = rew ? (parseInt(rew.xp||0,10)||0) : 0;
+          const rm = rew ? (parseInt(rew.tooth||0,10)||0) : 0;
+          const rg = rew ? (parseInt(rew.gold||0,10)||0) : 0;
+          if (rm>0) state.tooth += rm;
+          if (rg>0) state.gold += rg;
+          if (rxp>0) addXp(rxp);
+          try {
+            const nextReq = bossReq(id+1);
+            if (nextReq){ bossKeyAdd(nextReq.itemKey, nextReq.need); feedAdd('Добыто: '+nextReq.need+'× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS'); }
+          } catch (e5) {}
+          try { if (state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)]) delete state.bosses.cloud[String(id)]; } catch (e3) {}
+          try { const b2 = BOSSES.find(x=>x.id===id); if (b2) setBossHp(id, b2.maxHP); } catch (e4) {}
+          save();
+          try { bossFightsCloudPullMaybe(true); } catch (e1) {}
+          hideModal('mBossAttack');
+          renderBosses();
+          renderHUD();
+          toast('Награда получена','win');
+          haptic('heavy');
+        } catch (e2) { toast('Не удалось забрать награду','lose'); }
+      }).catch(()=>toast('Не удалось забрать награду','lose'));
     };
   }
 
@@ -7838,16 +7916,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       btn.onclick = ()=>{
         const id = parseInt(btn.getAttribute('data-boss-attack')||'0',10)||0;
         if (!id) return;
-        if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-          const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)];
-          const dead = cc && typeof cc === 'object' && (parseInt(cc.hp||0,10)||0) <= 0;
-          const claimed = !!(cc && typeof cc === 'object' && cc.reward_claimed);
-          if (dead && !claimed) { toast('Босс повержен. Забери награду.','lose'); return; }
-        } else {
-          if ((parseInt(bossHp(id)||0,10)||0) <= 0) { toast('Босс повержен. Забери награду.','lose'); return; }
-        }
         if (!bossHasAccess(id)) {
-          // No keys: open pass shop directly
           showModal('mBossAttack');
           renderBossAttackModal(id);
           haptic('light');
