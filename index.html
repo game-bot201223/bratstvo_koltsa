@@ -839,7 +839,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="pills">
         <div class="pill energyPill" style="border-color:rgba(34,211,238,.20)">
           <div class="eRow">⚡ <strong id="energy">100</strong>/<span id="energyMax">100</span>
-            <button type="button" class="energyRefillBtn" id="energyRefillBtn" aria-label="Восстановить энергию" title="Восстановить 100% энергии за 10 🪙">+</button>
+            <button type="button" class="energyRefillBtn" id="energyRefillBtn" aria-label="Восстановить энергию" title="Восстановить 100% энергии за 10 золотых">+</button>
           </div>
           <div class="eTimer" id="energyTimer">02:00</div>
         </div>
@@ -904,7 +904,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody">
       <div class="card">
         <div class="row"><div><div class="k">СТАРТ (UTC)</div><div style="font-size:12px;opacity:.75">Сбор 1 минута</div></div><div class="badge" id="gfJoinStart">--:--</div></div>
-        <div class="row" style="margin-top:10px;"><div><div class="k">ЦЕНА ВХОДА</div><div style="font-size:12px;opacity:.75">Зависит от часа</div></div><div class="badge" style="color:var(--gold)" id="gfJoinCost">0 🪙</div></div>
+        <div class="row" style="margin-top:10px;"><div><div class="k">ЦЕНА ВХОДА</div><div style="font-size:12px;opacity:.75">Зависит от часа</div></div><div class="badge" style="color:var(--gold)" id="gfJoinCost">0 <img src="голд.png" alt="Золото" class="goldIcon"></div></div>
         <div class="row" style="margin-top:10px;"><div class="k">ДО СТАРТА</div><div class="badge" id="gfJoinLeft">--:--</div></div>
         <div style="margin-top:12px; display:flex; gap:10px; align-items:center;">
           <button class="btn" style="flex:1" id="gfJoinBtn">ПОДАТЬ ЗАЯВКУ</button>
@@ -930,7 +930,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody">
       <div class="card">
         <div class="row"><div><div class="k">СТАРТ (UTC)</div><div style="font-size:12px;opacity:.75">Сбор 1 минута</div></div><div class="badge" id="gf10Start">--:--</div></div>
-        <div class="row" style="margin-top:10px;"><div><div class="k">ЦЕНА ВХОДА</div><div style="font-size:12px;opacity:.75">Чередование по часу</div></div><div class="badge" style="color:var(--gold)" id="gf10Cost">0 🪙</div></div>
+        <div class="row" style="margin-top:10px;"><div><div class="k">ЦЕНА ВХОДА</div><div style="font-size:12px;opacity:.75">Чередование по часу</div></div><div class="badge" style="color:var(--gold)" id="gf10Cost">0 <img src="голд.png" alt="Золото" class="goldIcon"></div></div>
         <div class="row" style="margin-top:10px;"><div class="k">СОБРАНО</div><div class="badge" id="gf10Count">0</div></div>
         <div style="margin-top:10px; font-size:12px; opacity:.85; line-height:1.35" id="gf10Status">—</div>
         <div style="margin-top:10px; display:flex; gap:10px;">
@@ -963,7 +963,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 <!-- Подтверждение покупки энергии -->
 <div class="modal modalMini modalEnergyRefillConfirm" id="mEnergyRefillConfirm" role="dialog" aria-modal="true">
   <div class="sheet">
-    <div style="text-align:center; font-size:13px; font-weight:900; letter-spacing:1px;">Восстановить 100% энергии за 10 🪙?</div>
+    <div style="text-align:center; font-size:13px; font-weight:900; letter-spacing:1px;">Восстановить 100% энергии за 10 <img src="голд.png" alt="Золото" class="goldIcon">?</div>
     <div class="energyRefillConfirmBtns">
       <button type="button" class="btn" id="energyRefillConfirmYes">Да</button>
       <button type="button" class="btn" id="energyRefillConfirmNo">Отмена</button>
@@ -1019,7 +1019,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <div class="row"><div><div class="k">СТАРТ (UTC)</div><div style="font-size:12px;opacity:.75">Каждую минуту</div></div><div class="badge" id="gfStart">--:--</div></div>
           <div class="costRow">
             <div><div class="k">ЦЕНА ВХОДА</div><div style="font-size:12px;opacity:.75">Зависит от часа</div></div>
-            <div class="badge" style="color:#000" id="gfCost">0 🪙</div>
+            <div class="badge" style="color:#000" id="gfCost">0 <img src="голд.png" alt="Золото" class="goldIcon"></div>
           </div>
           <div style="font-size:12px; opacity:.85; line-height:1.35" id="gfStatus">—</div>
           <button class="btn" id="gfEnter" style="display:none;">ВОЙТИ В БОЙ</button>
@@ -1169,12 +1169,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     </div>
     <div class="sheetBody">
       <div class="card">
-        <div class="row"><div class="k">ТВОИ МОНЕТЫ</div><div class="badge" style="color:var(--gold)" id="bfShopGold">0 🪙</div></div>
+        <div class="row"><div class="k">ТВОИ МОНЕТЫ</div><div class="badge" style="color:var(--gold)" id="bfShopGold">0 <img src="голд.png" alt="Золото" class="goldIcon"></div></div>
         <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end" id="bfShopQty"></div>
         <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
-          <button class="btn" id="bfShopBuyKick">ПИНОК: +1 за 3 🪙</button>
-          <button class="btn" id="bfShopBuyKnuckle">КОСТЕТ: +1 за 5 🪙</button>
-          <button class="btn" id="bfShopBuyEnema">КЛИЗМА: +1 за 8 🪙</button>
+          <button class="btn" id="bfShopBuyKick">ПИНОК: +1 за 3 <img src="голд.png" alt="Золото" class="goldIcon"></button>
+          <button class="btn" id="bfShopBuyKnuckle">КОСТЕТ: +1 за 5 <img src="голд.png" alt="Золото" class="goldIcon"></button>
+          <button class="btn" id="bfShopBuyEnema">КЛИЗМА: +1 за 8 <img src="голд.png" alt="Золото" class="goldIcon"></button>
         </div>
       </div>
     </div>
@@ -1287,7 +1287,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;" id="consList">—</div>
       </div>
       <div class="card" style="margin-top:12px;" id="consShopCard">
-        <div class="row"><div class="k">МАГАЗИН (АРЕНА)</div><div class="badge" style="color:var(--gold)" id="consGold">0 🪙</div></div>
+        <div class="row"><div class="k">МАГАЗИН (АРЕНА)</div><div class="badge" style="color:var(--gold)" id="consGold">0 <img src="голд.png" alt="Золото" class="goldIcon"></div></div>
         <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;" id="consShop">—</div>
       </div>
     </div>
@@ -1315,7 +1315,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <div id="clanTitle" style="font-size:14px; font-weight:900; letter-spacing:1px;">—</div>
         </div>
         <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.35" id="clanDesc">—</div>
-        <button class="btn" style="margin-top:12px;" id="clanCreate">СОЗДАТЬ КЛАН ЗА 1000 🪙</button>
+        <button class="btn" style="margin-top:12px;" id="clanCreate">СОЗДАТЬ КЛАН ЗА 1000 <img src="голд.png" alt="Золото" class="goldIcon"></button>
         <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn btnSmall" id="clanSetDeputy" style="display:none;">ЗАМЕСТИТЕЛЬ</button>
           <button class="btn btnSmall" id="clanSetFilters" style="display:none;">ФИЛЬТР</button>
@@ -1343,7 +1343,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       </div>
       <div class="card" style="margin-top:12px;" id="clanBankCard">
         <div class="row"><div class="k">БАНК КЛАНА</div><div class="badge" style="color:var(--gold)" id="clanBankGold">—</div></div>
-        <button class="btn" style="margin-top:12px;" id="clanBankAdd">ВНЕСТИ 🪙</button>
+        <button class="btn" style="margin-top:12px;" id="clanBankAdd">ВНЕСТИ <img src="голд.png" alt="Золото" class="goldIcon"></button>
       </div>
     </div>
   </div>
@@ -1541,7 +1541,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetHead">
       <button class="iconBtn" data-close="mLavka">‹</button>
       <div class="title">ТОРГОВАЯ ЛАВКА</div>
-      <div class="badge" style="color:#000" id="lavkaGold">0 🪙</div>
+      <div class="badge" style="color:#000" id="lavkaGold">0 <img src="голд.png" alt="Золото" class="goldIcon"></div>
     </div>
     <div class="sheetBody">
       <div class="k" style="margin-bottom:12px;">РАСХОДНИКИ — ПРИ ПОКУПКЕ ПОПАДАЮТ В ИНВЕНТАРЬ</div>
@@ -1591,7 +1591,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="title">БОССЫ</div>
       <div style="display:flex; gap:8px; align-items:center;">
         <div class="badge" id="bossRingBadge" style="padding:8px 10px; border-color:rgba(255,255,255,.10); background:rgba(0,0,0,.18)">💍 <b id="bossRingVal" style="letter-spacing:1px">0</b></div>
-        <button class="toothBtn" id="bossToothBtn" type="button"><div class="ico">🦷</div><div class="tm" id="bossToothTimer">00:00</div></button>
+        <button class="toothBtn" id="bossToothBtn" type="button"><div class="ico"><img src="зуб.png" alt="Золотые зубы" class="toothIcon" style="height:1.2em;"></div><div class="tm" id="bossToothTimer">00:00</div></button>
       </div>
     </div>
     <div class="sheetBody" id="bossList"></div>
@@ -1650,7 +1650,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody">
       <div class="card">
         <div class="diceTitle"><span class="ico">🎲</span><span>БРАТСТВО КОНЦА</span></div>
-        <div class="dicePrice">Цена: <span style="color:var(--gold); font-weight:900">1 🪙</span></div>
+        <div class="dicePrice">Цена: <span style="color:var(--gold); font-weight:900">1 <img src="голд.png" alt="Золото" class="goldIcon"></span></div>
         <div class="diceGrid" id="diceRow"></div>
         <button class="btn dicePrimary" id="diceRoll">БРОСИТЬ</button>
         <div style="margin-top:12px; font-size:12px; opacity:.85; text-align:center" id="diceRes">—</div>
@@ -1667,7 +1667,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <div class="row"><div style="min-width:0">4×6</div><div class="badge">Кольцо на босса «Сарумян»</div></div>
         </div>
         <div style="margin-top:10px; font-size:11px; opacity:.75; line-height:1.35">Если 4 одинаковых не собраны — награда: <b>+50 золотых зубов</b></div>
-        <div style="margin-top:8px; font-size:11px; opacity:.75; line-height:1.35">Если собраны <b>5 одинаковых</b> — дополнительно: <b>+20 🪙</b></div>
+        <div style="margin-top:8px; font-size:11px; opacity:.75; line-height:1.35">Если собраны <b>5 одинаковых</b> — дополнительно: <b>+20 <img src="голд.png" alt="Золото" class="goldIcon"></b></div>
       </div>
     </div>
   </div>
@@ -1682,7 +1682,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     </div>
     <div class="sheetBody">
       <div class="card">
-        <div class="row"><div class="k">ПОЛУЧЕНО</div><div class="badge" style="color:var(--gold)" id="diceRewardVal">50 🦷</div></div>
+        <div class="row"><div class="k">ПОЛУЧЕНО</div><div class="badge" style="color:var(--gold)" id="diceRewardVal">50 <img src="зуб.png" alt="Золотые зубы" class="toothIcon"></div></div>
         <button class="btn" style="margin-top:12px" id="diceRewardOk">ОК</button>
       </div>
     </div>
@@ -2173,7 +2173,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (addFearSum>0 || addGoldSum>0){
         save();
         renderHUD();
-        toast('БИЗНЕС: +' + fmt4(addFearSum) + ' 😱 · +' + fmt4(addGoldSum) + ' 🪙','win');
+        toast('БИЗНЕС: +' + fmt4(addFearSum) + ' страх · +' + fmt4(addGoldSum) + ' золотых','win');
         haptic('heavy');
       } else {
         toast('Бизнес награда уже собрана','lose');
@@ -2225,7 +2225,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function renderConsumables(){
     const ctx = String(state._consCtx||'');
     try { $('consCtx').textContent = (ctx==='arena' ? 'ПОКУПКА' : 'ИСПОЛЬЗОВАНИЕ'); } catch (e) {}
-    try { $('consGold').textContent = String(state.gold||0) + ' 🪙'; } catch (e) {}
+    try { $('consGold').innerHTML = String(state.gold||0) + ' <img src="голд.png" alt="Золото" class="goldIcon">'; } catch (e) {}
 
     const med = parseInt(state.consumables && state.consumables.med || 0, 10) || 0;
     const nade = parseInt(state.consumables && state.consumables.nade || 0, 10) || 0;
@@ -2265,7 +2265,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (ctx==='arena'){
         const s1 = document.createElement('div');
         s1.className = 'row';
-        s1.innerHTML = '<div><div class="k">🩹 АПТЕЧКА</div><div style="font-size:12px;opacity:.75">Цена: 30 🪙</div></div>';
+        s1.innerHTML = '<div><div class="k">🩹 АПТЕЧКА</div><div style="font-size:12px;opacity:.75">Цена: 30 <img src="голд.png" alt="Золото" class="goldIcon"></div></div>';
         const sb1 = document.createElement('button');
         sb1.className = 'btn btnSmall';
         sb1.textContent = 'КУПИТЬ';
@@ -2276,7 +2276,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
         const s2 = document.createElement('div');
         s2.className = 'row';
-        s2.innerHTML = '<div><div class="k">💣 ГРАНАТА</div><div style="font-size:12px;opacity:.75">Цена: 50 🪙</div></div>';
+        s2.innerHTML = '<div><div class="k">💣 ГРАНАТА</div><div style="font-size:12px;opacity:.75">Цена: 50 <img src="голд.png" alt="Золото" class="goldIcon"></div></div>';
         const sb2 = document.createElement('button');
         sb2.className = 'btn btnSmall';
         sb2.textContent = 'КУПИТЬ';
@@ -2290,7 +2290,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function consBuy(kind, cost){
     if (String(state._consCtx||'')!=='arena'){ toast('Покупка только на Арене','lose'); return; }
     const c = parseInt(cost||0,10)||0;
-    if ((state.gold||0) < c){ toast('Нужно '+c+' 🪙','lose'); return; }
+    if ((state.gold||0) < c){ toast('Нужно '+c+' золотых','lose'); return; }
     state.gold -= c;
     if (!state.consumables) state.consumables = { med:0, nade:0 };
     if (kind==='med') state.consumables.med = (parseInt(state.consumables.med||0,10)||0) + 1;
@@ -2410,7 +2410,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     toast('Нельзя использовать здесь','lose');
   }
   function renderLavka(){
-    try { $('lavkaGold').textContent = (state.gold||0) + ' 🪙'; } catch(e){}
+    try { $('lavkaGold').innerHTML = (state.gold||0) + ' <img src="голд.png" alt="Золото" class="goldIcon">'; } catch(e){}
     const grid = $('lavkaGrid');
     if (!grid) return;
     grid.innerHTML = '';
@@ -2424,8 +2424,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       btn.innerHTML = '<img src="'+c.img+'" alt="">'
         + '<span class="lavkaName">'+c.name+'</span>'
         + '<span class="lavkaDesc">'+(c.desc||'')+'</span>'
-        + '<span class="lavkaPrice">'+c.price+' 🪙</span>'
-        + (canBuy ? '<span class="btn btnSmall">КУПИТЬ</span>' : '<span class="btn btnSmall" style="opacity:.6">Нужно '+c.price+' 🪙</span>');
+        + '<span class="lavkaPrice">'+c.price+' <img src="голд.png" alt="Золото" class="goldIcon"></span>'
+        + (canBuy ? '<span class="btn btnSmall">КУПИТЬ</span>' : '<span class="btn btnSmall" style="opacity:.6">Нужно '+c.price+' <img src="голд.png" alt="Золото" class="goldIcon"></span>');
       btn.onclick = ()=>{ if ((state.gold||0) >= (c.price||0)) lavkaBuy(c.id); };
       grid.appendChild(btn);
     });
@@ -2434,7 +2434,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const c = CONSUMABLES_DATA.find(x=>x.id===id);
     if (!c){ toast('Не найден товар','lose'); return; }
     const price = parseInt(c.price||0,10)||0;
-    if ((state.gold||0) < price){ toast('Нужно '+price+' 🪙','lose'); return; }
+    if ((state.gold||0) < price){ toast('Нужно '+price+' золотых','lose'); return; }
     state.gold -= price;
     if (!state.consumablesItems) state.consumablesItems = { 1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0 };
     state.consumablesItems[id] = (parseInt(state.consumablesItems[id]||0,10)||0) + 1;
@@ -3842,14 +3842,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Game data
   const ITEMS = [
     { key:'VIP', name:'VIP статус', desc:'Открывает VIP возможности', cost:500, currency:'TOOTH', apply:()=>{ if (state.vip){ toast('VIP уже активен','lose'); return; } state.vip = true; toast('VIP активирован','win'); } },
-    { key:'G1', name:'Золото', desc:'+50 🪙', cost:'1$', currency:'TOOTH', goldAdd:50 },
-    { key:'G2', name:'Золото', desc:'+100 🪙', cost:'2$', currency:'TOOTH', goldAdd:100 },
-    { key:'G3', name:'Золото', desc:'+300 🪙', cost:'6$', currency:'TOOTH', goldAdd:300 },
-    { key:'G4', name:'Золото', desc:'+500 🪙', cost:'10$', currency:'TOOTH', goldAdd:500 },
-    { key:'G5', name:'Золото', desc:'+1 000 🪙', cost:'20$', currency:'TOOTH', goldAdd:1000 },
-    { key:'G6', name:'Золото', desc:'+2 500 🪙', cost:'50$', currency:'TOOTH', goldAdd:2500 },
-    { key:'G7', name:'Золото', desc:'+5 000 🪙', cost:'100$', currency:'TOOTH', goldAdd:5000 },
-    { key:'G8', name:'Золото', desc:'+10 000 🪙', cost:'200$', currency:'TOOTH', goldAdd:10000 }
+    { key:'G1', name:'Золото', desc:'+50 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'1$', currency:'TOOTH', goldAdd:50 },
+    { key:'G2', name:'Золото', desc:'+100 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'2$', currency:'TOOTH', goldAdd:100 },
+    { key:'G3', name:'Золото', desc:'+300 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'6$', currency:'TOOTH', goldAdd:300 },
+    { key:'G4', name:'Золото', desc:'+500 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'10$', currency:'TOOTH', goldAdd:500 },
+    { key:'G5', name:'Золото', desc:'+1 000 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'20$', currency:'TOOTH', goldAdd:1000 },
+    { key:'G6', name:'Золото', desc:'+2 500 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'50$', currency:'TOOTH', goldAdd:2500 },
+    { key:'G7', name:'Золото', desc:'+5 000 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'100$', currency:'TOOTH', goldAdd:5000 },
+    { key:'G8', name:'Золото', desc:'+10 000 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'200$', currency:'TOOTH', goldAdd:10000 }
   ];
 
   const PETS = [
@@ -4223,8 +4223,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!state.districtClearedBannerTs || typeof state.districtClearedBannerTs !== 'object') state.districtClearedBannerTs = {};
       state.districtClearedBannerTs[bk] = now();
 
-      toast('НАГРАДА: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱','win');
-      feedAdd('Награда района: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱','SYS');
+      toast('НАГРАДА: +'+mult+' XP, +'+mult+' зол. зубов, +'+mult+' страха','win');
+      feedAdd('Награда района: +'+mult+' XP, +'+mult+' зол. зубов, +'+mult+' страха','SYS');
       haptic('heavy');
     } catch (e) {}
   }
@@ -4341,7 +4341,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
           state.districtFear[fk] = curFear + addFear;
           didAny = true;
-          txt += (txt?' · ':'') + '+'+fmt4(addFear)+' 😱';
+          txt += (txt?' · ':'') + '+'+fmt4(addFear)+' <img src="страх.png" alt="Страх" class="fearIcon">';
           try {
             districtFearLeaderUpdate(id);
             districtDailyFearAdd(id, addFear);
@@ -4356,7 +4356,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (addGold>0){
           state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + addGold);
           didAny = true;
-          txt += (txt?' · ':'') + '+'+fmt4(addGold)+' 🪙';
+          txt += (txt?' · ':'') + '+'+fmt4(addGold)+' <img src="голд.png" alt="Золото" class="goldIcon">';
         }
         state.districtBizDaily.claimed[c4k] = now();
       }
@@ -4398,7 +4398,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         } else if (i===1){
           const addFear = lvl>0 ? (BIZ2_FEAR_PER_LVL[lvl-1]||0) : 0;
           const nextFear = maxed ? addFear : (BIZ2_FEAR_PER_LVL[lvl]||addFear);
-          eff = 'Раз в 24 ч: +' + fmt4(addFear) + ' 😱 (в этом районе)' + (maxed ? '' : (' · следующий: +' + fmt4(nextFear) + ' 😱'));
+          eff = 'Раз в 24 ч: +' + fmt4(addFear) + ' <img src="страх.png" alt="Страх" class="fearIcon">' + (maxed ? '' : (' (в этом районе) · следующий: +' + fmt4(nextFear) + ' <img src="страх.png" alt="Страх" class="fearIcon">'));
         } else if (i===2){
           const pct = lvl>0 ? (BIZ3_PCT_PER_LVL[lvl-1]||0) : 0;
           const nextPct = maxed ? pct : (BIZ3_PCT_PER_LVL[lvl]||pct);
@@ -4406,14 +4406,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         } else if (i===3){
           const addGold = lvl>0 ? (BIZ4_GOLD_PER_LVL[lvl-1]||0) : 0;
           const nextGold = maxed ? addGold : (BIZ4_GOLD_PER_LVL[lvl]||addGold);
-          eff = 'Раз в 24 ч: +' + fmt4(addGold) + ' 🪙' + (maxed ? '' : (' · следующий: +' + fmt4(nextGold) + ' 🪙'));
+          eff = 'Раз в 24 ч: +' + fmt4(addGold) + ' <img src="голд.png" alt="Золото" class="goldIcon">' + (maxed ? '' : (' · следующий: +' + fmt4(nextGold) + ' <img src="голд.png" alt="Золото" class="goldIcon">'));
         }
         html += '<div class="card" style="margin:0;">'
           + '<div class="row"><div style="min-width:0"><div class="k">'+String(bn).toUpperCase()+'</div><div style="margin-top:6px; font-size:12px; opacity:.8; line-height:1.35">'+eff+'</div></div>'
           + '<div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px">'
           + '<div class="badge">УРОВЕНЬ '+lvl+'/'+BIZ_MAX_LVL+'</div>'
           + '<button class="btn btnSmall" data-biz-up="'+id+':'+i+'" '+((maxed||!hasCost)?'disabled':'')+'>'
-          + (maxed ? 'МАКС' : (hasCost ? ('УЛУЧШИТЬ ЗА '+fmt4(cost)+' 🦷') : 'СКОРО'))
+          + (maxed ? 'МАКС' : (hasCost ? ('УЛУЧШИТЬ ЗА '+fmt4(cost)+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon">') : 'СКОРО'))
           + '</button>'
           + '</div></div>'
           + '</div>';
@@ -4430,7 +4430,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (cur>=BIZ_MAX_LVL){ toast('Уже максимум','lose'); return; }
           const cost = bizCostNext(cur);
           if (!(cost>0)){ toast('Скоро','lose'); return; }
-          if ((state.tooth||0) < cost){ toast('Нужно '+fmt4(cost)+' 🦷','lose'); return; }
+          if ((state.tooth||0) < cost){ toast('Нужно '+fmt4(cost)+' зол. зубов','lose'); return; }
           state.tooth -= cost;
           bizSetLvl(dd, bb, cur+1);
           if (bb===0) bizSyncEnergyMax();
@@ -4865,8 +4865,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const mm = parseInt(pr.tooth||0,10)||0;
           const gg = parseInt(pr.gold||0,10)||0;
           let t = '';
-          if (mm>0) t += '+'+mm+' 🦷';
-          if (gg>0) t += (t?' ':'') + '+'+gg+' 🪙';
+          if (mm>0) t += '+'+mm+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon">';
+          if (gg>0) t += (t?' ':'') + '+'+gg+' <img src="голд.png" alt="Золото" class="goldIcon">';
           rew.textContent = t || '—';
           rew.style.color = 'var(--gold)';
         } else {
@@ -4978,10 +4978,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!owned) {
         const buy = document.createElement('button');
         buy.className = 'btn btnSmall pBtn';
-        buy.textContent = p.cost + ' 🪙';
+        buy.innerHTML = p.cost + ' <img src="голд.png" alt="Золото" class="goldIcon">';
         buy.onclick = ()=>{
           if (hasAny) { toast('Сначала продай текущего питомца','lose'); return; }
-          if ((state.gold||0) < p.cost) { toast('Нужно '+p.cost+' 🪙','lose'); return; }
+          if ((state.gold||0) < p.cost) { toast('Нужно '+p.cost+' золотых','lose'); return; }
           state.gold -= p.cost;
           state.petsOwned = {};
           state.petsOwned[String(p.id)] = true;
@@ -4999,13 +4999,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const sell = document.createElement('button');
         sell.className = 'btn btnSmall pBtn';
         const back = Math.max(0, Math.floor((p.cost||0) * 0.50));
-        sell.textContent = 'ПРОДАТЬ +'+back+' 🪙';
+        sell.innerHTML = 'ПРОДАТЬ +'+back+' <img src="голд.png" alt="Золото" class="goldIcon">';
         sell.style.opacity = '.9';
         sell.onclick = ()=>{
           state.gold += back;
           state.activePetId = 0;
           state.petsOwned = {};
-          feedAdd('Продан питомец ' + p.emoji + ' ' + p.name + ' (+'+back+' 🪙)','PET');
+          feedAdd('Продан питомец ' + p.emoji + ' ' + p.name + ' (+'+back+' золотых)','PET');
           toast('Питомец продан','win');
           haptic('light');
           save();
@@ -5198,7 +5198,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const rw = $('arReward');
           if (rw){
             let t = '';
-            if (silverGain>0) t += '+'+silverGain+' ⚪';
+            if (silverGain>0) t += '+'+silverGain+' <img src="сильвер.png" alt="Серебро" class="silverIcon">';
             if (xpGain>0) t += (t?' ':'') + '+'+xpGain+' XP';
             rw.textContent = t || '—';
           }
@@ -5244,14 +5244,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (win) {
         state.arena.wins = (state.arena.wins||0)+1;
         state.silver += silverGain;
-        feedAdd('Победа в Бойцовском клубе ('+kind+'): +'+silverGain+'⚪','ARENA');
+        feedAdd('Победа в Бойцовском клубе ('+kind+'): +'+silverGain+' серебра','ARENA');
         if (xpGain>0) addXp(xpGain);
         toast('ПОБЕДА','win');
         haptic('heavy');
       } else {
         state.arena.losses = (state.arena.losses||0)+1;
         state.silver += silverGain;
-        feedAdd('Поражение в Бойцовском клубе ('+kind+'): +'+silverGain+'⚪','ARENA');
+        feedAdd('Поражение в Бойцовском клубе ('+kind+'): +'+silverGain+' серебра','ARENA');
         toast('ПОРАЖЕНИЕ','lose');
         haptic('medium');
       }
@@ -5329,7 +5329,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     const joined = !!state.gf1010.joined && (parseInt(state.gf1010.startTs||0,10)||0) === startTs;
     $('gf10Start').textContent = gfFmt(startTs);
-    $('gf10Cost').textContent = cost + ' 🪙';
+    $('gf10Cost').innerHTML = cost + ' <img src="голд.png" alt="Золото" class="goldIcon">';
 
     // placeholder: local counter until backend
     state.gf1010.gathered = clamp(parseInt(state.gf1010.gathered||0,10)||0, 0, 999);
@@ -5364,7 +5364,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const nowTs = now();
     const joinOpen = (nowTs >= (startTs - 60*1000)) && (nowTs < startTs);
     if (!joinOpen){ toast('Окно ещё закрыто','lose'); gf1010Render(); return; }
-    if ((state.gold||0) < cost){ toast('Нужно '+cost+' 🪙','lose'); return; }
+    if ((state.gold||0) < cost){ toast('Нужно '+cost+' золотых','lose'); return; }
 
     // placeholder local join until backend
     state.gold -= cost;
@@ -5460,7 +5460,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     // Group modal
     $('gfStart').textContent = gfFmt(startTs);
-    $('gfCost').textContent = cost + ' 🪙';
+    $('gfCost').innerHTML = cost + ' <img src="голд.png" alt="Золото" class="goldIcon">';
 
     const st = $('gfStatus');
     const enterBtn = $('gfEnter');
@@ -5486,7 +5486,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const joinOpen = (nowTs >= (startTs - 60*1000)) && (nowTs < startTs);
     const joined = !!state.groupFight.joined && (parseInt(state.groupFight.startTs||0,10)||0) === startTs;
     $('gfJoinStart').textContent = gfFmt(startTs);
-    $('gfJoinCost').textContent = cost + ' 🪙';
+    $('gfJoinCost').innerHTML = cost + ' <img src="голд.png" alt="Золото" class="goldIcon">';
     $('gfJoinLeft').textContent = fmtMMSS(Math.max(0, startTs - nowTs));
     const b = $('gfJoinBtn');
     b.disabled = !joinOpen || joined;
@@ -5538,7 +5538,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const nowTs = now();
     const joinOpen = (nowTs >= (startTs - 60*1000)) && (nowTs < startTs);
     if (!joinOpen){ renderGroupFightUI(); toast('Рано. Окно ещё закрыто','lose'); return; }
-    if ((state.gold||0) < cost){ toast('Нужно '+cost+' 🪙','lose'); return; }
+    if ((state.gold||0) < cost){ toast('Нужно '+cost+' золотых','lose'); return; }
 
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
@@ -5619,7 +5619,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       state.groupFight.startTs = 0;
       state.groupFight.resolvedTs = now();
       state.groupFight.battle = null;
-      feedAdd('Групповой бой отменён (нет участников). Возврат: +'+refund+' 🪙','GF');
+      feedAdd('Групповой бой отменён (нет участников). Возврат: +'+refund+' золотых','GF');
       toast('Бой отменён, монеты возвращены','lose');
       haptic('light');
       save();
@@ -5908,7 +5908,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const alive = b.targets.some(x=>(x.hp||0)>0);
     if (!alive){
       const rr = gfBattleComputeReward(b, true);
-      b.log.unshift({ kind:'SYS', text:'Победа команды! Награда: +' + (parseInt(rr.gold||0,10)||0) + ' 🪙' });
+      b.log.unshift({ kind:'SYS', text:'Победа команды! Награда: +' + (parseInt(rr.gold||0,10)||0) + ' золота' });
       state.groupFight.pendingReward = rr;
       gfAddRandomConsumableReward();
       state.groupFight.joined = false;
@@ -6152,7 +6152,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '<div class="stK">'+s.name.toUpperCase()+'</div>'
         + '<div class="stV">'+tot+'</div>'
         + '<div class="stMeta">База '+cur+' + '+add+'</div>'
-        + '<button class="btn btnSmall stBtn" data-gym="'+s.key+'">'+cost+' ⚪</button>'
+        + '<button class="btn btnSmall stBtn" data-gym="'+s.key+'">'+cost+' <img src="сильвер.png" alt="Серебро" class="silverIcon"></button>'
         + '</div>';
     });
 
@@ -6176,7 +6176,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const key = btn.getAttribute('data-gym');
         const cur = gymVal(key);
         const cost = gymCost(cur);
-        if ((state.silver||0) < cost){ toast('Нужно '+cost+' ⚪','lose'); return; }
+        if ((state.silver||0) < cost){ toast('Нужно '+cost+' серебра','lose'); return; }
         state.silver -= cost;
         state.gym[key] = cur+1;
         feedAdd('Тренировка: '+key+' → '+(cur+1),'GYM');
@@ -6225,9 +6225,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
   function promoRewardText(r){
     const parts = [];
-    if ((r.gold||0)>0) parts.push('+'+r.gold+' 🪙');
-    if ((r.silver||0)>0) parts.push('+'+r.silver+' ⚪');
-    if ((r.tooth||0)>0) parts.push('+'+r.tooth+' 🦷');
+    if ((r.gold||0)>0) parts.push('+'+r.gold+' <img src="голд.png" alt="Золото" class="goldIcon">');
+    if ((r.silver||0)>0) parts.push('+'+r.silver+' <img src="сильвер.png" alt="Серебро" class="silverIcon">');
+    if ((r.tooth||0)>0) parts.push('+'+r.tooth+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon">');
     if ((r.rings||0)>0) parts.push('+'+r.rings+' 💍');
     return parts.join(' ');
   }
@@ -6298,7 +6298,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
     if (IS_DEV && SHOP_X2_FORCE==='AUTO'){
       html += '<div class="card">'
-        + '<div class="row"><div style="min-width:0"><div class="k">РЕЖИМ X2</div><div style="font-size:12px;opacity:.75;margin-top:4px">Двойные 🪙 при покупке</div></div>'
+        + '<div class="row"><div style="min-width:0"><div class="k">РЕЖИМ X2</div><div style="font-size:12px;opacity:.75;margin-top:4px">Двойные <img src="голд.png" alt="Золото" class="goldIcon"> при покупке</div></div>'
         + '<button class="btn btnSmall" id="shopX2Btn">'+(shopX2Enabled()?'X2: ON':'X2: OFF')+'</button></div>'
         + '</div>';
     }
@@ -6313,7 +6313,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       + '<div style="min-width:0; flex:1">'
       + '<div class="k">ПРОМОКОД</div>'
       + '<div style="font-size:12px;opacity:.75;margin-top:4px">'+(promoOk ? (promoTxt ? ('Введи промокод и получи награду ' + promoTxt) : 'Награда промокода отключена') : 'Промокод больше не активен')+'</div>'
-      + '<div style="font-size:12px;opacity:.6;margin-top:4px">🦷 — золотые зубы</div>'
+      + '<img src="зуб.png" alt="Золотые зубы" class="toothIcon"> — золотые зубы</div>'
        + '<input id="promoInput" placeholder="Промокод" autocomplete="off" spellcheck="false" style="margin-top:10px; width:100%; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08); color:rgba(255,255,255,.92); padding:0 12px; font-family:inherit; font-weight:800; letter-spacing:1px; outline:none" />'
        + '</div>'
        + '<button class="btn btnSmall" id="promoApply" '+(promoDisabled?'disabled':'')+'>'+(promoWasUsed?'ИСПОЛЬЗОВАН':(promoOk?'ПРИМЕНИТЬ':'НЕ АКТИВЕН'))+'</button>'
@@ -6323,7 +6323,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     ITEMS.forEach(it=>{
       const showX2 = !!(shopX2Enabled() && it.goldAdd);
       const costLabel = shopCostLabel(it);
-      const costSuffix = String(it.cost||'').includes('$') ? '' : (' ' + (it.currency==='TOOTH'?'🦷':'🪙'));
+      const costSuffix = String(it.cost||'').includes('$') ? '' : (' ' + (it.currency==='TOOTH'?'<img src="зуб.png" alt="Золотые зубы" class="toothIcon">':'<img src="голд.png" alt="Золото" class="goldIcon">'));
       html += '<div class="card">'
         + '<div class="row"><div style="min-width:0"><div class="k">'+it.name.toUpperCase()+'</div><div style="font-size:12px;opacity:.75;margin-top:4px">'+it.desc+'</div></div>'
         + '<div style="display:flex; align-items:center; gap:8px;">'
@@ -6357,14 +6357,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (it.goldAdd){
             const add = (parseInt(it.goldAdd||0,10)||0) * (shopX2Enabled() ? 2 : 1);
             state.gold += add;
-            feedAdd('Покупка золота: +'+add+' 🪙','SHOP');
-            toast('+'+add+' 🪙','win');
+            feedAdd('Покупка золота: +'+add+' золота','SHOP');
+            toast('+'+add+' золота','win');
           } else if (typeof it.apply==='function'){
             it.apply();
             feedAdd('Покупка: '+it.name,'SHOP');
           }
         } else {
-          if ((state.gold||0) < cost){ toast('Нужно '+shopCostLabel(it)+' 🪙','lose'); return; }
+          if ((state.gold||0) < cost){ toast('Нужно '+shopCostLabel(it)+' золотых','lose'); return; }
           state.gold -= cost;
           if (typeof it.apply==='function') it.apply();
         }
@@ -7018,7 +7018,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   function bfShopRender(){
     try {
-      $('bfShopGold').textContent = String(state.gold||0) + ' 🪙';
+      $('bfShopGold').innerHTML = String(state.gold||0) + ' <img src="голд.png" alt="Золото" class="goldIcon">';
     } catch (e) {}
 
     try {
@@ -7047,7 +7047,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (p<=0) return;
     const q = clamp(parseInt(state.bosses.shopQty||1,10)||1, 1, 1000);
     const total = p * q;
-    if ((state.gold||0) < total){ toast('Нужно '+total+' 🪙','lose'); return; }
+    if ((state.gold||0) < total){ toast('Нужно '+total+' золотых','lose'); return; }
     state.gold -= total;
     if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
     if (kind==='kick') state.bosses.hitStocks.kick = clamp((parseInt(state.bosses.hitStocks.kick||0,10)||0) + q, 0, 999999);
@@ -7108,8 +7108,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           html += '<div class="row"><div style="min-width:0">Бонус клана</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--gold)">+'+Math.round(bp*100)+'%</div></div>';
         }
       } catch (e) {}
-      if (rm>0) html += '<div class="row"><div style="min-width:0">+'+rm+' золотых зубов</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--tooth)">+'+rm+' 🦷</div></div>';
-      if (rg>0) html += '<div class="row"><div style="min-width:0">+'+rg+' золота</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--gold)">+'+rg+' 🪙</div></div>';
+      if (rm>0) html += '<div class="row"><div style="min-width:0">+'+rm+' золотых зубов</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--tooth)">+'+rm+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon"></div></div>';
+      if (rg>0) html += '<div class="row"><div style="min-width:0">+'+rg+' золота</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--gold)">+'+rg+' <img src="голд.png" alt="Золото" class="goldIcon"></div></div>';
       if (rxp>0) html += '<div class="row"><div style="min-width:0">+'+rxp+' XP</div><div class="badge" style="padding:6px 8px; font-size:11px">+'+rxp+' XP</div></div>';
       reward.innerHTML = html || '<div style="opacity:.75; font-size:12px">—</div>';
     }
@@ -7435,7 +7435,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       html += '<div class="row" style="align-items:flex-start">'
         + '<div style="min-width:0">'
         + '<div class="k">БОСС '+bb.id+'</div>'
-        + '<div style="margin-top:4px; font-size:12px; opacity:.8; line-height:1.25">'+r.emoji+' '+r.itemName+': <b style="letter-spacing:1px">'+have+'</b> / '+r.need+'<br>Цена за 1: <span style="color:var(--gold); font-weight:900">'+price+' 🪙</span></div>'
+        + '<div style="margin-top:4px; font-size:12px; opacity:.8; line-height:1.25">'+r.emoji+' '+r.itemName+': <b style="letter-spacing:1px">'+have+'</b> / '+r.need+'<br>Цена за 1: <span style="color:var(--gold); font-weight:900">'+price+' <img src="голд.png" alt="Золото" class="goldIcon"></span></div>'
         + '</div>'
         + '<button class="btn btnSmall" data-key-buy="'+r.itemKey+'" data-key-price="'+price+'">КУПИТЬ</button>'
         + '</div>';
@@ -7446,7 +7446,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       btn.onclick = ()=>{
         const k = btn.getAttribute('data-key-buy');
         const price = parseInt(btn.getAttribute('data-key-price')||'0',10)||0;
-        if ((state.gold||0) < price){ toast('Нужно '+price+' 🪙','lose'); return; }
+        if ((state.gold||0) < price){ toast('Нужно '+price+' золотых','lose'); return; }
         state.gold -= price;
         bossKeyAdd(k, 1);
         toast('+1','win');
@@ -7799,8 +7799,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '<div class="bossName">'+b.name+'</div>'
         + '<div class="bossSub">'+(dead ? ('ПОВЕРЖЕН · HP 0 / '+fmtBossHpShort(b.maxHP)) : ('HP '+fmtBossHpShort(hp)+' / '+fmtBossHpShort(b.maxHP)))+lockText+'</div>'
         + '<div class="bossReward">'
-        + (rm>0 ? ('<span class="badge" style="color:rgba(0,0,0,.92); padding:6px 8px; font-size:11px">+'+rm+'🦷</span>') : '')
-        + (rg>0 ? ('<span class="badge" style="color:var(--gold); padding:6px 8px; font-size:11px">+'+rg+'🪙</span>') : '')
+        + (rm>0 ? ('<span class="badge" style="color:rgba(0,0,0,.92); padding:6px 8px; font-size:11px">+'+rm+'<img src="зуб.png" alt="Золотые зубы" class="toothIcon"></span>') : '')
+        + (rg>0 ? ('<span class="badge" style="color:var(--gold); padding:6px 8px; font-size:11px">+'+rg+'<img src="голд.png" alt="Золото" class="goldIcon"></span>') : '')
         + (rxp>0 ? ('<span class="badge" style="padding:6px 8px; font-size:11px">+'+rxp+' XP</span>') : '')
         + '</div>'
         + '<div style="margin-top:6px; display:flex; flex-direction:column; gap:6px">'
@@ -8021,7 +8021,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   function diceStart(){
     // HARD: roll animation first, then assign values.
-    if ((state.gold||0) < 1){ toast('Нужно 1 🪙','lose'); return false; }
+    if ((state.gold||0) < 1){ toast('Нужно 1 золотой','lose'); return false; }
     state.gold -= 1;
     state.diceGame.active = true;
     state.diceGame.rolls = 0;
@@ -8129,7 +8129,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     g.target = 0;
     g.comboTarget = 0;
 
-    let rewardText = '50 🦷';
+    let rewardText = '50 <img src="зуб.png" alt="Золотые зубы" class="toothIcon">';
     if (!was4x){
       state.tooth += 50;
     } else {
@@ -8160,7 +8160,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       } else {
         state.tooth += 50;
       }
-      if (was5x) rewardText = rewardText + ' +20 🪙';
+      if (was5x) rewardText = rewardText + ' +20 <img src="голд.png" alt="Золото" class="goldIcon">';
     }
 
     try { $('diceRewardVal').textContent = rewardText; } catch (e) {}
@@ -8574,16 +8574,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function clanBankAdd(){
     const c = clanGetMyClan();
     if (!c) return;
-    const pick = prompt('Сколько 🪙 внести в банк клана?', '100');
+    const pick = prompt('Сколько золота внести в банк клана?', '100');
     if (!pick) return;
     const amt = Math.max(0, Math.floor(parseInt(pick||'0',10)||0));
     if (amt<=0) return;
-    if ((state.gold||0) < amt) { toast('Не хватает 🪙','lose'); return; }
+    if ((state.gold||0) < amt) { toast('Не хватает золота','lose'); return; }
     if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
       try {
         const next = Object.assign({}, c);
         next.bankGold = (parseInt(c.bankGold||0,10)||0) + amt;
-        clanLog(next, 'Взнос в банк: ' + clanMyName() + ' +' + amt + ' 🪙');
+        clanLog(next, 'Взнос в банк: ' + clanMyName() + ' +' + amt + ' золота');
         clansCloudUpsert(next)
           .then((r)=>{
             if (r===null) return null;
@@ -8593,7 +8593,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             save();
             renderHUD();
             renderClans();
-            toast('Внесено: '+amt+' 🪙','win');
+            toast('Внесено: '+amt+' золота','win');
             haptic('light');
             return null;
           })
@@ -8603,11 +8603,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
     state.gold -= amt;
     c.bankGold = (parseInt(c.bankGold||0,10)||0) + amt;
-    clanLog(c, 'Взнос в банк: ' + clanMyName() + ' +' + amt + ' 🪙');
+    clanLog(c, 'Взнос в банк: ' + clanMyName() + ' +' + amt + ' золота');
     save();
     renderHUD();
     renderClans();
-    toast('Внесено: '+amt+' 🪙','win');
+    toast('Внесено: '+amt+' золота','win');
     haptic('light');
   }
 
@@ -8801,7 +8801,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           bank.textContent = '—';
           addBtn.style.display = 'none';
         } else {
-          bank.textContent = String(parseInt(myClan.bankGold||0,10)||0) + ' 🪙';
+          bank.innerHTML = String(parseInt(myClan.bankGold||0,10)||0) + ' <img src="голд.png" alt="Золото" class="goldIcon">';
           addBtn.style.display = '';
           addBtn.onclick = ()=>clanBankAdd();
         }
@@ -8827,7 +8827,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
       }
     } catch (e0) {}
-    if ((state.gold||0) < 1000){ toast('Нужно 1000 🪙','lose'); return; }
+    if ((state.gold||0) < 1000){ toast('Нужно 1000 золотых','lose'); return; }
     const name = prompt('Название клана:', 'Братство');
     if (!name) return;
     const nm = String(name).trim().substring(0, 18);
@@ -8892,7 +8892,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           + '<div><div style="font-size:11px; opacity:.85; margin-bottom:4px">Ближайшая прибыль:</div><div id="bizRewardColumnTimer" style="font-size:14px; font-weight:900; letter-spacing:1px">' + (canClaim ? 'Готово' : fmtHHMMSS(msLeft)) + '</div></div>'
           + '<div><div style="font-size:11px; opacity:.85; margin-bottom:4px">Общая прибыль:</div><div style="display:flex; align-items:center; gap:10px; font-size:14px; font-weight:900">'
           + '<span title="Страх"><img src="страх.png" alt="Страх" class="fearIcon"> '+fmt4(fearSum)+'</span>'
-          + '<span title="Золото">🪙 '+fmt4(goldSum)+'</span>'
+          + '<span title="Золото"><img src="голд.png" alt="Золото" class="goldIcon"> '+fmt4(goldSum)+'</span>'
           + '</div></div>'
           + '<button type="button" class="btn btnSmall" id="bizRewardColumnCollect" ' + (canClaim ? '' : 'disabled') + '>Собрать все</button>'
           + '</div>';
@@ -9027,11 +9027,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const showRewardReceivedBanner = bannerTs && (now() - bannerTs <= 3000);
         if (allDone){
           h += '<div style="margin-top:12px; margin-bottom:12px; padding:12px; border-radius:14px; background:linear-gradient(145deg, rgba(34,197,94,.4), rgba(22,163,74,.35)); border:1px solid rgba(34,197,94,.55); font-weight:900; letter-spacing:1px; font-size:13px;">';
-          h += '✅ Все задания выполнены! Награда: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱';
+          h += '✅ Все задания выполнены! Награда: +'+mult+' XP, +'+mult+' зол. зубов, +'+mult+' страха';
           h += '</div>';
         } else if (showRewardReceivedBanner){
           h += '<div id="dnRewardBanner" style="margin-top:12px; margin-bottom:12px; padding:12px; border-radius:14px; background:linear-gradient(145deg, rgba(34,197,94,.4), rgba(22,163,74,.35)); border:1px solid rgba(34,197,94,.55); font-weight:900; letter-spacing:1px; font-size:13px;">';
-          h += '✅ Район пройден. Награда получена: +'+mult+' XP, +'+mult+' 🦷, +'+mult+' 😱';
+          h += '✅ Район пройден. Награда получена: +'+mult+' XP, +'+mult+' зол. зубов, +'+mult+' страха';
           h += '</div>';
         }
 
@@ -9062,7 +9062,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             + '<div style="font-size:11px; font-weight:900; opacity:.78; white-space:nowrap">'+cnt+'/'+meta.max+'</div>'
             + '</div>'
             + '</div>';
-          h += '<div style="text-align:center; font-size:12px; font-weight:900; opacity:.95; overflow:hidden">'+(meta.fear ? ('<img src="страх.png" alt="Страх" class="fearIcon"> '+fmt4(meta.fear)) : ('🪙 '+fmt4(meta.gold)))+'<div style="font-size:10px; opacity:.8; margin-top:2px">+ '+meta.xp+' XP</div></div>';
+          h += '<div style="text-align:center; font-size:12px; font-weight:900; opacity:.95; overflow:hidden">'+(meta.fear ? ('<img src="страх.png" alt="Страх" class="fearIcon"> '+fmt4(meta.fear)) : ('<img src="голд.png" alt="Золото" class="goldIcon"> '+fmt4(meta.gold)))+'<div style="font-size:10px; opacity:.8; margin-top:2px">+ '+meta.xp+' XP</div></div>';
           h += '<div style="text-align:center; font-size:12px; font-weight:900; opacity:.95">⚡ '+meta.cost+'</div>';
           h += '<div style="text-align:right">'
             + '<button class="btn btnSmall" style="'+btnStyle+' max-width:100%; width:112px; padding:0 10px;" data-dtask="'+i+':'+k+'" '+(can ? '' : 'disabled')+'>'+btnTxt+'</button>'
@@ -9229,7 +9229,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const fk = 'D'+String(dIdx);
         const gotFear = meta.fear || 0;
         const gotGold = meta.gold || 0;
-        feedAdd('Задание района: +'+(gotFear? (gotFear+' 😱') : (gotGold+' 🪙'))+', +'+meta.xp+' XP','SYS');
+        feedAdd('Задание района: +'+(gotFear? (gotFear+' страх') : (gotGold+' золота'))+', +'+meta.xp+' XP','SYS');
       } catch (e2) {}
 
       try {
@@ -9322,7 +9322,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const aliveAfter = Array.isArray(b.targets) ? b.targets.some(x=>(parseInt(x.hp||0,10)||0) > 0) : false;
       if (!aliveAfter){
         const rr = gfBattleComputeReward(b, true);
-        b.log.unshift({ kind:'SYS', text:'Победа команды! Награда: +' + (parseInt(rr.gold||0,10)||0) + ' 🪙' });
+        b.log.unshift({ kind:'SYS', text:'Победа команды! Награда: +' + (parseInt(rr.gold||0,10)||0) + ' золота' });
         state.groupFight.pendingReward = rr;
         gfAddRandomConsumableReward();
         state.groupFight.joined = false;
@@ -9351,7 +9351,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const aliveAfter2 = Array.isArray(b.targets) ? b.targets.some(x=>(parseInt(x.hp||0,10)||0) > 0) : false;
     if (!aliveAfter2){
       const rr = gfBattleComputeReward(b, true);
-      b.log.unshift({ kind:'SYS', text:'Победа команды! Награда: +' + (parseInt(rr.gold||0,10)||0) + ' 🪙' });
+      b.log.unshift({ kind:'SYS', text:'Победа команды! Награда: +' + (parseInt(rr.gold||0,10)||0) + ' золота' });
       state.groupFight.pendingReward = rr;
       gfAddRandomConsumableReward();
       state.groupFight.joined = false;
@@ -9455,7 +9455,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const maxE = Math.floor(state.energyMax||100);
         const curE = Math.floor(state.energy||0);
         if (curE >= maxE){ toast('Энергия уже полная','gold'); haptic('light'); return; }
-        if (gold < 10){ toast('Нужно 10 🪙','lose'); haptic('light'); return; }
+        if (gold < 10){ toast('Нужно 10 золотых','lose'); haptic('light'); return; }
         showModal('mEnergyRefillConfirm');
         haptic('light');
       };
@@ -9464,7 +9464,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (yesBtn) yesBtn.onclick = ()=>{
         const gold = Math.floor(state.gold||0);
         const maxE = Math.floor(state.energyMax||100);
-        if (gold < 10){ toast('Нужно 10 🪙','lose'); hideModal('mEnergyRefillConfirm'); return; }
+        if (gold < 10){ toast('Нужно 10 золотых','lose'); hideModal('mEnergyRefillConfirm'); return; }
         state.gold = gold - 10;
         state.energy = maxE;
         save();
