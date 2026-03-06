@@ -7802,8 +7802,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const claimed = !!(cc && typeof cc === 'object' && cc.reward_claimed);
         canClaim = !!(hpCloud!==null && (parseInt(hpCloud||0,10)||0) <= 0 && !claimed);
       }
-      // Поверженный босс на странице боссов не показываем — только в модалке результата боя
-      if (dead) return;
       html += '<div class="card">'
         + '<div class="bossWinnerTop">ПОСЛЕДНИЙ ПОБЕДИТЕЛЬ</div>'
         + '<div class="bossWinnerNm">'+lwName+'</div>'
