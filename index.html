@@ -4505,6 +4505,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (n < 1000000000) return String(Math.floor(n/1000000)) + 'M';
     return '999M';
   }
+  function fmtBossHpShort(n){
+    n = parseInt(n,10)||0;
+    if (n >= 1e9) return (Math.round(n/1e9))+'млрд';
+    if (n >= 1e6) return (Math.round(n/1e6))+'м';
+    if (n >= 1e3) return (Math.round(n/1e3))+'к';
+    return String(n);
+  }
 
   function renderUTC(){
     const utc = $('utc');
@@ -7688,7 +7695,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '</div>'
         + '<div style="min-width:0">'
         + '<div class="bossName">'+b.name+'</div>'
-        + '<div class="bossSub">'+(dead ? ('ПОВЕРЖЕН · HP 0 / '+b.maxHP) : ('HP '+hp+' / '+b.maxHP))+lockText+'</div>'
+        + '<div class="bossSub">'+fmtBossHpShort(b.maxHP)+' хп'+lockText+'</div>'
         + '<div class="bossReward">'
         + (rm>0 ? ('<span class="badge" style="color:rgba(0,0,0,.92); padding:6px 8px; font-size:11px">+'+rm+'🦷</span>') : '')
         + (rg>0 ? ('<span class="badge" style="color:var(--gold); padding:6px 8px; font-size:11px">+'+rg+'🪙</span>') : '')
