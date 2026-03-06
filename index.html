@@ -2655,7 +2655,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             .catch((e)=>{
               btn.disabled = false;
               const msg = (e && e.message) ? String(e.message) : '';
-              if (msg.includes('daily_cap') || msg.includes('200')) toast('Лимит 200 ⚡ в сутки (сброс 00:00 UTC)','lose');
+              if (msg.includes('daily_cap') || msg.includes('200')) toast('Лимит 200 ⚡ в сутки (сброс 18:00 UTC)','lose');
               else toast('Ошибка сети','lose');
             });
           return;
@@ -2719,7 +2719,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
                 sendBtn.disabled = false;
                 const msg = (e && e.message) ? String(e.message) : '';
                 if (msg.includes('level_required') || msg.includes('403')) toast('Нужен уровень выше для этого хавчика','lose');
-                else if (msg.includes('one_send_per_day') || msg.includes('429')) toast('Один хавчик в сутки (сброс 00:00 UTC)','lose');
+                else if (msg.includes('one_send_per_day') || msg.includes('429')) toast('Один хавчик в сутки (сброс 18:00 UTC)','lose');
                 else toast('Ошибка отправки','lose');
               });
             return;
@@ -6419,7 +6419,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   function utcDayKey(){
-    try { return new Date().toISOString().slice(0,10); } catch (e) { return '1970-01-01'; }
+    try {
+      // Игровой день обновляется в 18:00 UTC: до 18:00 — предыдущая календарная дата, с 18:00 — текущая.
+      const d = new Date();
+      const t = d.getTime() - 18*60*60*1000;
+      const x = new Date(t);
+      const y = x.getUTCFullYear(), m = x.getUTCMonth(), day = x.getUTCDate();
+      const pad = n => (n<10 ? '0'+n : ''+n);
+      return y+'-'+pad(m+1)+'-'+pad(day);
+    } catch (e) { return '1970-01-01'; }
   }
   function bossDailyEnsure(){
     if (!state.bosses.daily) state.bosses.daily = { day:'', counts:{} };
