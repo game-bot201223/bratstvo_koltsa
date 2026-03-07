@@ -180,7 +180,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   pointer-events:none;
   border-radius:0;
 }
-
+/* Кнопка доспехи и панели поверх картинки (и при выбранном доспехе) */
+.mainCharacter.hasCustomImg .charCornerBtn,
+.mainCharacter.hasCustomImg .armorTierRow,
+.mainCharacter.hasCustomImg .armorScrollStrip{
+  z-index:2;
+}
 /* Декоративная панель-свиток (фэнтези/RPG) между валютой и фото — открывается вниз до дока */
 .parchmentPanel{
   flex:0 0 auto;
@@ -361,6 +366,123 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 }
 .mainCharacter .charCornerBtn img{display:block;width:100%;height:100%;object-fit:cover;}
 .mainCharacter .charCornerBtn:active{transform:scale(0.94);}
+/* Когда открыты доспехи — кнопка превращается в «Назад» со стрелкой */
+.mainCharacter.armorTiersOpen .charCornerBtn img{display:none;}
+.mainCharacter.armorTiersOpen .charCornerBtn::before{content:'‹';display:block;font-size:1.6em;font-weight:700;line-height:1;}
+/* Кнопки редкости доспехов поверх картинки персонажа */
+.mainCharacter .armorTierRow{
+  position:absolute;
+  left:50%;
+  bottom:12px;
+  transform:translateX(-50%);
+  display:flex;
+  flex-direction:column;
+  flex-wrap:nowrap;
+  gap:2px;
+  align-items:center;
+  justify-content:flex-end;
+  z-index:2;
+  padding:6px 8px;
+  border-radius:10px;
+  background:rgba(0,0,0,.25);
+  pointer-events:none;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .2s ease, visibility .2s ease;
+}
+.mainCharacter .armorTierRow.isOpen{
+  pointer-events:auto;
+  opacity:1;
+  visibility:visible;
+}
+.mainCharacter .armorTierRow .armorTierBtn{
+  padding:4px 10px;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:0.5px;
+  line-height:1.2;
+  min-height:0;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,.5);
+  background:linear-gradient(180deg, rgba(147,197,253,.95), rgba(59,130,246,.95));
+  color:rgba(255,255,255,.98);
+  cursor:pointer;
+  white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .1s ease, filter .1s ease;
+}
+.mainCharacter .armorTierRow .armorTierBtn:hover{filter:brightness(1.1);}
+.mainCharacter .armorTierRow .armorTierBtn:active{transform:scale(0.96);}
+/* Горизонтальная колонка с картинками над кнопками редкости — 3 картинки по ширине базового экрана (480px) */
+.mainCharacter .armorScrollStrip{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  width:100%;
+  max-width:480px;
+  bottom:150px;
+  height:auto;
+  min-height:72px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  display:none;
+  flex-direction:row;
+  flex-wrap:nowrap;
+  gap:4px;
+  align-items:flex-start;
+  justify-content:flex-start;
+  padding:0 4px;
+  z-index:2;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  box-sizing:border-box;
+}
+.mainCharacter .armorScrollStrip.isOpen{
+  display:flex;
+}
+.mainCharacter .armorScrollStrip .armorScrollItem{
+  flex:0 0 calc((100% - 8px) / 3);
+  width:calc((100% - 8px) / 3);
+  min-width:0;
+  aspect-ratio:1/1;
+  height:auto;
+  border-radius:8px;
+  overflow:hidden;
+  background:rgba(0,0,0,.2);
+  border:1px solid rgba(255,255,255,.25);
+  box-sizing:border-box;
+  position:relative;
+}
+.mainCharacter .armorScrollStrip .armorScrollItem img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  aspect-ratio:1/1;
+}
+.mainCharacter .armorScrollStrip .armorScrollItem .armorItemBuy{
+  position:absolute;
+  left:50%;
+  bottom:4px;
+  transform:translateX(-50%);
+  padding:2px 10px;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:0.5px;
+  line-height:1.15;
+  border-radius:6px;
+  border:1px solid rgba(255,255,255,.5);
+  background:linear-gradient(180deg, rgba(147,197,253,.95), rgba(59,130,246,.95));
+  color:rgba(255,255,255,.98);
+  cursor:pointer;
+  white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+  transition:filter .1s ease, transform .1s ease;
+}
+.mainCharacter .armorScrollStrip .armorScrollItem .armorItemBuy:hover{filter:brightness(1.1);}
+.mainCharacter .armorScrollStrip .armorScrollItem .armorItemBuy:active{transform:translateX(-50%) scale(0.96);}
+.mainCharacter .armorScrollStrip .armorScrollItem .armorItemBuy .armorItemGoldIcon{height:5px;width:auto;vertical-align:middle;margin-left:1px;display:inline-block;}
+.mainCharacter .armorScrollStrip .armorScrollItem .armorItemBuy{white-space:nowrap;}
 .hero{
   margin:12px 14px 0;
   border-radius:var(--r);
@@ -1063,8 +1185,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         </div>
       </div>
     </div>
-    <div class="mainCharacter">
-      <img src="персонаж.png" alt="">
+    <div class="mainCharacter" id="mainCharacterWrap">
+      <img src="персонаж.png" alt="" id="mainCharacterPhoto">
+      <div class="armorScrollStrip" id="armorScrollStrip" aria-hidden="true">
+        <div class="armorScrollItem"><img src="персонаж.png" alt=""><button type="button" class="armorItemBuy">купить</button></div>
+        <div class="armorScrollItem"><img src="персонаж.png" alt=""><button type="button" class="armorItemBuy">купить</button></div>
+        <div class="armorScrollItem"><img src="персонаж.png" alt=""><button type="button" class="armorItemBuy">купить</button></div>
+      </div>
+      <div class="armorTierRow" id="armorTierRow" aria-hidden="true">
+        <button type="button" class="armorTierBtn" data-armor-tier="0">чахлые</button>
+        <button type="button" class="armorTierBtn" data-armor-tier="1">обычные</button>
+        <button type="button" class="armorTierBtn" data-armor-tier="2">редкие</button>
+        <button type="button" class="armorTierBtn" data-armor-tier="3">эпические</button>
+        <button type="button" class="armorTierBtn" data-armor-tier="4">мифические</button>
+      </div>
       <button type="button" class="btn charCornerBtn" id="btnDospekhi" aria-label="Доспехи"><img src="доспехи.png" alt="Доспехи"></button>
     </div>
     <div class="bottomStack">
@@ -4082,6 +4216,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (id === 1) return [1, 500, 1000, 2500, 5000];
     return BOSS_MEDAL_THRESHOLDS_DEFAULT;
   }
+  const ARMOR_TIER_IMAGES = {
+    4: ['миф1.jpg', 'миф2.jpg', 'миф3.jpg']
+  };
+  const ARMOR_ITEM_PRICE = 5000;
   const GYM_STATS = [
     { key:'health', name:'Здоровье' },
     { key:'strength', name:'Сила' },
@@ -4156,7 +4294,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     shopX2:false,
     feed:[],
     friends:[],
-    havchikInbox:[]
+    havchikInbox:[],
+    armorOwned:{},
+    mainCharacterImg:null
   };
 
   let state = Object.assign({}, defaults, load()||{});
@@ -4192,6 +4332,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (typeof state.groupFight.pendingReward === 'undefined') state.groupFight.pendingReward = null;
   if (!state.gf1010 || typeof state.gf1010 !== 'object') state.gf1010 = Object.assign({}, defaults.gf1010);
   if (!state.diceGame || typeof state.diceGame !== 'object') state.diceGame = Object.assign({}, defaults.diceGame);
+  if (!state.armorOwned || typeof state.armorOwned !== 'object') state.armorOwned = {};
+  if (typeof state.mainCharacterImg !== 'string' && state.mainCharacterImg !== null) state.mainCharacterImg = null;
   if (!state.consumables || typeof state.consumables !== 'object') state.consumables = Object.assign({}, defaults.consumables);
   if (typeof state.consumables.med !== 'number') state.consumables.med = 0;
   if (typeof state.consumables.nade !== 'number') state.consumables.nade = 0;
@@ -4808,6 +4950,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     $('gold').textContent = fmt4(state.gold||0);
     $('silver').textContent = fmt4(state.silver||0);
     $('tooth').textContent = fmt4(state.tooth||0);
+
+    var mainPhoto = $('mainCharacterPhoto');
+    var mainWrap = $('mainCharacterWrap');
+    if (mainPhoto) mainPhoto.src = (state.mainCharacterImg && state.mainCharacterImg.trim()) ? state.mainCharacterImg : 'персонаж.png';
+    if (mainWrap) mainWrap.classList.toggle('hasCustomImg', !!(state.mainCharacterImg && state.mainCharacterImg.trim()));
 
     $('energy').textContent = String(Math.floor(state.energy||0));
     $('energyMax').textContent = String(Math.floor(state.energyMax||0));
@@ -9762,6 +9909,86 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     const sb = $('settingsBtn'); if (sb) sb.onclick = ()=>{ showModal('mSettings'); renderAll(); haptic('light'); };
     $('shopBtn').onclick = ()=>{ showModal('mShop'); renderShop(); haptic('light'); };
+    (function(){
+      const btnDospekhi = $('btnDospekhi');
+      const armorTierRow = $('armorTierRow');
+      const armorScrollStrip = $('armorScrollStrip');
+      const mainChar = btnDospekhi && btnDospekhi.closest && btnDospekhi.closest('.mainCharacter');
+      if (btnDospekhi && armorTierRow) {
+        function updateDospekhiLabel(){
+          const isOpen = armorTierRow.classList.contains('isOpen');
+          btnDospekhi.setAttribute('aria-label', isOpen ? 'Назад' : 'Доспехи');
+          if (mainChar) mainChar.classList.toggle('armorTiersOpen', isOpen);
+        }
+        btnDospekhi.onclick = ()=>{
+          armorTierRow.classList.toggle('isOpen');
+          armorTierRow.setAttribute('aria-hidden', armorTierRow.classList.contains('isOpen') ? 'false' : 'true');
+          if (!armorTierRow.classList.contains('isOpen') && armorScrollStrip) {
+            armorScrollStrip.classList.remove('isOpen');
+            armorScrollStrip.setAttribute('aria-hidden', 'true');
+          }
+          updateDospekhiLabel();
+          haptic('light');
+        };
+        armorTierRow.querySelectorAll('.armorTierBtn').forEach(function(btn){
+          btn.onclick = ()=>{
+            const tier = parseInt(btn.getAttribute('data-armor-tier'), 10) || 0;
+            if (armorScrollStrip) {
+              const imgs = (typeof ARMOR_TIER_IMAGES !== 'undefined' && ARMOR_TIER_IMAGES[tier]) ? ARMOR_TIER_IMAGES[tier] : ['персонаж.png', 'персонаж.png', 'персонаж.png'];
+              const price = (typeof ARMOR_ITEM_PRICE !== 'undefined') ? ARMOR_ITEM_PRICE : 5000;
+              armorScrollStrip.innerHTML = imgs.map(function(src, idx){
+                var key = tier + '-' + idx;
+                var owned = !!(state.armorOwned && state.armorOwned[key]);
+                var priceLabel = price >= 1000 ? (price/1000)+'к' : String(price);
+                var btnText = owned ? 'выбрать' : ('купить за '+priceLabel+' <img src="голд.png" alt="" class="goldIcon armorItemGoldIcon">');
+                return '<div class="armorScrollItem"><img src="'+src.replace(/"/g,'&quot;')+'" alt=""><button type="button" class="armorItemBuy" data-armor-src="'+src.replace(/"/g,'&quot;')+'" data-armor-key="'+key.replace(/"/g,'&quot;')+'" data-armor-owned="'+(owned?'1':'0')+'">'+btnText+'</button></div>';
+              }).join('');
+              armorScrollStrip.classList.add('isOpen');
+              armorScrollStrip.setAttribute('aria-hidden', 'false');
+            }
+            toast('Доспехи: ' + (btn.textContent||''), 'gold');
+            haptic('light');
+          };
+        });
+        if (armorScrollStrip) {
+          armorScrollStrip.addEventListener('click', function(e){
+            const buyBtn = e.target && e.target.closest('.armorItemBuy');
+            if (!buyBtn) return;
+            e.preventDefault();
+            var src = buyBtn.getAttribute('data-armor-src') || '';
+            var key = buyBtn.getAttribute('data-armor-key') || '';
+            var owned = buyBtn.getAttribute('data-armor-owned') === '1';
+            if (owned) {
+              state.mainCharacterImg = src;
+              save();
+              var wrap = $('mainCharacterWrap');
+              var photo = $('mainCharacterPhoto');
+              if (photo) photo.src = src || 'персонаж.png';
+              if (wrap) wrap.classList.toggle('hasCustomImg', !!src);
+              toast('Фото установлено', 'win');
+              haptic('medium');
+              return;
+            }
+            var price = (typeof ARMOR_ITEM_PRICE !== 'undefined') ? ARMOR_ITEM_PRICE : 5000;
+            var gold = Math.floor(state.gold||0);
+            if (gold < price) {
+              toast('Нужно '+price+' золотых','lose');
+              haptic('light');
+              return;
+            }
+            state.gold = gold - price;
+            if (!state.armorOwned) state.armorOwned = {};
+            state.armorOwned[key] = true;
+            buyBtn.setAttribute('data-armor-owned', '1');
+            buyBtn.textContent = 'выбрать';
+            save();
+            renderHUD();
+            toast('Куплено','win');
+            haptic('medium');
+          });
+        }
+      }
+    })();
     (function(){
       renderParchmentPanelMedals();
     })();
