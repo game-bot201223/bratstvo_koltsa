@@ -764,10 +764,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 }
 
  #mBoss .sheet{border-radius:0;border:none;}
-#mBoss .sheetBody{display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
-#mBoss #bossList{display:flex;flex-direction:column;gap:12px;padding:12px 14px;padding-bottom:calc(24px + env(safe-area-inset-bottom));width:100%;box-sizing:border-box;}
-#mBoss #bossList > *{flex-shrink:0;}
-#mBoss #bossList .card{width:100%;max-width:100%;box-sizing:border-box;flex-shrink:0;}
+#mBoss .sheetBody{display:block;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+#mBoss #bossList{display:block;padding:12px 14px;padding-bottom:calc(24px + env(safe-area-inset-bottom));width:100%;box-sizing:border-box;}
+#mBoss #bossList .card{width:100%;max-width:100%;box-sizing:border-box;display:block;margin-bottom:12px;}
+#mBoss #bossList .card:last-child{margin-bottom:0;}
 
 .sheetScreen .sheetBody{
   padding:0;
@@ -7901,7 +7901,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       window.__bossListSig = sig;
     } catch (eSig) {}
 
-    let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+    let html = '';
     html += '<div class="card">'
       + '<div class="row"><div style="min-width:0"><div class="k">НАВЫК</div><div style="font-size:12px;opacity:.75;margin-top:4px">Помощь братков</div></div>'
       + '<button class="btn btnSmall" id="friendHelpOpen">ПОМОЩЬ БРАТКОВ</button></div>'
@@ -8024,7 +8024,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '</div>'
         + '</div>';
     });
-    html += '</div>';
     box.innerHTML = html;
     try { box.__bossListBuilt = true; } catch (e0) {}
 
