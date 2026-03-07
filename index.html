@@ -542,7 +542,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   position:relative;
 }
 .dock::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:transparent;pointer-events:none;}
-.dockRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;}
+.dockRow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;}
 .dockRow .dockBtn{
   padding:0;
   border-radius:50%;
@@ -1023,21 +1023,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div class="dockRow">
           <button class="btn dockBtn" id="btnDistricts" aria-label="Районы"><img src="районы.png" alt=""></button>
           <button class="btn dockBtn" id="btnBoss" aria-label="Боссы"><img src="боссы.png" alt=""></button>
+          <button class="btn dockBtn" id="btnBratki" aria-label="Братки"><img src="братки.png" alt=""></button>
           <button class="btn dockBtn" id="btnClans" aria-label="Кланы"><img src="кланы.png" alt=""></button>
           <button class="btn dockBtn" id="btnPloshchad" aria-label="Площадь"><img src="площадь.png" alt=""></button>
-        </div>
-      </div>
-
-      <div class="feed friendsPanel">
-        <div class="feedHead">
-          <div class="t">ТОП БРАТКОВ</div>
-          <div style="display:flex; gap:8px; align-items:center;">
-            <button class="btn btnSmall" id="inviteBros">+ БРАТОК</button>
-            <button class="btn btnSmall" id="openTopBros">ТОП</button>
-          </div>
-        </div>
-        <div class="friendsBody">
-          <div class="friendsRow" id="friendsRow"></div>
         </div>
       </div>
     </div>
@@ -1506,7 +1494,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetHead">
       <button class="iconBtn" data-close="mTopBros">‹</button>
       <div class="title">ТОП БРАТКОВ</div>
-      <div style="width:44px"></div>
+      <button class="btn btnSmall" id="topBrosInviteBtn">➕ БРАТОК</button>
     </div>
     <div class="sheetBody">
       <div class="card">
@@ -9677,6 +9665,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     };
     $('btnPloshchad').onclick = ()=>{ openScreen('mPloshchad'); haptic('light'); };
     (function(){
+      const br = $('btnBratki');
+      if (br) br.onclick = ()=>{ openScreen('mTopBros'); renderTopBrosModal(); haptic('light'); };
+      const topInv = $('topBrosInviteBtn');
+      if (topInv) topInv.onclick = ()=>{ inviteBros(); haptic('light'); };
+    })();
+    (function(){
       var img = $('ploshchadImg');
       var inner = $('ploshchadMapInner');
       if (!img || !inner) return;
@@ -9696,16 +9690,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       renderClans();
       haptic('light');
     };
-
-    try {
-      const ob = $('openTopBros');
-      if (ob) ob.onclick = ()=>{ openScreen('mTopBros'); renderTopBrosModal(); haptic('light'); };
-    } catch (e) {}
-
-    try {
-      const ib = $('inviteBros');
-      if (ib) ib.onclick = ()=>inviteBros();
-    } catch (e) {}
 
     try {
       const cc = $('clanCreate');
