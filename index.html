@@ -131,6 +131,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .energyRefillBtn{flex-shrink:0;width:20px;height:20px;padding:0;border-radius:50%;border:1px solid rgba(34,211,238,.5);background:rgba(34,211,238,.25);color:var(--energy);font-size:14px;line-height:1;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s, background .15s;}
 .energyRefillBtn:hover{background:rgba(34,211,238,.4);}
 .energyRefillBtn:active{transform:scale(0.9);}
+.resetProgressBtn{flex-shrink:0;width:18px;height:18px;padding:0;border-radius:50%;border:1px solid rgba(120,120,120,.5);background:rgba(80,80,80,.2);color:rgba(100,100,100,.95);font-size:11px;line-height:1;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s, background .15s;}
+.resetProgressBtn:hover{background:rgba(100,100,100,.35);}
+.resetProgressBtn:active{transform:scale(0.9);}
 .pill strong{font-weight:900;letter-spacing:1px;}
 
 .xpRow{display:flex;align-items:center;gap:8px;}
@@ -1162,6 +1165,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div class="pill energyPill" style="border-color:rgba(34,211,238,.20)">
           <div class="eRow">⚡ <strong id="energy">100</strong>/<span id="energyMax">100</span>
             <button type="button" class="energyRefillBtn" id="energyRefillBtn" aria-label="Восстановить энергию" title="Восстановить 100% энергии за 10 золотых">+</button>
+            <button type="button" class="resetProgressBtn" id="resetProgressBtn" aria-label="Сброс прогресса" title="Сброс прогресса">↺</button>
           </div>
           <div class="eTimer" id="energyTimer">02:00</div>
         </div>
@@ -10023,6 +10027,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         haptic('medium');
       };
       if (noBtn) noBtn.onclick = ()=>{ hideModal('mEnergyRefillConfirm'); haptic('light'); };
+    })();
+    (function(){
+      const rpb = $('resetProgressBtn');
+      if (rpb) rpb.onclick = ()=>{
+        if (!confirm('Сбросить весь прогресс? Это нельзя отменить.')) return;
+        try { hardReset(); } catch (e) { toast('Ошибка сброса','lose'); }
+        haptic('medium');
+      };
     })();
     $('btnDistricts').onclick = ()=>{
       openScreen('mDistricts');
