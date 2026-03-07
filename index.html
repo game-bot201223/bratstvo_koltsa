@@ -7377,6 +7377,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             state.bosses.pendingReward = null;
 
             try {
+              if (!state.bosses.winsPerBoss || typeof state.bosses.winsPerBoss !== 'object') state.bosses.winsPerBoss = {};
+              const k = String(bossId);
+              state.bosses.winsPerBoss[k] = (parseInt(state.bosses.winsPerBoss[k]||0,10)||0) + 1;
+              state.bosses.wins = (parseInt(state.bosses.wins||0,10)||0) + 1;
+            } catch (e6) {}
+
+            try {
               const nextReq = bossReq(bossId+1);
               if (nextReq){
                 bossKeyAdd(nextReq.itemKey, 1);
@@ -8449,11 +8456,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (!imgs || !Array.isArray(imgs)) return;
           const wins = parseInt(winsPerBoss[String(bid)]||0,10)||0;
           const thresholds = getMedalThresholdsForBoss(bid);
+          let topIndex = -1;
           for (let i = 0; i < thresholds.length; i++) {
-            if (wins >= thresholds[i]) {
-              const img = imgs[i] || imgs[0];
-              list.push({ img: img, title: b.name + ' — медаль ' + (i + 1) });
-            }
+            if (wins >= thresholds[i]) topIndex = i;
+          }
+          if (topIndex >= 0) {
+            const img = imgs[topIndex] || imgs[0];
+            list.push({ img: img, title: b.name + ' — медаль ' + (topIndex + 1) });
           }
         });
       }
