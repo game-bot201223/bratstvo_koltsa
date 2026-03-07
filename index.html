@@ -524,7 +524,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .tile:active{transform:scale(0.98);}
 .tile .k{font-size:9px;opacity:.85;letter-spacing:2px}
 .tile .v{font-weight:900;letter-spacing:1px;font-size:9px;}
-.tile.gold,.tile.silver,.tile.tooth{align-items:center;text-align:center;}
+.tile.gold,.tile.silver,.tile.tooth{align-items:center;text-align:left;padding-left:2px;}
 .tile.gold .v,.tile.silver .v,.tile.tooth .v{font-size:11px;line-height:1;}
 /* Иконки валют — один размер по всей игре (на 20% меньше: 19px) */
 .goldIcon,.silverIcon,.toothIcon,.fearIcon{height:19px !important;max-height:19px !important;width:auto !important;vertical-align:middle;object-fit:contain;}
@@ -2930,6 +2930,23 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   const HAVCHIK_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+  function havchikCanSend(){
+    const lastSend = parseInt(state.havchikLastSendTs||0,10)||0;
+    if (!lastSend) return true;
+    return utcDayKeyAt(lastSend) !== utcDayKey();
+  }
+  function havchikFilterInbox(items){
+    const dayStart = havchikGameDayStartMs();
+    const seen = {};
+    return (items||[]).filter((item)=>{
+      const ts = parseInt(item.sent_ts||item.created_at||item.ts||0,10)||0;
+      if (ts < dayStart) return false;
+      const sender = String(item.from_id!=null ? item.from_id : (item.from_tg_id!=null ? item.from_tg_id : (item.from_name||item.from||'')||'')).trim();
+      if (seen[sender]) return false;
+      seen[sender] = true;
+      return true;
+    });
+  }
   const HAVCHIK_ENERGY_PER_FRIEND = 3;
   const HAVCHIK_TYPES = [
     { id:0, name:'Шоколад "Урчонка"', energy:5, img:'шок.jpg' },
@@ -2982,17 +2999,32 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         cont.innerHTML = '<div style="padding:20px;text-align:center;font-size:12px;opacity:.8;">Загрузка…</div>';
         sbFnCall('havchik_inbox_pull', { initData: tgInitData(), limit: 50 })
           .then((r)=>{
-            const items = (r && Array.isArray(r.items)) ? r.items : [];
+            const raw = (r && Array.isArray(r.items)) ? r.items : [];
+            const items = typeof havchikFilterInbox === 'function' ? havchikFilterInbox(raw) : raw;
             renderHavchikCollectInner(cont, items, true);
           })
           .catch(()=>{
-            renderHavchikCollectInner(cont, Array.isArray(state.havchikInbox) ? state.havchikInbox : [], false);
+            const local = Array.isArray(state.havchikInbox) ? state.havchikInbox : [];
+            const filtered = typeof havchikFilterInbox === 'function' ? havchikFilterInbox(local) : local;
+            renderHavchikCollectInner(cont, filtered, false);
           });
         return;
       }
       const inbox = Array.isArray(state.havchikInbox) ? state.havchikInbox : [];
-      renderHavchikCollectInner(cont, inbox, false);
+      const filtered = typeof havchikFilterInbox === 'function' ? havchikFilterInbox(inbox) : inbox;
+      havchikPurgeExpiredInbox();
+      renderHavchikCollectInner(cont, filtered, false);
     } catch (e) {}
+  }
+  function havchikPurgeExpiredInbox(){
+    const dayStart = typeof havchikGameDayStartMs === 'function' ? havchikGameDayStartMs() : 0;
+    if (!dayStart || !Array.isArray(state.havchikInbox)) return;
+    const before = state.havchikInbox.length;
+    state.havchikInbox = state.havchikInbox.filter((item)=>{
+      const ts = parseInt(item.sent_ts||item.created_at||item.ts||0,10)||0;
+      return ts >= dayStart;
+    });
+    if (state.havchikInbox.length < before) save();
   }
   function renderHavchikCollectInner(cont, items, isCloud){
     if (!cont) return;
@@ -3075,12 +3107,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const friends = getBratkiList();
       const n = friends.length;
       const nowTs = now();
-      const lastSend = parseInt(state.havchikLastSendTs||0,10)||0;
-      const canSend = (nowTs - lastSend) >= HAVCHIK_COOLDOWN_MS;
+      const canSend = typeof havchikCanSend === 'function' ? havchikCanSend() : ((nowTs - (parseInt(state.havchikLastSendTs||0,10)||0)) >= HAVCHIK_COOLDOWN_MS);
       if (statusEl) {
         let txt = 'Братков: ' + n + '. ';
-        if (canSend) txt += 'Можно отправить браткам.';
-        else if (lastSend) txt += 'Отправить снова через ' + formatCd(lastSend + HAVCHIK_COOLDOWN_MS - nowTs) + '.';
+        if (canSend) txt += 'Можно отправить браткам (1 раз в игровые сутки 18:00–18:00 UTC).';
+        else if (state.havchikLastSendTs) {
+          txt += 'Следующая отправка с 18:00 UTC.';
+        }
+        txt += ' Неиспользованный хавчик сгорает в 18:00 UTC.';
         statusEl.textContent = txt;
       }
       if (collectBtn) {
@@ -4279,6 +4313,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
   const ARMOR_TIER_IMAGES = {
     4: ['миф1.png', 'миф2.png', 'миф3.png']
+  };
+  // Цены по ярусам: чахлые/обычные — золотые зубы, редкие/эпические — монеты (золото)
+  const ARMOR_TIER_PRICES = {
+    0: { amount: 50000, currency: 'tooth' },   // чахлые — 50к золотых зубов
+    1: { amount: 1000000, currency: 'tooth' }, // обычные — 1м золотых зубов
+    2: { amount: 1000, currency: 'gold' },     // редкие — 1000 монет
+    3: { amount: 2500, currency: 'gold' },     // эпические — 2500 монет
+    4: { amount: 5000, currency: 'gold' }      // мифические — 5000 монет
   };
   const ARMOR_ITEM_PRICE = 5000;
   const GYM_STATS = [
@@ -6863,6 +6905,23 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const pad = n => (n<10 ? '0'+n : ''+n);
       return y+'-'+pad(m+1)+'-'+pad(day);
     } catch (e) { return '1970-01-01'; }
+  }
+  function utcDayKeyAt(ts){
+    try {
+      const t = parseInt(ts||0,10)||0;
+      const x = new Date(t - 18*60*60*1000);
+      const y = x.getUTCFullYear(), m = x.getUTCMonth(), day = x.getUTCDate();
+      const pad = n => (n<10 ? '0'+n : ''+n);
+      return y+'-'+pad(m+1)+'-'+pad(day);
+    } catch (e) { return '1970-01-01'; }
+  }
+  function havchikGameDayStartMs(){
+    try {
+      const k = utcDayKey();
+      const parts = k.split('-');
+      const y = parseInt(parts[0],10)||0, m = (parseInt(parts[1],10)||1)-1, d = parseInt(parts[2],10)||1;
+      return Date.UTC(y, m, d, 18, 0, 0, 0);
+    } catch (e) { return 0; }
   }
   function bossDailyEnsure(){
     if (!state.bosses.daily) state.bosses.daily = { day:'', counts:{} };
@@ -10023,13 +10082,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             const tier = parseInt(btn.getAttribute('data-armor-tier'), 10) || 0;
             if (armorScrollStrip) {
               const imgs = (typeof ARMOR_TIER_IMAGES !== 'undefined' && ARMOR_TIER_IMAGES[tier]) ? ARMOR_TIER_IMAGES[tier] : ['персонаж.png', 'персонаж.png', 'персонаж.png'];
-              const price = (typeof ARMOR_ITEM_PRICE !== 'undefined') ? ARMOR_ITEM_PRICE : 5000;
+              const priceConfig = (typeof ARMOR_TIER_PRICES !== 'undefined' && ARMOR_TIER_PRICES[tier]) ? ARMOR_TIER_PRICES[tier] : { amount: 5000, currency: 'gold' };
+              const price = priceConfig.amount;
+              const isTooth = priceConfig.currency === 'tooth';
+              const priceLabel = price >= 1000 ? (price >= 1000000 ? (price/1000000)+'м' : (price/1000)+'к') : String(price);
+              const priceSuffix = isTooth ? ' <img src="зуб.png" alt="" class="toothIcon armorItemGoldIcon">' : ' <img src="голд.png" alt="" class="goldIcon armorItemGoldIcon">';
               armorScrollStrip.innerHTML = imgs.map(function(src, idx){
                 var key = tier + '-' + idx;
                 var owned = !!(state.armorOwned && state.armorOwned[key]);
-                var priceLabel = price >= 1000 ? (price/1000)+'к' : String(price);
-                var btnText = owned ? 'выбрать' : ('купить за '+priceLabel+' <img src="голд.png" alt="" class="goldIcon armorItemGoldIcon">');
-                return '<div class="armorScrollItem"><img src="'+src.replace(/"/g,'&quot;')+'" alt=""><button type="button" class="armorItemBuy" data-armor-src="'+src.replace(/"/g,'&quot;')+'" data-armor-key="'+key.replace(/"/g,'&quot;')+'" data-armor-owned="'+(owned?'1':'0')+'">'+btnText+'</button></div>';
+                var btnText = owned ? 'выбрать' : ('купить за '+priceLabel+priceSuffix);
+                return '<div class="armorScrollItem"><img src="'+src.replace(/"/g,'&quot;')+'" alt=""><button type="button" class="armorItemBuy" data-armor-src="'+src.replace(/"/g,'&quot;')+'" data-armor-key="'+key.replace(/"/g,'&quot;')+'" data-armor-owned="'+(owned?'1':'0')+'" data-armor-currency="'+(isTooth?'tooth':'gold')+'" data-armor-price="'+price+'">'+btnText+'</button></div>';
               }).join('');
               armorScrollStrip.classList.add('isOpen');
               armorScrollStrip.setAttribute('aria-hidden', 'false');
@@ -10057,14 +10119,26 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
               haptic('medium');
               return;
             }
-            var price = (typeof ARMOR_ITEM_PRICE !== 'undefined') ? ARMOR_ITEM_PRICE : 5000;
-            var gold = Math.floor(state.gold||0);
-            if (gold < price) {
-              toast('Нужно '+price+' '+TOAST_GOLD_IMG,'lose');
-              haptic('light');
-              return;
+            var currency = buyBtn.getAttribute('data-armor-currency') || 'gold';
+            var price = parseInt(buyBtn.getAttribute('data-armor-price'), 10) || 0;
+            var isTooth = currency === 'tooth';
+            if (isTooth) {
+              var tooth = Math.floor(state.tooth||0);
+              if (tooth < price) {
+                toast('Нужно '+price+' '+TOAST_TOOTH_IMG,'lose');
+                haptic('light');
+                return;
+              }
+              state.tooth = tooth - price;
+            } else {
+              var gold = Math.floor(state.gold||0);
+              if (gold < price) {
+                toast('Нужно '+price+' '+TOAST_GOLD_IMG,'lose');
+                haptic('light');
+                return;
+              }
+              state.gold = gold - price;
             }
-            state.gold = gold - price;
             if (!state.armorOwned) state.armorOwned = {};
             state.armorOwned[key] = true;
             buyBtn.setAttribute('data-armor-owned', '1');
