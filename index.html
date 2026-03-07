@@ -178,10 +178,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 }
 .mainCharacter .charCornerBtn{
   position:absolute;
-  right:0;
-  bottom:0;
-  width:calc(100vw / 6);
-  height:calc(100vw / 6);
+  right:4px;
+  bottom:4px;
+  width:calc(100vw / 6 * 0.7);
+  height:calc(100vw / 6 * 0.7);
   padding:0;
   border-radius:50%;
   overflow:hidden;
@@ -194,6 +194,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   -webkit-tap-highlight-color:transparent;
   transition: transform var(--transition-fast);
 }
+.mainCharacter .charCornerBtn img{display:block;width:100%;height:100%;object-fit:cover;}
 .mainCharacter .charCornerBtn:active{transform:scale(0.94);}
 .hero{
   margin:12px 14px 0;
@@ -402,7 +403,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   position:relative;
 }
 .dock::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:transparent;pointer-events:none;}
-.dockRow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;}
+.dockRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;}
 .dockRow .dockBtn{
   padding:0;
   border-radius:50%;
@@ -414,10 +415,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   box-sizing:border-box;
   border:2px solid transparent;
   transition: transform var(--transition-fast);
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 .dockRow .dockBtn:active{transform:scale(0.91);}
 .dockRow .dockBtn img{display:block;width:100%;height:100%;object-fit:cover;}
-#btnPloshchad.dockBtn img{transform:scale(1.25);}
+.dockRow .dockBtn.dockBtnWithLabel{flex-direction:column;gap:2px;}
+.dockRow .dockBtn.dockBtnWithLabel img{flex-shrink:0;}
+.dockRow .dockBtn .dockBtnLabel{font-size:9px;font-weight:900;letter-spacing:1px;opacity:.95;line-height:1.1;}
+#btnPloshchad.dockBtn img{transform:none;object-fit:contain;}
 @media (max-width: 380px){
  .dock{padding:0 0 calc(8px + env(safe-area-inset-bottom));}
  .dockRow{gap:0;}
@@ -864,17 +871,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   <div class="main">
     <div class="mainCharacter">
       <img src="персонаж.png" alt="">
-      <button type="button" class="btn charCornerBtn" id="btnDospekhi" aria-label="Доспехи"></button>
+      <button type="button" class="btn charCornerBtn" id="btnDospekhi" aria-label="Доспехи"><img src="доспехи.png" alt="Доспехи"></button>
     </div>
     <div class="bottomStack">
       <div class="dock">
         <div class="dockRow">
-          <button class="btn dockBtn" id="btnDistricts" aria-label="Районы"><img src="районы.jpg" alt=""></button>
-          <button class="btn dockBtn" id="btnArena" aria-label="Арена"><img src="арена.jpg" alt=""></button>
-          <button class="btn dockBtn" id="btnBoss" aria-label="Боссы"><img src="боссы.jpg" alt=""></button>
+          <button class="btn dockBtn" id="btnDistricts" aria-label="Районы"><img src="районы.png" alt=""></button>
+          <button class="btn dockBtn dockBtnWithLabel" id="btnBoss" aria-label="Боссы"><img src="боссы.png" alt=""><span class="dockBtnLabel">Боссы</span></button>
+          <button class="btn dockBtn" id="btnClans" aria-label="Кланы"><img src="кланы.png" alt=""></button>
           <button class="btn dockBtn" id="btnPloshchad" aria-label="Площадь"><img src="площадь.png" alt=""></button>
-          <button class="btn dockBtn" id="btnTop" aria-label="Топ"><img src="топ.jpg" alt=""></button>
-          <button class="btn dockBtn" id="btnClans" aria-label="Кланы"><img src="кланы.jpg" alt=""></button>
         </div>
       </div>
 
@@ -2227,34 +2232,41 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try { $('consCtx').textContent = (ctx==='arena' ? 'ПОКУПКА' : 'ИСПОЛЬЗОВАНИЕ'); } catch (e) {}
     try { $('consGold').innerHTML = String(state.gold||0) + ' <img src="голд.png" alt="Золото" class="goldIcon">'; } catch (e) {}
 
-    const med = parseInt(state.consumables && state.consumables.med || 0, 10) || 0;
-    const nade = parseInt(state.consumables && state.consumables.nade || 0, 10) || 0;
-
     const list = $('consList');
     if (list){
       list.innerHTML = '';
 
-      const row1 = document.createElement('div');
-      row1.className = 'row';
-      row1.innerHTML = '<div><div class="k">🩹 АПТЕЧКА</div><div style="font-size:12px;opacity:.75;line-height:1.25">Лечит тебя на 30% HP</div></div>';
-      const b1 = document.createElement('button');
-      b1.className = 'btn btnSmall';
-      b1.textContent = 'ИСП. ('+med+')';
-      b1.disabled = (med<=0) || (ctx!=='battle');
-      b1.onclick = ()=>consUse('med');
-      row1.appendChild(b1);
-      list.appendChild(row1);
-
-      const row2 = document.createElement('div');
-      row2.className = 'row';
-      row2.innerHTML = '<div><div class="k">💣 ГРАНАТА</div><div style="font-size:12px;opacity:.75;line-height:1.25">Наносит 25 урона цели</div></div>';
-      const b2 = document.createElement('button');
-      b2.className = 'btn btnSmall';
-      b2.textContent = 'ИСП. ('+nade+')';
-      b2.disabled = (nade<=0) || (ctx!=='battle');
-      b2.onclick = ()=>consUse('nade');
-      row2.appendChild(b2);
-      list.appendChild(row2);
+      if (ctx === 'battle') {
+        // В групповых боях — только расходники из Торговой лавки (CONSUMABLES_DATA)
+        const items = state.consumablesItems || {};
+        const b = state.groupFight && state.groupFight.battle;
+        const myHp = b ? (parseInt(b.myHp||0,10)||0) : 0;
+        const canUseInBattle = b && myHp > 0 && !b.acted;
+        let hasAny = false;
+        CONSUMABLES_DATA.forEach(c=>{
+          if (c.type !== 'heal' && c.type !== 'dmg') return;
+          const qty = parseInt(items[c.id]||0,10)||0;
+          if (qty<=0) return;
+          hasAny = true;
+          const row = document.createElement('div');
+          row.className = 'row';
+          row.innerHTML = '<img src="'+c.img+'" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:8px;">'
+            + '<div style="flex:1;min-width:0;">'
+            + '<div class="k">'+c.name+'</div>'
+            + '<div style="font-size:12px;opacity:.8">'+c.desc+'</div>'
+            + '<div style="font-size:11px;opacity:.75">В наличии: <strong>'+qty+'</strong></div>'
+            + '</div>';
+          const useBtn = document.createElement('button');
+          useBtn.className = 'btn btnSmall';
+          useBtn.textContent = 'ИСП.';
+          useBtn.disabled = !canUseInBattle;
+          if (canUseInBattle) useBtn.onclick = ()=>{ useConsumableItem(c.id); renderConsumables(); };
+          row.appendChild(useBtn);
+          list.appendChild(row);
+        });
+        if (!hasAny) list.innerHTML = '<div style="font-size:12px;opacity:.75">Пусто. Купи расходники в Торговой лавке.</div>';
+      }
+      // Аптечка и граната (арена) в групповых боях не показываются и не используются
     }
 
     const shopCard = $('consShopCard');
@@ -2475,6 +2487,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!b){ toast('Нет активного боя','lose'); return; }
     if ((parseInt(b.myHp||0,10)||0) <= 0){ toast('Ты наблюдатель','lose'); return; }
     if (b.acted){ toast('Уже использовано действие в этот ход','lose'); return; }
+    // В групповых боях доступны только расходники из Торговой лавки
+    if (kind==='med' || kind==='nade'){ toast('В групповых боях доступны только расходники из Торговой лавки','lose'); return; }
     if (!state.consumables) state.consumables = { med:0, nade:0 };
 
     if (kind==='med'){
@@ -9482,17 +9496,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       haptic('light');
     };
     const hb = $('havchikBtn'); if (hb) hb.onclick = ()=>{ showModal('mHavchik'); renderHavchik(); haptic('light'); };
-    $('btnArena').onclick = ()=>{
-      if (isGroupBattleActive()) {
-        gfEnsureBattle();
-        openScreen('mBattle');
-        renderBattle();
-      } else {
-        openScreen('mArena');
-        renderAll();
-      }
-      haptic('light');
-    };
     $('btnBoss').onclick = ()=>{
       const bid = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
       const f = bid ? bfGetFight(bid) : null;
@@ -9520,7 +9523,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       renderBosses();
       haptic('light');
     };
-    $('btnTop').onclick = ()=>{ openScreen('mTop'); renderTop100('LVL'); haptic('light'); };
     $('btnPloshchad').onclick = ()=>{ openScreen('mPloshchad'); haptic('light'); };
     (function(){
       var img = $('ploshchadImg');
