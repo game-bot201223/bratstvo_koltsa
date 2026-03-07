@@ -6661,14 +6661,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   // --- Shop
-  const PROMO_CODE = 'BRATSTVO5';
+  const PROMO_CODE = 'BRATSTVO1';
   const PROMO_START_TS = 0;
   const PROMO_WINDOW_HOURS = 48;
   const PROMO_REWARD = {
-    gold: 99999999999999999,
-    silver: 9999999999999999999,
-    tooth: 9999999999999999999,
-    rings: 9999999999999999999
+    gold: 999,
+    silver: 999,
+    tooth: 999,
+    rings: 999
   };
 
   function promoNorm(s){
@@ -6778,17 +6778,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const promoOk = promoActive();
     const promoWasUsed = promoUsed();
     const promoDisabled = (!promoOk) || promoWasUsed;
-    html += '<div class="card">'
+    if (promoWasUsed) {
+      html += '<div class="card">'
+        + '<div class="row" style="justify-content:flex-end">'
+        + '<button class="btn btnSmall" id="promoApply" disabled>ИСПОЛЬЗОВАН</button>'
+        + '</div></div>';
+    } else {
+      html += '<div class="card">'
       + '<div class="row" style="gap:10px; align-items:flex-end">'
       + '<div style="min-width:0; flex:1">'
       + '<div class="k">ПРОМОКОД</div>'
-      + '<div style="font-size:12px;opacity:.75;margin-top:4px">'+(promoOk ? (promoWasUsed ? 'Промокод уже использован' : 'Введи промокод') : 'Промокод больше не активен')+'</div>'
+      + '<div style="font-size:12px;opacity:.75;margin-top:4px">'+(promoOk ? 'Введи промокод' : 'Промокод больше не активен')+'</div>'
       + '<img src="зуб.png" alt="Золотые зубы" class="toothIcon"> — золотые зубы</div>'
        + '<input id="promoInput" placeholder="Промокод" autocomplete="off" spellcheck="false" style="margin-top:10px; width:100%; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08); color:rgba(255,255,255,.92); padding:0 12px; font-family:inherit; font-weight:800; letter-spacing:1px; outline:none" />'
        + '</div>'
-       + '<button class="btn btnSmall" id="promoApply" '+(promoDisabled?'disabled':'')+'>'+(promoWasUsed?'ИСПОЛЬЗОВАН':(promoOk?'ПРИМЕНИТЬ':'НЕ АКТИВЕН'))+'</button>'
+       + '<button class="btn btnSmall" id="promoApply" '+(promoDisabled?'disabled':'')+'>'+(promoOk?'ПРИМЕНИТЬ':'НЕ АКТИВЕН')+'</button>'
        + '</div>'
       + '</div>';
+    }
 
     ITEMS.forEach(it=>{
       const showX2 = !!(shopX2Enabled() && it.goldAdd);
