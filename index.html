@@ -181,6 +181,100 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   border-radius:0;
 }
 
+/* Декоративная панель-свиток (фэнтези/RPG) между валютой и фото — открывается вниз до дока */
+.parchmentPanel{
+  flex:0 0 auto;
+  width:100%;
+  max-width:100%;
+  height:36px;
+  min-height:36px;
+  max-height:36px;
+  position:relative;
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  transition:flex 0.35s var(--ease-out), min-height 0.35s var(--ease-out), max-height 0.35s var(--ease-out);
+  overflow:hidden;
+}
+.parchmentPanel.isOpen{
+  flex:1 1 auto;
+  min-height:120px;
+  max-height:none;
+  height:auto;
+}
+.parchmentPanel.isOpen ~ .mainCharacter{
+  display:none;
+}
+.parchmentPanel::before{
+  content:'';
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:18px;
+  background:linear-gradient(135deg, #d4af37 0%, #b8860b 50%, #8b6914 100%);
+  border-radius:10px 0 0 10px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.25), 2px 0 4px rgba(0,0,0,.12);
+  border:1px solid rgba(139,105,20,.55);
+  border-right:none;
+  z-index:1;
+}
+.parchmentPanel::after{
+  content:'';
+  position:absolute;
+  right:0;
+  top:0;
+  bottom:0;
+  width:18px;
+  background:linear-gradient(225deg, #d4af37 0%, #b8860b 50%, #8b6914 100%);
+  border-radius:0 10px 10px 0;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.25), -2px 0 4px rgba(0,0,0,.12);
+  border:1px solid rgba(139,105,20,.55);
+  border-left:none;
+  z-index:1;
+}
+.parchmentPanelInner{
+  position:absolute;
+  left:18px;
+  right:18px;
+  top:0;
+  bottom:0;
+  background:linear-gradient(180deg, #f0e6d0 0%, #e6dcc4 12%, #ddd2b8 45%, #e2d8c0 88%, #e8dfc8 100%);
+  border-top:1px solid rgba(139,105,20,.2);
+  border-bottom:1px solid rgba(139,105,20,.28);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7), inset 0 0 24px rgba(210,180,140,.2);
+  border-radius:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:0;
+  overflow-y:auto;
+}
+.parchmentPanelToggle{
+  flex-shrink:0;
+  width:32px;
+  height:24px;
+  padding:0;
+  border:none;
+  border-radius:6px;
+  background:linear-gradient(180deg, rgba(212,175,55,.35), rgba(139,105,20,.25));
+  border:1px solid rgba(139,105,20,.45);
+  color:#8b6914;
+  font-size:12px;
+  line-height:1;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:transform var(--transition-fast), background 0.2s;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 1px 2px rgba(0,0,0,.12);
+}
+.parchmentPanelToggle:hover{background:linear-gradient(180deg, rgba(212,175,55,.5), rgba(139,105,20,.35));}
+.parchmentPanelToggle:active{transform:scale(0.96);}
+.parchmentPanel.isOpen .parchmentPanelToggle{margin-top:auto; margin-bottom:8px;}
+
 /* ПК и Telegram Web (широкий viewport): пустое место по бокам — контент по центру с max-width для всего проекта */
 @media (min-width: 520px){
   #app{
@@ -915,6 +1009,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   </div>
 
   <div class="main">
+    <div class="parchmentPanel" id="parchmentPanel">
+      <div class="parchmentPanelInner">
+        <button type="button" class="parchmentPanelToggle" id="parchmentPanelToggle" aria-label="Развернуть панель">▼</button>
+      </div>
+    </div>
     <div class="mainCharacter">
       <img src="персонаж.png" alt="">
       <button type="button" class="btn charCornerBtn" id="btnDospekhi" aria-label="Доспехи"><img src="доспехи.png" alt="Доспехи"></button>
@@ -9506,6 +9605,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     const sb = $('settingsBtn'); if (sb) sb.onclick = ()=>{ showModal('mSettings'); renderAll(); haptic('light'); };
     $('shopBtn').onclick = ()=>{ showModal('mShop'); renderShop(); haptic('light'); };
+    (function(){
+      const panel = $('parchmentPanel');
+      const btn = $('parchmentPanelToggle');
+      if (!panel || !btn) return;
+      const open = ()=>{ panel.classList.add('isOpen'); btn.textContent = '▲'; btn.setAttribute('aria-label', 'Свернуть панель'); try { state.parchmentPanelOpen = true; save(); } catch(e){} };
+      const close = ()=>{ panel.classList.remove('isOpen'); btn.textContent = '▼'; btn.setAttribute('aria-label', 'Развернуть панель'); try { state.parchmentPanelOpen = false; save(); } catch(e){} };
+      btn.onclick = ()=>{ panel.classList.contains('isOpen') ? close() : open(); haptic('light'); };
+      if (state.parchmentPanelOpen) open();
+    })();
     (function(){
       const eb = $('energyRefillBtn');
       if (eb) eb.onclick = ()=>{
