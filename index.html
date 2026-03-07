@@ -575,6 +575,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  #arenaSectionGym .statTile .stK{font-size:9px;letter-spacing:1.6px;}
  #arenaSectionGym .statTile .stV{font-size:12px;}
  #arenaSectionGym .statTile .stMeta{font-size:9.5px;line-height:1.2;}
+.gymMultBtns{display:flex;align-items:center;gap:4px;}
+.gymMultBtns .btnMult{font-size:10px;padding:4px 8px;min-height:auto;line-height:1.2;}
+.gymMultBtns .btnMult.active{background:var(--accent);color:#fff;}
 
 .gymStatsColumnCard{margin-top:10px;}
 .gymStatsColumnLegend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;font-size:10px;opacity:.88;letter-spacing:1px;}
@@ -1857,7 +1860,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     </div>
     <div class="sheetBody">
       <div class="card" style="margin-top:10px;" id="arenaSectionGym">
-        <div class="row"><div class="k">СПОРТЗАЛ</div><div style="display:flex; align-items:center; gap:8px;"><div class="k">ПИТОМЕЦ + БИЗНЕСЫ =</div><div class="badge" id="gymPetBonus">0%</div></div></div>
+        <div class="row" style="flex-wrap:wrap; align-items:center; gap:8px;">
+          <div class="k">СПОРТЗАЛ</div>
+          <div id="gymMultBtns" class="gymMultBtns"></div>
+          <div style="display:flex; align-items:center; gap:8px; margin-left:auto;"><div class="k">ПИТОМЕЦ + БИЗНЕСЫ =</div><div class="badge" id="gymPetBonus">0%</div></div>
+        </div>
         <div id="gymList"></div>
 
         <div class="card" style="margin-top:8px;" id="arenaPetShopWrap">
@@ -2843,6 +2850,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         state.consumablesItems[id] = (parseInt(state.consumablesItems[id]||0,10)||0) + 1;
         const item = CONSUMABLES_DATA.find(x=>x.id===id);
         if (item) feedAdd('Награда ГБ: '+item.name,'GF');
+        try {
+          if (state.groupFight && state.groupFight.pendingReward && typeof state.groupFight.pendingReward === 'object') {
+            state.groupFight.pendingReward.consumableId = id;
+            state.groupFight.pendingReward.consumableName = item ? item.name : '';
+          }
+        } catch (e) {}
         save();
         return;
       }
@@ -2850,6 +2863,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const id = 1;
     if (!state.consumablesItems) state.consumablesItems = { 1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0 };
     state.consumablesItems[id] = (parseInt(state.consumablesItems[id]||0,10)||0) + 1;
+    const item = CONSUMABLES_DATA.find(x=>x.id===id);
+    try {
+      if (state.groupFight && state.groupFight.pendingReward && typeof state.groupFight.pendingReward === 'object') {
+        state.groupFight.pendingReward.consumableId = id;
+        state.groupFight.pendingReward.consumableName = item ? item.name : '';
+      }
+    } catch (e) {}
     save();
   }
 
@@ -5319,28 +5339,30 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         out.style.color = win ? 'rgba(52,211,153,.95)' : 'rgba(251,113,133,.95)';
       }
       if (rew) {
-        if (pr && (parseInt(pr.tooth||0,10)||0)>0 || (pr && (parseInt(pr.gold||0,10)||0)>0)){
-          const mm = parseInt(pr.tooth||0,10)||0;
-          const gg = parseInt(pr.gold||0,10)||0;
-          let t = '';
-          if (mm>0) t += '+'+mm+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon">';
-          if (gg>0) t += (t?' ':'') + '+'+gg+' <img src="голд.png" alt="Золото" class="goldIcon">';
-          rew.textContent = t || '—';
+        const mm = pr ? (parseInt(pr.tooth||0,10)||0) : 0;
+        const gg = pr ? (parseInt(pr.gold||0,10)||0) : 0;
+        const consumableName = pr && pr.consumableName ? String(pr.consumableName) : '';
+        let parts = [];
+        if (mm > 0) parts.push('+'+mm+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon">');
+        if (gg > 0) parts.push('+'+gg+' <img src="голд.png" alt="Золото" class="goldIcon">');
+        if (consumableName) parts.push('+1 ' + consumableName);
+        if (parts.length) {
+          rew.innerHTML = parts.join(' ');
           rew.style.color = 'var(--gold)';
         } else {
-          rew.textContent = '—';
+          rew.innerHTML = '—';
           rew.style.color = '';
         }
       }
       if (ok) {
-        const hasReward = !!(pr && ((parseInt(pr.tooth||0,10)||0)>0 || (parseInt(pr.gold||0,10)||0)>0));
-        ok.textContent = hasReward ? 'ЗАБРАТЬ' : 'НАЗАД';
+        const mm = pr ? (parseInt(pr.tooth||0,10)||0) : 0;
+        const gg = pr ? (parseInt(pr.gold||0,10)||0) : 0;
+        const hasAny = (mm>0 || gg>0 || (pr && pr.consumableName));
+        ok.textContent = hasAny ? 'ЗАБРАТЬ' : 'НАЗАД';
         ok.onclick = ()=>{
-          if (hasReward){
-            const mm = parseInt(pr.tooth||0,10)||0;
-            const gg = parseInt(pr.gold||0,10)||0;
-            if (mm>0) state.tooth += mm;
-            if (gg>0) state.gold += gg;
+          if (hasAny){
+            if (mm>0) state.tooth = (parseInt(state.tooth||0,10)||0) + mm;
+            if (gg>0) state.gold = (parseInt(state.gold||0,10)||0) + gg;
           }
           state.groupFight.pendingReward = null;
           save();
@@ -6143,6 +6165,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       targets: []
     };
 
+    state.groupFight.battle = battle;
     // Group fight: build teams from Supabase entries.
     // Чтобы на всех экранах были одни и те же команды — сортируем участников детерминированно (по tg_id).
     battle.myTeam = [];
@@ -6341,13 +6364,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     const log = $('bLog');
     log.innerHTML = '';
+    const playerName = String(state.playerName||'ТЫ').trim();
     const flt = (b.log||[]).filter(ev=>{
-      if (!ev || ev.kind==='SYS') return false;
-      const tx = (ev && ev.text) ? String(ev.text) : '';
+      if (!ev) return false;
+      const tx = (ev.text) ? String(ev.text) : '';
       if (!tx) return false;
-      return (tx.indexOf('Ты ')===0) || (tx.indexOf('тебе')>=0) || (tx.indexOf('тебя')>=0);
+      if (ev.kind === 'SYS') return false;
+      if (tx.indexOf('Ты ') === 0) return true;
+      if (tx.indexOf('Противник') >= 0 && (tx.indexOf('ТЫ') >= 0 || (playerName && tx.indexOf(playerName) >= 0))) return true;
+      return false;
     });
-    flt.slice(0,11).forEach(ev=>{
+    flt.slice(0, 11).forEach(ev=>{
       const d = document.createElement('div');
       d.className = 'feedItem';
       if (ev && ev.kind==='MISS') d.style.color = 'rgba(52,211,153,.95)';
@@ -6559,6 +6586,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function gymCost(cur){
     return 100 + (cur-1)*13;
   }
+  function gymCostN(cur, n){
+    if (!n || n < 1) return 0;
+    let total = 0;
+    for (let i = 0; i < n; i++) total += gymCost(cur + i);
+    return total;
+  }
   function gymBonusPct(){
     return petBonusPct() + bizGymBonusPct();
   }
@@ -6607,6 +6640,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (sumEl) sumEl.textContent = 'Сумма: ' + sumTotal;
   }
   function renderGym(){
+    const mult = [1,10,100].indexOf(state.gymMult) >= 0 ? state.gymMult : 1;
+    state.gymMult = mult;
+    const multBtnsEl = $('gymMultBtns');
+    if (multBtnsEl) {
+      multBtnsEl.innerHTML = '';
+      [10, 100].forEach(n=>{
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'btn btnSmall btnMult' + (mult === n ? ' active' : '');
+        b.textContent = '×'+n;
+        b.onclick = ()=>{ state.gymMult = n; save(); renderGym(); haptic('light'); };
+        multBtnsEl.appendChild(b);
+      });
+    }
     $('gymPetBonus').textContent = Math.round(gymBonusPct()*100) + '%';
     const box = $('gymList');
     let total = 0;
@@ -6618,13 +6665,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       let add = Math.round(cur*pct);
       if (pct>0 && cur>0 && add<=0) add = 1;
       const tot = cur + add;
-      const cost = gymCost(cur);
+      const costOne = gymCost(cur);
+      const costN = gymCostN(cur, mult);
       total += tot;
+      const costLabel = mult > 1 ? costN + ' <img src="сильвер.png" alt="Серебро" class="silverIcon">' : (costOne + ' <img src="сильвер.png" alt="Серебро" class="silverIcon">');
       html += '<div class="statTile">'
         + '<div class="stK">'+s.name.toUpperCase()+'</div>'
         + '<div class="stV">'+tot+'</div>'
         + '<div class="stMeta">База '+cur+' + '+add+'</div>'
-        + '<button class="btn btnSmall stBtn" data-gym="'+s.key+'">'+cost+' <img src="сильвер.png" alt="Серебро" class="silverIcon"></button>'
+        + '<button class="btn btnSmall stBtn" data-gym="'+s.key+'">'+costLabel+'</button>'
         + '</div>';
     });
 
@@ -6647,11 +6696,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         } catch (e0) {}
         const key = btn.getAttribute('data-gym');
         const cur = gymVal(key);
-        const cost = gymCost(cur);
+        const mult = [1,10,100].indexOf(state.gymMult) >= 0 ? state.gymMult : 1;
+        const cost = gymCostN(cur, mult);
         if ((state.silver||0) < cost){ toast('Нужно '+cost+' '+TOAST_SILVER_IMG,'lose'); return; }
         state.silver -= cost;
-        state.gym[key] = cur+1;
-        feedAdd('Тренировка: '+key+' → '+(cur+1),'GYM');
+        state.gym[key] = cur + mult;
+        feedAdd('Тренировка: '+key+' → '+(cur+mult),'GYM');
         toast('Прокачано','win');
         save();
         renderAll();
@@ -6787,10 +6837,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       html += '<div class="card">'
       + '<div class="row" style="gap:10px; align-items:flex-end">'
       + '<div style="min-width:0; flex:1">'
-      + '<div class="k">ПРОМОКОД</div>'
-      + '<div style="font-size:12px;opacity:.75;margin-top:4px">'+(promoOk ? 'Введи промокод' : 'Промокод больше не активен')+'</div>'
-      + '<img src="зуб.png" alt="Золотые зубы" class="toothIcon"> — золотые зубы</div>'
-       + '<input id="promoInput" placeholder="Промокод" autocomplete="off" spellcheck="false" style="margin-top:10px; width:100%; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08); color:rgba(255,255,255,.92); padding:0 12px; font-family:inherit; font-weight:800; letter-spacing:1px; outline:none" />'
+       + '<input id="promoInput" placeholder="" autocomplete="off" spellcheck="false" style="margin-top:0; width:100%; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08); color:rgba(255,255,255,.92); padding:0 12px; font-family:inherit; font-weight:800; letter-spacing:1px; outline:none" />'
        + '</div>'
        + '<button class="btn btnSmall" id="promoApply" '+(promoDisabled?'disabled':'')+'>'+(promoOk?'ПРИМЕНИТЬ':'НЕ АКТИВЕН')+'</button>'
        + '</div>'
