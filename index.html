@@ -1635,9 +1635,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody">
       <div class="card">
         <div style="display:flex; gap:12px; align-items:flex-start;">
-          <div id="clanPhotoWrap" style="width:250px; height:250px; flex:0 0 auto; border-radius:14px; border:1px solid rgba(255,255,255,.2); background:linear-gradient(145deg, rgba(255,255,255,.14), rgba(0,0,0,.08)); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; letter-spacing:1px; opacity:.85; color:rgba(45,30,18,.6); overflow:hidden;">
+          <div style="flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-start;">
+          <div id="clanPhotoWrap" style="width:250px; height:250px; border-radius:14px; border:1px solid rgba(255,255,255,.2); background:linear-gradient(145deg, rgba(255,255,255,.14), rgba(0,0,0,.08)); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; letter-spacing:1px; opacity:.85; color:rgba(45,30,18,.6); overflow:hidden;">
             <img id="clanPhoto" src="" alt="" style="width:100%; height:100%; object-fit:cover; display:none;">
             <span id="clanPhotoPlaceholder">ФОТО КЛАНА</span>
+          </div>
+          <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btnSmall" id="clanDelete" style="display:none; opacity:.9">УДАЛИТЬ</button>
+            <button class="btn btnSmall" id="clanLeave" style="display:none;">ВЫЙТИ</button>
+          </div>
           </div>
           <div style="flex:1; min-width:0;">
         <div style="display:flex; flex-direction:column; gap:2px;">
@@ -1652,8 +1658,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <button class="btn btnSmall" id="clanTopOpen" style="display:none;">ТОП</button>
           <button class="btn btnSmall" id="clanChatOpen" style="display:none;">ЧАТ</button>
           <button class="btn btnSmall" id="clanTransfer" style="display:none;">ПЕРЕДАТЬ</button>
-          <button class="btn btnSmall" id="clanDelete" style="display:none; opacity:.9">УДАЛИТЬ</button>
-          <button class="btn btnSmall" id="clanLeave" style="display:none;">ВЫЙТИ</button>
         </div>
           </div>
         </div>
@@ -2078,40 +2082,27 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return !!((bf && bf.classList.contains('show')) || (bl && bl.classList.contains('show')));
     } catch (e) { return false; }
   }
-  async function bossHelpSend(bossId, dmg){
+  function bossHelpSend(bossId, dmg){
     try {
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
       dmg = Math.max(1, parseInt(dmg||0,10)||0);
       bossId = Math.max(1, parseInt(bossId||0,10)||0);
       if (!bossId || !dmg) return;
-      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
       const cid = clanFindMyClanId();
       const me = clanMyName();
-      const r = await sbFnCall('boss_help_send', { initData: tgInitData(), boss_id: bossId, dmg: dmg, clan_id: cid, from_name: me });
-      try {
-        if (r && typeof r === 'object') {
-          const ins = parseInt(r.inserted||0,10)||0;
-          const rec = r.debug && typeof r.debug === 'object' ? (parseInt(r.debug.recipients||0,10)||0) : 0;
-          const reason = (r.debug && typeof r.debug === 'object' && r.debug.reason) ? String(r.debug.reason) : '';
-          if (IS_DEV) {
-            __lastCloudFn = 'boss_help_send ins=' + ins + ' rec=' + rec;
-            __lastCloudTs = now();
-            dbgUpdate();
-          }
-          // No user-facing toast in prod; diagnostics only in dev.
-          if (IS_DEV) {
-            try {
-              const t = now();
-              if (!window.__bossHelpToastTs || (t - window.__bossHelpToastTs) > 1200) {
-                window.__bossHelpToastTs = t;
-                if (rec<=0) toast('HELP rec=0','lose');
-                else if (ins<=0 && reason==='cap_reached') toast('HELP cap_reached','gold');
-                else if (ins<=0) toast('HELP ins=0','lose');
-              }
-            } catch (e8) {}
-          }
-        }
-      } catch (e2) {}
+      sbFnCall('boss_help_send', { initData: tgInitData(), boss_id: bossId, dmg: dmg, clan_id: cid, from_name: me })
+        .then((r)=>{
+          try {
+            if (r && typeof r === 'object' && IS_DEV) {
+              const ins = parseInt(r.inserted||0,10)||0;
+              const rec = r.debug && typeof r.debug === 'object' ? (parseInt(r.debug.recipients||0,10)||0) : 0;
+              __lastCloudFn = 'boss_help_send ins=' + ins + ' rec=' + rec;
+              __lastCloudTs = now();
+              dbgUpdate();
+            }
+          } catch (e2) {}
+        })
+        .catch(()=>{});
     } catch (e) {}
   }
 
@@ -2159,14 +2150,19 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
 
       // In cloud mode HP is server-authoritative; do not mutate local HP from events.
-      // We only log the event and then pull fresh HP from server.
+      // Сначала показываем урон в логе, потом подтягиваем HP с сервера.
       if (isCloud) {
         const add = want;
         if (add<=0) return;
         bfLogPush(bid, nm, add);
         bfTopAdd(bid, nm, add);
         save();
-        try { bossFightsCloudPullMaybe(true); } catch (e0) {}
+        try { bfRender(bid); } catch (e0) {}
+        try {
+          bossFightsCloudPullMaybe(true).then(()=>{
+            try { bfRender(bid); } catch (e1) {}
+          }).catch(()=>{});
+        } catch (e0) {}
         return;
       }
 
@@ -2179,14 +2175,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const hp0 = parseInt(f.hp||0,10)||0;
       if (hp0<=0) return;
 
-      // Offline/local fallback: apply event dmg to local fight HP.
+      // Сначала лог, потом снятие HP.
       const add = Math.min(want, hp0);
       if (add<=0) return;
 
-      f.hp = Math.max(0, hp0 - add);
-      bfSetFight(bid, f);
       bfLogPush(bid, nm, add);
       bfTopAdd(bid, nm, add);
+      f.hp = Math.max(0, hp0 - add);
+      bfSetFight(bid, f);
       try { bfCheckWin(bid); } catch (e2) {}
       save();
     } catch (e) {}
@@ -2216,15 +2212,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function bossHelpPollStart(){
     try {
       if (__bossHelpPollT) return;
+      __bossHelpLast = 0;
+      bossHelpPullOnce().catch(()=>{});
       __bossHelpPollT = setInterval(()=>{
         try {
           if (!bossHelpShouldRun()) return;
           const t = now();
-          if (__bossHelpLast && (t - __bossHelpLast) < 1000) return;
+          if (__bossHelpLast && (t - __bossHelpLast) < 600) return;
           __bossHelpLast = t;
           bossHelpPullOnce().catch(()=>{});
         } catch (e0) {}
-      }, 1500);
+      }, 900);
     } catch (e) {}
   }
 
@@ -3764,7 +3762,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           'Authorization': 'Bearer ' + String(SUPABASE_ANON_KEY||''),
           'x-telegram-init-data': initData
         },
-        body: JSON.stringify(bodyObj||{})
+        body: JSON.stringify(bodyObj||{}),
+        keepalive: true
       });
       const text = await resp.text().catch(()=> '');
       const j = (()=>{ try { return text ? JSON.parse(text) : null; } catch (e) { return null; } })();
@@ -4286,17 +4285,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   const BOSSES = [
     { id:1, name:'Фёдор', emoji:'🦈', img:'фёдор.png', maxHP:1000, reward:{ xp:50, tooth:100, gold:0 } },
-    { id:2, name:'Гиви', emoji:'🧨', img:'гиви.png', maxHP:10000, reward:{ xp:100, tooth:300, gold:0 } },
-    { id:3, name:'Логоваз', emoji:'🦴', img:'логоваз.png', maxHP:50000, reward:{ xp:200, tooth:500, gold:0 } },
-    { id:4, name:'Теодед', emoji:'🪓', img:'теодед.png', maxHP:200000, reward:{ xp:500, tooth:800, gold:0 } },
-    { id:5, name:'Фарамир', emoji:'🔥', img:'фарамир.png', maxHP:1000000, reward:{ xp:1000, tooth:1200, gold:0 } },
-    { id:6, name:'Паучиха', emoji:'🕷️', img:'паучиха.png', maxHP:2000000, reward:{ xp:2000, tooth:2000, gold:0 } },
-    { id:7, name:'Боря Мем', emoji:'🌪️', img:'борямем.png', maxHP:5000000, reward:{ xp:5000, tooth:5000, gold:0 } },
-    { id:8, name:'Сарумян', emoji:'🧿', img:'сарумян.png', maxHP:10000000, reward:{ xp:10000, tooth:10000, gold:0 } },
-    { id:9, name:'Дроворуб', emoji:'🪵', img:'дроворуб.png', maxHP:20000000, reward:{ xp:20000, tooth:20000, gold:0 } },
-    { id:10, name:'Пендальф', emoji:'🧙', img:'пендальф.png', maxHP:50000000, reward:{ xp:50000, tooth:50000, gold:0 } },
-    { id:11, name:'Элронд Вечноправ', emoji:'🗡️', img:'элрондвечноправ.png', maxHP:100000000, reward:{ xp:100000, tooth:100000, gold:0 } },
-    { id:12, name:'Назгул', emoji:'🗡️', img:'назгул.png', maxHP:200000000, reward:{ xp:200000, tooth:200000, gold:0 } }
+    { id:2, name:'Гиви', emoji:'🧨', img:'гиви.png', maxHP:10000, reward:{ xp:100, tooth:500, gold:0 } },
+    { id:3, name:'Логоваз', emoji:'🦴', img:'логоваз.png', maxHP:50000, reward:{ xp:200, tooth:800, gold:0 } },
+    { id:4, name:'Теодед', emoji:'🪓', img:'теодед.png', maxHP:300000, reward:{ xp:500, tooth:1600, gold:0 } },
+    { id:5, name:'Фарамир', emoji:'🔥', img:'фарамир.png', maxHP:1000000, reward:{ xp:1000, tooth:3000, gold:0 } },
+    { id:6, name:'Паучиха', emoji:'🕷️', img:'паучиха.png', maxHP:6000000, reward:{ xp:2000, tooth:5000, gold:0 } },
+    { id:7, name:'Боря Мем', emoji:'🌪️', img:'борямем.png', maxHP:15000000, reward:{ xp:5000, tooth:8000, gold:0 } },
+    { id:8, name:'Сарумян', emoji:'🧿', img:'сарумян.png', maxHP:60000000, reward:{ xp:10000, tooth:12000, gold:0 } },
+    { id:9, name:'Дроворуб', emoji:'🪵', img:'дроворуб.png', maxHP:100000000, reward:{ xp:20000, tooth:20000, gold:0 } },
+    { id:10, name:'Пендальф', emoji:'🧙', img:'пендальф.png', maxHP:250000000, reward:{ xp:50000, tooth:50000, gold:0 } },
+    { id:11, name:'Элронд Вечноправ', emoji:'🗡️', img:'элрондвечноправ.png', maxHP:600000000, reward:{ xp:70000, tooth:100000, gold:0 } },
+    { id:12, name:'Барлог', emoji:'🗡️', img:'барлог.png', maxHP:1000000000, reward:{ xp:100000, tooth:200000, gold:0 } }
   ];
   const BOSS_MEDAL_IMAGES = {
     1: ['федям.jpg','федяс.jpg','федяз.jpg','федяп.jpg','федял.jpg'],
@@ -6779,13 +6778,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const promoOk = promoActive();
     const promoWasUsed = promoUsed();
     const promoDisabled = (!promoOk) || promoWasUsed;
-    const promoRw = promoRewardClean();
-    const promoTxt = promoRewardText(promoRw);
     html += '<div class="card">'
       + '<div class="row" style="gap:10px; align-items:flex-end">'
       + '<div style="min-width:0; flex:1">'
       + '<div class="k">ПРОМОКОД</div>'
-      + '<div style="font-size:12px;opacity:.75;margin-top:4px">'+(promoOk ? (promoTxt ? ('Введи промокод и получи награду ' + promoTxt) : 'Награда промокода отключена') : 'Промокод больше не активен')+'</div>'
+      + '<div style="font-size:12px;opacity:.75;margin-top:4px">'+(promoOk ? (promoWasUsed ? 'Промокод уже использован' : 'Введи промокод') : 'Промокод больше не активен')+'</div>'
       + '<img src="зуб.png" alt="Золотые зубы" class="toothIcon"> — золотые зубы</div>'
        + '<input id="promoInput" placeholder="Промокод" autocomplete="off" spellcheck="false" style="margin-top:10px; width:100%; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08); color:rgba(255,255,255,.92); padding:0 12px; font-family:inherit; font-weight:800; letter-spacing:1px; outline:none" />'
        + '</div>'
