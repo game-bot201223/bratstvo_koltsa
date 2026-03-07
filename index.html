@@ -1293,7 +1293,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 <!-- Подтверждение покупки энергии -->
 <div class="modal modalMini modalEnergyRefillConfirm" id="mEnergyRefillConfirm" role="dialog" aria-modal="true">
   <div class="sheet">
-    <div style="text-align:center; font-size:13px; font-weight:900; letter-spacing:1px;">Восстановить 100% энергии за 10 <img src="голд.png" alt="Золото" class="goldIcon">?</div>
+<div style="text-align:center; font-size:13px; font-weight:900; letter-spacing:1px;">Восстановить 100% энергии за 10 <img src="голд.png" alt="Золото" class="goldIcon">?</div>
     <div class="energyRefillConfirmBtns">
       <button type="button" class="btn" id="energyRefillConfirmYes">Да</button>
       <button type="button" class="btn" id="energyRefillConfirmNo">Отмена</button>
@@ -1672,7 +1672,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="clanList">—</div>
       </div>
       <div class="card" style="margin-top:12px;" id="clanBankCard">
-        <div class="row"><div class="k">БАНК КЛАНА</div><div class="badge" style="color:var(--gold)" id="clanBankGold">—</div></div>
+        <div class="row"><div class="k">БАНК КЛАНА</div><div class="badge" style="color:var(--gold)" id="clanBankGold">0 <img src="голд.png" alt="Золото" class="goldIcon"></div></div>
         <button class="btn" style="margin-top:12px;" id="clanBankAdd">ВНЕСТИ <img src="голд.png" alt="Золото" class="goldIcon"></button>
       </div>
     </div>
@@ -1857,7 +1857,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div id="gymList"></div>
 
         <div class="card" style="margin-top:8px;" id="arenaPetShopWrap">
-          <div class="row"><div class="k">ПИТОМЦЫ</div><div style="font-size:12px;opacity:.75">Купить за золото</div></div>
+          <div class="row"><div class="k">ПИТОМЦЫ</div><div style="font-size:12px;opacity:.75">Купить за <img src="голд.png" alt="Золото" class="goldIcon" style="height:14px;width:auto;vertical-align:middle"> золото</div></div>
           <div style="margin-top:8px" class="petRow" id="arenaPetShop"></div>
         </div>
       </div>
@@ -1996,7 +1996,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <div class="row"><div style="min-width:0">4×5</div><div class="badge">Кольцо на босса «Паучиха»</div></div>
           <div class="row"><div style="min-width:0">4×6</div><div class="badge">Кольцо на босса «Сарумян»</div></div>
         </div>
-        <div style="margin-top:10px; font-size:11px; opacity:.75; line-height:1.35">Если 4 одинаковых не собраны — награда: <b>+50 золотых зубов</b></div>
+        <div style="margin-top:10px; font-size:11px; opacity:.75; line-height:1.35">Если 4 одинаковых не собраны — награда: <b>+50 <img src="зуб.png" alt="Золотые зубы" class="toothIcon" style="height:14px;width:auto;vertical-align:middle"> золотых зубов</b></div>
         <div style="margin-top:8px; font-size:11px; opacity:.75; line-height:1.35">Если собраны <b>5 одинаковых</b> — дополнительно: <b>+20 <img src="голд.png" alt="Золото" class="goldIcon"></b></div>
       </div>
     </div>
@@ -2360,6 +2360,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
     return total;
   }
+  function gfGetCurrentPStats(){
+    return {
+      h: gfSafePos(gfEffStat('health')),
+      s: gfSafePos(gfEffStat('strength')),
+      a: gfSafePos(gfEffStat('agility')),
+      i: gfSafePos(gfEffStat('initiative')),
+      e: gfSafePos(gfEffStat('endurance')),
+      m: gfSafePos(gfEffStat('might'))
+    };
+  }
   function gfEffForMatch(v){
     try {
       v = parseFloat(v);
@@ -2407,7 +2417,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const hc = gfHitChance(att.a, def.a, 0);
     if (Math.random() > hc) return { dmg: 0, crit:false, dodge:true };
 
-    let dmg = gfSafePos(att.s) * 3;
+    let dmg = gfSafePos(att.s) * 6;
     dmg = dmg * gfArmorFactor(att.s, def.e);
 
     let isCrit = false;
@@ -2503,7 +2513,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (addFearSum>0 || addGoldSum>0){
         save();
         renderHUD();
-        toast('БИЗНЕС: +' + fmt4(addFearSum) + ' страх · +' + fmt4(addGoldSum) + ' золотых','win');
+        toast('БИЗНЕС: +' + fmt4(addFearSum) + ' '+TOAST_FEAR_IMG+' · +' + fmt4(addGoldSum) + ' '+TOAST_GOLD_IMG,'win');
         haptic('heavy');
       } else {
         toast('Бизнес награда уже собрана','lose');
@@ -2589,7 +2599,46 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           row.appendChild(useBtn);
           list.appendChild(row);
         });
-        if (!hasAny) list.innerHTML = '<div style="font-size:12px;opacity:.75">Пусто. Купи расходники в Торговой лавке.</div>';
+        // Аптечка и граната с Арены — тоже показываем и разрешаем в групповом бою
+        const medQty = parseInt(state.consumables && state.consumables.med||0,10)||0;
+        const nadeQty = parseInt(state.consumables && state.consumables.nade||0,10)||0;
+        if (medQty > 0) {
+          const row = document.createElement('div');
+          row.className = 'row';
+          row.innerHTML = '<span style="font-size:24px">🩹</span>'
+            + '<div style="flex:1;min-width:0;">'
+            + '<div class="k">Аптечка (арена)</div>'
+            + '<div style="font-size:12px;opacity:.8">Восстанавливает 30% HP</div>'
+            + '<div style="font-size:11px;opacity:.75">В наличии: <strong>'+medQty+'</strong></div>'
+            + '</div>';
+          const useBtn = document.createElement('button');
+          useBtn.className = 'btn btnSmall';
+          useBtn.textContent = 'ИСП.';
+          useBtn.disabled = !canUseInBattle;
+          if (canUseInBattle) useBtn.onclick = ()=>{ consUse('med'); renderConsumables(); };
+          row.appendChild(useBtn);
+          list.appendChild(row);
+          hasAny = true;
+        }
+        if (nadeQty > 0) {
+          const row = document.createElement('div');
+          row.className = 'row';
+          row.innerHTML = '<span style="font-size:24px">💣</span>'
+            + '<div style="flex:1;min-width:0;">'
+            + '<div class="k">Граната (арена)</div>'
+            + '<div style="font-size:12px;opacity:.8">Урон одной цели</div>'
+            + '<div style="font-size:11px;opacity:.75">В наличии: <strong>'+nadeQty+'</strong></div>'
+            + '</div>';
+          const useBtn = document.createElement('button');
+          useBtn.className = 'btn btnSmall';
+          useBtn.textContent = 'ИСП.';
+          useBtn.disabled = !canUseInBattle;
+          if (canUseInBattle) useBtn.onclick = ()=>{ consUse('nade'); renderConsumables(); };
+          row.appendChild(useBtn);
+          list.appendChild(row);
+          hasAny = true;
+        }
+        if (!hasAny) list.innerHTML = '<div style="font-size:12px;opacity:.75">Пусто. Купи расходники в Торговой лавке или на Арене.</div>';
       }
       // Аптечка и граната (арена) в групповых боях не показываются и не используются
     }
@@ -2627,7 +2676,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function consBuy(kind, cost){
     if (String(state._consCtx||'')!=='arena'){ toast('Покупка только на Арене','lose'); return; }
     const c = parseInt(cost||0,10)||0;
-    if ((state.gold||0) < c){ toast('Нужно '+c+' золотых','lose'); return; }
+    if ((state.gold||0) < c){ toast('Нужно '+c+' '+TOAST_GOLD_IMG,'lose'); return; }
     state.gold -= c;
     if (!state.consumables) state.consumables = { med:0, nade:0 };
     if (kind==='med') state.consumables.med = (parseInt(state.consumables.med||0,10)||0) + 1;
@@ -2771,7 +2820,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const c = CONSUMABLES_DATA.find(x=>x.id===id);
     if (!c){ toast('Не найден товар','lose'); return; }
     const price = parseInt(c.price||0,10)||0;
-    if ((state.gold||0) < price){ toast('Нужно '+price+' золотых','lose'); return; }
+    if ((state.gold||0) < price){ toast('Нужно '+price+' '+TOAST_GOLD_IMG,'lose'); return; }
     state.gold -= price;
     if (!state.consumablesItems) state.consumablesItems = { 1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0 };
     state.consumablesItems[id] = (parseInt(state.consumablesItems[id]||0,10)||0) + 1;
@@ -2812,8 +2861,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!b){ toast('Нет активного боя','lose'); return; }
     if ((parseInt(b.myHp||0,10)||0) <= 0){ toast('Ты наблюдатель','lose'); return; }
     if (b.acted){ toast('Уже использовано действие в этот ход','lose'); return; }
-    // В групповых боях доступны только расходники из Торговой лавки
-    if (kind==='med' || kind==='nade'){ toast('В групповых боях доступны только расходники из Торговой лавки','lose'); return; }
+    // Аптечка и граната (арена) в групповом бою разрешены
     if (!state.consumables) state.consumables = { med:0, nade:0 };
 
     if (kind==='med'){
@@ -2861,7 +2909,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const PRICES = [0, 50000, 1000000, 5000000, 10000000, 20000000, 50000000, 100000000, 200000000, 500000000, 1000000000];
         const nextLvl = lvl + 1;
         const cost = (lvl>=10) ? 0 : (PRICES[nextLvl] || 0);
-        btn.textContent = (lvl>=10) ? 'МАКС. УРОВЕНЬ' : ('ПРОКАЧАТЬ ЗА ' + cost + ' золотых зубов');
+        btn.innerHTML = (lvl>=10) ? 'МАКС. УРОВЕНЬ' : ('ПРОКАЧАТЬ ЗА ' + cost + ' <img src="зуб.png" alt="Золотые зубы" class="toothIcon">');
         btn.disabled = lvl>=10;
         btn.style.opacity = btn.disabled ? '.6' : '1';
         btn.onclick = ()=>{
@@ -2869,7 +2917,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (cur>=10) return;
           const PRICES2 = [0, 50000, 1000000, 5000000, 10000000, 20000000, 50000000, 100000000, 200000000, 500000000, 1000000000];
           const cost2 = (PRICES2[cur+1] || 0);
-          if ((state.tooth||0) < cost2){ toast('Нужно '+cost2+' золотых зубов','lose'); return; }
+          if ((state.tooth||0) < cost2){ toast('Нужно '+cost2+' '+TOAST_TOOTH_IMG,'lose'); return; }
           state.tooth -= cost2;
           state.friendHelpLvl = cur + 1;
           save();
@@ -3336,6 +3384,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   // --- Utilities
   const $ = (id)=>document.getElementById(id);
+  const TOAST_GOLD_IMG = '<img src="голд.png" alt="" class="goldIcon" style="height:16px;vertical-align:middle">';
+  const TOAST_TOOTH_IMG = '<img src="зуб.png" alt="" class="toothIcon" style="height:16px;vertical-align:middle">';
+  const TOAST_SILVER_IMG = '<img src="сильвер.png" alt="" class="silverIcon" style="height:16px;vertical-align:middle">';
+  const TOAST_FEAR_IMG = '<img src="страх.png" alt="" class="fearIcon" style="height:16px;vertical-align:middle">';
   const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
   const pad2 = (n)=>String(n).padStart(2,'0');
   const now = ()=>Date.now();
@@ -3344,7 +3396,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const el = $('toast');
     if (!el) return;
     el.className = 'toast ' + (kind||'');
-    el.textContent = String(msg||'');
+    if (typeof msg === 'string' && (msg.includes('<img') || msg.includes('<'))) el.innerHTML = msg; else el.textContent = String(msg||'');
     el.classList.add('show');
     clearTimeout(window.__toastT);
     window.__toastT = setTimeout(()=>{ el.classList.remove('show'); }, 1400);
@@ -4583,7 +4635,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!state.districtClearedBannerTs || typeof state.districtClearedBannerTs !== 'object') state.districtClearedBannerTs = {};
       state.districtClearedBannerTs[bk] = now();
 
-      toast('НАГРАДА: +'+mult+' XP, +'+mult+' зол. зубов, +'+mult+' страха','win');
+      toast('НАГРАДА: +'+mult+' XP, +'+mult+' '+TOAST_TOOTH_IMG+', +'+mult+' '+TOAST_FEAR_IMG,'win');
       feedAdd('Награда района: +'+mult+' XP, +'+mult+' зол. зубов, +'+mult+' страха','SYS');
       haptic('heavy');
     } catch (e) {}
@@ -4790,7 +4842,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (cur>=BIZ_MAX_LVL){ toast('Уже максимум','lose'); return; }
           const cost = bizCostNext(cur);
           if (!(cost>0)){ toast('Скоро','lose'); return; }
-          if ((state.tooth||0) < cost){ toast('Нужно '+fmt4(cost)+' зол. зубов','lose'); return; }
+          if ((state.tooth||0) < cost){ toast('Нужно '+fmt4(cost)+' '+TOAST_TOOTH_IMG,'lose'); return; }
           state.tooth -= cost;
           bizSetLvl(dd, bb, cur+1);
           if (bb===0) bizSyncEnergyMax();
@@ -5346,7 +5398,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         buy.innerHTML = p.cost + ' <img src="голд.png" alt="Золото" class="goldIcon">';
         buy.onclick = ()=>{
           if (hasAny) { toast('Сначала продай текущего питомца','lose'); return; }
-          if ((state.gold||0) < p.cost) { toast('Нужно '+p.cost+' золотых','lose'); return; }
+          if ((state.gold||0) < p.cost) { toast('Нужно '+p.cost+' '+TOAST_GOLD_IMG,'lose'); return; }
           state.gold -= p.cost;
           state.petsOwned = {};
           state.petsOwned[String(p.id)] = true;
@@ -5411,26 +5463,27 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
 
     function runArenaFightWith(mult, oppName){
+      // Используем те же эффективные статы, что и в ГБ (база + питомец + бизнес + расходники)
       function effStat(k){
-        return gymVal(k);
+        return gfEffStat(k);
       }
 
       const pRaw = {
-        health: gymVal('health'),
-        strength: gymVal('strength'),
-        agility: gymVal('agility'),
-        initiative: gymVal('initiative'),
-        endurance: gymVal('endurance'),
-        might: gymVal('might'),
-        charisma: gymVal('charisma')
-      };
-      const p = {
         health: effStat('health'),
         strength: effStat('strength'),
         agility: effStat('agility'),
         initiative: effStat('initiative'),
         endurance: effStat('endurance'),
         might: effStat('might'),
+        charisma: gymVal('charisma')
+      };
+      const p = {
+        health: pRaw.health,
+        strength: pRaw.strength,
+        agility: pRaw.agility,
+        initiative: pRaw.initiative,
+        endurance: pRaw.endurance,
+        might: pRaw.might,
         charisma: pRaw.charisma
       };
       const e = {
@@ -5506,7 +5559,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
 
         // BaseDamage = Strength * 3
-        let dmg = safePos(A.strength) * 3;
+        let dmg = safePos(A.strength) * 6;
 
         // Defense via endurance
         dmg = dmg * armorFactor(A.strength, D.endurance);
@@ -5729,7 +5782,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const nowTs = now();
     const joinOpen = (nowTs >= (startTs - 60*1000)) && (nowTs < startTs);
     if (!joinOpen){ toast('Окно ещё закрыто','lose'); gf1010Render(); return; }
-    if ((state.gold||0) < cost){ toast('Нужно '+cost+' золотых','lose'); return; }
+    if ((state.gold||0) < cost){ toast('Нужно '+cost+' '+TOAST_GOLD_IMG,'lose'); return; }
 
     // placeholder local join until backend
     state.gold -= cost;
@@ -5903,7 +5956,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const nowTs = now();
     const joinOpen = (nowTs >= (startTs - 60*1000)) && (nowTs < startTs);
     if (!joinOpen){ renderGroupFightUI(); toast('Рано. Окно ещё закрыто','lose'); return; }
-    if ((state.gold||0) < cost){ toast('Нужно '+cost+' золотых','lose'); return; }
+    if ((state.gold||0) < cost){ toast('Нужно '+cost+' '+TOAST_GOLD_IMG,'lose'); return; }
 
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
@@ -6050,7 +6103,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     };
 
     // Group fight: build teams from Supabase entries.
-    // TEMP: allow injecting bots for testing if not enough participants.
+    // Чтобы на всех экранах были одни и те же команды — сортируем участников детерминированно (по tg_id).
     battle.myTeam = [];
     try {
       const meId = myTgUserId() || '';
@@ -6065,17 +6118,39 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             }
           }
 
-          // Sort stable by stats_sum desc already done server-side; just use as is.
+          // Детерминированная сортировка: один и тот же порядок на всех клиентах.
+          const pool = arr.slice().sort((a, b)=>{
+            const idA = String(a && a.tg_id || '').trim();
+            const idB = String(b && b.tg_id || '').trim();
+            if (idA !== idB) return idA.localeCompare(idB, 'en');
+            return String(a && a.name || '').localeCompare(String(b && b.name || ''), 'en');
+          });
+
+          // Добавить себя в пул, если ещё нет (чтобы везде один состав).
+          const hasYou = pool.some(e=>String(e && e.tg_id||'')===String(meId));
+          if (!hasYou) {
+            let __youPhoto = '';
+            try {
+              const u0 = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+              __youPhoto = (u0 && u0.photo_url) ? String(u0.photo_url||'') : '';
+            } catch (e0) { __youPhoto = ''; }
+            const you = { tg_id: (meId || 'YOU'), name: String(state.playerName||'ТЫ'), photo_url: String(__youPhoto||'') };
+            pool.push(you);
+            pool.sort((a, b)=>{
+              const idA = String(a && a.tg_id || '').trim();
+              const idB = String(b && b.tg_id || '').trim();
+              if (idA !== idB) return idA.localeCompare(idB, 'en');
+              return String(a && a.name || '').localeCompare(String(b && b.name || ''), 'en');
+            });
+          }
+
           let __youPhoto = '';
           try {
             const u0 = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
             __youPhoto = (u0 && u0.photo_url) ? String(u0.photo_url||'') : '';
           } catch (e0) { __youPhoto = ''; }
-          const you = { tg_id: (meId || 'YOU'), name: String(state.playerName||'ТЫ'), photo_url: String(__youPhoto||'') };
-          const hasYou = arr.some(e=>String(e && e.tg_id||'')===String(meId));
-          const pool = (hasYou ? arr : ([you].concat(arr))).slice();
 
-          // Split alternating into two teams
+          // Чередование по фиксированному порядку: команды одинаковы на всех клиентах.
           const teamA = [];
           const teamB = [];
           pool.forEach((e, i)=>{
@@ -6083,22 +6158,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             dst.push(e);
           });
 
-          // Ensure you are in teamA
+          // Кто «моя команда», кто «враги» — только от того, в какой команде я.
           const youInA = teamA.some(e=>String(e && e.tg_id||'')===String(meId));
-          const youInB = teamB.some(e=>String(e && e.tg_id||'')===String(meId));
-          if (!youInA && youInB) {
-            const tmp = teamA.slice();
-            teamA.length = 0; teamB.length = 0;
-            tmp.forEach(x=>teamB.push(x));
-            pool.forEach((e, i)=>{
-              const dst = (i % 2 === 0) ? teamA : teamB;
-              dst.push(e);
-            });
-          }
+          const myTeamSource = youInA ? teamA : teamB;
+          const enemySource = youInA ? teamB : teamA;
 
-          if (!teamA.length || !teamB.length) return;
+          if (!myTeamSource.length || !enemySource.length) return;
 
-          battle.myTeam = teamA.map((e, i)=>(
+          battle.myTeam = myTeamSource.map((e, i)=>(
             {
               id: (String(e && e.tg_id||'')===String(meId)) ? 'YOU' : ('A'+(i+1)),
               name: String(e && e.name || ((String(e && e.tg_id||'')===String(meId)) ? (state.playerName||'ТЫ') : ('Союзник '+(i+1)))),
@@ -6108,7 +6175,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             }
           ));
 
-          battle.targets = teamB.map((e, i)=>(
+          battle.targets = enemySource.map((e, i)=>(
             {
               id: 'E'+(i+1),
               name: String(e && e.name || ('Враг '+(i+1))),
@@ -6146,7 +6213,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const myMax = parseInt(b.myMaxHp||0,10)||0;
     const myPct = (myMax>0) ? Math.round(clamp((myHp/myMax)*100,0,100)) : 0;
 
-    try { $('bTarget').textContent = b.myTarget ? String(b.myTarget) : '—'; } catch (e) {}
+    try {
+      const tgt = b.myTarget && Array.isArray(b.targets) ? b.targets.find(x=>x.id===b.myTarget) : null;
+      $('bTarget').textContent = tgt ? String(tgt.name||tgt.id||'—') : 'Авто';
+    } catch (e) {}
     $('bAct').textContent = (b.acted ? '0' : '1');
 
     // teams
@@ -6251,13 +6321,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!b) return;
     if ((parseInt(b.myHp||0,10)||0) <= 0){ toast('Ты наблюдатель','lose'); return; }
     b.myTarget = String(id||'');
-    try { $('bTarget').textContent = b.myTarget || 'Авто'; } catch (e) {}
-    if (b.acted) { toast('Только 1 удар за ход','lose'); return; }
-    if ((parseInt(b.turnLeft||0,10)||0) <= 0) return;
     const t = b.targets.find(x=>x.id===id);
+    try { $('bTarget').textContent = t ? String(t.name||t.id||'Авто') : 'Авто'; } catch (e) {}
     if (!t || (t.hp||0)<=0) return;
 
-    const h = gfDoHit(b.pStats, b.eStats, parseInt(t.hp||0,10)||0, true);
+    const h = gfDoHit(gfGetCurrentPStats(), b.eStats, parseInt(t.hp||0,10)||0, true);
     const real = Math.min((parseInt(t.hp||0,10)||0), parseInt(h.dmg||0,10)||0);
     t.hp = Math.max(0, (parseInt(t.hp||0,10)||0) - real);
     b.acted = true;
@@ -6308,7 +6376,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const t = battleWeakestTarget(b);
     if (!t) return;
 
-    const h = gfDoHit(b.pStats, b.eStats, parseInt(t.hp||0,10)||0, true);
+    const h = gfDoHit(gfGetCurrentPStats(), b.eStats, parseInt(t.hp||0,10)||0, true);
     const real = Math.min((parseInt(t.hp||0,10)||0), parseInt(h.dmg||0,10)||0);
     t.hp = Math.max(0, (parseInt(t.hp||0,10)||0) - real);
     b.acted = true;
@@ -6338,7 +6406,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const tgt = aliveTargets[Math.floor(Math.random()*aliveTargets.length)];
       if (!tgt || (parseInt(tgt.hp||0,10)||0) <= 0) continue;
 
-      const h = gfDoHit(b.pStats, b.eStats, parseInt(tgt.hp||0,10)||0, true);
+      const h = gfDoHit(gfGetCurrentPStats(), b.eStats, parseInt(tgt.hp||0,10)||0, true);
       const real = Math.min((parseInt(tgt.hp||0,10)||0), parseInt(h.dmg||0,10)||0);
       tgt.hp = Math.max(0, (parseInt(tgt.hp||0,10)||0) - real);
       try {
@@ -6378,7 +6446,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const pid = String(pick.id||'');
       const pname = String(pick.name||pid||'');
       const curHp = (pid==='YOU') ? (parseInt(b.myHp||0,10)||0) : (parseInt(pick.hp||0,10)||0);
-      const h = gfDoHit(b.eStats, b.pStats, curHp, true);
+      const h = gfDoHit(b.eStats, gfGetCurrentPStats(), curHp, true);
 
       const real = Math.min(curHp, parseInt(h.dmg||0,10)||0);
       const nextHp = Math.max(0, curHp - real);
@@ -6539,7 +6607,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const key = btn.getAttribute('data-gym');
         const cur = gymVal(key);
         const cost = gymCost(cur);
-        if ((state.silver||0) < cost){ toast('Нужно '+cost+' серебра','lose'); return; }
+        if ((state.silver||0) < cost){ toast('Нужно '+cost+' '+TOAST_SILVER_IMG,'lose'); return; }
         state.silver -= cost;
         state.gym[key] = cur+1;
         feedAdd('Тренировка: '+key+' → '+(cur+1),'GYM');
@@ -6715,19 +6783,19 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (String(it.cost||'').includes('$')) { toast('Это реальная покупка за деньги','lose'); return; }
         const cost = shopCostValue(it.cost);
         if (it.currency==='TOOTH'){
-          if ((state.tooth||0) < cost){ toast('Нужно '+shopCostLabel(it)+' золотых зубов','lose'); return; }
+          if ((state.tooth||0) < cost){ toast('Нужно '+shopCostLabel(it)+' '+TOAST_TOOTH_IMG,'lose'); return; }
           state.tooth -= cost;
           if (it.goldAdd){
             const add = (parseInt(it.goldAdd||0,10)||0) * (shopX2Enabled() ? 2 : 1);
             state.gold += add;
             feedAdd('Покупка золота: +'+add+' золота','SHOP');
-            toast('+'+add+' золота','win');
+            toast('+'+add+' '+TOAST_GOLD_IMG,'win');
           } else if (typeof it.apply==='function'){
             it.apply();
             feedAdd('Покупка: '+it.name,'SHOP');
           }
         } else {
-          if ((state.gold||0) < cost){ toast('Нужно '+shopCostLabel(it)+' золотых','lose'); return; }
+          if ((state.gold||0) < cost){ toast('Нужно '+shopCostLabel(it)+' '+TOAST_GOLD_IMG,'lose'); return; }
           state.gold -= cost;
           if (typeof it.apply==='function') it.apply();
         }
@@ -7410,7 +7478,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (p<=0) return;
     const q = clamp(parseInt(state.bosses.shopQty||1,10)||1, 1, 1000);
     const total = p * q;
-    if ((state.gold||0) < total){ toast('Нужно '+total+' золотых','lose'); return; }
+    if ((state.gold||0) < total){ toast('Нужно '+total+' '+TOAST_GOLD_IMG,'lose'); return; }
     state.gold -= total;
     if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
     if (kind==='kick') state.bosses.hitStocks.kick = clamp((parseInt(state.bosses.hitStocks.kick||0,10)||0) + q, 0, 999999);
@@ -7820,7 +7888,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       btn.onclick = ()=>{
         const k = btn.getAttribute('data-key-buy');
         const price = parseInt(btn.getAttribute('data-key-price')||'0',10)||0;
-        if ((state.gold||0) < price){ toast('Нужно '+price+' золотых','lose'); return; }
+        if ((state.gold||0) < price){ toast('Нужно '+price+' '+TOAST_GOLD_IMG,'lose'); return; }
         state.gold -= price;
         bossKeyAdd(k, 1);
         toast('+1','win');
@@ -8345,7 +8413,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           save();
           renderBosses();
           renderHUD();
-          toast('+100 золотых зубов','win');
+          toast('+100 '+TOAST_TOOTH_IMG,'win');
           haptic('light');
         };
       }
@@ -8439,7 +8507,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   function diceStart(){
     // HARD: roll animation first, then assign values.
-    if ((state.gold||0) < 1){ toast('Нужно 1 золотой','lose'); return false; }
+    if ((state.gold||0) < 1){ toast('Нужно 1 '+TOAST_GOLD_IMG,'lose'); return false; }
     state.gold -= 1;
     state.diceGame.active = true;
     state.diceGame.rolls = 0;
@@ -9048,7 +9116,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!pick) return;
     const amt = Math.max(0, Math.floor(parseInt(pick||'0',10)||0));
     if (amt<=0) return;
-    if ((state.gold||0) < amt) { toast('Не хватает золота','lose'); return; }
+    if ((state.gold||0) < amt) { toast('Не хватает '+TOAST_GOLD_IMG,'lose'); return; }
     if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
       try {
         const next = Object.assign({}, c);
@@ -9063,7 +9131,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             save();
             renderHUD();
             renderClans();
-            toast('Внесено: '+amt+' золота','win');
+            toast('Внесено: '+amt+' '+TOAST_GOLD_IMG,'win');
             haptic('light');
             return null;
           })
@@ -9077,7 +9145,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     save();
     renderHUD();
     renderClans();
-    toast('Внесено: '+amt+' золота','win');
+    toast('Внесено: '+amt+' '+TOAST_GOLD_IMG,'win');
     haptic('light');
   }
 
@@ -9297,7 +9365,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
       }
     } catch (e0) {}
-    if ((state.gold||0) < 1000){ toast('Нужно 1000 золотых','lose'); return; }
+    if ((state.gold||0) < 1000){ toast('Нужно 1000 '+TOAST_GOLD_IMG,'lose'); return; }
     const name = prompt('Название клана:', 'Братство');
     if (!name) return;
     const nm = String(name).trim().substring(0, 18);
@@ -9497,11 +9565,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const showRewardReceivedBanner = bannerTs && (now() - bannerTs <= 3000);
         if (allDone){
           h += '<div style="margin-top:12px; margin-bottom:12px; padding:12px; border-radius:14px; background:linear-gradient(145deg, rgba(34,197,94,.4), rgba(22,163,74,.35)); border:1px solid rgba(34,197,94,.55); font-weight:900; letter-spacing:1px; font-size:13px;">';
-          h += '✅ Все задания выполнены! Награда: +'+mult+' XP, +'+mult+' зол. зубов, +'+mult+' страха';
+          h += '✅ Все задания выполнены! Награда: +'+mult+' XP, +'+mult+' <img src="зуб.png" alt="" class="toothIcon" style="height:14px;vertical-align:middle">, +'+mult+' <img src="страх.png" alt="" class="fearIcon" style="height:14px;vertical-align:middle">';
           h += '</div>';
         } else if (showRewardReceivedBanner){
           h += '<div id="dnRewardBanner" style="margin-top:12px; margin-bottom:12px; padding:12px; border-radius:14px; background:linear-gradient(145deg, rgba(34,197,94,.4), rgba(22,163,74,.35)); border:1px solid rgba(34,197,94,.55); font-weight:900; letter-spacing:1px; font-size:13px;">';
-          h += '✅ Район пройден. Награда получена: +'+mult+' XP, +'+mult+' зол. зубов, +'+mult+' страха';
+          h += '✅ Район пройден. Награда получена: +'+mult+' XP, +'+mult+' <img src="зуб.png" alt="" class="toothIcon" style="height:14px;vertical-align:middle">, +'+mult+' <img src="страх.png" alt="" class="fearIcon" style="height:14px;vertical-align:middle">';
           h += '</div>';
         }
 
@@ -9909,6 +9977,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e0) {}
 
+    try {
+      const arenaClose = document.querySelector('[data-close="mArena"]');
+      if (arenaClose) {
+        arenaClose.onclick = ()=>{
+          hideModal('mArena');
+          openScreen('mPloshchad');
+          haptic('light');
+        };
+      }
+    } catch (e0) {}
+
     $('overlay').onclick = ()=>{
       if (window.__ignoreOverlayClickOnce) { window.__ignoreOverlayClickOnce = false; return; }
       const top = (Array.isArray(stack) && stack.length) ? stack[stack.length-1] : '';
@@ -9981,7 +10060,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             var price = (typeof ARMOR_ITEM_PRICE !== 'undefined') ? ARMOR_ITEM_PRICE : 5000;
             var gold = Math.floor(state.gold||0);
             if (gold < price) {
-              toast('Нужно '+price+' золотых','lose');
+              toast('Нужно '+price+' '+TOAST_GOLD_IMG,'lose');
               haptic('light');
               return;
             }
@@ -10008,7 +10087,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const maxE = Math.floor(state.energyMax||100);
         const curE = Math.floor(state.energy||0);
         if (curE >= maxE){ toast('Энергия уже полная','gold'); haptic('light'); return; }
-        if (gold < 10){ toast('Нужно 10 золотых','lose'); haptic('light'); return; }
+        if (gold < 10){ toast('Нужно 10 '+TOAST_GOLD_IMG,'lose'); haptic('light'); return; }
         showModal('mEnergyRefillConfirm');
         haptic('light');
       };
@@ -10017,7 +10096,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (yesBtn) yesBtn.onclick = ()=>{
         const gold = Math.floor(state.gold||0);
         const maxE = Math.floor(state.energyMax||100);
-        if (gold < 10){ toast('Нужно 10 золотых','lose'); hideModal('mEnergyRefillConfirm'); return; }
+        if (gold < 10){ toast('Нужно 10 '+TOAST_GOLD_IMG,'lose'); hideModal('mEnergyRefillConfirm'); return; }
         state.gold = gold - 10;
         state.energy = maxE;
         save();
