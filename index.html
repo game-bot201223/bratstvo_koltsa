@@ -169,6 +169,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   box-sizing:border-box;
   position:relative;
   overflow:hidden;
+  min-height:70px;
 }
 .mainCharacter img{
   width:100%;
@@ -180,11 +181,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   pointer-events:none;
   border-radius:0;
 }
-/* Кнопка доспехи и панели поверх картинки (и при выбранном доспехе) */
-.mainCharacter.hasCustomImg .charCornerBtn,
-.mainCharacter.hasCustomImg .armorTierRow,
-.mainCharacter.hasCustomImg .armorScrollStrip{
+/* Кнопка доспехи и панели поверх картинки */
+.mainCharacter .charCornerBtn,
+.mainCharacter .armorTierRow,
+.mainCharacter .armorScrollStrip{
   z-index:2;
+}
+.mainCharacter .charCornerBtn{
+  z-index:3;
 }
 /* Декоративная панель-свиток (фэнтези/RPG) между валютой и фото — открывается вниз до дока */
 .parchmentPanel{
@@ -363,6 +367,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   justify-content:center;
   -webkit-tap-highlight-color:transparent;
   transition: transform var(--transition-fast);
+  z-index:3;
 }
 .mainCharacter .charCornerBtn img{display:block;width:100%;height:100%;object-fit:cover;}
 .mainCharacter .charCornerBtn:active{transform:scale(0.94);}
