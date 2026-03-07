@@ -625,14 +625,30 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   #diceRoll{ touch-action: manipulation; }
 
- .bossRow{display:grid;grid-template-columns:147px 1fr;gap:12px;align-items:flex-start;}
- .bossMiniWrap{position:relative;width:147px;height:147px;}
- .bossMini{width:147px;height:147px;border-radius:26px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:56px;}
- .bossWinnerAva{position:absolute;right:-10px;bottom:10px;width:44px;height:44px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:rgba(45,30,18,.28);object-fit:cover;}
- .bossName{font-weight:900;letter-spacing:2px;line-height:1.15;}
- .bossSub{font-size:11px;opacity:.75;margin-top:4px;}
- .bossReward{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
- .bossWinnerTop{font-size:11px;letter-spacing:1px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bossRow{display:flex;flex-direction:column;gap:10px;}
+.bossRowTop{display:flex;flex-direction:column;gap:12px;align-items:flex-start;}
+.bossRightCol{min-width:0;display:flex;flex-direction:column;gap:8px;width:100%;}
+.bossMiniWrap{position:relative;width:242px;height:242px;}
+.bossMini{width:242px;height:242px;border-radius:26px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:92px;}
+.bossWinnerAva{position:absolute;right:-10px;bottom:10px;width:44px;height:44px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:rgba(45,30,18,.28);object-fit:cover;}
+.bossName{font-weight:900;letter-spacing:2px;line-height:1.15;}
+.bossSub{font-size:11px;opacity:.75;margin-top:4px;}
+.bossReward{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.bossInfo{min-width:0;}
+.bossMedalsRow{margin-top:8px;display:flex;flex-direction:row;flex-wrap:nowrap;gap:6px;align-items:center;}
+.bossMedal{width:30px;height:30px;border-radius:50%;flex-shrink:0;overflow:hidden;border:2px solid rgba(0,0,0,.2);}
+.bossMedal img{width:100%;height:100%;object-fit:cover;}
+.bossMedalBronze{background:linear-gradient(145deg,#cd7f32,#8b5a2b);}
+.bossMedalSilver{background:linear-gradient(145deg,#c0c0c0,#808080);}
+.bossMedalGold{background:linear-gradient(145deg,#ffd700,#b8860b);}
+.bossMedalPurple{background:linear-gradient(145deg,#9b59b6,#6c3483);}
+.bossMedalMythic{background:linear-gradient(145deg,#e8d5b7,#c9a227);box-shadow:0 0 10px rgba(201,162,39,.5);}
+.bossMedal.bossMedalLocked{opacity:.4;filter:grayscale(1);}
+.bossActionsWrap{width:174px;margin-top:0;display:flex;flex-direction:column;gap:6px;}
+.bossActionsWrap .bossAtkBtn{width:100%;box-sizing:border-box;}
+.bossActionsWrap .bossMedalsRow{margin-top:0;}
+.bossWinsCount{font-size:10px;opacity:.8;margin-top:4px;}
+.bossWinnerTop{font-size:11px;letter-spacing:1px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
  .bossWinnerNm{font-size:12px;letter-spacing:1px;opacity:.9;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
 
  .districtStack{margin-top:8px;display:flex;flex-direction:column;gap:10px;}
@@ -694,6 +710,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  #bossToothBtn.ready{border-color: rgba(255,255,255,.95);}
 
  .bossAtkBtn{font-size:9px !important; padding:5px 7px !important; letter-spacing:1px; min-height:28px;}
+.bossAtkBtn[data-boss-attack]{background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98)) !important; border:1px solid rgba(255,255,255,.55) !important; color:rgba(255,255,255,.96) !important;}
 
 /* Modals — божественные карамельные слои */
 .overlay{position:fixed;inset:0;background:rgba(36,28,20,.35);backdrop-filter: blur(20px) saturate(0.98);-webkit-backdrop-filter: blur(20px) saturate(0.98);display:none;z-index:4900;transition: opacity var(--transition-normal);}
@@ -747,6 +764,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 }
 
  #mBoss .sheet{border-radius:0;border:none;}
+#mBoss .sheetBody{overflow-y:auto;-webkit-overflow-scrolling:touch;display:block;}
+#mBoss #bossList{display:flex;flex-direction:column;gap:12px;padding:12px 0;padding-bottom:calc(24px + env(safe-area-inset-bottom));}
+#mBoss #bossList .card{width:100%;max-width:100%;box-sizing:border-box;padding-left:14px;padding-right:14px;}
 
 .sheetScreen .sheetBody{
   padding:0;
@@ -4020,7 +4040,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     { id:11, name:'Элронд Вечноправ', emoji:'🗡️', img:'элрондвечноправ.png', maxHP:100000000, reward:{ xp:100000, tooth:100000, gold:0 } },
     { id:12, name:'Назгул', emoji:'🗡️', img:'назгул.png', maxHP:200000000, reward:{ xp:200000, tooth:200000, gold:0 } }
   ];
-
+  const BOSS_MEDAL_IMAGES = {
+    2: ['гивим.jpg','гивис.jpg','гивиз.jpg','гивип.jpg','гивил.jpg']
+  };
   const GYM_STATS = [
     { key:'health', name:'Здоровье' },
     { key:'strength', name:'Сила' },
@@ -4087,7 +4109,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     districtBizFirstPurchaseTs:0,
     districtBizLastClaimTs:0,
     _bizEnergyApplied:0,
-    bosses:{ hp:{}, strikes:10, wins:0, lastWinners:{}, keys:{}, hitStocks:{ kick:0, knuckle:0, enema:0 }, shopQty:1, hitUseQty:1, fights:{}, dmgLog:{}, dmgTop:{}, daily:{ day:'', counts:{} }, toothNextTs:0 },
+    bosses:{ hp:{}, strikes:10, wins:0, winsPerBoss:{}, lastWinners:{}, keys:{}, hitStocks:{ kick:0, knuckle:0, enema:0 }, shopQty:1, hitUseQty:1, fights:{}, dmgLog:{}, dmgTop:{}, daily:{ day:'', counts:{} }, toothNextTs:0 },
     friendHelpLvl:0,
     havchikLastCollectTs:0,
     havchikLastSendTs:0,
@@ -4183,6 +4205,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (!state.bosses.hp) state.bosses.hp = {};
   if (typeof state.bosses.wins !== 'number') state.bosses.wins = 0;
   if (!state.bosses.lastWinners) state.bosses.lastWinners = {};
+  if (!state.bosses.winsPerBoss || typeof state.bosses.winsPerBoss !== 'object') state.bosses.winsPerBoss = {};
   if (!state.bosses.keys) state.bosses.keys = {};
   if (!state.bosses.fights) state.bosses.fights = {};
   if (!state.bosses.dmgLog) state.bosses.dmgLog = {};
@@ -7373,6 +7396,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
       state.bosses.pendingReward = null;
       try {
+        if (!state.bosses.winsPerBoss || typeof state.bosses.winsPerBoss !== 'object') state.bosses.winsPerBoss = {};
+        const k = String(bossId);
+        state.bosses.winsPerBoss[k] = (parseInt(state.bosses.winsPerBoss[k]||0,10)||0) + 1;
+        state.bosses.wins = (parseInt(state.bosses.wins||0,10)||0) + 1;
+      } catch (e3) {}
+      try {
         const b2 = BOSSES.find(x=>x.id===bossId);
         if (b2) setBossHp(bossId, b2.maxHP);
       } catch (e4) {}
@@ -7400,8 +7429,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const attemptKey = String(bossId) + ':' + String(parseInt(f.startTs||0,10)||0);
     if (String(state.bosses._resShownWinKey||'') === attemptKey) return;
     state.bosses._resShownWinKey = attemptKey;
-
-    try { state.bosses.wins = (parseInt(state.bosses.wins||0,10)||0) + 1; } catch (e0) {}
 
     setBossHp(bossId, 0);
 
@@ -7819,6 +7846,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function renderBosses(){
     try { bossFightsCloudPullMaybe().catch(()=>{}); } catch (e0) {}
     try { bossLastWinnersCloudPullMaybe().catch(()=>{}); } catch (e1) {}
+    const BOSS_MEDAL_THRESHOLDS = [100, 500, 1000, 2500, 5000];
     const box = $('bossList');
 
     function updateBossToothTimerOnly(){
@@ -7936,19 +7964,23 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '<div class="bossWinnerNm">'+lwName+'</div>'
         + '<div style="height:10px"></div>'
         + '<div class="bossRow">'
+        + '<div class="bossRowTop">'
         + '<div class="bossMiniWrap">'
         + '<div class="bossMini" style="'+(b.img?('background-image:url(\''+encodeURI(String(b.img))+'\');'):'')+'">'+(b.img?'':b.emoji)+'</div>'
         + (lwPhoto ? ('<img class="bossWinnerAva" src="'+String(lwPhoto).replace(/"/g,'&quot;')+'" alt="" />') : '')
         + '</div>'
-        + '<div style="min-width:0">'
+        + '<div class="bossRightCol">'
+        + '<div class="bossInfo">'
         + '<div class="bossName">'+b.name+'</div>'
-        + '<div class="bossSub">'+(dead ? ('ПОВЕРЖЕН · HP 0 / '+fmtBossHpShort(b.maxHP)) : ('HP '+fmtBossHpShort(hp)+' / '+fmtBossHpShort(b.maxHP)))+lockText+'</div>'
+        + '<div class="bossSub">'+(dead ? ('ПОВЕРЖЕН · HP 0') : ('HP '+fmtBossHpShort(hp)))+lockText+'</div>'
         + '<div class="bossReward">'
         + (rm>0 ? ('<span class="badge" style="color:rgba(0,0,0,.92); padding:6px 8px; font-size:11px">+'+rm+'<img src="зуб.png" alt="Золотые зубы" class="toothIcon"></span>') : '')
         + (rg>0 ? ('<span class="badge" style="color:var(--gold); padding:6px 8px; font-size:11px">+'+rg+'<img src="голд.png" alt="Золото" class="goldIcon"></span>') : '')
         + (rxp>0 ? ('<span class="badge" style="padding:6px 8px; font-size:11px">+'+rxp+' XP</span>') : '')
         + '</div>'
-        + '<div style="margin-top:6px; display:flex; flex-direction:column; gap:6px">'
+        + '</div>'
+        + '<div class="bossActionsWrap">'
+        + '<div style="display:flex;flex-direction:column;gap:6px">'
         + (dead
             ? (canClaim
                 ? '<button class="btn btnMini bossAtkBtn" data-boss-claim="'+b.id+'">ЗАБРАТЬ НАГРАДУ</button>'
@@ -7956,6 +7988,36 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
               )
             : '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
           )
+        + '</div>'
+        + '<div class="bossMedalsRow" data-boss-id="'+b.id+'">'
+        + (function(){
+          const bossWins = parseInt(state.bosses && state.bosses.winsPerBoss && state.bosses.winsPerBoss[String(b.id)]||0,10)||0;
+          const classes = ['bossMedalBronze','bossMedalSilver','bossMedalGold','bossMedalPurple','bossMedalMythic'];
+          const titles = ['Бронзовая (100 побед)','Серебряная (500)','Золотая (1000)','Пурпурная (2500)','Мифическая (5000)'];
+          const medalImgs = (typeof BOSS_MEDAL_IMAGES !== 'undefined' && BOSS_MEDAL_IMAGES[b.id]) ? BOSS_MEDAL_IMAGES[b.id] : null;
+          let s = '';
+          for (let i=0;i<5;i++){
+            const unlocked = bossWins >= BOSS_MEDAL_THRESHOLDS[i];
+            const imgSrc = (medalImgs && medalImgs[i]) ? medalImgs[i] : '';
+            const title = titles[i];
+            if (unlocked && imgSrc) {
+              s += '<div class="bossMedal '+classes[i]+'" title="'+title+'"><img src="'+imgSrc.replace(/"/g,'&quot;')+'" alt=""></div>';
+            } else {
+              s += '<div class="bossMedal '+classes[i]+(unlocked ? '' : ' bossMedalLocked')+'" title="'+title+'"></div>';
+            }
+          }
+          return s;
+        })()
+        + '</div>'
+        + (function(){
+          const bossWins = parseInt(state.bosses && state.bosses.winsPerBoss && state.bosses.winsPerBoss[String(b.id)]||0,10)||0;
+          let nextThreshold = null;
+          for (let i=0;i<BOSS_MEDAL_THRESHOLDS.length;i++){
+            if (bossWins < BOSS_MEDAL_THRESHOLDS[i]){ nextThreshold = BOSS_MEDAL_THRESHOLDS[i]; break; }
+          }
+          const progressText = nextThreshold != null ? (bossWins+'/'+nextThreshold) : (bossWins+' (все медали)');
+          return '<div class="bossWinsCount">Побед: '+bossWins+' · '+progressText+'</div>';
+        })()
         + '</div>'
         + '</div>'
         + '</div>'
@@ -8024,6 +8086,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             if (rm>0) state.tooth += rm;
             if (rg>0) state.gold += rg;
             if (rxp>0) addXp(rxp);
+
+            try {
+              if (!state.bosses.winsPerBoss || typeof state.bosses.winsPerBoss !== 'object') state.bosses.winsPerBoss = {};
+              const k = String(id);
+              state.bosses.winsPerBoss[k] = (parseInt(state.bosses.winsPerBoss[k]||0,10)||0) + 1;
+              state.bosses.wins = (parseInt(state.bosses.wins||0,10)||0) + 1;
+            } catch (e6) {}
 
             try {
               const nextReq = bossReq(id+1);
