@@ -151,6 +151,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   display:flex;
   flex-direction:column;
   background:var(--paper);
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
 }
 .mainCharacter{
   flex:0 0 auto;
@@ -165,16 +168,58 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   border-radius:0;
   box-sizing:border-box;
   position:relative;
+  overflow:hidden;
 }
 .mainCharacter img{
   width:100%;
   height:auto;
   max-width:100%;
   display:block;
-  object-fit:contain;
+  object-fit:cover;
   object-position:center top;
   pointer-events:none;
   border-radius:0;
+}
+
+/* ПК и Telegram Web (широкий viewport): пустое место по бокам — контент по центру с max-width для всего проекта */
+@media (min-width: 520px){
+  #app{
+    max-width:480px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .modal{
+    padding-left:24px;
+    padding-right:24px;
+    box-sizing:border-box;
+  }
+  .modal .sheet{
+    max-width:480px !important;
+    width:100% !important;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  /* полноэкранные модалки — тоже колонка 480px */
+  #mPloshchad.modalPage .sheet,
+  #mInventory.inventoryFullScreen .sheet,
+  #mLavka.lavkaFullScreen .sheet,
+  .havchikCollectFullScreen .sheet{
+    width:100% !important;
+    max-width:480px !important;
+    min-height:100vh;
+    min-height:100dvh;
+    border-radius:0;
+    border:none;
+  }
+  #mBossFight.modalBossFight .sheet{
+    left:50%;
+    right:auto;
+    transform:translateX(-50%);
+    width:100% !important;
+    max-width:480px !important;
+    border-radius:0;
+    border:none;
+  }
 }
 .mainCharacter .charCornerBtn{
   position:absolute;
@@ -182,6 +227,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   bottom:4px;
   width:calc(100vw / 6 * 0.7);
   height:calc(100vw / 6 * 0.7);
+  max-width:52px;
+  max-height:52px;
   padding:0;
   border-radius:50%;
   overflow:hidden;
