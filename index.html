@@ -643,7 +643,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .bossMedalGold{background:linear-gradient(145deg,#ffd700,#b8860b);}
 .bossMedalPurple{background:linear-gradient(145deg,#9b59b6,#6c3483);}
 .bossMedalMythic{background:linear-gradient(145deg,#e8d5b7,#c9a227);box-shadow:0 0 10px rgba(201,162,39,.5);}
-.bossMedal.bossMedalLocked{opacity:.4;filter:grayscale(1);}
+.bossMedal.bossMedalLocked{opacity:.45;filter:grayscale(0.85);}
 .bossActionsWrap{width:174px;margin-top:0;display:flex;flex-direction:column;gap:6px;}
 .bossActionsWrap .bossAtkBtn{width:100%;box-sizing:border-box;}
 .bossActionsWrap .bossMedalsRow{margin-top:0;}
@@ -764,9 +764,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 }
 
  #mBoss .sheet{border-radius:0;border:none;}
-#mBoss .sheetBody{overflow-y:auto;-webkit-overflow-scrolling:touch;display:block;}
-#mBoss #bossList{display:flex;flex-direction:column;gap:12px;padding:12px 0;padding-bottom:calc(24px + env(safe-area-inset-bottom));}
-#mBoss #bossList .card{width:100%;max-width:100%;box-sizing:border-box;padding-left:14px;padding-right:14px;}
+#mBoss .sheetBody{display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+#mBoss #bossList{display:flex;flex-direction:column;gap:12px;padding:12px 14px;padding-bottom:calc(24px + env(safe-area-inset-bottom));width:100%;box-sizing:border-box;}
+#mBoss #bossList > *{flex-shrink:0;}
+#mBoss #bossList .card{width:100%;max-width:100%;box-sizing:border-box;flex-shrink:0;}
 
 .sheetScreen .sheetBody{
   padding:0;
@@ -8000,8 +8001,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             const unlocked = bossWins >= BOSS_MEDAL_THRESHOLDS[i];
             const imgSrc = (medalImgs && medalImgs[i]) ? medalImgs[i] : '';
             const title = titles[i];
-            if (unlocked && imgSrc) {
-              s += '<div class="bossMedal '+classes[i]+'" title="'+title+'"><img src="'+imgSrc.replace(/"/g,'&quot;')+'" alt=""></div>';
+            if (imgSrc) {
+              s += '<div class="bossMedal '+classes[i]+(unlocked ? '' : ' bossMedalLocked')+'" title="'+title+'"><img src="'+imgSrc.replace(/"/g,'&quot;')+'" alt=""></div>';
             } else {
               s += '<div class="bossMedal '+classes[i]+(unlocked ? '' : ' bossMedalLocked')+'" title="'+title+'"></div>';
             }
