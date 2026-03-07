@@ -626,9 +626,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   #diceRoll{ touch-action: manipulation; }
 
 .bossRow{display:flex;flex-direction:column;gap:10px;}
-.bossRowTop{display:flex;flex-direction:column;gap:12px;align-items:flex-start;}
+.bossRowTop{display:flex;flex-direction:row;gap:12px;align-items:center;}
+.bossRowTop .bossNameWrap{min-width:0;flex:1;}
+.bossRowBelow{display:flex;flex-direction:column;gap:8px;}
+.bossRowBelow .bossReward{margin-top:0;}
 .bossRightCol{min-width:0;display:flex;flex-direction:column;gap:8px;width:100%;}
-.bossMiniWrap{position:relative;width:242px;height:242px;}
+.bossMiniWrap{position:relative;width:242px;height:242px;flex-shrink:0;}
 .bossMini{width:242px;height:242px;border-radius:26px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:92px;}
 .bossWinnerAva{position:absolute;right:-10px;bottom:10px;width:44px;height:44px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:rgba(45,30,18,.28);object-fit:cover;}
 .bossName{font-weight:900;letter-spacing:2px;line-height:1.15;}
@@ -7970,15 +7973,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '<div class="bossMini" style="'+(b.img?('background-image:url(\''+encodeURI(String(b.img))+'\');'):'')+'">'+(b.img?'':b.emoji)+'</div>'
         + (lwPhoto ? ('<img class="bossWinnerAva" src="'+String(lwPhoto).replace(/"/g,'&quot;')+'" alt="" />') : '')
         + '</div>'
-        + '<div class="bossRightCol">'
-        + '<div class="bossInfo">'
-        + '<div class="bossName">'+b.name+'</div>'
+        + '<div class="bossNameWrap"><div class="bossName">'+b.name+'</div></div>'
+        + '</div>'
+        + '<div class="bossRowBelow">'
         + '<div class="bossSub">'+(dead ? ('ПОВЕРЖЕН · HP 0') : ('HP '+fmtBossHpShort(hp)))+lockText+'</div>'
         + '<div class="bossReward">'
         + (rm>0 ? ('<span class="badge" style="color:rgba(0,0,0,.92); padding:6px 8px; font-size:11px">+'+rm+'<img src="зуб.png" alt="Золотые зубы" class="toothIcon"></span>') : '')
         + (rg>0 ? ('<span class="badge" style="color:var(--gold); padding:6px 8px; font-size:11px">+'+rg+'<img src="голд.png" alt="Золото" class="goldIcon"></span>') : '')
         + (rxp>0 ? ('<span class="badge" style="padding:6px 8px; font-size:11px">+'+rxp+' XP</span>') : '')
-        + '</div>'
         + '</div>'
         + '<div class="bossActionsWrap">'
         + '<div style="display:flex;flex-direction:column;gap:6px">'
@@ -8019,7 +8021,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const progressText = nextThreshold != null ? (bossWins+'/'+nextThreshold) : (bossWins+' (все медали)');
           return '<div class="bossWinsCount">Побед: '+bossWins+' · '+progressText+'</div>';
         })()
-        + '</div>'
         + '</div>'
         + '</div>'
         + '</div>'
