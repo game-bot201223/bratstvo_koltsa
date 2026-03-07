@@ -424,6 +424,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .dockRow .dockBtn.dockBtnWithLabel{flex-direction:column;gap:2px;}
 .dockRow .dockBtn.dockBtnWithLabel img{flex-shrink:0;}
 .dockRow .dockBtn .dockBtnLabel{font-size:9px;font-weight:900;letter-spacing:1px;opacity:.95;line-height:1.1;}
+#btnBoss.dockBtn img{object-fit:contain;}
 #btnPloshchad.dockBtn img{transform:none;object-fit:contain;}
 @media (max-width: 380px){
  .dock{padding:0 0 calc(8px + env(safe-area-inset-bottom));}
@@ -877,7 +878,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="dock">
         <div class="dockRow">
           <button class="btn dockBtn" id="btnDistricts" aria-label="Районы"><img src="районы.png" alt=""></button>
-          <button class="btn dockBtn dockBtnWithLabel" id="btnBoss" aria-label="Боссы"><img src="боссы.png" alt=""><span class="dockBtnLabel">Боссы</span></button>
+          <button class="btn dockBtn" id="btnBoss" aria-label="Боссы"><img src="боссы.png" alt=""></button>
           <button class="btn dockBtn" id="btnClans" aria-label="Кланы"><img src="кланы.png" alt=""></button>
           <button class="btn dockBtn" id="btnPloshchad" aria-label="Площадь"><img src="площадь.png" alt=""></button>
         </div>
