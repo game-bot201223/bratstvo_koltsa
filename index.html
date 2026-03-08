@@ -4198,7 +4198,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           return v;
         } catch (e0) { return v; }
       });
-      return JSON.parse(text);
+      const out = JSON.parse(text);
+      if (out && out.bosses && typeof out.bosses === 'object') {
+        out.bosses.cloud = {};
+        out.bosses.hp = {};
+        out.bosses.fights = {};
+      }
+      return out;
     } catch (e) {
       try { return s; } catch (e2) { return null; }
     }
@@ -8196,16 +8202,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (ringBtn){
       const priceR = bossRingStrikePrice(selectedId);
       const haveR = parseInt(state.rings||0,10)||0;
-      ringBtn.disabled = (priceR<=0 || haveR < priceR);
+      const limitReached = !canByDaily; // можно атаковать за кольца только когда лимит 10/10 достигнут
+      ringBtn.disabled = (priceR<=0 || haveR < priceR || !limitReached);
       ringBtn.style.opacity = ringBtn.disabled ? '.55' : '1';
-      ringBtn.title = 'Купить 1 атаку: '+priceR+' 💍';
+      ringBtn.title = limitReached ? ('Купить 1 атаку: '+priceR+' 💍') : 'Доступно только при достигнутом лимите боёв (10/10)';
       ringBtn.onclick = ()=>{
         const id = parseInt(state.bosses.pendingAttackId||selectedId||0,10)||0;
         const priceR2 = bossRingStrikePrice(id);
         if (priceR2<=0) return;
         if ((parseInt(state.rings||0,10)||0) < priceR2){ toast('Нужно '+priceR2+' 💍','lose'); return; }
 
-        // validate boss access but IGNORE daily limit
+        // validate boss access but IGNORE daily limit (оплата кольцами — лимит уже достигнут)
         if (!id) return;
         if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
           const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)];
@@ -8216,6 +8223,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if ((parseInt(bossHp(id)||0,10)||0) <= 0) { toast('Босс повержен. Забери награду.','lose'); return; }
         }
         if (!bossHasAccess(id)) { toast('Не хватает ключей','lose'); return; }
+
+        // При оплате козырными кольцами пропуски (state.bosses.keys) НЕ списываем — только кольца и +1 удар.
 
         // HARD MODE: only apply local spend if server accepted the fight start
         if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
@@ -11074,6 +11083,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
               if (__cloudHasPlayer && ps0 && typeof ps0 === 'object') {
                 state = Object.assign({}, state, ps0);
+                if (state.bosses) {
+                  state.bosses.cloud = {};
+                  state.bosses.hp = {};
+                  state.bosses.fights = {};
+                }
                 try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e0) {}
                 try { localStorage.setItem(rk, '1'); } catch (e1) {}
                 __skipCloudPull = true;
@@ -11139,6 +11153,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const ps = r && r.player && r.player.state;
           if (ps && typeof ps === 'object') {
             state = Object.assign({}, state, ps);
+            if (state.bosses) {
+              state.bosses.cloud = {};
+              state.bosses.hp = {};
+              state.bosses.fights = {};
+            }
           try {
             const cur = String(state.playerName||'').trim();
             if (!cur || cur.toUpperCase() === 'PLAYER') {
