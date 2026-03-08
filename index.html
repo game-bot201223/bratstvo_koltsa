@@ -98,6 +98,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .hud{padding:6px 14px 5px;}
 .hudRow{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .hud .hudRow{gap:5px;}
+.globalChatBtn{width:42px;height:42px;border-radius:50%;flex-shrink:0;border:1px solid var(--btnBorder);background:var(--caramel);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;padding:0;}
+.globalChatBtn:active{transform:scale(0.94);}
 .hud .name{gap:5px;}
 .hud .nameCol{gap:1px;}
 .hud .nameLine{gap:4px;}
@@ -1165,6 +1167,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <div class="utcRow"><span class="utcMini" id="utc">00:00</span><span class="utcTag">UTC</span></div>
         </div>
       </div>
+      <button type="button" class="globalChatBtn" id="globalChatBtn" aria-label="Общий чат" title="Общий чат">💬</button>
       <div class="pills">
         <div class="pill energyPill" style="border-color:rgba(34,211,238,.20)">
           <div class="eRow">⚡ <strong id="energy">100</strong>/<span id="energyMax">100</span>
@@ -1749,6 +1752,29 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div style="margin-top:12px; display:flex; gap:8px; align-items:center">
           <input id="clanChatInputFull" type="text" placeholder="Сообщение..." style="flex:1; min-width:0; padding:12px 12px; border-radius:14px; border:1px solid rgba(36,24,14,.20); background:rgba(255,255,255,.12); outline:none; font-size:12px;" />
           <button class="btn" id="clanChatSendFull">ОТПРАВИТЬ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Global Chat (общий чат для всех игроков) -->
+<div class="modal modalPage" id="mGlobalChat" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen">
+    <div class="sheetHead">
+      <button class="iconBtn" id="globalChatBack">‹</button>
+      <div class="title">ОБЩИЙ ЧАТ</div>
+      <div style="display:flex; gap:8px; align-items:center">
+        <button class="btn btnMini" id="globalChatRefresh">ОБНОВИТЬ</button>
+      </div>
+    </div>
+    <div class="sheetBody">
+      <div class="card">
+        <div class="row"><div class="k">СООБЩЕНИЯ</div><div class="badge" id="globalChatBadgeFull">—</div></div>
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px; overflow-y:auto; max-height:60vh; padding-right:4px;" id="globalChatListFull">—</div>
+        <div style="margin-top:12px; display:flex; gap:8px; align-items:center">
+          <input id="globalChatInputFull" type="text" placeholder="Сообщение..." style="flex:1; min-width:0; padding:12px 12px; border-radius:14px; border:1px solid rgba(36,24,14,.20); background:rgba(255,255,255,.12); outline:none; font-size:12px;" />
+          <button class="btn" id="globalChatSendFull">ОТПРАВИТЬ</button>
         </div>
       </div>
     </div>
@@ -5301,6 +5327,78 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (inp) inp.onkeydown = (ev)=>{ if (ev && ev.key==='Enter'){ clanChatSend(); } };
       } catch (e4) {}
     } catch (e) {}
+  }
+
+  async function globalChatLoadAndRender(){
+    try {
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !tgInitData()) {
+        if (!Array.isArray(state.globalChatMessages)) state.globalChatMessages = [];
+        renderGlobalChatModal();
+        return;
+      }
+      const r = await sbFnCall('global_chat_get', { initData: tgInitData(), limit: 60 });
+      state.globalChatMessages = (r && Array.isArray(r.messages)) ? r.messages : [];
+    } catch (e) {
+      state.globalChatMessages = [];
+    }
+    renderGlobalChatModal();
+  }
+
+  function renderGlobalChatModal(){
+    try {
+      const box = $('globalChatListFull');
+      const badge = $('globalChatBadgeFull');
+      const send = $('globalChatSendFull');
+      const inp = $('globalChatInputFull');
+      const back = $('globalChatBack');
+      const rf = $('globalChatRefresh');
+      if (!box || !badge || !send) return;
+      if (!Array.isArray(state.globalChatMessages)) state.globalChatMessages = [];
+      try { if (back) back.onclick = ()=>{ hideModal('mGlobalChat'); haptic('light'); }; } catch (e0) {}
+      try { if (rf) rf.onclick = ()=>{ globalChatLoadAndRender(); haptic('light'); }; } catch (e1) {}
+      const me = String(state.playerName || 'PLAYER').trim();
+      const arr = state.globalChatMessages.slice(-60);
+      badge.textContent = String(state.globalChatMessages.length);
+      box.innerHTML = arr.length ? arr.map(e=>{
+        const from = String(e && e.from || '—');
+        const txt = String(e && e.text || '');
+        const isMe = String(from) === String(me);
+        const wrap = 'display:flex; ' + (isMe ? 'justify-content:flex-end;' : 'justify-content:flex-start;');
+        const bubble = 'max-width:85%; padding:10px 12px; border-radius:14px; font-size:12px; line-height:1.35; '
+          + (isMe ? 'background:rgba(59,130,246,.20); border:1px solid rgba(59,130,246,.25); text-align:right;' : 'background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.10);');
+        const head = isMe ? '' : ('<div style="font-size:10px; opacity:.65; margin-bottom:4px">'+from+'</div>');
+        return '<div style="'+wrap+'">'
+          + '<div style="'+bubble+'">'
+          + head
+          + '<div>'+txt+'</div>'
+          + '</div>'
+          + '</div>';
+      }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+      try { box.scrollTop = box.scrollHeight; } catch (e2) {}
+      send.onclick = ()=>{ globalChatSend(); };
+      try { if (inp) inp.onkeydown = (ev)=>{ if (ev && ev.key==='Enter'){ globalChatSend(); } }; } catch (e4) {}
+    } catch (e) {}
+  }
+
+  function globalChatSend(){
+    const inp = $('globalChatInputFull');
+    const txt = inp ? inp.value : '';
+    const msg = String(txt||'').trim().substring(0, 140);
+    if (!msg) return;
+    const me = String(state.playerName || 'PLAYER').trim().substring(0, 18);
+    try { if (inp) inp.value = ''; } catch (e2) {}
+    haptic('light');
+    try {
+      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+        sbFnCallSkipNull('global_chat_send', { initData: tgInitData(), member_name: me, text: msg })
+          .then(function(){ return globalChatLoadAndRender(); })
+          .catch(function(e){ const em = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim(); toast('Не удалось отправить: '+em.slice(0,24),'lose'); });
+        return;
+      }
+    } catch (e3) {}
+    state.globalChatMessages = state.globalChatMessages || [];
+    state.globalChatMessages.push({ ts: Date.now(), from: me, text: msg });
+    renderGlobalChatModal();
   }
 
   function renderClanAppsModal(){
@@ -10233,6 +10331,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }).catch(function(){});
       }
     };
+    var gcb = $('globalChatBtn');
+    if (gcb) gcb.onclick = function(){ openScreen('mGlobalChat'); globalChatLoadAndRender(); haptic('light'); };
     (function(){
       const btnDospekhi = $('btnDospekhi');
       const armorTierRow = $('armorTierRow');
