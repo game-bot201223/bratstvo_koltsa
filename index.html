@@ -10676,7 +10676,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         sbFnCall('get_player', { initData: tgInitData() }).then(function(r){
           try {
             if (r && r.ok && r.player && r.player.state && typeof r.player.state === 'object') {
+              const localFights = state.bosses && state.bosses.fights && typeof state.bosses.fights === 'object' ? state.bosses.fights : null;
               state = Object.assign({}, state, r.player.state);
+              if (state.bosses && localFights && Object.keys(localFights).length > 0) state.bosses.fights = localFights;
               save();
               renderAll();
             }
@@ -10697,7 +10699,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           sbFnCall('get_player', { initData: tgInitData() }).then(function(r){
             try {
               if (r && r.ok && r.player && r.player.state && typeof r.player.state === 'object') {
+                const localFights = state.bosses && state.bosses.fights && typeof state.bosses.fights === 'object' ? state.bosses.fights : null;
                 state = Object.assign({}, state, r.player.state);
+                if (state.bosses && localFights && Object.keys(localFights).length > 0) state.bosses.fights = localFights;
                 save();
                 renderTopBrosModal();
               }
@@ -11117,11 +11121,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
               const __cloudIsNewPlayer = !!(__cloudOk && (gr.player === null || typeof gr.player === 'undefined'));
 
               if (__cloudHasPlayer && ps0 && typeof ps0 === 'object') {
+                const localFights = state.bosses && state.bosses.fights && typeof state.bosses.fights === 'object' ? state.bosses.fights : null;
                 state = Object.assign({}, state, ps0);
                 if (state.bosses) {
                   state.bosses.cloud = {};
                   state.bosses.hp = {};
-                  state.bosses.fights = {};
+                  state.bosses.fights = (localFights && Object.keys(localFights).length > 0) ? localFights : {};
                 }
                 try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e0) {}
                 try { localStorage.setItem(rk, '1'); } catch (e1) {}
@@ -11187,11 +11192,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const r = await sbFnCall('get_player', { initData: tgInitData() });
           const ps = r && r.player && r.player.state;
           if (ps && typeof ps === 'object') {
+            const localFights = state.bosses && state.bosses.fights && typeof state.bosses.fights === 'object' ? state.bosses.fights : null;
             state = Object.assign({}, state, ps);
             if (state.bosses) {
               state.bosses.cloud = {};
               state.bosses.hp = {};
-              state.bosses.fights = {};
+              state.bosses.fights = (localFights && Object.keys(localFights).length > 0) ? localFights : {};
             }
           try {
             const cur = String(state.playerName||'').trim();
