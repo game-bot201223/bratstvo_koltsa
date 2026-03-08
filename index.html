@@ -4515,6 +4515,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   };
 
   let state = Object.assign({}, defaults, load()||{});
+  // Безопасный рестарт кэша боссов: обновить данные (полное HP при старте боя), не теряя прогресс игрока
+  const DATA_VERSION = 2;
+  try {
+    if ((state._dataVersion || 0) < DATA_VERSION) {
+      if (state.bosses) {
+        state.bosses.cloud = {};
+        state.bosses.hp = {};
+        state.bosses.fights = {};
+      }
+      state._dataVersion = DATA_VERSION;
+    }
+  } catch (e0) {}
   // One-time авто-очистка багнутого лимита боссов
   try {
     if (state && state.bosses && state.bosses.daily && state.bosses.daily.counts){
