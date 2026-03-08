@@ -7317,6 +7317,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const k = String(id);
     return (state.bosses.fights && state.bosses.fights[k]) ? state.bosses.fights[k] : null;
   }
+  function bfHasActiveFight(bossId){
+    if (!bossId || !state.bosses) return false;
+    if (parseInt(state.bosses.activeFightId||0,10) === parseInt(bossId,10)) return true;
+    const f = bfGetFight(bossId);
+    if (!f || !f.expiresTs) return false;
+    if (now() >= (parseInt(f.expiresTs||0,10)||0)) return false;
+    return (parseInt(f.hp||0,10)||0) > 0;
+  }
   function bossExists(id){
     try { return !!BOSSES.find(x=>x && x.id===id); } catch (e) { return false; }
   }
@@ -8683,6 +8691,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const claimed = !!(cc && typeof cc === 'object' && cc.reward_claimed);
         canClaim = !!(hpCloud!==null && (parseInt(hpCloud||0,10)||0) <= 0 && !claimed);
       }
+      const hasActiveFight = !dead && bfHasActiveFight(b.id);
       html += '<div class="card">'
         + '<div class="bossWinnerTop">ПОСЛЕДНИЙ ПОБЕДИТЕЛЬ</div>'
         + '<div class="bossWinnerNm">'+lwName+'</div>'
@@ -8708,7 +8717,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
                 ? '<button class="btn btnMini bossAtkBtn" data-boss-claim="'+b.id+'">ЗАБРАТЬ НАГРАДУ</button>'
                 : '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
               )
-            : '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
+            : (hasActiveFight
+                ? '<button class="btn btnMini bossAtkBtn" data-boss-continue="'+b.id+'" style="opacity:1">ПРОДОЛЖИТЬ БОЙ</button>'
+                : '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
+              )
           )
         + '</div>'
         + '<div class="bossMedalsRow" data-boss-id="'+b.id+'">'
@@ -8777,6 +8789,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
         showModal('mBossAttack');
         renderBossAttackModal(id);
+        haptic('light');
+      };
+    });
+
+    box.querySelectorAll('[data-boss-continue]').forEach(btn=>{
+      btn.onclick = ()=>{
+        const id = parseInt(btn.getAttribute('data-boss-continue')||'0',10)||0;
+        if (!id) return;
+        state.bosses.activeFightId = id;
+        window.__skipBossFightGuard = true;
+        if (bfEnsureFight(id)) {
+          showModal('mBossFight');
+          bfRender(id);
+        } else {
+          state.bosses.activeFightId = 0;
+          toast('Бой истёк или босс повержен','lose');
+          renderBosses();
+        }
         haptic('light');
       };
     });
