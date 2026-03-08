@@ -6970,7 +6970,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           btn.textContent = 'Загрузка…';
           var r = await Promise.race([
             sbFnCall('stars_create_invoice', { initData: tgInitData(), productId: productId }),
-            new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('timeout')); }, 20000); })
+            new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('timeout')); }, 45000); })
           ]);
           btn.textContent = btnText;
           btn.disabled = false;
@@ -7005,7 +7005,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           btn.textContent = btnText;
           btn.disabled = false;
           if (typeof console !== 'undefined' && console.error) console.error('[Stars] Исключение:', e);
-          toast(e && e.message === 'timeout' ? 'Превышено время ожидания. Проверьте интернет.' : 'Ошибка запроса','lose');
+          toast(e && e.message === 'timeout' ? 'Сервер не ответил за 45 сек. Проверьте интернет или попробуйте позже.' : 'Ошибка запроса','lose');
           renderShop();
         }
       };
@@ -10219,7 +10219,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     };
 
     const sb = $('settingsBtn'); if (sb) sb.onclick = ()=>{ showModal('mSettings'); renderAll(); haptic('light'); };
-    $('shopBtn').onclick = ()=>{ showModal('mShop'); renderShop(); haptic('light'); };
+    $('shopBtn').onclick = ()=>{
+      showModal('mShop');
+      renderShop();
+      haptic('light');
+      var base = String(typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '').replace(/\/$/, '');
+      if (base) {
+        fetch(base + '/functions/v1/stars_create_invoice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': String(typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY : ''), 'Authorization': 'Bearer ' + String(typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY : '') },
+          body: JSON.stringify({ warm: true }),
+          keepalive: true
+        }).catch(function(){});
+      }
+    };
     (function(){
       const btnDospekhi = $('btnDospekhi');
       const armorTierRow = $('armorTierRow');
