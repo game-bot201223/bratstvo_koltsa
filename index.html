@@ -1548,9 +1548,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         </div>
       </div>
       <div class="card" style="margin-top:12px;" id="bfrRewardCard">
-        <div class="row"><div class="k">НАГРАДА</div></div>
-        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="bfrReward">—</div>
-        <button class="btn" style="margin-top:12px; display:none;" id="bfrClaim">ЗАБРАТЬ НАГРАДУ</button>
+        <div class="row"><div class="k">НАГРАДА ЗА ПОБЕДУ</div></div>
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px; font-size:14px; font-weight:800;" id="bfrReward">—</div>
+        <button class="btn" style="margin-top:14px; font-size:13px;" id="bfrClaim">ЗАБРАТЬ НАГРАДУ</button>
       </div>
       <div class="card" style="margin-top:12px;">
         <div class="row"><div class="k">ТОП-10 УРОНА</div></div>
@@ -7619,14 +7619,142 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!ff) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
       const left2 = Math.max(0, (parseInt(ff.expiresTs||0,10)||0) - now());
       if (left2<=0 || (parseInt(ff.hp||0,10)||0)<=0 || ff.freeUsed) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
-      toast('Урон наносят только братки','gold');
-      haptic('light');
-      try { delete window.__bfHitLock[lk]; } catch (e0) {}
+      const prevHp = Math.max(0, parseInt(ff.hp||0,10)||0);
+      const dmg = bossHitDmg(14, 50);
+      const wantApply = Math.min(prevHp, dmg);
+      bossFightHitCloud(bossId, wantApply).then((r)=>{
+        try {
+          if (r && typeof r === 'object' && r.skipped) {
+            try { bossFightsCloudPullMaybe(true); } catch (e0) {}
+            return;
+          }
+        } catch (e0) {}
+
+        try {
+          if (!(r && r.ok && r.fight && typeof r.fight.hp !== 'undefined')) {
+            try { bossFightsCloudPullMaybe(true); } catch (e1) {}
+            toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ','lose');
+            return;
+          }
+        } catch (e9) {
+          try { bossFightsCloudPullMaybe(true); } catch (e1) {}
+          toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ','lose');
+          return;
+        }
+
+        ff.freeUsed = true;
+        ff.lastFriendTs = now();
+
+        const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+        const applied = (fhp!==null) ? Math.max(0, prevHp - Math.max(0, fhp)) : wantApply;
+        bfLogPush(bossId, state.playerName||'PLAYER', applied);
+        bfTopAdd(bossId, state.playerName||'PLAYER', applied);
+        try {
+          if (fhp!==null) ff.hp = Math.max(0, fhp);
+          else ff.hp = Math.max(0, prevHp - applied);
+        } catch (e1) {}
+        try {
+          if (fhp!==null) {
+            if (!state.bosses.cloud || typeof state.bosses.cloud !== 'object') state.bosses.cloud = {};
+            const k = String(bossId);
+            state.bosses.cloud[k] = Object.assign({}, (state.bosses.cloud[k]||{}), { boss_id: bossId, hp: fhp, max_hp: b.maxHP, updated_at: new Date().toISOString() });
+          }
+        } catch (e9) {}
+        bfSetFight(bossId, ff);
+        clanAddBossDamage(applied, state.playerName||'PLAYER');
+        try { bossHelpSend(bossId, applied); } catch (e0) {}
+        bfCheckWin(bossId);
+        try { bossFightsCloudPullMaybe(); } catch (e2) {}
+        save();
+        if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
+        renderAll();
+        haptic('light');
+      }).catch(()=>{}).finally(()=>{ try { delete window.__bfHitLock[lk]; } catch (e0) {} });
     };
 
     function doTokenHit(kind){
-      toast('Урон наносят только братки','gold');
-      haptic('light');
+      if (!window.__bfHitLock) window.__bfHitLock = {};
+      const lk = 'tok:' + String(bossId) + ':' + String(kind||'');
+      try { if (window.__bfHitLock[lk]) return; window.__bfHitLock[lk] = true; } catch (e0) {}
+
+      const f2 = bfEnsureFight(bossId);
+      if (!f2) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
+      const ff = bfGetFight(bossId);
+      if (!ff) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
+
+      const q = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
+      const hs = state.bosses.hitStocks || { kick:0, knuckle:0, enema:0 };
+      const hs2 = { kick: parseInt(hs.kick||0,10)||0, knuckle: parseInt(hs.knuckle||0,10)||0, enema: parseInt(hs.enema||0,10)||0 };
+      if (kind==='kick'){
+        if ((hs2.kick||0) < q){ toast('Нужно купить пинки','lose'); try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
+      } else if (kind==='knuckle'){
+        if ((hs2.knuckle||0) < q){ toast('Нужно купить костеты','lose'); try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
+      } else if (kind==='enema'){
+        if ((hs2.enema||0) < q){ toast('Нужно купить клизмы','lose'); try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
+      } else {
+        toast('Нужно купить удары','lose');
+        try { delete window.__bfHitLock[lk]; } catch (e0) {}
+        return;
+      }
+
+      ff.lastFriendTs = now();
+      const one = (kind==='kick') ? bossHitDmg(10, 70) : ((kind==='knuckle') ? bossHitDmg(7, 85) : bossHitDmg(4, 100));
+      const dmg = Math.max(1, one) * q;
+      const prevHp = Math.max(0, parseInt(ff.hp||0,10)||0);
+      const wantApply = Math.min(prevHp, dmg);
+
+      bossFightHitCloud(bossId, wantApply).then((r)=>{
+        try {
+          if (r && typeof r === 'object' && r.skipped) {
+            try { bossFightsCloudPullMaybe(true); } catch (e0) {}
+            try { bfRender(bossId); } catch (e1) {}
+            try { renderAll(); } catch (e2) {}
+            return;
+          }
+        } catch (e0) {}
+
+        try {
+          if (!(r && r.ok && r.fight && typeof r.fight.hp !== 'undefined')) {
+            try { bossFightsCloudPullMaybe(true); } catch (e1) {}
+            toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ','lose');
+            return;
+          }
+        } catch (e9) {
+          try { bossFightsCloudPullMaybe(true); } catch (e1) {}
+          toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ','lose');
+          return;
+        }
+
+        if (kind==='kick') hs2.kick = Math.max(0, (hs2.kick||0) - q);
+        if (kind==='knuckle') hs2.knuckle = Math.max(0, (hs2.knuckle||0) - q);
+        if (kind==='enema') hs2.enema = Math.max(0, (hs2.enema||0) - q);
+        state.bosses.hitStocks = hs2;
+
+        const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+        const applied = (fhp!==null) ? Math.max(0, prevHp - Math.max(0, fhp)) : wantApply;
+        bfLogPush(bossId, state.playerName||'PLAYER', applied);
+        bfTopAdd(bossId, state.playerName||'PLAYER', applied);
+        try {
+          if (fhp!==null) ff.hp = Math.max(0, fhp);
+          else ff.hp = Math.max(0, prevHp - applied);
+        } catch (e1) {}
+        try {
+          if (fhp!==null) {
+            if (!state.bosses.cloud || typeof state.bosses.cloud !== 'object') state.bosses.cloud = {};
+            const k = String(bossId);
+            state.bosses.cloud[k] = Object.assign({}, (state.bosses.cloud[k]||{}), { boss_id: bossId, hp: fhp, max_hp: b.maxHP, updated_at: new Date().toISOString() });
+          }
+        } catch (e9) {}
+        bfSetFight(bossId, ff);
+        clanAddBossDamage(applied);
+        try { bossHelpSend(bossId, applied); } catch (e0) {}
+        bfCheckWin(bossId);
+        try { bossFightsCloudPullMaybe(); } catch (e2) {}
+        save();
+        if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
+        renderAll();
+        haptic('light');
+      }).catch(()=>{}).finally(()=>{ try { delete window.__bfHitLock[lk]; } catch (e0) {} });
     }
 
     hitBtn1.onclick = ()=>doTokenHit('kick');
@@ -7739,12 +7867,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       try {
         const bp = pr ? (parseFloat(pr.clanBonusPct||0) || 0) : 0;
         if (bp > 0) {
-          html += '<div class="row"><div style="min-width:0">Бонус клана</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--gold)">+'+Math.round(bp*100)+'%</div></div>';
+          html += '<div class="row"><div style="min-width:0">Бонус клана</div><div class="badge" style="padding:8px 10px; font-size:13px; color:var(--gold)">+'+Math.round(bp*100)+'%</div></div>';
         }
       } catch (e) {}
-      if (rm>0) html += '<div class="row"><div style="min-width:0">+'+rm+' золотых зубов</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--tooth)">+'+rm+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon"></div></div>';
-      if (rg>0) html += '<div class="row"><div style="min-width:0">+'+rg+' золота</div><div class="badge" style="padding:6px 8px; font-size:11px; color:var(--gold)">+'+rg+' <img src="голд.png" alt="Золото" class="goldIcon"></div></div>';
-      if (rxp>0) html += '<div class="row"><div style="min-width:0">+'+rxp+' XP</div><div class="badge" style="padding:6px 8px; font-size:11px">+'+rxp+' XP</div></div>';
+      if (rm>0) html += '<div class="row"><div style="min-width:0; font-size:14px">+'+rm+' золотых зубов</div><div class="badge" style="padding:8px 10px; font-size:14px; color:var(--tooth)">+'+rm+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon"></div></div>';
+      if (rg>0) html += '<div class="row"><div style="min-width:0; font-size:14px">+'+rg+' золота</div><div class="badge" style="padding:8px 10px; font-size:14px; color:var(--gold)">+'+rg+' <img src="голд.png" alt="Золото" class="goldIcon"></div></div>';
+      if (rxp>0) html += '<div class="row"><div style="min-width:0; font-size:14px">+'+rxp+' XP</div><div class="badge" style="padding:8px 10px; font-size:14px">+'+rxp+' XP</div></div>';
       reward.innerHTML = html || '<div style="opacity:.75; font-size:12px">—</div>';
     }
 
@@ -8184,8 +8312,66 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   function doBossAttack(id){
-    toast('Урон наносят только братки','gold');
-    haptic('light');
+    if ((state.bosses.strikes||0) <= 0){ toast('Нет ударов. Вернутся позже.','lose'); return; }
+    if (!window.__bossHitInFlight) window.__bossHitInFlight = {};
+    try {
+      const k = String(id);
+      if (window.__bossHitInFlight[k]) return;
+      window.__bossHitInFlight[k] = true;
+    } catch (e0) {}
+    const b = BOSSES.find(x=>x.id===id);
+    if (!b) return;
+    let tot = 0;
+    try { if (Array.isArray(GYM_STATS)) GYM_STATS.forEach(s=>{ tot += (gymVal(s.key)||0); }); } catch (e) {}
+    const stat = Math.max(0, Math.floor(Math.max(0, Math.floor(tot)) / 14));
+    const raw = Math.max(1, 50 + stat);
+    const dmg = raw;
+    const ff0 = bfGetFight(id);
+    const prevHp = ff0 ? (parseInt(ff0.hp||0,10)||0) : (parseInt(bossHp(id)||0,10)||0);
+    const wantApply = Math.min(Math.max(0, prevHp), dmg);
+    bossFightHitCloud(id, wantApply).then((r)=>{
+      try {
+        const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+        const applied = (fhp!==null) ? Math.max(0, prevHp - Math.max(0, fhp)) : wantApply;
+
+        state.bosses.strikes = Math.max(0, (parseInt(state.bosses.strikes||0,10)||0) - 1);
+
+        if (fhp!==null) {
+          if (!state.bosses.cloud) state.bosses.cloud = {};
+          state.bosses.cloud[String(id)] = Object.assign({}, (state.bosses.cloud[String(id)]||{}), { hp: fhp, max_hp: b.maxHP });
+        }
+      } catch (e0) {}
+      try {
+        const fhp2 = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+        const applied2 = (fhp2!==null) ? Math.max(0, prevHp - Math.max(0, fhp2)) : wantApply;
+        bossHelpSend(id, applied2);
+        feedAdd('Ты ударил босса: '+b.name+' -'+applied2, 'BOSS');
+      } catch (e0) {
+        feedAdd('Ты ударил босса: '+b.name+' -'+wantApply, 'BOSS');
+        bossHelpSend(id, wantApply);
+        toast('Босс: -'+wantApply, 'win');
+      }
+      try { bossFightsCloudPullMaybe(); } catch (e1) {}
+      save();
+      renderAll();
+      if ((parseInt(bossHp(id)||0,10)||0) <= 0) {
+        toast('БОСС ПОВЕРЖЕН. Забери награду.','win');
+        haptic('heavy');
+      } else {
+        try {
+          const fhp3 = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
+          const applied3 = (fhp3!==null) ? Math.max(0, prevHp - Math.max(0, fhp3)) : wantApply;
+          toast('-'+applied3+' HP','tooth');
+        } catch (e0) {
+          toast('-'+wantApply+' HP','tooth');
+        }
+        haptic('light');
+      }
+    }).catch(()=>{
+      toast('СЕРВЕР: ERR','lose');
+    }).finally(()=>{
+      try { if (window.__bossHitInFlight) delete window.__bossHitInFlight[String(id)]; } catch (e0) {}
+    });
   }
 
   function bossHp(id){
