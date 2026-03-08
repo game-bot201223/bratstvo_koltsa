@@ -8238,6 +8238,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
                 f0.hp = startHp;
                 bfSetFight(id, f0);
                 try {
+                  if (!state.bosses.hp) state.bosses.hp = {};
+                  state.bosses.hp[String(id)] = startHp;
+                } catch (e0) {}
+                try {
                   if (!state.bosses.cloud) state.bosses.cloud = {};
                   const maxHpVal = (sr.fight.max_hp != null) ? (parseInt(sr.fight.max_hp, 10) || 0) : (f0.bossMaxHP || 0);
                   state.bosses.cloud[String(id)] = Object.assign({}, (state.bosses.cloud[String(id)] || {}), { hp: startHp, max_hp: maxHpVal, expires_at: sr.fight.expires_at || '' });
@@ -8350,6 +8354,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
               const startHp = Math.max(0, parseInt(sr.fight.hp, 10) || 0);
               f.hp = startHp;
               bfSetFight(id, f);
+              try {
+                if (!state.bosses.hp) state.bosses.hp = {};
+                state.bosses.hp[String(id)] = startHp;
+              } catch (e0) {}
               try {
                 const bDef = BOSSES.find(function(x){ return x && x.id===id; });
                 const maxHpVal = (sr.fight && sr.fight.max_hp) != null ? (parseInt(sr.fight.max_hp,10)||0) : (bDef && bDef.maxHP) || 0;
