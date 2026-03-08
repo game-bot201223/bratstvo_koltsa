@@ -4135,6 +4135,43 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e) { return []; }
   }
 
+  var __brosPhotosCache = {};
+  function brosPhotoFor(name){
+    try {
+      const n = String(name||'').trim();
+      if (!n) return '';
+      const c = __brosPhotosCache[n];
+      return (c && c.photo_url) ? String(c.photo_url) : '';
+    } catch (e) { return ''; }
+  }
+  function brosMergeCloudIntoFriend(f){
+    try {
+      const n = String(f && f.name||'').trim();
+      if (!n) return f;
+      const c = __brosPhotosCache[n];
+      if (!c) return f;
+      const out = Object.assign({}, f);
+      if (c.photo_url) out.photo_url = String(c.photo_url);
+      if (c.level != null) out.lvl = parseInt(c.level,10)||f.lvl||1;
+      if (c.stats_sum != null) out.power = parseInt(c.stats_sum,10)||f.power||0;
+      return out;
+    } catch (e) { return f; }
+  }
+  async function brosFetchPhotos(names){
+    try {
+      const list = (Array.isArray(names) ? names : []).map(function(n){ return String(n||'').trim(); }).filter(Boolean);
+      if (!list.length || !SUPABASE_URL || !SUPABASE_ANON_KEY || !tgInitData()) return __brosPhotosCache;
+      const r = await sbFnCall('get_players_by_names', { initData: tgInitData(), names: list });
+      const arr = (r && Array.isArray(r.players)) ? r.players : [];
+      arr.forEach(function(p){
+        const n = p && String(p.name||'').trim();
+        if (!n) return;
+        __brosPhotosCache[n] = { photo_url: p && String(p.photo_url||''), level: p && p.level, stats_sum: p && p.stats_sum };
+      });
+      return __brosPhotosCache;
+    } catch (e) { return __brosPhotosCache; }
+  }
+
   function cloudStateSnapshot(s){
     try {
       const text = JSON.stringify(s, (k, v)=>{
@@ -5193,12 +5230,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       c.className = 'friendCard';
       const on = !!f.online;
       const medal = idx===0 ? '🥇' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
+      const fc = brosMergeCloudIntoFriend(f);
+      const photoUrl = (fc.photo_url || brosPhotoFor(fc.name)) ? String(fc.photo_url || brosPhotoFor(fc.name)).trim() : '';
+      const ava = photoUrl ? ('<img src="'+photoUrl.replace(/"/g,'&quot;')+'" alt="" style="width:36px;height:36px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.35);flex-shrink:0;" />') : '<div style="width:36px;height:36px;border-radius:999px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.25);flex-shrink:0;"></div>';
       c.innerHTML = ''
-        + '<div class="friendTop"><div class="friendName">'+(medal?('<span style="margin-right:6px">'+medal+'</span>'):'')+String(f.name||'Браток')+'</div><div class="dot '+(on?'on':'')+'"></div></div>'
-        + '<div class="friendMeta">Ур. '+(f.lvl||1)+' • Сила '+(f.power||0)+'</div>';
-      c.onclick = ()=>{ toast('#'+(idx+1)+' ' + (f.name||'Браток') + ' · ур. ' + (f.lvl||1)); haptic('light'); };
+        + '<div style="display:flex;align-items:center;gap:10px;">'
+        + ava
+        + '<div style="min-width:0;flex:1;">'
+        + '<div class="friendTop"><div class="friendName">'+(medal?('<span style="margin-right:6px">'+medal+'</span>'):'')+String(fc.name||'Браток')+'</div><div class="dot '+(on?'on':'')+'"></div></div>'
+        + '<div class="friendMeta">Ур. '+(fc.lvl||1)+' • Сила '+(fc.power||0)+'</div>'
+        + '</div></div>';
+      c.onclick = ()=>{ toast('#'+(idx+1)+' ' + (fc.name||'Браток') + ' · ур. ' + (fc.lvl||1)); haptic('light'); };
       row.appendChild(c);
     });
+    var names = list.map(function(f){ return String(f.name||'').trim(); }).filter(Boolean);
+    var missing = names.filter(function(n){ return !(__brosPhotosCache[n] && __brosPhotosCache[n].photo_url); });
+    if (missing.length && SUPABASE_URL && SUPABASE_ANON_KEY) { brosFetchPhotos(missing).then(function(){ renderFriends(); }); }
   }
 
   function renderTopBrosModal(){
@@ -5235,13 +5282,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }).slice(0, 100);
       badge.textContent = String(sorted.length);
       box.innerHTML = sorted.length ? sorted.map((f,idx)=>{
+        const fc = brosMergeCloudIntoFriend(f);
+        const photoUrl = (fc.photo_url || brosPhotoFor(fc.name)) ? String(fc.photo_url || brosPhotoFor(fc.name)).trim() : '';
+        const ava = photoUrl ? ('<img src="'+photoUrl.replace(/"/g,'&quot;')+'" style="width:28px;height:28px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.45);flex-shrink:0;" />') : '<div style="width:28px;height:28px;border-radius:999px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.2);flex-shrink:0;"></div>';
         const medal = idx===0 ? '🥇' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
         const left = medal ? ('<div class="badge" style="padding:6px 8px; font-size:11px">'+medal+'</div>') : '';
-        const val = 'УР. '+(parseInt(f.lvl||1,10)||1);
+        const val = 'УР. '+(parseInt(fc.lvl||1,10)||1);
         return '<div class="row">'
           + '<div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1">'
           + left
-          + '<div style="min-width:0; font-size:12px; opacity:.9">#'+(idx+1)+' '+String(f.name||'—')+'</div>'
+          + ava
+          + '<div style="min-width:0; font-size:12px; opacity:.9">#'+(idx+1)+' '+String(fc.name||'—')+'</div>'
           + '</div>'
           + '<div class="badge" style="padding:6px 8px; font-size:11px">'+val+'</div>'
           + '</div>';
@@ -8182,6 +8233,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
                 f0.expiresTs = (new Date(String(sr.fight.expires_at))).getTime();
                 bfSetFight(id, f0);
               }
+              if (f0 && sr && sr.fight && typeof sr.fight.hp !== 'undefined') {
+                const startHp = Math.max(0, parseInt(sr.fight.hp, 10) || 0);
+                f0.hp = startHp;
+                bfSetFight(id, f0);
+                try {
+                  if (!state.bosses.cloud) state.bosses.cloud = {};
+                  const maxHpVal = (sr.fight.max_hp != null) ? (parseInt(sr.fight.max_hp, 10) || 0) : (f0.bossMaxHP || 0);
+                  state.bosses.cloud[String(id)] = Object.assign({}, (state.bosses.cloud[String(id)] || {}), { hp: startHp, max_hp: maxHpVal, expires_at: sr.fight.expires_at || '' });
+                } catch (e1) {}
+              }
             } catch (e0) {}
             try { bossFightsCloudPullMaybe(true); } catch (e9) {}
             bfRender(id);
@@ -8284,6 +8345,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             if (sr && sr.fight && sr.fight.expires_at) {
               f.expiresTs = (new Date(String(sr.fight.expires_at))).getTime();
               bfSetFight(id, f);
+            }
+            if (sr && sr.fight && typeof sr.fight.hp !== 'undefined') {
+              const startHp = Math.max(0, parseInt(sr.fight.hp, 10) || 0);
+              f.hp = startHp;
+              bfSetFight(id, f);
+              try {
+                const bDef = BOSSES.find(function(x){ return x && x.id===id; });
+                const maxHpVal = (sr.fight && sr.fight.max_hp) != null ? (parseInt(sr.fight.max_hp,10)||0) : (bDef && bDef.maxHP) || 0;
+                if (!state.bosses.cloud) state.bosses.cloud = {};
+                state.bosses.cloud[String(id)] = Object.assign({}, (state.bosses.cloud[String(id)] || {}), { hp: startHp, max_hp: maxHpVal, expires_at: (sr.fight && sr.fight.expires_at) || '' });
+              } catch (e1) {}
             }
           } catch (e0) {}
 
@@ -10526,10 +10598,45 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       renderBosses();
       haptic('light');
     };
-    $('btnPloshchad').onclick = ()=>{ openScreen('mPloshchad'); haptic('light'); };
+    $('btnPloshchad').onclick = ()=>{
+      openScreen('mPloshchad');
+      haptic('light');
+      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+        sbFnCall('get_player', { initData: tgInitData() }).then(function(r){
+          try {
+            if (r && r.ok && r.player && r.player.state && typeof r.player.state === 'object') {
+              state = Object.assign({}, state, r.player.state);
+              save();
+              renderAll();
+            }
+          } catch (e) {}
+        }).catch(function(){});
+        var list = getBratkiList();
+        var names = list.map(function(f){ return String(f.name||'').trim(); }).filter(Boolean);
+        if (names.length) brosFetchPhotos(names).then(function(){ renderFriends(); });
+      }
+    };
     (function(){
       const br = $('btnBratki');
-      if (br) br.onclick = ()=>{ openScreen('mTopBros'); renderTopBrosModal(); haptic('light'); };
+      if (br) br.onclick = ()=>{
+        openScreen('mTopBros');
+        renderTopBrosModal();
+        haptic('light');
+        if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+          sbFnCall('get_player', { initData: tgInitData() }).then(function(r){
+            try {
+              if (r && r.ok && r.player && r.player.state && typeof r.player.state === 'object') {
+                state = Object.assign({}, state, r.player.state);
+                save();
+                renderTopBrosModal();
+              }
+            } catch (e) {}
+          }).catch(function(){});
+          var list = getBratkiList();
+          var names = list.map(function(f){ return String(f.name||'').trim(); }).filter(Boolean);
+          if (names.length) brosFetchPhotos(names).then(function(){ renderTopBrosModal(); });
+        }
+      };
       const topInv = $('topBrosInviteBtn');
       if (topInv) topInv.onclick = ()=>{ inviteBros(); haptic('light'); };
     })();
