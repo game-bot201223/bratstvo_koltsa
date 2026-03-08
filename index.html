@@ -7319,7 +7319,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
   function bfHasActiveFight(bossId){
     if (!bossId || !state.bosses) return false;
-    if (parseInt(state.bosses.activeFightId||0,10) === parseInt(bossId,10)) return true;
+    if (parseInt(state.bosses.activeFightId||0,10) !== parseInt(bossId,10)) return false;
     const f = bfGetFight(bossId);
     if (!f || !f.expiresTs) return false;
     if (now() >= (parseInt(f.expiresTs||0,10)||0)) return false;
