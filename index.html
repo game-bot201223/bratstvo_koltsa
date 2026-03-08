@@ -9133,7 +9133,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (was5x) rewardText = rewardText + ' +20 <img src="голд.png" alt="Золото" class="goldIcon">';
     }
 
-    try { $('diceRewardVal').textContent = rewardText; } catch (e) {}
+    try { $('diceRewardVal').innerHTML = rewardText; } catch (e) {}
     save();
     renderDice();
     showModal('mDiceReward');
