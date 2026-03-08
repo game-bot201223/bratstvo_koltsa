@@ -1305,6 +1305,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   </div>
 </div>
 
+<!-- Награда за оплату Stars -->
+<div class="modal modalMini" id="mStarsReward" role="dialog" aria-modal="true">
+  <div class="sheet">
+    <div style="text-align:center; font-size:14px; font-weight:900; letter-spacing:1px; margin-bottom:12px;">Оплата прошла</div>
+    <div id="starsRewardAmount" style="text-align:center; font-size:18px; color:var(--gold); margin-bottom:16px;">+0 <img src="голд.png" alt="Золото" class="goldIcon"></div>
+    <button type="button" class="btn" id="starsRewardClaim" style="width:100%">ЗАБРАТЬ НАГРАДУ</button>
+  </div>
+</div>
+
 <!-- Settings -->
 <div class="modal" id="mSettings" role="dialog" aria-modal="true">
   <div class="sheet">
@@ -4287,26 +4296,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Game data
   const ITEMS = [
     { key:'VIP', name:'VIP статус', desc:'Открывает VIP возможности', cost:500, currency:'TOOTH', apply:()=>{ if (state.vip){ toast('VIP уже активен','lose'); return; } state.vip = true; toast('VIP активирован','win'); } },
-    { key:'G1', name:'Золото', desc:'+50 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'1$', currency:'TOOTH', goldAdd:50 },
-    { key:'G2', name:'Золото', desc:'+100 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'2$', currency:'TOOTH', goldAdd:100 },
-    { key:'G3', name:'Золото', desc:'+300 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'6$', currency:'TOOTH', goldAdd:300 },
-    { key:'G4', name:'Золото', desc:'+500 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'10$', currency:'TOOTH', goldAdd:500 },
-    { key:'G5', name:'Золото', desc:'+1 000 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'20$', currency:'TOOTH', goldAdd:1000 },
-    { key:'G6', name:'Золото', desc:'+2 500 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'50$', currency:'TOOTH', goldAdd:2500 },
-    { key:'G7', name:'Золото', desc:'+5 000 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'100$', currency:'TOOTH', goldAdd:5000 },
-    { key:'G8', name:'Золото', desc:'+10 000 <img src="голд.png" alt="Золото" class="goldIcon">', cost:'200$', currency:'TOOTH', goldAdd:10000 }
   ];
 
   // Товары за Telegram Stars (productId должен совпадать с бэкендом stars_create_invoice)
   const STARS_PRODUCTS = [
-    { productId:'stars_50_1', gold:50, stars:1, name:'50 монет' },
-    { productId:'stars_100_2', gold:100, stars:2, name:'100 монет' },
-    { productId:'stars_300_3', gold:300, stars:3, name:'300 монет' },
-    { productId:'stars_500_4', gold:500, stars:4, name:'500 монет' },
-    { productId:'stars_1000_5', gold:1000, stars:5, name:'1000 монет' },
-    { productId:'stars_2500_6', gold:2500, stars:6, name:'2500 монет' },
-    { productId:'stars_5000_7', gold:5000, stars:7, name:'5000 монет' },
-    { productId:'stars_10000_8', gold:10000, stars:8, name:'10000 монет' }
+    { productId:'stars_200_1', gold:200, stars:1, name:'200 монет' },
+    { productId:'stars_500_250', gold:500, stars:250, name:'500 монет' },
+    { productId:'stars_700_350', gold:700, stars:350, name:'700 монет' },
+    { productId:'stars_1000_500', gold:1000, stars:500, name:'1000 монет' },
+    { productId:'stars_3000_1500', gold:3000, stars:1500, name:'3000 монет' },
+    { productId:'stars_5000_2500', gold:5000, stars:2500, name:'5000 монет' },
+    { productId:'stars_10000_5000', gold:10000, stars:5000, name:'10000 монет' },
+    { productId:'stars_20000_10000', gold:20000, stars:10000, name:'20000 монет' }
   ];
 
   const PETS = [
@@ -6828,6 +6829,30 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (s.includes('$')) return s;
     return String(shopCostValue(c));
   }
+  function showStarsReward(goldAmount){
+    var el = $('starsRewardAmount');
+    var btn = $('starsRewardClaim');
+    if (el) el.innerHTML = '+' + (goldAmount || 0) + ' <img src="голд.png" alt="Золото" class="goldIcon">';
+    if (btn) {
+      btn.onclick = function(){
+        sbFnCall('get_player', { initData: tgInitData() }).then(function(res){
+          if (res && res.ok && res.player && res.player.state && typeof res.player.state === 'object') {
+            var s = res.player.state;
+            if (typeof s.gold === 'number' && s.gold >= 0) state.gold = Math.min(CURRENCY_CAP, s.gold);
+            save();
+            renderAll();
+          }
+          hideModal('mStarsReward');
+          toast('Награда получена!','win');
+          haptic('medium');
+        }).catch(function(){
+          hideModal('mStarsReward');
+          toast('Награда получена. Обновите экран.','win');
+        });
+      };
+    }
+    showModal('mStarsReward');
+  }
   function renderShop(){
     const box = $('shopList');
     let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
@@ -6843,14 +6868,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const promoDisabled = (!promoOk) || promoWasUsed;
     if (promoWasUsed) {
       html += '<div class="card">'
+        + '<div class="row"><div class="k">ПРОМОКОД</div></div>'
         + '<div class="row" style="justify-content:flex-end">'
         + '<button class="btn btnSmall" id="promoApply" disabled>ИСПОЛЬЗОВАН</button>'
         + '</div></div>';
     } else {
       html += '<div class="card">'
+      + '<div class="row"><div class="k">ПРОМОКОД</div></div>'
       + '<div class="row" style="gap:10px; align-items:flex-end">'
       + '<div style="min-width:0; flex:1">'
-       + '<input id="promoInput" placeholder="" autocomplete="off" spellcheck="false" style="margin-top:0; width:100%; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08); color:rgba(255,255,255,.92); padding:0 12px; font-family:inherit; font-weight:800; letter-spacing:1px; outline:none" />'
+       + '<input id="promoInput" placeholder="Введите промокод" autocomplete="off" spellcheck="false" style="margin-top:0; width:100%; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08); color:rgba(255,255,255,.92); padding:0 12px; font-family:inherit; font-weight:800; letter-spacing:1px; outline:none" />'
        + '</div>'
        + '<button class="btn btnSmall" id="promoApply" '+(promoDisabled?'disabled':'')+'>'+(promoOk?'ПРИМЕНИТЬ':'НЕ АКТИВЕН')+'</button>'
        + '</div>'
@@ -6941,16 +6968,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           tg.openInvoice(r.invoice_link, function(status){
             btn.disabled = false;
             if (status === 'paid') {
-              sbFnCall('get_player', { initData: tgInitData() }).then(function(res){
-                if (res && res.ok && res.player && res.player.state && typeof res.player.state === 'object') {
-                  const s = res.player.state;
-                  if (typeof s.gold === 'number' && s.gold >= 0) state.gold = Math.min(CURRENCY_CAP, s.gold);
-                  save();
-                  renderAll();
-                }
-                toast('Золото зачислено!','win');
-                haptic('medium');
-              }).catch(function(){ toast('Золото зачислено. Обновите экран.','win'); });
+              var goldAmount = p.gold;
+              showStarsReward(goldAmount);
             } else {
               renderShop();
             }
