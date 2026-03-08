@@ -1950,7 +1950,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetHead">
       <button class="iconBtn" data-close="mDistrictNightmare">‹</button>
       <div class="title" id="dnTitle">РАЙОН</div>
-      <div style="width:44px"></div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <div class="badge" id="dnEnergy" style="padding:6px 10px; border-color:rgba(34,211,238,.35); background:rgba(34,211,238,.2); color:var(--energy); font-weight:900; font-size:12px; letter-spacing:0.5px;">⚡ 0/100</div>
+        <button type="button" class="energyRefillBtn" id="dnEnergyRefillBtn" aria-label="Восстановить энергию" title="Восстановить 100% энергии за 20 золотых"><span class="energyRefillLabel">20 <img src="голд.png" alt="Золото" class="goldIcon" style="height:12px;width:auto;vertical-align:middle"></span></button>
+      </div>
     </div>
     <div class="sheetBody" style="padding:12px;">
       <div class="card">
@@ -2692,7 +2695,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           list.appendChild(row);
           hasAny = true;
         }
-        if (!hasAny) list.innerHTML = '<div style="font-size:12px;opacity:.75">Пусто. Купи расходники в Торговой лавке или на Арене.</div>';
+        if (!hasAny) list.innerHTML = '<div style="font-size:12px;opacity:.75">Пусто. Купи в Торговой лавке или получи в награду в групповом бою — все расходники используются одинаково.</div>';
       }
       // Аптечка и граната (арена) в групповых боях не показываются и не используются
     }
@@ -2775,7 +2778,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       row.appendChild(useBtn);
       list.appendChild(row);
     });
-    if (!list.children.length) list.innerHTML = '<div style="font-size:12px;opacity:.75">Пусто. Купи расходники в Торговой лавке.</div>';
+    if (!list.children.length) list.innerHTML = '<div style="font-size:12px;opacity:.75">Пусто. Купи в Торговой лавке или получи в награду в ГБ — батончики и расходники можно использовать в любом случае.</div>';
   }
   function useConsumableItem(id){
     const c = CONSUMABLES_DATA.find(x=>x.id===id);
@@ -5488,6 +5491,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (hasAny){
             if (mm>0) state.tooth = (parseInt(state.tooth||0,10)||0) + mm;
             if (gg>0) state.gold = (parseInt(state.gold||0,10)||0) + gg;
+            if (pr && pr.consumableId){
+              const cid = parseInt(pr.consumableId,10)||0;
+              if (cid>=1 && cid<=10){
+                if (!state.consumablesItems || typeof state.consumablesItems !== 'object') state.consumablesItems = { 1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0 };
+                state.consumablesItems[cid] = (parseInt(state.consumablesItems[cid]||0,10)||0) + 1;
+              }
+            }
           }
           state.groupFight.pendingReward = null;
           save();
@@ -9879,6 +9889,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const t = $('dnTitle');
       const d = $('dnDesc');
       const b = $('dnDiff');
+      const enEl = $('dnEnergy');
+      if (enEl) enEl.innerHTML = '⚡ ' + Math.floor(state.energy||0) + '/' + Math.floor(state.energyMax||100);
       if (t) t.textContent = nm.toUpperCase();
       if (b) b.textContent = '';
       if (d){
@@ -10443,7 +10455,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     })();
     (function(){
       const eb = $('energyRefillBtn');
-      if (eb) eb.onclick = ()=>{
+      if (eb) eb.onclick = ()=>{ doEnergyRefillClick(); };
+      const dnEb = $('dnEnergyRefillBtn');
+      if (dnEb) dnEb.onclick = ()=>{ doEnergyRefillClick(); };
+      function doEnergyRefillClick(){
         const gold = Math.floor(state.gold||0);
         const maxE = Math.floor(state.energyMax||100);
         const curE = Math.floor(state.energy||0);
@@ -10451,7 +10466,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (gold < 20){ toast('Нужно 20 '+TOAST_GOLD_IMG,'lose'); haptic('light'); return; }
         showModal('mEnergyRefillConfirm');
         haptic('light');
-      };
+      }
       const yesBtn = $('energyRefillConfirmYes');
       const noBtn = $('energyRefillConfirmNo');
       if (yesBtn) yesBtn.onclick = ()=>{
@@ -10462,6 +10477,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         state.energy = maxE;
         save();
         renderHUD();
+        try { renderDistrictNightmare(); } catch(e) {}
         hideModal('mEnergyRefillConfirm');
         toast('Энергия восстановлена','win');
         haptic('medium');
