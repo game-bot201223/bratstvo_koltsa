@@ -6955,17 +6955,44 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (!p) return;
         const tg = window.Telegram && window.Telegram.WebApp;
         if (!tg || typeof tg.openInvoice !== 'function') {
-          toast('Откройте игру из Telegram','lose');
+          toast('Откройте игру из Telegram (не в браузере)','lose');
+          if (typeof console !== 'undefined' && console.error) console.error('[Stars] openInvoice недоступен. Запустите WebApp из приложения Telegram.');
           return;
         }
+        if (!tgInitData()) {
+          toast('Запусти игру из Telegram — кнопка «Играть» в боте','lose');
+          if (typeof console !== 'undefined' && console.error) console.error('[Stars] Нет initData. Откройте игру через бота.');
+          return;
+        }
+        var btnText = btn.textContent;
         try {
           btn.disabled = true;
-          const r = await sbFnCall('stars_create_invoice', { initData: tgInitData(), productId: productId });
-          if (!r || !r.ok || !r.invoice_link) {
-            toast(r && r.error ? r.error : 'Не удалось создать платёж','lose');
+          btn.textContent = 'Загрузка…';
+          var r = await Promise.race([
+            sbFnCall('stars_create_invoice', { initData: tgInitData(), productId: productId }),
+            new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('timeout')); }, 20000); })
+          ]);
+          btn.textContent = btnText;
+          btn.disabled = false;
+          if (!r || !r.ok) {
+            var errMsg = r && r.error ? String(r.error) : 'Не удалось создать платёж';
+            if (r && r.details) errMsg += ': ' + String(r.details).slice(0, 80);
+            toast(errMsg,'lose');
+            if (typeof console !== 'undefined' && console.error) console.error('[Stars] Ошибка сервера:', r);
+            renderShop();
             return;
           }
-          tg.openInvoice(r.invoice_link, function(status){
+          var link = r.invoice_link ? String(r.invoice_link).trim() : '';
+          if (!link) {
+            toast('Нет ссылки на оплату','lose');
+            if (typeof console !== 'undefined' && console.error) console.error('[Stars] Пустой invoice_link:', r);
+            renderShop();
+            return;
+          }
+          if (typeof console !== 'undefined' && console.log) console.log('[Stars] Открываю инвойс, длина ссылки:', link.length);
+          tg.openInvoice(link, function(status){
+            if (typeof console !== 'undefined' && console.log) console.log('[Stars] openInvoice callback status:', status);
+            btn.textContent = btnText;
             btn.disabled = false;
             if (status === 'paid') {
               var goldAmount = p.gold;
@@ -6975,8 +7002,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             }
           });
         } catch (e) {
+          btn.textContent = btnText;
           btn.disabled = false;
-          toast('Ошибка запроса','lose');
+          if (typeof console !== 'undefined' && console.error) console.error('[Stars] Исключение:', e);
+          toast(e && e.message === 'timeout' ? 'Превышено время ожидания. Проверьте интернет.' : 'Ошибка запроса','lose');
+          renderShop();
         }
       };
     });
