@@ -4523,6 +4523,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   };
 
   let state = Object.assign({}, defaults, load()||{});
+  // Не используем HP из localStorage — только с сервера (boss_fights_list) или из активного боя
+  try {
+    if (state.bosses) {
+      state.bosses.cloud = {};
+      state.bosses.hp = {};
+    }
+  } catch (e0) {}
   // Безопасный рестарт кэша боссов: обновить данные (полное HP при старте боя), не теряя прогресс игрока
   const DATA_VERSION = 2;
   try {
