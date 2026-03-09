@@ -4123,7 +4123,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
       const r = await sbFnCall('district_leaders_list', { initData: tgInitData() });
       const rows = (r && Array.isArray(r.leaders)) ? r.leaders : [];
-      const next = {};
+      const incoming = {};
       rows.forEach(it=>{
         try {
           const k = String(it && it.district_key || '').trim();
@@ -4132,10 +4132,21 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const fear = Math.max(0, parseInt(it && it.fear || 0, 10) || 0);
           const photo = it && it.photo_url ? String(it.photo_url) : '';
           const ts = it && it.updated_at ? Date.parse(String(it.updated_at)) : 0;
-          next[k] = { name: nm, fear: fear, ts: ts || now(), photo: photo };
+          incoming[k] = { name: nm, fear: fear, ts: ts || now(), photo: photo };
         } catch (e0) {}
       });
-      state.districtFearLeaders = next;
+      const current = (state.districtFearLeaders && typeof state.districtFearLeaders === 'object') ? state.districtFearLeaders : {};
+      const merged = Object.assign({}, current);
+      Object.keys(incoming).forEach(k=>{
+        const next = incoming[k];
+        const cur = merged[k];
+        const curFear = cur && typeof cur.fear !== 'undefined' ? (parseInt(cur.fear||0,10)||0) : -1;
+        const curTs = cur && typeof cur.ts !== 'undefined' ? (parseInt(cur.ts||0,10)||0) : 0;
+        const newFear = next && typeof next.fear !== 'undefined' ? (parseInt(next.fear||0,10)||0) : 0;
+        const newTs = next && typeof next.ts !== 'undefined' ? (parseInt(next.ts||0,10)||0) : 0;
+        if (!cur || newTs > curTs || newFear > curFear) merged[k] = next;
+      });
+      state.districtFearLeaders = merged;
       save();
     } catch (e) {}
   }
@@ -10204,13 +10215,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const fear = (dailyNm && dailyNm === you) ? Math.max(0, (parseInt(dailyRec.fear||0,10)||0)) : 0;
       const totalFear = Math.max(0, (state.districtFear && state.districtFear[fk]) ? (parseInt(state.districtFear[fk]||0,10)||0) : 0);
       const top = (state.districtFearLeaders && state.districtFearLeaders[fk]) ? state.districtFearLeaders[fk] : null;
-      const topName = top && top.name ? top.name : '—';
-      const topPhoto = top && top.photo ? String(top.photo) : '';
-      const topFear = top && (typeof top.fear !== 'undefined') ? (parseInt(top.fear||0,10)||0) : 0;
+      let topName = top && top.name ? top.name : '—';
+      let topPhoto = top && top.photo ? String(top.photo) : '';
+      let topFear = top && (typeof top.fear !== 'undefined') ? (parseInt(top.fear||0,10)||0) : 0;
       const dayTop = dayBox && dayBox[fk] ? dayBox[fk] : null;
       const dayName = dayTop && dayTop.name ? dayTop.name : '—';
       const dayPhoto = dayTop && dayTop.photo ? String(dayTop.photo) : '';
       const dayFear = dayTop && (typeof dayTop.fear !== 'undefined') ? (parseInt(dayTop.fear||0,10)||0) : 0;
+
+      // Гарантия: у «ДЕРЖИТ РАЙОН» страха не меньше, чем у «СТРАШИЛА ДНЯ».
+      try {
+        if (dayFear > topFear) {
+          topFear = dayFear;
+        }
+      } catch (eTop) {}
       const idx = i-1;
       const unlocked = districtUnlocked(idx);
       const prevOk = districtPrevCleared(idx);
@@ -11030,8 +11048,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     })();
     (function(){
       const eb = $('energyRefillBtn');
-      if (eb) eb.onclick = ()=>{ doEnergyRefillClick(); };
       const dnEb = $('dnEnergyRefillBtn');
+      if (eb) {
+        // Покупка энергии доступна только из экранов районов — глобальную кнопку блокируем.
+        eb.onclick = ()=>{ toast('Покупать энергию можно только в районах','lose'); haptic('light'); };
+      }
       if (dnEb) dnEb.onclick = ()=>{ doEnergyRefillClick(); };
       function doEnergyRefillClick(){
         const gold = Math.floor(state.gold||0);
