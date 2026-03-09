@@ -2293,7 +2293,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   async function bossHelpPullOnce(){
     try {
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
-      const r = await sbFnCall('boss_help_pull', { initData: tgInitData(), limit: 30 });
+      const r = await sbFnCall('boss_help_pull', { initData: tgInitData(), limit: 500 });
       const ev = (r && r.events && Array.isArray(r.events)) ? r.events : [];
       try {
         if (IS_DEV && ev) {
