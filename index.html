@@ -3929,6 +3929,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         try {
           const bid = parseInt(f && f.boss_id || 0, 10) || 0;
           if (!bid || bid < 1 || bid > 12) return;
+          // Не перезаписывать активный бой — там уже свежие HP от start/hit
+          if (parseInt(state.bosses && state.bosses.activeFightId||0,10) === bid) return;
           next[String(bid)] = {
             hp: Math.max(0, Math.floor(parseInt(f && f.hp || 0, 10) || 0)),
             max_hp: Math.max(0, Math.floor(parseInt(f && f.max_hp || 0, 10) || 0)),
@@ -5401,15 +5403,19 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       box.innerHTML = arr.length ? arr.map(e=>{
         const from = String(e && e.from || '—');
         const txt = String(e && e.text || '');
+        const tsRaw = e && (e.ts != null || e.created_at != null) ? (parseInt(e.ts||0,10) || (e.created_at ? new Date(e.created_at).getTime() : 0)) : 0;
+        const timeStr = tsRaw ? (()=>{ const d = new Date(tsRaw); const h = d.getHours(); const m = d.getMinutes(); return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); })() : '';
         const isMe = String(from) === String(me);
         const wrap = 'display:flex; ' + (isMe ? 'justify-content:flex-end;' : 'justify-content:flex-start;');
         const bubble = 'max-width:85%; padding:10px 12px; border-radius:14px; font-size:12px; line-height:1.35; '
           + (isMe ? 'background:rgba(59,130,246,.20); border:1px solid rgba(59,130,246,.25); text-align:right;' : 'background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.10);');
         const head = isMe ? '' : ('<div style="font-size:10px; opacity:.65; margin-bottom:4px">'+from+'</div>');
+        const foot = timeStr ? ('<div style="font-size:10px; opacity:.5; margin-top:4px'+(isMe?'; text-align:right':'')+'">'+timeStr+'</div>') : '';
         return '<div style="'+wrap+'">'
           + '<div style="'+bubble+'">'
           + head
           + '<div>'+txt+'</div>'
+          + foot
           + '</div>'
           + '</div>';
       }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
@@ -5456,15 +5462,19 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       box.innerHTML = arr.length ? arr.map(e=>{
         const from = String(e && e.from || '—');
         const txt = String(e && e.text || '');
+        const tsRaw = e && (e.ts != null || e.created_at != null) ? (parseInt(e.ts||0,10) || (e.created_at ? new Date(e.created_at).getTime() : 0)) : 0;
+        const timeStr = tsRaw ? (()=>{ const d = new Date(tsRaw); const h = d.getHours(); const m = d.getMinutes(); return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); })() : '';
         const isMe = String(from) === String(me);
         const wrap = 'display:flex; ' + (isMe ? 'justify-content:flex-end;' : 'justify-content:flex-start;');
         const bubble = 'max-width:85%; padding:10px 12px; border-radius:14px; font-size:12px; line-height:1.35; '
           + (isMe ? 'background:rgba(59,130,246,.20); border:1px solid rgba(59,130,246,.25); text-align:right;' : 'background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.10);');
         const head = '<div style="font-size:10px; opacity:.65; margin-bottom:4px">'+from+'</div>';
+        const foot = timeStr ? ('<div style="font-size:10px; opacity:.5; margin-top:4px'+(isMe?'; text-align:right':'')+'">'+timeStr+'</div>') : '';
         return '<div style="'+wrap+'">'
           + '<div style="'+bubble+'">'
           + head
           + '<div>'+txt+'</div>'
+          + foot
           + '</div>'
           + '</div>';
       }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
@@ -8520,6 +8530,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const b = BOSSES.find(x=>x.id===id);
     const max = b ? b.maxHP : 0;
     const k = String(id);
+    // Активный бой — приоритет у локального fight (обновляется сразу от start/hit), иначе cloud перезапишет устаревшим pull
+    try {
+      if (parseInt(state.bosses && state.bosses.activeFightId||0,10) === parseInt(id,10)) {
+        const f = bfGetFight(id);
+        if (f && typeof f.hp !== 'undefined') {
+          const v = parseInt(f.hp||0,10);
+          if (!isNaN(v) && v>=0) return Math.min(max||v, v);
+        }
+      }
+    } catch (e0) {}
     try {
       const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[k];
       if (cc && typeof cc === 'object' && typeof cc.hp !== 'undefined') {
