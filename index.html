@@ -8461,7 +8461,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
         if (!bossHasAccess(id)) { toast('Не хватает ключей','lose'); return; }
 
-        // При оплате козырными кольцами пропуски (state.bosses.keys) НЕ списываем — только кольца и +1 удар.
+        // При оплате козырными кольцами теперь тоже списываем пропуски (как при обычном старте боя).
 
         // HARD MODE: only apply local spend if server accepted the fight start
         if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
@@ -8477,6 +8477,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             state.rings -= priceR2;
             state.bosses.strikes = clamp((parseInt(state.bosses.strikes||0,10)||0) + 1, 0, 99);
             toast('+1 атака','win');
+
+            try {
+              const rr = bossReq(id);
+              if (rr){
+                if (!state.bosses.keys || typeof state.bosses.keys !== 'object') state.bosses.keys = {};
+                const have = bossKeyCount(rr.itemKey);
+                state.bosses.keys[String(rr.itemKey)] = Math.max(0, have - rr.need);
+              }
+            } catch (e1) {}
+
             save();
 
             state.bosses.pendingAttackId = id;
@@ -8513,6 +8523,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           }).catch(()=>{ toast('СЕРВЕР: ERR','lose'); });
           return;
         }
+
+        try {
+          const rr = bossReq(id);
+          if (rr){
+            if (!state.bosses.keys || typeof state.bosses.keys !== 'object') state.bosses.keys = {};
+            const have = bossKeyCount(rr.itemKey);
+            state.bosses.keys[String(rr.itemKey)] = Math.max(0, have - rr.need);
+          }
+        } catch (e1) {}
 
         state.bosses.pendingAttackId = id;
         state.bosses.activeFightId = id;
