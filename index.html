@@ -10591,38 +10591,27 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e) { return false; }
   }
   function districtTaskMeta(diff, idx, dIdx){
+    // Ширский край (район 1): фиксированный набор стоимостей, награда жёстко привязана к энергии.
+    // 1 энергия = 1 XP = 1 страх.
     if (dIdx===0){
-      const base = [2,4,6,8,10,12,14];
-      const mid = [6,8,10,12,14,16,18];
-      const hard = [10,12,14,16,18,20,22];
-      let costArr = (diff==='СРЕДНЕ') ? mid : (diff==='ЖЕСТКО' ? hard : base);
-      if (dIdx===0) costArr = [2,6,8,10,14,16,20];
+      const costArr = [2,6,8,10,14,16,20];
       const cost = costArr[idx] || costArr[costArr.length-1] || 2;
-      const mult = (diff==='СРЕДНЕ') ? 2 : (diff==='ЖЕСТКО' ? 3 : 1);
-      let gold = Math.floor((250*mult) + (idx*120*mult));
-      let xp = Math.floor((120*mult) + (idx*55*mult));
-      let fear = 0;
-      let max = (diff==='СРЕДНЕ') ? 6 : (diff==='ЖЕСТКО' ? 8 : 4);
-      if (dIdx===0){
-        const xpArr = [2,4,4,4,6,6,6];
-        const fearArr = [2,6,8,10,14,16,20];
-        xp = xpArr[idx] || 0;
-        fear = fearArr[idx] || 0;
-        gold = 0;
-        max = 5;
-      }
-      return { cost:cost, gold:gold, xp:xp, fear:fear, max:max };
+      const xp = cost;
+      const fear = cost;
+      const gold = 0;
+      const max = 5;
+      return { cost, gold, xp, fear, max };
     }
 
-    // Брийские земли: 7 заданий, по 5 выполнений, суммарно как было (500), парные числа
+    // Брийские земли (район 2): 1 энергия = 1 XP = 1 страх.
     if (dIdx===1){
       const costArr = [4,8,10,14,18,20,26];
       const cost = costArr[idx] ?? costArr[costArr.length-1] ?? 4;
-      const xpArr = [8,10,12,14,16,18,22];
-      const fearArr = [8,10,12,14,16,18,22];
-      const xp = xpArr[idx] ?? 22;
-      const fear = fearArr[idx] ?? 22;
-      return { cost, gold:0, xp, fear, max:5 };
+      const xp = cost;
+      const fear = cost;
+      const gold = 0;
+      const max = 5;
+      return { cost, gold, xp, fear, max };
     }
 
     const totals = [380,500,800,1000,1400,1600,2000,2200,2400,2600,2800,3000];
