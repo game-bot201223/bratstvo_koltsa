@@ -8027,8 +8027,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try { bossHelpPollStart(); } catch (e0) {}
 
     const log = $('bfLog');
-    const fLog = f && Array.isArray(f.dmgLog) ? f.dmgLog : null;
-    const logArr = fLog ? fLog : (Array.isArray(state.bosses.dmgLog[String(bossId)]) ? state.bosses.dmgLog[String(bossId)] : []);
+    let logArr = [];
+    if (f && Array.isArray(f.dmgLog)) {
+      logArr = f.dmgLog;
+    } else if (!f && Array.isArray(state.bosses.dmgLog[String(bossId)])) {
+      logArr = state.bosses.dmgLog[String(bossId)];
+    }
     log.innerHTML = logArr.length ? logArr.map(e=>{
       return '<div class="row"><div style="min-width:0; font-size:12px; opacity:.9">'+String(e.who)+'</div><div class="badge" style="padding:6px 8px; font-size:11px">'+String(e.dmg)+'</div></div>';
     }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
@@ -11650,6 +11654,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             const localFights = state.bosses && state.bosses.fights && typeof state.bosses.fights === 'object' ? state.bosses.fights : null;
             const localCloud = state.bosses && state.bosses.cloud && typeof state.bosses.cloud === 'object' ? state.bosses.cloud : null;
             const localHp = state.bosses && state.bosses.hp && typeof state.bosses.hp === 'object' ? state.bosses.hp : null;
+            const localActiveFightId = state.bosses && typeof state.bosses.activeFightId !== 'undefined' ? state.bosses.activeFightId : null;
             const localGateKilled = state.districtGateBossKilled && typeof state.districtGateBossKilled === 'object' ? state.districtGateBossKilled : null;
             const localGateFight = state.districtGateBossFight;
             state = Object.assign({}, state, ps);
@@ -11657,6 +11662,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
               state.bosses.fights = (localFights && Object.keys(localFights).length > 0) ? localFights : {};
               if (localCloud && Object.keys(localCloud).length > 0) state.bosses.cloud = localCloud; else state.bosses.cloud = {};
               if (localHp && Object.keys(localHp).length > 0) state.bosses.hp = localHp; else state.bosses.hp = {};
+              if (localActiveFightId != null) state.bosses.activeFightId = localActiveFightId;
             }
             if (localGateKilled && Object.keys(localGateKilled).length > 0) state.districtGateBossKilled = localGateKilled;
             if (localGateFight) state.districtGateBossFight = localGateFight;
