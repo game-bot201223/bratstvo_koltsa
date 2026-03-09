@@ -11122,11 +11122,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
               if (__cloudHasPlayer && ps0 && typeof ps0 === 'object') {
                 const localFights = state.bosses && state.bosses.fights && typeof state.bosses.fights === 'object' ? state.bosses.fights : null;
+                const localCloud = state.bosses && state.bosses.cloud && typeof state.bosses.cloud === 'object' ? state.bosses.cloud : null;
+                const localHp = state.bosses && state.bosses.hp && typeof state.bosses.hp === 'object' ? state.bosses.hp : null;
                 state = Object.assign({}, state, ps0);
                 if (state.bosses) {
-                  state.bosses.cloud = {};
-                  state.bosses.hp = {};
                   state.bosses.fights = (localFights && Object.keys(localFights).length > 0) ? localFights : {};
+                  if (localCloud && Object.keys(localCloud).length > 0) state.bosses.cloud = localCloud; else state.bosses.cloud = {};
+                  if (localHp && Object.keys(localHp).length > 0) state.bosses.hp = localHp; else state.bosses.hp = {};
                 }
                 try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e0) {}
                 try { localStorage.setItem(rk, '1'); } catch (e1) {}
@@ -11193,11 +11195,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const ps = r && r.player && r.player.state;
           if (ps && typeof ps === 'object') {
             const localFights = state.bosses && state.bosses.fights && typeof state.bosses.fights === 'object' ? state.bosses.fights : null;
+            const localCloud = state.bosses && state.bosses.cloud && typeof state.bosses.cloud === 'object' ? state.bosses.cloud : null;
+            const localHp = state.bosses && state.bosses.hp && typeof state.bosses.hp === 'object' ? state.bosses.hp : null;
             state = Object.assign({}, state, ps);
             if (state.bosses) {
-              state.bosses.cloud = {};
-              state.bosses.hp = {};
               state.bosses.fights = (localFights && Object.keys(localFights).length > 0) ? localFights : {};
+              if (localCloud && Object.keys(localCloud).length > 0) state.bosses.cloud = localCloud; else state.bosses.cloud = {};
+              if (localHp && Object.keys(localHp).length > 0) state.bosses.hp = localHp; else state.bosses.hp = {};
             }
           try {
             const cur = String(state.playerName||'').trim();
