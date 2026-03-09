@@ -5230,10 +5230,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
       setOverlay();
       updateBackButton();
-      try {
-        openScreen('mPloshchad');
-        renderAll();
-      } catch (e) {}
+      try { save(); } catch (e0) {}
+      try { renderAll(); } catch (e1) {}
     }
   }
   function hideTop(){
@@ -6910,9 +6908,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   // --- Gym
+  const MYTHIC_ARMOR_STAT_BONUS = 500;
+  function hasMythicArmorEquipped(){
+    const img = (state.mainCharacterImg || '').trim();
+    if (!img) return false;
+    const mythicImgs = (typeof ARMOR_TIER_IMAGES !== 'undefined' && ARMOR_TIER_IMAGES[4]) ? ARMOR_TIER_IMAGES[4] : [];
+    return mythicImgs.indexOf(img) >= 0;
+  }
+  function mythicArmorStatBonus(k){
+    if (!hasMythicArmorEquipped()) return 0;
+    if (k === 'charisma') return 0;
+    return MYTHIC_ARMOR_STAT_BONUS;
+  }
   function gymVal(k){
     const v = parseInt(state.gym[k]||1,10);
-    return isNaN(v) || v<1 ? 1 : v;
+    const base = isNaN(v) || v<1 ? 1 : v;
+    return base + mythicArmorStatBonus(k);
   }
   function gymCost(cur){
     return 100 + (cur-1)*13;
@@ -6938,9 +6949,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     let sumTotal = 0;
     let html = '';
     rows.forEach(r=>{
-      const baseVal = gymVal(r.key);
+      const baseVal = parseInt(state.gym[r.key]||1,10) || 1;
       const gym = Math.max(0, Math.floor(baseVal));
-      const armor = 0;
+      const armor = mythicArmorStatBonus(r.key);
       const biz = Math.round(gym * bizPct);
       const pet = Math.round(gym * petPct);
       const buffUntil = parseInt(buffs[r.key],10)||0;
