@@ -1457,7 +1457,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   <div class="sheet sheetOpaque">
     <div class="sheetHead">
       <button class="iconBtn" data-close="mBossFight">‹</button>
-      <div class="title">БОЙ С БОССОМ</div>
+      <div class="title" id="bfTitle">БОЙ С БОССОМ</div>
       <div style="width:44px"></div>
     </div>
     <div class="sheetBody">
@@ -1959,6 +1959,49 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="card">
         <div class="row"><div class="k">КОШМАР</div><div class="badge" id="dnDiff">—</div></div>
         <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.35" id="dnDesc">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- District Gate Boss (solo) -->
+<div class="modal modalPage" id="mDistrictGateBoss" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mDistrictGateBoss">‹</button>
+      <div class="title" id="dgTitle">БОСС РАЙОНА</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody" style="padding:12px;">
+      <div class="card" id="dgCard">
+        <div class="row"><div class="k" id="dgName">—</div><div class="badge" id="dgHp">0 / 0</div></div>
+        <div id="dgImgWrap" style="margin-top:8px; width:120px; height:120px; border-radius:12px; border:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.2); background-size:cover; background-position:center;"></div>
+        <div style="margin-top:10px; width:100%; height:20px; background:rgba(0,0,0,.25); border-radius:10px; overflow:hidden;">
+          <div id="dgHpBar" style="height:100%; background:linear-gradient(90deg, #ef4444, #f97316); width:100%; transition:width .2s;"></div>
+        </div>
+        <div style="margin-top:12px; font-size:11px; opacity:.85">Убей босса в одиночку, чтобы открыть район.</div>
+        <button type="button" class="btn btnSmall" id="dgAttackBtn" style="margin-top:12px; width:100%;">Атаковать</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Награда за босса района -->
+<div class="modal modalMini" id="mDistrictGateReward" role="dialog" aria-modal="true">
+  <div class="sheet sheetMini">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mDistrictGateReward">‹</button>
+      <div class="title">БОСС РАЙОНА ПОВЕРЖЕН</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody">
+      <div class="card">
+        <div class="row"><div class="k">РАЙОН ОТКРЫТ НАВСЕГДА</div></div>
+        <div class="card" style="margin-top:12px;">
+          <div class="row"><div class="k">НАГРАДА</div></div>
+          <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="dgrRewardList"></div>
+          <button type="button" class="btn" id="dgrClaimBtn" style="margin-top:14px; width:100%;">ЗАБРАТЬ</button>
+        </div>
       </div>
     </div>
   </div>
@@ -3327,6 +3370,41 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e) {}
   }
 
+  // Боссы на вход в район (со 2-го): убить в одиночку. Индекс = номер района (1 = 2-й район).
+  // Это не боссы со страницы «Боссы» — разные сущности; общее только количество ударов (hitStocks).
+  const DISTRICT_GATE_BOSSES = [
+    null,
+    { name:'Преданный пёс', img:'наз1.jpg', hp:50000 },           // 2: 50к
+    { name:'Обезумевший', img:'наз2.jpg', hp:300000 },            // 3: 300к
+    { name:'Страж', img:'наз3.jpg', hp:1000000 },                 // 4: 1м
+    { name:'Назгул', img:'назгул.png', hp:5000000 },              // 5: 5м
+    { name:'Назгул', img:'назгул.png', hp:10000000 },             // 6: 10м
+    { name:'Назгул', img:'назгул.png', hp:20000000 },             // 7: 20м
+    { name:'Назгул', img:'назгул.png', hp:50000000 },             // 8: 50м
+    { name:'Назгул', img:'назгул.png', hp:80000000 },             // 9: 80м
+    { name:'Назгул', img:'назгул.png', hp:200000000 },            // 10: 200м
+    { name:'Назгул', img:'назгул.png', hp:700000000 },            // 11: 700м
+    { name:'Назгул', img:'назгул.png', hp:1000000000 }            // 12: 1b
+  ];
+  // Награда за победу над боссом района (один раз навсегда). Индекс = номер района (1 = 2-й район).
+  const DISTRICT_GATE_REWARDS = [ 0, 400, 600, 900, 1200, 1500, 1800, 2000, 2200, 2500, 2800, 3000 ];
+  function districtGateBoss(idx){
+    const i = clamp(parseInt(idx||0,10)||0, 1, DISTRICT_GATE_BOSSES.length-1);
+    return DISTRICT_GATE_BOSSES[i] || null;
+  }
+  function districtBossId(idx){ return 'district_'+idx; }
+  function isDistrictBossId(id){ return typeof id==='string' && id.startsWith('district_'); }
+  function districtIdxFromBossId(id){ return clamp(parseInt(String(id).replace('district_',''),10)||0, 1, 12); }
+  function getBossForFight(bossId){
+    if (isDistrictBossId(bossId)){
+      const idx = districtIdxFromBossId(bossId);
+      const boss = districtGateBoss(idx);
+      if (!boss) return null;
+      return { id: bossId, name: boss.name, img: boss.img, emoji: '👹', maxHP: boss.hp || 50000 };
+    }
+    return BOSSES.find(x=>x.id===bossId) || null;
+  }
+
   function districtData(){
     return [
       { name:'Ширский край', img:'шир.png', diff:'ЛЕГКО', tasks:[
@@ -4506,6 +4584,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     districtClearedEver:{},
     districtFearLeaders:{},
     districtDailyFear:{ day:'', byDistrict:{} },
+    districtGateBossKilled:{},
+    districtGateBossFight:null,
     districtBizLvls:{},
     districtBizDaily:{ day:'', claimed:{} },
     districtBizFirstPurchaseTs:0,
@@ -4645,10 +4725,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (typeof state.bosses.lastStrikeTs !== 'number') state.bosses.lastStrikeTs = now();
   if (typeof state.rings !== 'number') state.rings = 0;
   if (!state.promoUsedCodes || typeof state.promoUsedCodes !== 'object') state.promoUsedCodes = {};
-  // Fix invalid activeFightId (only bosses 1-12 exist)
+  // Fix invalid activeFightId: боссы районов (district_N) и боссы со страницы Боссы — разные; общее только количество ударов (hitStocks).
+  // Сбрасываем только числовой id вне 1–12; district_N не трогаем.
   try {
-    const bid = parseInt(state.bosses.activeFightId||0,10)||0;
-    if (bid < 1 || bid > 12) state.bosses.activeFightId = 0;
+    const aid = state.bosses.activeFightId;
+    if (typeof aid === 'string' && aid.startsWith('district_')) { /* босс района — не сбрасывать */ }
+    else {
+      const bid = parseInt(aid||0,10)||0;
+      if (bid < 1 || bid > 12) state.bosses.activeFightId = 0;
+    }
   } catch (e0) {}
 
   // migration: old boss key 'ring' conflicted with currency 💍 (state.rings)
@@ -4754,10 +4839,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return cur >= need;
     } catch (e) { return false; }
   }
-  const DEBUG_UNLOCK_ALL_DISTRICTS = true;
+  const DEBUG_UNLOCK_ALL_DISTRICTS = false;
   function districtUnlocked(idx){
     if (DEBUG_UNLOCK_ALL_DISTRICTS) return true;
-    return districtPrevCleared(idx) && districtReqOk(idx);
+    const i = clamp(parseInt(idx||0,10)||0, 0, 11);
+    if (i === 0) return true;
+    const gateKilled = !!(state.districtGateBossKilled && state.districtGateBossKilled[i]);
+    return gateKilled;
   }
 
   function districtAllTasksDone(dIdx){
@@ -5074,18 +5162,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!window.__skipBossFightGuard) {
         try {
           if (!state.bosses) state.bosses = {};
-          let bid = parseInt(state.bosses.activeFightId || 0, 10) || 0;
+          const rawBid = state.bosses.activeFightId;
+          const isDistrict = typeof rawBid === 'string' && rawBid.startsWith('district_');
+          let bid = isDistrict ? rawBid : (parseInt(rawBid || 0, 10) || 0);
           if (!bid && state.bosses.pendingAttackId != null) bid = parseInt(state.bosses.pendingAttackId, 10) || 0;
-          if (bid) state.bosses.activeFightId = bid;
-          const hasBoss = bid ? bossExists(bid) : false;
+          if (bid && !isDistrict) state.bosses.activeFightId = bid;
+          const hasBoss = isDistrict ? true : (bid ? bossExists(bid) : false);
           if (!bid || !hasBoss) {
-            try { state.bosses.activeFightId = 0; save(); } catch (e0) {}
+            try { if (!isDistrict) state.bosses.activeFightId = 0; save(); } catch (e0) {}
             try { hideModal('mBfShop'); } catch (e1) {}
             try { hideModal('mBossFightRes'); } catch (e2) {}
             return;
           }
         } catch (e) {
-          try { if (state.bosses) state.bosses.activeFightId = 0; save(); } catch (e0) {}
+          try {
+            if (state.bosses && typeof state.bosses.activeFightId === 'string' && state.bosses.activeFightId.startsWith('district_')) { /* не сбрасывать босса района */ }
+            else if (state.bosses) state.bosses.activeFightId = 0;
+            save();
+          } catch (e0) {}
           return;
         }
       } else {
@@ -7331,6 +7425,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   function bfGetFight(id){
+    if (isDistrictBossId(id)) return state.districtGateBossFight && state.districtGateBossFight.districtIdx === districtIdxFromBossId(id) ? state.districtGateBossFight : null;
     const k = String(id);
     return (state.bosses.fights && state.bosses.fights[k]) ? state.bosses.fights[k] : null;
   }
@@ -7346,9 +7441,25 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try { return !!BOSSES.find(x=>x && x.id===id); } catch (e) { return false; }
   }
   function bfSetFight(id, obj){
+    if (isDistrictBossId(id)) { state.districtGateBossFight = obj; return; }
     state.bosses.fights[String(id)] = obj;
   }
   function bfEnsureFight(id){
+    if (isDistrictBossId(id)){
+      const idx = districtIdxFromBossId(id);
+      const boss = districtGateBoss(idx);
+      if (!boss) return null;
+      const maxHp = parseInt(boss.hp||50000,10)||50000;
+      const districtExpiresIn = 8*60*60*1000;
+      let f = bfGetFight(id);
+      if (!f || f.districtIdx !== idx){
+        const curHp = (state.districtGateBossFight && state.districtGateBossFight.districtIdx === idx) ? (parseInt(state.districtGateBossFight.hp||0,10)||0) : maxHp;
+        const startTs = now();
+        f = { districtIdx: idx, hp: curHp, maxHp: maxHp, startTs: startTs, expiresTs: startTs + districtExpiresIn, dmgLog: (f && Array.isArray(f.dmgLog)) ? f.dmgLog : [], dmgTop: (f && f.dmgTop) ? f.dmgTop : {}, freeUsed: false };
+        bfSetFight(id, f);
+      }
+      return f;
+    }
     const b = BOSSES.find(x=>x.id===id);
     if (!b) return null;
     let f = bfGetFight(id);
@@ -7568,7 +7679,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   function bfRender(bossId){
-    const b = BOSSES.find(x=>x.id===bossId);
+    const b = getBossForFight(bossId);
     if (!b) {
       try { state.bosses.activeFightId = 0; save(); } catch (e0) {}
       try { hideModal('mBfShop'); } catch (e1) {}
@@ -7583,6 +7694,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return;
     }
 
+    const isDistrict = isDistrictBossId(bossId);
+    if (!isDistrict) {
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
         const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(bossId)];
@@ -7603,6 +7716,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
       }
     } catch (e00) {}
+    }
 
     function bossGymTotal(){
       try {
@@ -7645,6 +7759,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e0) {}
     $('bfName').textContent = b.name;
+    try { const t = $('bfTitle'); if (t) t.textContent = isDistrict ? 'БОСС РАЙОНА' : 'БОЙ С БОССОМ'; } catch (e0) {}
     const curHp = parseInt(f.hp||0,10)||0;
     const maxHp = b.maxHP||1;
     const hpPct = maxHp>0 ? Math.min(100, (curHp/maxHp)*100) : 0;
@@ -7652,8 +7767,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const bfHpBarIn = $('bfHpBarIn');
     if (bfHpBarFill) bfHpBarFill.style.width = hpPct + '%';
     if (bfHpBarIn) bfHpBarIn.textContent = curHp + ' / ' + maxHp;
-    const left = Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now());
-    $('bfTimer').textContent = left>0 ? ('ВРЕМЯ: ' + fmtHHMMSS(left)) : 'ВРЕМЯ: 00:00:00';
+    const left = isDistrict ? Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now()) : Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now());
+    $('bfTimer').textContent = isDistrict ? (left>0 ? ('ВРЕМЯ: ' + fmtHHMMSS(left) + ' (босс района, только в одиночку)') : 'ВРЕМЯ: 00:00:00') : (left>0 ? ('ВРЕМЯ: ' + fmtHHMMSS(left)) : 'ВРЕМЯ: 00:00:00');
     const hs = state.bosses.hitStocks || { kick:0, knuckle:0, enema:0 };
     const hk = parseInt(hs.kick||0,10)||0;
     const hn = parseInt(hs.knuckle||0,10)||0;
@@ -7727,11 +7842,27 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       try { if (window.__bfHitLock[lk]) return; window.__bfHitLock[lk] = true; } catch (e0) {}
       const ff = bfGetFight(bossId);
       if (!ff) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
-      const left2 = Math.max(0, (parseInt(ff.expiresTs||0,10)||0) - now());
+      const left2 = isDistrictBossId(bossId) ? Math.max(0, (parseInt(ff.expiresTs||0,10)||0) - now()) : Math.max(0, (parseInt(ff.expiresTs||0,10)||0) - now());
       if (left2<=0 || (parseInt(ff.hp||0,10)||0)<=0 || ff.freeUsed) { try { delete window.__bfHitLock[lk]; } catch (e0) {} return; }
       const prevHp = Math.max(0, parseInt(ff.hp||0,10)||0);
       const dmg = bossHitDmg(14, 50);
       const wantApply = Math.min(prevHp, dmg);
+
+      if (isDistrictBossId(bossId)) {
+        ff.freeUsed = true;
+        ff.hp = Math.max(0, prevHp - wantApply);
+        bfLogPush(bossId, state.playerName||'PLAYER', wantApply);
+        bfTopAdd(bossId, state.playerName||'PLAYER', wantApply);
+        bfSetFight(bossId, ff);
+        bfCheckWin(bossId);
+        save();
+        if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
+        renderAll();
+        haptic('light');
+        try { delete window.__bfHitLock[lk]; } catch (e0) {}
+        return;
+      }
+
       bossFightHitCloud(bossId, wantApply).then((r)=>{
         try {
           if (r && typeof r === 'object' && r.skipped) {
@@ -7812,6 +7943,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const dmg = Math.max(1, one) * q;
       const prevHp = Math.max(0, parseInt(ff.hp||0,10)||0);
       const wantApply = Math.min(prevHp, dmg);
+
+      if (isDistrictBossId(bossId)) {
+        if (kind==='kick') hs2.kick = Math.max(0, (hs2.kick||0) - q);
+        if (kind==='knuckle') hs2.knuckle = Math.max(0, (hs2.knuckle||0) - q);
+        if (kind==='enema') hs2.enema = Math.max(0, (hs2.enema||0) - q);
+        state.bosses.hitStocks = hs2;
+        ff.hp = Math.max(0, prevHp - wantApply);
+        bfLogPush(bossId, state.playerName||'PLAYER', wantApply);
+        bfTopAdd(bossId, state.playerName||'PLAYER', wantApply);
+        bfSetFight(bossId, ff);
+        bfCheckWin(bossId);
+        save();
+        if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
+        renderAll();
+        haptic('light');
+        try { delete window.__bfHitLock[lk]; } catch (e0) {}
+        return;
+      }
 
       bossFightHitCloud(bossId, wantApply).then((r)=>{
         try {
@@ -7928,7 +8077,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     toast('Куплено: +'+q,'win');
     save();
     bfShopRender();
-    const bid = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
+    const bid = state.bosses && state.bosses.activeFightId;
     if (bid) bfRender(bid);
     renderAll();
   }
@@ -8130,6 +8279,32 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   function bfCheckWin(bossId){
+    if (isDistrictBossId(bossId)){
+      const f = bfGetFight(bossId);
+      if (!f || (parseInt(f.hp||0,10)||0) > 0) return;
+      const idx = districtIdxFromBossId(bossId);
+      if (!state.districtGateBossKilled || typeof state.districtGateBossKilled !== 'object') state.districtGateBossKilled = {};
+      state.districtGateBossKilled[idx] = true;
+      state.districtGateBossFight = null;
+      state.bosses.activeFightId = 0;
+
+      const mult = DISTRICT_GATE_REWARDS[idx] || 0;
+      state.bosses.pendingDistrictReward = mult > 0 ? { idx: idx, mult: mult } : null;
+
+      save();
+      try { hideModal('mBfShop'); } catch (e0) {}
+      try { hideModal('mBossFight'); } catch (e1) {}
+      if (mult > 0) {
+        showModal('mDistrictGateReward');
+        renderDistrictGateRewardModal();
+      } else {
+        toast('Босс района повержен! Район открыт навсегда.','win');
+      }
+      haptic('heavy');
+      if ($('mDistricts') && $('mDistricts').classList.contains('show')) renderDistricts();
+      renderAll();
+      return;
+    }
     const b = BOSSES.find(x=>x.id===bossId);
     if (!b) return;
     const f = bfGetFight(bossId);
@@ -8180,6 +8355,25 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   function bfCheckLose(bossId){
+    if (isDistrictBossId(bossId)){
+      const f = bfGetFight(bossId);
+      if (!f) return;
+      if ((parseInt(f.hp||0,10)||0) <= 0) return;
+      const left = Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now());
+      if (left>0) return;
+      const loseKey = 'district_' + (f.districtIdx||'');
+      if (String(state.bosses._resShownLose||'') === loseKey) return;
+      state.bosses._resShownLose = loseKey;
+      state.districtGateBossFight = null;
+      state.bosses.activeFightId = 0;
+      save();
+      try { hideModal('mBfShop'); } catch (e0) {}
+      try { hideModal('mBossFight'); } catch (e1) {}
+      toast('Время вышло. Можно начать бой заново.','lose');
+      if ($('mDistricts') && $('mDistricts').classList.contains('show')) renderDistricts();
+      renderAll();
+      return;
+    }
     const b = BOSSES.find(x=>x.id===bossId);
     if (!b) return;
     const f = bfGetFight(bossId);
@@ -9972,27 +10166,61 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const idx = i-1;
       const unlocked = districtUnlocked(idx);
       const prevOk = districtPrevCleared(idx);
-      const lockTxt = (DEBUG_UNLOCK_ALL_DISTRICTS ? '' : ((!prevOk) ? 'Чтобы перейти в этот район — пройди предыдущий' : ''));
+      const gateKilled = idx >= 1 && !!(state.districtGateBossKilled && state.districtGateBossKilled[idx]);
+      let lockTxt = '';
+      if (!DEBUG_UNLOCK_ALL_DISTRICTS && !unlocked) {
+        if (idx >= 1 && !gateKilled) {
+          const boss = districtGateBoss(idx);
+          lockTxt = boss ? ('Убей босса района в одиночку: '+boss.name) : 'Убей босса района';
+        } else if (!prevOk) lockTxt = 'Чтобы перейти в этот район — пройди предыдущий';
+      }
+      const showGateBossBtn = idx >= 1 && !gateKilled && !!districtGateBoss(idx);
+      const gateBoss = idx >= 1 ? districtGateBoss(idx) : null;
+      const showBossFullColumn = idx >= 1 && !gateKilled && gateBoss;
       html += '<div class="card">'
-        + '<div class="districtCardGrid" style="'+(unlocked?'':'opacity:.55; filter:grayscale(1);')+'">'
-        + '<div class="districtLeftCol">'
+        + '<div class="districtCardGrid">'
+        + '<div class="districtLeftCol" style="'+(unlocked?'':'opacity:.55; filter:grayscale(1);')+'">'
         + '<div style="width:140px; height:140px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:'+(img?('url(\''+encodeURI(img)+'\') center/cover no-repeat'):'linear-gradient(145deg, rgba(255,255,255,.14), rgba(0,0,0,.10))')+'; display:flex; align-items:center; justify-content:center; font-weight:900; letter-spacing:2px; opacity:.88">'+(img?'':'IMG')+'</div>'
         + '<div class="districtActions">'
+        + (showGateBossBtn && !showBossFullColumn ? ('<button class="btn btnSmall districtBtn" data-dg="'+idx+'" style="border-color:rgba(239,68,68,.5); background:rgba(239,68,68,.2);">СРАЗИТЬСЯ С БОССОМ</button>') : '')
         + '<button class="btn btnSmall districtBtn" data-dn="'+(i-1)+'" '+(unlocked?'':'disabled')+'>'+ (unlocked ? 'КОШМАРИТЬ' : 'ЗАКРЫТО') +'</button>'
         + '<button class="btn btnSmall districtBtn" data-db="'+(i-1)+'" '+(unlocked?'':'disabled')+'>БИЗНЕС</button>'
         + '</div>'
         + '</div>'
-        + '<div class="districtCardRight">'
+        + '<div class="districtCardRight" style="'+(showBossFullColumn?'min-width:0; display:flex; flex-direction:column;':'')+'">'
         + '<div class="districtCardTop">'
         + '<div style="min-width:0">'
         + '<div class="k">'+name.toUpperCase()+'</div>'
-        + (lockTxt ? ('<div style="margin-top:6px; font-size:12px; line-height:1.35; font-weight:900; color:rgba(248,113,113,.95)">'+lockTxt+'</div>') : '')
+        + (!showBossFullColumn && lockTxt ? ('<div style="margin-top:6px; font-size:12px; line-height:1.35; font-weight:900; color:rgba(248,113,113,.95)">'+lockTxt+'</div>') : '')
+        + (showBossFullColumn ? ('<div style="margin-top:4px; font-size:11px; opacity:.9">Убей босса в одиночку — откроется район. На бой 8 часов.</div>') : '')
         + '</div>'
         + '<div class="districtCardBadge">'
         + '<div class="badge" style="padding:5px 7px; font-size:11px; min-width:0">'+fmt4(fear)+'</div>'
         + '</div>'
         + '</div>'
-        + '<div class="districtStack">'
+        + (showBossFullColumn ? (
+            '<div style="flex:1; min-width:0; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.12); display:flex; flex-direction:column; align-items:center;">'
+            + '<div style="opacity:1; filter:none; width:140px; display:flex; flex-direction:column; align-items:center; gap:8px;">'
+            + '<div style="font-weight:900; font-size:14px; letter-spacing:1px; text-align:center;">'+(gateBoss.name||'Босс').toUpperCase()+'</div>'
+            + '<div style="width:140px; height:140px; border-radius:14px; border:1px solid rgba(255,255,255,.22); background:'+(gateBoss.img ? ('url(\''+encodeURI(gateBoss.img)+'\') center/cover no-repeat') : 'rgba(0,0,0,.2)')+'; flex-shrink:0;"></div>'
+            + '<div style="font-size:12px;">'+fmt4(gateBoss.hp||0)+' HP</div>'
+            + '<button type="button" class="btn districtBtn" data-dg="'+idx+'" style="width:30%; font-size:11px; padding:4px 8px; border-color:rgba(56,189,248,.7); background:rgba(56,189,248,.35); color:rgba(255,255,255,.98); font-weight:900;">В БОЙ</button>'
+            + '</div>'
+            + '</div>'
+          ) : (gateBoss && !gateKilled) ? (
+            '<div style="min-width:0; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.12);">'
+            + '<div class="districtTag" style="text-align:left">БОСС РАЙОНА</div>'
+            + '<div class="districtNick" style="margin-top:4px; display:flex; align-items:center; gap:8px">'
+            + '<div style="width:52px; height:52px; border-radius:12px; border:1px solid rgba(255,255,255,.22); background:'+(gateBoss.img ? ('url(\''+encodeURI(gateBoss.img)+'\') center/cover no-repeat') : 'rgba(0,0,0,.2)')+'; flex-shrink:0;"></div>'
+            + '<div style="min-width:0; flex:1;">'
+            + '<span style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:900; font-size:12px; letter-spacing:1px;">'+(gateBoss.name||'Босс').toUpperCase()+'</span>'
+            + '<span style="font-size:11px; opacity:.9;">'+fmt4(gateBoss.hp||0)+' HP</span>'
+            + '</div>'
+            + '</div>'
+            + '</div>'
+          ) : '')
+        + (!showBossFullColumn ? (
+        '<div class="districtStack">'
         + '<div style="min-width:0">'
         + '<div class="districtTag" style="text-align:left">ДЕРЖИТ РАЙОН</div>'
         + '<div class="districtNick" style="margin-top:4px; display:flex; align-items:center; gap:8px">'
@@ -10020,6 +10248,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '</div>'
         + '</div>'
         + '</div>'
+        ) : '')
+        + '</div>'
         + '</div>'
         + '</div>'
 ;
@@ -10029,6 +10259,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       box.querySelectorAll('[data-dn]').forEach(btn=>{
         btn.onclick = ()=>{ try { districtNightmareOpen(parseInt(btn.getAttribute('data-dn')||'0',10)||0); } catch (e) {} };
+      });
+    } catch (e) {}
+
+    try {
+      box.querySelectorAll('[data-dg]').forEach(btn=>{
+        btn.onclick = ()=>{ try { districtGateBossOpen(parseInt(btn.getAttribute('data-dg')||'0',10)||0); } catch (e) {} };
       });
     } catch (e) {}
 
@@ -10047,6 +10283,127 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       openScreen('mDistrictNightmare');
       renderDistrictNightmare();
       haptic('light');
+    } catch (e) {}
+  }
+
+  function districtGateBossOpen(idx){
+    try {
+      const id = clamp(parseInt(idx||0,10)||0, 1, 12);
+      const boss = districtGateBoss(id);
+      if (!boss) { toast('Нет босса для этого района','lose'); return; }
+      if (state.districtGateBossKilled && state.districtGateBossKilled[id]) { toast('Босс уже побеждён','win'); return; }
+      const bossId = districtBossId(id);
+      state.bosses.activeFightId = bossId;
+      bfEnsureFight(bossId);
+      showModal('mBossFight');
+      bfRender(bossId);
+      haptic('light');
+    } catch (e) {}
+  }
+  function renderDistrictGateRewardModal(){
+    try {
+      const p = state.bosses && state.bosses.pendingDistrictReward;
+      const list = $('dgrRewardList');
+      const btn = $('dgrClaimBtn');
+      if (!list) return;
+      if (!p || typeof p !== 'object' || !p.idx || p.mult <= 0) {
+        list.innerHTML = '<div style="opacity:.8; font-size:12px">Нет награды</div>';
+        if (btn) { btn.onclick = ()=>{ try { hideModal('mDistrictGateReward'); } catch (e) {} }; btn.disabled = false; }
+        return;
+      }
+      const mult = parseInt(p.mult||0,10)||0;
+      list.innerHTML = ''
+        + '<div class="row"><div class="k">Опыт</div><div class="badge">+'+fmt4(mult)+' XP</div></div>'
+        + '<div class="row"><div class="k">Золотые зубы</div><div class="badge">+'+fmt4(mult)+' <img src="зуб.png" alt="" class="toothIcon" style="height:14px;vertical-align:middle"></div></div>'
+        + '<div class="row"><div class="k">Страх (район)</div><div class="badge">+'+fmt4(mult)+' <img src="страх.png" alt="" class="fearIcon" style="height:14px;vertical-align:middle"></div></div>'
+        + '<div class="row"><div class="k">Золотые монеты</div><div class="badge">+'+fmt4(mult)+' <img src="голд.png" alt="" class="goldIcon" style="height:14px;vertical-align:middle"></div></div>';
+      if (btn) {
+        btn.disabled = false;
+        btn.onclick = ()=>{ districtGateRewardClaim(); };
+      }
+    } catch (e) {}
+  }
+  function districtGateRewardClaim(){
+    try {
+      const p = state.bosses && state.bosses.pendingDistrictReward;
+      if (!p || typeof p !== 'object' || !p.idx || p.mult <= 0) {
+        try { hideModal('mDistrictGateReward'); } catch (e) {}
+        return;
+      }
+      const idx = p.idx;
+      const mult = parseInt(p.mult||0,10)||0;
+      addXp(mult);
+      state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + mult);
+      state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + mult);
+      const bk = 'D' + String(idx);
+      if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
+      state.districtFear[bk] = Math.max(0, (parseInt(state.districtFear[bk]||0,10)||0) + mult);
+      state.bosses.pendingDistrictReward = null;
+      save();
+      try { hideModal('mDistrictGateReward'); } catch (e) {}
+      toast('Награда получена: +'+mult+' XP, +'+mult+' зубов, +'+mult+' страха, +'+fmt4(mult)+' золотых','win');
+      haptic('medium');
+      if ($('mDistricts') && $('mDistricts').classList.contains('show')) renderDistricts();
+      renderAll();
+    } catch (e) {}
+  }
+  function renderDistrictGateBoss(){
+    try {
+      const id = state.districtGateBossIdx != null ? state.districtGateBossIdx : (state.districtGateBossFight && state.districtGateBossFight.districtIdx);
+      const boss = districtGateBoss(id);
+      const fight = state.districtGateBossFight;
+      const t = $('dgTitle');
+      const n = $('dgName');
+      const hpEl = $('dgHp');
+      const bar = $('dgHpBar');
+      const imgWrap = $('dgImgWrap');
+      const btn = $('dgAttackBtn');
+      if (!boss || !fight || fight.districtIdx !== id) {
+        if (t) t.textContent = 'БОСС РАЙОНА';
+        if (n) n.textContent = '—';
+        if (hpEl) hpEl.textContent = '0 / 0';
+        if (bar) bar.style.width = '0%';
+        if (imgWrap) imgWrap.style.backgroundImage = '';
+        if (btn) btn.disabled = true;
+        return;
+      }
+      const curHp = Math.max(0, parseInt(fight.hp||0,10)||0);
+      const maxHp = parseInt(fight.maxHp||boss.hp||50000,10)||50000;
+      const pct = maxHp > 0 ? Math.min(100, (curHp / maxHp) * 100) : 0;
+      if (t) t.textContent = 'БОСС РАЙОНА';
+      if (n) n.textContent = (boss.name||'Босс').toUpperCase();
+      if (hpEl) hpEl.textContent = fmt4(curHp) + ' / ' + fmt4(maxHp);
+      if (bar) bar.style.width = pct + '%';
+      if (imgWrap) imgWrap.style.backgroundImage = boss.img ? ("url('"+encodeURI(boss.img)+"')") : 'none';
+      if (btn) {
+        btn.disabled = curHp <= 0;
+        btn.onclick = ()=>{ districtGateBossAttack(); };
+      }
+    } catch (e) {}
+  }
+  function districtGateBossAttack(){
+    try {
+      const fight = state.districtGateBossFight;
+      if (!fight || fight.hp <= 0) return;
+      const boss = districtGateBoss(fight.districtIdx);
+      if (!boss) return;
+      const maxHp = parseInt(fight.maxHp||boss.hp||50000,10)||50000;
+      const damage = Math.max(500, Math.floor(maxHp * 0.02));
+      fight.hp = Math.max(0, (parseInt(fight.hp||0,10)||0) - damage);
+      haptic('light');
+      if (fight.hp <= 0) {
+        if (!state.districtGateBossKilled || typeof state.districtGateBossKilled !== 'object') state.districtGateBossKilled = {};
+        state.districtGateBossKilled[fight.districtIdx] = true;
+        state.districtGateBossFight = null;
+        save();
+        try { const mm = $('mDistrictGateBoss'); if (mm) mm.classList.remove('show'); } catch (e) {}
+        renderDistricts();
+        toast('Босс побеждён! Район открыт.','win');
+        haptic('medium');
+        return;
+      }
+      save();
+      renderDistrictGateBoss();
     } catch (e) {}
   }
   function renderDistrictNightmare(){
@@ -10666,6 +11023,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       openScreen('mDistricts');
       try { districtLeadersCloudPullMaybe(true); } catch (e0) {}
       renderDistricts();
+      if (state.bosses && state.bosses.pendingDistrictReward && state.bosses.pendingDistrictReward.mult > 0) {
+        try { showModal('mDistrictGateReward'); renderDistrictGateRewardModal(); } catch (e1) {}
+      }
       haptic('light');
     };
     const hb = $('havchikBtn'); if (hb) hb.onclick = ()=>{ showModal('mHavchik'); renderHavchik(); haptic('light'); };
@@ -11041,7 +11401,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         tickBattle();
         tickGF1010();
 
-        const bid = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
+        const bid = state.bosses && state.bosses.activeFightId;
         if (bid){
           bfEnsureFight(bid);
           try {
@@ -11151,12 +11511,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
                 const localFights = state.bosses && state.bosses.fights && typeof state.bosses.fights === 'object' ? state.bosses.fights : null;
                 const localCloud = state.bosses && state.bosses.cloud && typeof state.bosses.cloud === 'object' ? state.bosses.cloud : null;
                 const localHp = state.bosses && state.bosses.hp && typeof state.bosses.hp === 'object' ? state.bosses.hp : null;
+                const localGateKilled = state.districtGateBossKilled && typeof state.districtGateBossKilled === 'object' ? state.districtGateBossKilled : null;
+                const localGateFight = state.districtGateBossFight;
                 state = Object.assign({}, state, ps0);
                 if (state.bosses) {
                   state.bosses.fights = (localFights && Object.keys(localFights).length > 0) ? localFights : {};
                   if (localCloud && Object.keys(localCloud).length > 0) state.bosses.cloud = localCloud; else state.bosses.cloud = {};
                   if (localHp && Object.keys(localHp).length > 0) state.bosses.hp = localHp; else state.bosses.hp = {};
                 }
+                if (localGateKilled && Object.keys(localGateKilled).length > 0) state.districtGateBossKilled = localGateKilled;
+                if (localGateFight) state.districtGateBossFight = localGateFight;
                 try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e0) {}
                 try { localStorage.setItem(rk, '1'); } catch (e1) {}
                 __skipCloudPull = true;
@@ -11224,12 +11588,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             const localFights = state.bosses && state.bosses.fights && typeof state.bosses.fights === 'object' ? state.bosses.fights : null;
             const localCloud = state.bosses && state.bosses.cloud && typeof state.bosses.cloud === 'object' ? state.bosses.cloud : null;
             const localHp = state.bosses && state.bosses.hp && typeof state.bosses.hp === 'object' ? state.bosses.hp : null;
+            const localGateKilled = state.districtGateBossKilled && typeof state.districtGateBossKilled === 'object' ? state.districtGateBossKilled : null;
+            const localGateFight = state.districtGateBossFight;
             state = Object.assign({}, state, ps);
             if (state.bosses) {
               state.bosses.fights = (localFights && Object.keys(localFights).length > 0) ? localFights : {};
               if (localCloud && Object.keys(localCloud).length > 0) state.bosses.cloud = localCloud; else state.bosses.cloud = {};
               if (localHp && Object.keys(localHp).length > 0) state.bosses.hp = localHp; else state.bosses.hp = {};
             }
+            if (localGateKilled && Object.keys(localGateKilled).length > 0) state.districtGateBossKilled = localGateKilled;
+            if (localGateFight) state.districtGateBossFight = localGateFight;
           try {
             const cur = String(state.playerName||'').trim();
             if (!cur || cur.toUpperCase() === 'PLAYER') {
