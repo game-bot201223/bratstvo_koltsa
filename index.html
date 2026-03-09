@@ -5213,10 +5213,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     if (id==='mBossFight'){
       let goDistricts = false;
+      let goBoss = false;
       try {
         if (state && state.bosses) {
           const af = state.bosses.activeFightId;
-          if (typeof af === 'string' && af.startsWith('district_')) goDistricts = true;
+          if (typeof af === 'string' && af.startsWith('district_')) {
+            goDistricts = true;
+          } else {
+            const bid = parseInt(af||0,10)||0;
+            if (bid > 0) goBoss = true;
+          }
         }
       } catch (e) {}
       while (stack.length) {
@@ -5231,6 +5237,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         try {
           openScreen('mDistricts');
           renderDistricts();
+        } catch (e) {}
+      } else if (goBoss){
+        try {
+          openScreen('mBoss');
+          renderBosses();
         } catch (e) {}
       }
     }
@@ -11092,7 +11103,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       renderBosses();
       haptic('light');
     };
-    $('btnPloshchad').onclick = ()=>{
+      $('btnPloshchad').onclick = ()=>{
       openScreen('mPloshchad');
       haptic('light');
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
@@ -11100,8 +11111,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           try {
             if (r && r.ok && r.player && r.player.state && typeof r.player.state === 'object') {
               const localFights = state.bosses && state.bosses.fights && typeof state.bosses.fights === 'object' ? state.bosses.fights : null;
+              const localActiveFightId = state.bosses && typeof state.bosses.activeFightId !== 'undefined' ? state.bosses.activeFightId : null;
+              const localGateKilled = state.districtGateBossKilled && typeof state.districtGateBossKilled === 'object' ? state.districtGateBossKilled : null;
+              const localGateFight = state.districtGateBossFight;
               state = Object.assign({}, state, r.player.state);
-              if (state.bosses && localFights && Object.keys(localFights).length > 0) state.bosses.fights = localFights;
+              if (state.bosses) {
+                if (localFights && Object.keys(localFights).length > 0) state.bosses.fights = localFights;
+                if (localActiveFightId != null) state.bosses.activeFightId = localActiveFightId;
+              }
+              if (localGateKilled && Object.keys(localGateKilled).length > 0) state.districtGateBossKilled = localGateKilled;
+              if (localGateFight) state.districtGateBossFight = localGateFight;
               save();
               renderAll();
             }
@@ -11123,8 +11142,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             try {
               if (r && r.ok && r.player && r.player.state && typeof r.player.state === 'object') {
                 const localFights = state.bosses && state.bosses.fights && typeof state.bosses.fights === 'object' ? state.bosses.fights : null;
+                const localActiveFightId = state.bosses && typeof state.bosses.activeFightId !== 'undefined' ? state.bosses.activeFightId : null;
+                const localGateKilled = state.districtGateBossKilled && typeof state.districtGateBossKilled === 'object' ? state.districtGateBossKilled : null;
+                const localGateFight = state.districtGateBossFight;
                 state = Object.assign({}, state, r.player.state);
-                if (state.bosses && localFights && Object.keys(localFights).length > 0) state.bosses.fights = localFights;
+                if (state.bosses) {
+                  if (localFights && Object.keys(localFights).length > 0) state.bosses.fights = localFights;
+                  if (localActiveFightId != null) state.bosses.activeFightId = localActiveFightId;
+                }
+                if (localGateKilled && Object.keys(localGateKilled).length > 0) state.districtGateBossKilled = localGateKilled;
+                if (localGateFight) state.districtGateBossFight = localGateFight;
                 save();
                 renderTopBrosModal();
               }
