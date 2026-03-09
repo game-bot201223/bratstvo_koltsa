@@ -2448,16 +2448,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   function gfEffStat(k){
-    const cur = gymVal(k);
+    const baseGym = Math.max(1, parseInt(state.gym[k]||1,10) || 1);
+    const armor = (typeof armorStatBonus === 'function') ? armorStatBonus(k) : 0;
     const pct = gymBonusPct();
-    let add = Math.round(cur*pct);
-    if (pct>0 && cur>0 && add<=0) add = 1;
-    let total = cur + add;
+    let petBizAdd = Math.round(baseGym * pct);
+    if (pct > 0 && baseGym > 0 && petBizAdd <= 0) petBizAdd = 1;
+    let consumablesAdd = 0;
     const until = state.consumablesBuffs && (parseInt(state.consumablesBuffs[k],10)||0);
-    if (until > now()){
-      total += Math.max(0, Math.round(cur * 0.30));
-    }
-    return total;
+    if (until > now()) consumablesAdd = Math.max(0, Math.round(baseGym * 0.30));
+    return baseGym + armor + petBizAdd + consumablesAdd;
   }
   function gfGetCurrentPStats(){
     return {
