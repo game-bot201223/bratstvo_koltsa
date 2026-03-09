@@ -792,7 +792,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .bossRowBelow{display:flex;flex-direction:column;gap:8px;}
 .bossRowBelow .bossReward{margin-top:0;}
 .bossMiniWrap{position:relative;width:160px;height:160px;flex-shrink:0;}
-.bossMini{width:160px;height:160px;border-radius:20px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:60px;}
+.bossMini{width:160px;height:160px;border-radius:20px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:110% auto;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:60px;}
 .bossWinnerAva{position:absolute;right:-10px;bottom:10px;width:44px;height:44px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:rgba(45,30,18,.28);object-fit:cover;}
 .bossName{font-weight:900;letter-spacing:2px;line-height:1.15;}
 .bossSub{font-size:11px;opacity:.75;margin-top:4px;}
@@ -848,7 +848,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .districtCardBadge{flex:0 0 auto;}
 
  .bossFightHero{display:flex;align-items:flex-start;justify-content:flex-start;gap:14px;flex-wrap:wrap;}
- .bossFightBig{width:220px;height:220px;max-width:min(220px,48vw);max-height:min(220px,48vw);border-radius:16px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:64px;flex:0 0 auto;}
+.bossFightBig{width:220px;height:220px;max-width:min(220px,48vw);max-height:min(220px,48vw);border-radius:16px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:110% auto;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:64px;flex:0 0 auto;}
  .bossFightMeta{min-width:0;flex:1;}
  .bfHpBarWrap{margin-top:6px;width:100%;max-width:220px;}
  .bfHpBar{height:20px;border-radius:10px;border:1px solid rgba(45,30,18,.2);background:rgba(0,0,0,.2);overflow:hidden;position:relative;}
@@ -1519,9 +1519,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div class="row"><div class="k">ТВОИ МОНЕТЫ</div><div class="badge" style="color:var(--gold)" id="bfShopGold">0 <img src="голд.png" alt="Золото" class="goldIcon"></div></div>
         <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end" id="bfShopQty"></div>
         <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
-          <button class="btn" id="bfShopBuyKick">ПИНОК: +1 за 3 <img src="голд.png" alt="Золото" class="goldIcon"></button>
-          <button class="btn" id="bfShopBuyKnuckle">КОСТЕТ: +1 за 5 <img src="голд.png" alt="Золото" class="goldIcon"></button>
-          <button class="btn" id="bfShopBuyEnema">КЛИЗМА: +1 за 8 <img src="голд.png" alt="Золото" class="goldIcon"></button>
+          <button class="btn" id="bfShopBuyKick">ПИНОК: +1 за 5 <img src="голд.png" alt="Золото" class="goldIcon"></button>
+          <button class="btn" id="bfShopBuyKnuckle">КОСТЕТ: +1 за 10 <img src="голд.png" alt="Золото" class="goldIcon"></button>
+          <button class="btn" id="bfShopBuyEnema">КЛИЗМА: +1 за 15 <img src="голд.png" alt="Золото" class="goldIcon"></button>
         </div>
       </div>
     </div>
@@ -7783,10 +7783,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (dmgEl) dmgEl.textContent = dmgVal;
         if (qtyEl) qtyEl.textContent = qtyTxt;
       };
-      setDmgQty($('bfFreeHitDmg'), $('bfFreeHitQty'), 'УРОН ' + Math.max(1, bossHitDmg(14, 50)), '1 раз');
-      setDmgQty($('bfHit1Dmg'), $('bfHit1Qty'), 'УРОН ' + (Math.max(1, bossHitDmg(10, 70)) * q2), ''+hk);
-      setDmgQty($('bfHit2Dmg'), $('bfHit2Qty'), 'УРОН ' + (Math.max(1, bossHitDmg(7, 85)) * q2), ''+hn);
-      setDmgQty($('bfHit3Dmg'), $('bfHit3Qty'), 'УРОН ' + (Math.max(1, bossHitDmg(4, 100)) * q2), ''+he);
+      // Ногой: +1 урон за каждые 15 характеристик в зале
+      setDmgQty($('bfFreeHitDmg'), $('bfFreeHitQty'), 'УРОН ' + Math.max(1, bossHitDmg(15, 50)), '1 раз');
+      // Пинок: +1 урон за каждые 20 характеристик
+      setDmgQty($('bfHit1Dmg'), $('bfHit1Qty'), 'УРОН ' + (Math.max(1, bossHitDmg(20, 70)) * q2), ''+hk);
+      // Костет: +1 урон за каждые 10 характеристик
+      setDmgQty($('bfHit2Dmg'), $('bfHit2Qty'), 'УРОН ' + (Math.max(1, bossHitDmg(10, 85)) * q2), ''+hn);
+      // Клизма: +1 урон за каждые 5 характеристик
+      setDmgQty($('bfHit3Dmg'), $('bfHit3Qty'), 'УРОН ' + (Math.max(1, bossHitDmg(5, 100)) * q2), ''+he);
     } catch (e) {}
 
     try {
@@ -11278,11 +11282,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     $('diceRewardOk').onclick = ()=>hideModal('mDiceReward');
 
     const bsk = $('bfShopBuyKick');
-    if (bsk) bsk.onclick = ()=>bfShopBuy('kick', 3);
+    if (bsk) bsk.onclick = ()=>bfShopBuy('kick', 5);
     const bsn = $('bfShopBuyKnuckle');
-    if (bsn) bsn.onclick = ()=>bfShopBuy('knuckle', 5);
+    if (bsn) bsn.onclick = ()=>bfShopBuy('knuckle', 10);
     const bse = $('bfShopBuyEnema');
-    if (bse) bse.onclick = ()=>bfShopBuy('enema', 8);
+    if (bse) bse.onclick = ()=>bfShopBuy('enema', 15);
 
     $('nameBtn').onclick = ()=>{
       const n = prompt('Имя персонажа:', state.playerName || 'PLAYER');
