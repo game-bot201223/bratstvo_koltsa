@@ -10260,7 +10260,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + (showBossFullColumn ? ('<div style="margin-top:4px; font-size:11px; opacity:.9">Убей босса в одиночку — откроется район. На бой 8 часов.</div>') : '')
         + '</div>'
         + '<div class="districtCardBadge">'
-        + '<div class="badge" style="padding:5px 7px; font-size:11px; min-width:0">'+fmt4(totalFear)+'</div>'
+        + '<div class="badge" style="padding:5px 7px; font-size:11px; min-width:0"><img src="страх.png" alt="Страх" class="fearIcon" style="height:14px;vertical-align:middle;margin-right:4px"> '+fmt4(totalFear)+'</div>'
         + '</div>'
         + '</div>'
         + (showBossFullColumn ? (
@@ -10484,7 +10484,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const enEl = $('dnEnergy');
       if (enEl) enEl.innerHTML = '⚡ ' + Math.floor(state.energy||0) + '/' + Math.floor(state.energyMax||100);
       if (t) t.textContent = nm.toUpperCase();
-      if (b) b.textContent = '';
+      if (b) {
+        const fk = 'D' + String(i);
+        const totalFear = Math.max(0, (state.districtFear && state.districtFear[fk]) ? (parseInt(state.districtFear[fk]||0,10)||0) : 0);
+        b.innerHTML = '<img src="страх.png" alt="Страх" class="fearIcon"> ' + fmt4(totalFear);
+      }
       if (d){
         const energy = Math.floor(state.energy||0);
         let h = '';
