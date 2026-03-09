@@ -8597,8 +8597,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
       if (!bossDailyCanStart(id)) { toast('Лимит боёв на сегодня: 10/10','lose'); return; }
 
-      // HARD MODE: persist fight on server immediately; apply local state only on ok
+      // HARD MODE: сохраняем локальный бой сразу, чтобы после перезагрузки страницы можно было продолжить,
+      // а затем синхронизируемся с сервером.
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+        let fLocal = bfGetFight(id);
+        if (!fLocal) {
+          fLocal = bfEnsureFight(id);
+          if (!fLocal) {
+            toast('Не удалось начать бой. Попробуй обновить страницу.','lose');
+            haptic('light');
+            return;
+          }
+          bfSetFight(id, fLocal);
+        }
+        state.bosses.activeFightId = id;
+        save();
+
         bossFightStartCloud(id).then(async (sr)=>{
           try {
             if (!(sr && sr.ok)) {
@@ -8654,7 +8668,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             const have = bossKeyCount(rr.itemKey);
             state.bosses.keys[String(rr.itemKey)] = Math.max(0, have - rr.need);
           }
-          state.bosses.activeFightId = id;
           window.__ignoreOverlayClickOnce = true;
           hideModal('mBossAttack');
           showModal('mBossFight');
