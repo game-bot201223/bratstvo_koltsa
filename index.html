@@ -5212,19 +5212,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     updateBackButton();
 
     if (id==='mBossFight'){
-      let goDistricts = false;
-      let goBoss = false;
-      try {
-        if (state && state.bosses) {
-          const af = state.bosses.activeFightId;
-          if (typeof af === 'string' && af.startsWith('district_')) {
-            goDistricts = true;
-          } else {
-            const bid = parseInt(af||0,10)||0;
-            if (bid > 0) goBoss = true;
-          }
-        }
-      } catch (e) {}
       while (stack.length) {
         const top = stack[stack.length-1];
         const mm = $(top);
@@ -5233,17 +5220,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
       setOverlay();
       updateBackButton();
-      if (goDistricts){
-        try {
-          openScreen('mDistricts');
-          renderDistricts();
-        } catch (e) {}
-      } else if (goBoss){
-        try {
-          openScreen('mBoss');
-          renderBosses();
-        } catch (e) {}
-      }
+      try {
+        openScreen('mPloshchad');
+        renderAll();
+      } catch (e) {}
     }
   }
   function hideTop(){
@@ -11067,6 +11047,25 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       };
     })();
     $('btnDistricts').onclick = ()=>{
+      const rawAf = state.bosses && state.bosses.activeFightId;
+      const isDistrict = typeof rawAf === 'string' && rawAf.startsWith('district_');
+      const bid = isDistrict ? rawAf : null;
+      const f = bid ? bfGetFight(bid) : null;
+      const alive = f && (parseInt(f.hp||0,10)||0) > 0;
+      const inTime = f && (parseInt(f.expiresTs||0,10)||0) > now();
+      const hasBoss = isDistrict ? !!districtGateBoss(districtIdxFromBossId(bid)) : false;
+      if (isDistrict && bid && f && alive && inTime && hasBoss){
+        showModal('mBossFight');
+        bfEnsureFight(bid);
+        bfRender(bid);
+        haptic('light');
+        return;
+      }
+      if (isDistrict && bid && f && alive && !inTime && hasBoss){
+        bfCheckLose(bid);
+        haptic('light');
+        return;
+      }
       openScreen('mDistricts');
       try { districtLeadersCloudPullMaybe(true); } catch (e0) {}
       renderDistricts();
