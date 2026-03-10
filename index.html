@@ -1341,6 +1341,45 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div class="row"><div class="k">СБРОС ПРОГРЕССА</div><button class="btn btnSmall" id="resetBtn">СБРОС</button></div>
         <div style="margin-top:10px; font-size:12px; opacity:.75; line-height:1.35">Сброс удалит локальный сейв на устройстве.</div>
       </div>
+      <div class="card" id="adminCard" style="margin-top:12px; display:none;">
+        <div class="row"><div class="k">АДМИН</div><button class="btn btnSmall" id="adminEditPlayerBtn">Редактировать игрока</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Admin: edit player (only for admin) -->
+<div class="modal" id="mAdminPlayer" role="dialog" aria-modal="true">
+  <div class="sheet">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mAdminPlayer">‹</button>
+      <div class="title">АДМИН: ИГРОК</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody">
+      <div class="card">
+        <div class="row"><div class="k">Ник или TG ID</div></div>
+        <div style="margin-top:6px; display:flex; gap:8px;">
+          <input type="text" id="adminPlayerQuery" placeholder="Имя или tg_id" style="flex:1; padding:10px 12px; border-radius:10px; border:1px solid var(--paperLine); font-size:14px;">
+          <button class="btn" id="adminPlayerLoad">Загрузить</button>
+        </div>
+        <div id="adminPlayerInfo" style="margin-top:10px; font-size:12px; opacity:.85;"></div>
+      </div>
+      <div class="card" id="adminPlayerFormCard" style="margin-top:12px; display:none;">
+        <div class="k" style="margin-bottom:8px;">ВАЛЮТЫ</div>
+        <div class="row"><div class="k">Золото</div><input type="number" id="adminGold" min="0" style="width:100px; padding:8px; border-radius:8px; border:1px solid var(--paperLine);"></div>
+        <div class="row"><div class="k">Серебро</div><input type="number" id="adminSilver" min="0" style="width:100px; padding:8px; border-radius:8px; border:1px solid var(--paperLine);"></div>
+        <div class="row"><div class="k">Золотые зубы</div><input type="number" id="adminTooth" min="0" style="width:100px; padding:8px; border-radius:8px; border:1px solid var(--paperLine);"></div>
+        <div class="k" style="margin-top:12px; margin-bottom:8px;">СПОРТЗАЛ (база)</div>
+        <div class="row"><div class="k">Здоровье</div><input type="number" id="adminGymHealth" min="1" style="width:80px; padding:6px; border-radius:6px; border:1px solid var(--paperLine);"></div>
+        <div class="row"><div class="k">Сила</div><input type="number" id="adminGymStrength" min="1" style="width:80px; padding:6px; border-radius:6px; border:1px solid var(--paperLine);"></div>
+        <div class="row"><div class="k">Ловкость</div><input type="number" id="adminGymAgility" min="1" style="width:80px; padding:6px; border-radius:6px; border:1px solid var(--paperLine);"></div>
+        <div class="row"><div class="k">Инициатива</div><input type="number" id="adminGymInitiative" min="1" style="width:80px; padding:6px; border-radius:6px; border:1px solid var(--paperLine);"></div>
+        <div class="row"><div class="k">Выносливость</div><input type="number" id="adminGymEndurance" min="1" style="width:80px; padding:6px; border-radius:6px; border:1px solid var(--paperLine);"></div>
+        <div class="row"><div class="k">Мощь</div><input type="number" id="adminGymMight" min="1" style="width:80px; padding:6px; border-radius:6px; border:1px solid var(--paperLine);"></div>
+        <div class="row"><div class="k">Харизма</div><input type="number" id="adminGymCharisma" min="1" style="width:80px; padding:6px; border-radius:6px; border:1px solid var(--paperLine);"></div>
+        <div style="margin-top:14px;"><button class="btn" id="adminPlayerSave" style="width:100%">Сохранить</button></div>
+      </div>
     </div>
   </div>
 </div>
@@ -10960,7 +10999,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       hideTop();
     };
 
-    const sb = $('settingsBtn'); if (sb) sb.onclick = ()=>{ showModal('mSettings'); renderAll(); haptic('light'); };
+    const sb = $('settingsBtn'); if (sb) sb.onclick = ()=>{ showModal('mSettings'); var ac = $('adminCard'); if (ac) ac.style.display = (typeof isAdmin === 'function' && isAdmin()) ? '' : 'none'; renderAll(); haptic('light'); };
     $('shopBtn').onclick = ()=>{
       showModal('mShop');
       renderShop();
@@ -11433,6 +11472,61 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!confirm('Сбросить прогресс?')) return;
       hardReset();
     };
+
+    (function(){
+      var loadBtn = $('adminPlayerLoad');
+      var saveBtn = $('adminPlayerSave');
+      var editBtn = $('adminEditPlayerBtn');
+      var formCard = $('adminPlayerFormCard');
+      var infoEl = $('adminPlayerInfo');
+      var queryEl = $('adminPlayerQuery');
+      if (!loadBtn || !saveBtn || !editBtn || !formCard) return;
+      editBtn.onclick = function(){ showModal('mAdminPlayer'); if (formCard) formCard.style.display = 'none'; if (infoEl) infoEl.textContent = ''; if (queryEl) queryEl.value = ''; haptic('light'); };
+      loadBtn.onclick = async function(){
+        var q = (queryEl && queryEl.value) ? String(queryEl.value).trim() : '';
+        if (!q) { toast('Введите ник или TG ID','lose'); return; }
+        var payload = { initData: tgInitData() };
+        if (/^\d+$/.test(q)) payload.target_tg_id = q; else payload.target_name = q;
+        try {
+          var r = await sbFnCall('admin_get_player', payload);
+          if (!r || !r.ok || !r.player) { toast(r && r.error ? r.error : 'Игрок не найден','lose'); return; }
+          window.__adminTargetTgId = r.player.tg_id;
+          var st = (r.player.state && typeof r.player.state === 'object') ? r.player.state : {};
+          var gym = st.gym && typeof st.gym === 'object' ? st.gym : {};
+          if ($('adminGold')) $('adminGold').value = Math.max(0, parseInt(st.gold,10)||0);
+          if ($('adminSilver')) $('adminSilver').value = Math.max(0, parseInt(st.silver,10)||0);
+          if ($('adminTooth')) $('adminTooth').value = Math.max(0, parseInt(st.tooth,10)||0);
+          ['health','strength','agility','initiative','endurance','might','charisma'].forEach(function(k){
+            var el = $('adminGym'+k.charAt(0).toUpperCase()+k.slice(1));
+            if (el) el.value = Math.max(1, parseInt(gym[k],10)||1);
+          });
+          if (infoEl) infoEl.textContent = r.player.name + ' (tg_id: ' + r.player.tg_id + ')';
+          formCard.style.display = '';
+          toast('Загружено','win');
+        } catch (e) { toast('Ошибка: ' + (e && e.message ? e.message : 'network'), 'lose'); }
+        haptic('light');
+      };
+      saveBtn.onclick = async function(){
+        var tid = window.__adminTargetTgId;
+        if (!tid) { toast('Сначала загрузите игрока','lose'); return; }
+        var gym = {};
+        ['health','strength','agility','initiative','endurance','might','charisma'].forEach(function(k){
+          var el = $('adminGym'+k.charAt(0).toUpperCase()+k.slice(1));
+          gym[k] = Math.max(1, parseInt((el && el.value) ? el.value : 1, 10) || 1);
+        });
+        var state = {
+          gold: Math.max(0, parseInt(($('adminGold')&&$('adminGold').value)?$('adminGold').value:0,10)||0),
+          silver: Math.max(0, parseInt(($('adminSilver')&&$('adminSilver').value)?$('adminSilver').value:0,10)||0),
+          tooth: Math.max(0, parseInt(($('adminTooth')&&$('adminTooth').value)?$('adminTooth').value:0,10)||0),
+          gym: gym
+        };
+        try {
+          var r = await sbFnCall('admin_update_player', { initData: tgInitData(), target_tg_id: tid, state: state });
+          if (r && r.ok) toast('Сохранено','win'); else toast(r && r.error ? r.error : 'Ошибка','lose');
+        } catch (e) { toast('Ошибка: ' + (e && e.message ? e.message : 'network'), 'lose'); }
+        haptic('light');
+      };
+    })();
   }
 
   function renderTop100(kind){
