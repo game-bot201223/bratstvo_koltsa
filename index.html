@@ -1481,8 +1481,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             <div style="margin-top:8px; font-size:11px; opacity:.85">Ударов за нажатие:</div>
             <div class="bfHitQtyGrid" style="margin-top:4px" id="bfHitQty"></div>
             <div class="bossAtkGrid" style="margin-top:10px">
-              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfFreeHit"><img src="ногой.png" alt="" class="bfHitImg"></button><span class="bfHitDmg" id="bfFreeHitDmg">—</span><span class="bfHitQty" id="bfFreeHitQty">—</span></div>
-              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfHit1"><img src="пинок.png" alt="" class="bfHitImg"></button><span class="bfHitDmg" id="bfHit1Dmg">—</span><span class="bfHitQty" id="bfHit1Qty">—</span></div>
+              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfFreeHit"><img src="пинок.png" alt="" class="bfHitImg"></button><span class="bfHitDmg" id="bfFreeHitDmg">—</span><span class="bfHitQty" id="bfFreeHitQty">—</span></div>
+              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfHit1"><img src="ногой.png" alt="" class="bfHitImg"></button><span class="bfHitDmg" id="bfHit1Dmg">—</span><span class="bfHitQty" id="bfHit1Qty">—</span></div>
               <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfHit2"><img src="костетом.jpg" alt="" class="bfHitImg"></button><span class="bfHitDmg" id="bfHit2Dmg">—</span><span class="bfHitQty" id="bfHit2Qty">—</span></div>
               <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfHit3"><img src="клизма.jpg" alt="" class="bfHitImg"></button><span class="bfHitDmg" id="bfHit3Dmg">—</span><span class="bfHitQty" id="bfHit3Qty">—</span></div>
             </div>
@@ -4762,6 +4762,27 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       });
     }
   } catch (e) {}
+  try {
+    // Если район уже когда-то был полностью пройден (districtClearedEver),
+    // но счётчики задач по какой-то причине меньше максимума — дотягиваем их до max.
+    const data = districtData();
+    for (let dIdx = 0; dIdx < data.length; dIdx++){
+      const bk = 'D' + String(dIdx);
+      if (!state.districtClearedEver || !state.districtClearedEver[bk]) continue;
+      const d = data[dIdx];
+      if (!d) continue;
+      const tasks = Array.isArray(d.tasks) ? d.tasks : [];
+      if (!state.districtTaskCounts || typeof state.districtTaskCounts !== 'object') state.districtTaskCounts = {};
+      tasks.forEach((t, ti)=>{
+        try {
+          const key = districtTaskKey(dIdx, ti);
+          const meta = districtTaskMeta(d.diff, ti, dIdx);
+          const cur = Math.max(0, (parseInt(state.districtTaskCounts[key]||0,10)||0));
+          if (cur < meta.max) state.districtTaskCounts[key] = meta.max;
+        } catch (e0) {}
+      });
+    }
+  } catch (e) {}
   if (!state.bosses || typeof state.bosses !== 'object') state.bosses = Object.assign({}, defaults.bosses);
   if (!state.bosses.hp) state.bosses.hp = {};
   if (typeof state.bosses.wins !== 'number') state.bosses.wins = 0;
@@ -4956,8 +4977,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         districtFearLeaderUpdate(id);
         districtDailyFearAdd(id, mult);
       } catch (e1) {}
-
-      districtResetTasks(id);
 
       if (!state.districtClearedBannerTs || typeof state.districtClearedBannerTs !== 'object') state.districtClearedBannerTs = {};
       state.districtClearedBannerTs[bk] = now();
@@ -5709,11 +5728,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (rew) {
         const mm = pr ? (parseInt(pr.tooth||0,10)||0) : 0;
         const gg = pr ? (parseInt(pr.gold||0,10)||0) : 0;
-        const consumableName = pr && pr.consumableName ? String(pr.consumableName) : '';
+        const consumableId = pr && pr.consumableId ? (parseInt(pr.consumableId,10)||0) : 0;
+        const consumableItem = consumableId ? (CONSUMABLES_DATA.find(x=>x.id===consumableId) || null) : null;
         let parts = [];
         if (mm > 0) parts.push('+'+mm+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon">');
         if (gg > 0) parts.push('+'+gg+' <img src="голд.png" alt="Золото" class="goldIcon">');
-        if (consumableName) parts.push('+1 ' + consumableName);
+        if (consumableItem) {
+          const img = String(consumableItem.img||'').trim();
+          const nm = String(consumableItem.name||'');
+          if (img) {
+            parts.push('+1 <img src="'+img+'" alt="'+nm+'" style="height:18px;width:auto;vertical-align:middle;border-radius:4px;box-shadow:0 0 0 1px rgba(0,0,0,.25);margin:0 2px;">'+nm);
+          } else {
+            parts.push('+1 '+nm);
+          }
+        }
         if (parts.length) {
           rew.innerHTML = parts.join(' ');
           rew.style.color = 'var(--gold)';
@@ -10754,7 +10782,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const key = districtTaskKey(dIdx, tIdx);
       const meta = districtTaskMeta(d.diff, tIdx, dIdx);
       const cnt = Math.max(0, (state.districtTaskCounts && state.districtTaskCounts[key]) ? (parseInt(state.districtTaskCounts[key]||0,10)||0) : 0);
-      if (cnt >= meta.max){ toast('Уже выполнено максимум','lose'); return; }
       const en = Math.floor(state.energy||0);
       if (en < meta.cost){ toast('Не хватает энергии ⚡','lose'); return; }
 
