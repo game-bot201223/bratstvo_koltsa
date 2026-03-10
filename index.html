@@ -3882,7 +3882,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
   async function sbFnCall(fnName, payload){
     const workersBase = String(WORKERS_API_URL||'').trim();
-    const useWorkers = !!workersBase && (fnName==='get_player' || fnName==='upsert_player');
+    const useWorkers = !!workersBase;
     const base = useWorkers ? workersBase : String(SUPABASE_URL||'').replace(/\/$/,'');
     if (!base) throw new Error('no_supabase_url');
     const url = useWorkers ? (base + '/api/' + fnName) : (base + '/functions/v1/' + encodeURIComponent(fnName));
