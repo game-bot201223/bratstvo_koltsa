@@ -2233,15 +2233,35 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (!isFriend && !isClan) return;
       }
 
-      // In cloud mode HP is server-authoritative; do not mutate local HP from events.
-      // Сервер применил урон — событие содержит фактический dmg, логируем его.
       if (isCloud) {
         const add = want;
         if (add<=0) return;
+        // Лог и топ
         bfLogPush(bid, nm, add);
         bfTopAdd(bid, nm, add);
+
+        // Пытаемся сразу уменьшить локальный HP, чтобы игрок видел эффект помощи.
+        try {
+          let f = bfGetFight(bid);
+          if (!f) {
+            try { f = bfEnsureFight(bid); } catch (e0) { f = null; }
+          }
+          if (f){
+            const hp0 = parseInt(f.hp||0,10)||0;
+            if (hp0 > 0){
+              const real = Math.min(add, hp0);
+              if (real > 0){
+                f.hp = Math.max(0, hp0 - real);
+                bfSetFight(bid, f);
+                try { bfCheckWin(bid); } catch (e1) {}
+              }
+            }
+          }
+        } catch (e3) {}
+
         save();
         try { bfRender(bid); } catch (e0) {}
+        // Далее подтягиваем фактическое состояние боя с сервера для выравнивания HP.
         try {
           requestAnimationFrame(function(){
             bossFightsCloudPullMaybe(true).then(function(){
@@ -4754,27 +4774,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       });
     }
   } catch (e) {}
-  try {
-    // Если район уже когда-то был полностью пройден (districtClearedEver),
-    // но счётчики задач по какой-то причине меньше максимума — дотягиваем их до max.
-    const data = districtData();
-    for (let dIdx = 0; dIdx < data.length; dIdx++){
-      const bk = 'D' + String(dIdx);
-      if (!state.districtClearedEver || !state.districtClearedEver[bk]) continue;
-      const d = data[dIdx];
-      if (!d) continue;
-      const tasks = Array.isArray(d.tasks) ? d.tasks : [];
-      if (!state.districtTaskCounts || typeof state.districtTaskCounts !== 'object') state.districtTaskCounts = {};
-      tasks.forEach((t, ti)=>{
-        try {
-          const key = districtTaskKey(dIdx, ti);
-          const meta = districtTaskMeta(d.diff, ti, dIdx);
-          const cur = Math.max(0, (parseInt(state.districtTaskCounts[key]||0,10)||0));
-          if (cur < meta.max) state.districtTaskCounts[key] = meta.max;
-        } catch (e0) {}
-      });
-    }
-  } catch (e) {}
+  // Раньше здесь была миграция, которая для уже пройденных районов
+  // дотягивала счётчики задач до максимума. Сейчас мы хотим, чтобы
+  // после полного прохождения района задания сбрасывались и район
+  // можно было фармить циклами, поэтому авто-дотягивание отключено.
   if (!state.bosses || typeof state.bosses !== 'object') state.bosses = Object.assign({}, defaults.bosses);
   if (!state.bosses.hp) state.bosses.hp = {};
   if (typeof state.bosses.wins !== 'number') state.bosses.wins = 0;
