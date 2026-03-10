@@ -4627,6 +4627,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     districtFear:{},
     districtBonusClaimed:{},
     districtClearedEver:{},
+    districtLoops:{},
     districtFearLeaders:{},
     districtDailyFear:{ day:'', byDistrict:{} },
     districtGateBossKilled:{},
@@ -4735,6 +4736,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
   if (!state.districtBonusClaimed || typeof state.districtBonusClaimed !== 'object') state.districtBonusClaimed = {};
   if (!state.districtClearedEver || typeof state.districtClearedEver !== 'object') state.districtClearedEver = {};
+  if (!state.districtLoops || typeof state.districtLoops !== 'object') state.districtLoops = {};
   if (!state.districtFearLeaders || typeof state.districtFearLeaders !== 'object') state.districtFearLeaders = {};
   if (!state.districtDailyFear || typeof state.districtDailyFear !== 'object') state.districtDailyFear = { day:'', byDistrict:{} };
   if (!state.districtDailyFear.byDistrict || typeof state.districtDailyFear.byDistrict !== 'object') state.districtDailyFear.byDistrict = {};
@@ -4960,7 +4962,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
       try {
         if (!state.districtClearedEver || typeof state.districtClearedEver !== 'object') state.districtClearedEver = {};
-        state.districtClearedEver[bk] = now();
+        if (!state.districtClearedEver[bk]) state.districtClearedEver[bk] = now();
       } catch (e0) {}
 
       try {
@@ -4968,8 +4970,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         districtDailyFearAdd(id, mult);
       } catch (e1) {}
 
-      if (!state.districtClearedBannerTs || typeof state.districtClearedBannerTs !== 'object') state.districtClearedBannerTs = {};
-      state.districtClearedBannerTs[bk] = now();
+      // Сбросить счётчики задач района для нового цикла фарма.
+      districtResetTasks(id);
+
+      if (!state.districtClearedBannerTs || typeof state.districtClearedBannerTs !== 'object') state.districtClearedBannerTs[bk] = now();
 
       toast('НАГРАДА: +'+mult+' XP, +'+mult+' '+TOAST_TOOTH_IMG+', +'+mult+' '+TOAST_FEAR_IMG,'win');
       feedAdd('Награда района: +'+mult+' XP, +'+mult+' зол. зубов, +'+mult+' страха','SYS');
@@ -10802,9 +10806,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       try {
         const allOk = districtAllTasksDone(dIdx);
         if (allOk){
-          const bk = 'D'+String(dIdx);
-          if (!state.districtClearedEver || typeof state.districtClearedEver !== 'object') state.districtClearedEver = {};
-          if (!state.districtClearedEver[bk]) state.districtClearedEver[bk] = now();
           districtCompletionAutoReward(dIdx);
         }
       } catch (e3) {}
