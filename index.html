@@ -3900,8 +3900,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const supaBase = String(SUPABASE_URL||'').replace(/\/$/,'');
     const workersBase = String(WORKERS_API_URL||'').trim();
     if (!supaBase && !workersBase) throw new Error('no_supabase_url');
-    const preferWorkers = fnName === 'boss_help_pull' || fnName === 'boss_help_send';
-    const useWorkers = !!workersBase && preferWorkers;
+
+    // По умолчанию, если есть Workers, используем их как прокси ко всем
+    // игровым функциям, чтобы минимизировать количество Edge Functions
+    // на Supabase и не упираться в их лимиты. Если WORKERS_API_URL не
+    // задан, ходим напрямую в Supabase Edge Functions.
+    const useWorkers = !!workersBase;
     const base = useWorkers ? workersBase : supaBase;
     if (!base) throw new Error('no_base_url');
     const url = useWorkers ? (base + '/api/' + fnName) : (base + '/functions/v1/' + encodeURIComponent(fnName));
