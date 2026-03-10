@@ -2324,11 +2324,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         try {
           if (!bossHelpShouldRun()) return;
           const t = now();
-          if (__bossHelpLast && (t - __bossHelpLast) < 600) return;
+          if (__bossHelpLast && (t - __bossHelpLast) < 3000) return;
           __bossHelpLast = t;
           bossHelpPullOnce().catch(()=>{});
         } catch (e0) {}
-      }, 900);
+      }, 4000);
     } catch (e) {}
   }
 
@@ -2358,7 +2358,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const t = now();
           const cc = $('mClanChat');
           const chatOpen = !!(cc && cc.classList.contains('show'));
-          const minGap = chatOpen ? 900 : 2500;
+          const minGap = chatOpen ? 3000 : 6000;
           if (__clanLiveLast && (t - __clanLiveLast) < minGap) return;
           __clanLiveLast = t;
           clansCloudPull()
@@ -2385,7 +2385,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             })
             .catch(()=>{});
         } catch (e0) {}
-      }, 450);
+      }, 2500);
     } catch (e) {}
   }
   function clanLiveStop(){
@@ -3630,6 +3630,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   let __srvSendT = 0;
   let __srvLastSent = 0;
   let __srvEnabled = true;
+  const MIN_CLOUD_SAVE_INTERVAL_MS = 5000; // не чаще раза в 5 сек — меньше нагрузка на Redis/API
   let __dbgOn = false;
   let __dbgFreeze = false;
   let __lastCloudErr = '';
@@ -3938,6 +3939,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             if (e && r) err = String(e)+':'+String(r);
             else if (e) err = String(e);
             else if (d) err = String(d);
+            if (e === 'missing_secret' && j.hint) err = err + ' (добавь в Workers: ' + String(j.hint) + ')';
             try {
               if (dbg && typeof dbg === 'object') {
                 const ph = dbg.provided_hash_prefix ? String(dbg.provided_hash_prefix) : '';
@@ -4045,6 +4047,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       } catch (e9) {}
 
       state.bosses.cloud = next;
+      try { state.bosses.cloudPullTs = now(); } catch (e9) {}
       save();
     } catch (e) {}
   }
@@ -4052,7 +4055,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       if (!force) {
         const ts = parseInt(state.bosses && state.bosses.cloudPullTs || 0, 10) || 0;
-        if (ts && now() - ts < 6000) return;
+        if (ts && now() - ts < 10000) return;
       }
       await cloudOnce('pull:boss_fights', ()=>bossFightsCloudPull());
     } catch (e) {}
@@ -4348,33 +4351,41 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (__srvInFlight) return;
     if (__srvSendT) return;
     __srvSendT = setTimeout(async ()=>{
-      __srvSendT = 0;
-      if (__srvInFlight) return;
-      if (!__srvEnabled) return;
-      if (!__srvDirty) return;
-      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
-      const initData = tgInitData();
-      if (!initData) return;
-      __srvDirty = false;
-      __srvInFlight = true;
-      try {
-        await serverDoUpsertAsync();
-      } catch (e) {
-        __srvDirty = true;
+      const run = async ()=>{
+        __srvSendT = 0;
+        if (__srvInFlight) return;
+        if (!__srvEnabled) return;
+        if (!__srvDirty) return;
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+        const initData = tgInitData();
+        if (!initData) return;
+        const elapsed = now() - __srvLastSent;
+        if (__srvLastSent > 0 && elapsed < MIN_CLOUD_SAVE_INTERVAL_MS) {
+          __srvSendT = setTimeout(run, MIN_CLOUD_SAVE_INTERVAL_MS - elapsed);
+          return;
+        }
+        __srvDirty = false;
+        __srvInFlight = true;
         try {
-          const msg = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim();
-          if (/name_taken/i.test(msg)) {
-            $('syncState').textContent = 'СЕЙВ: NAME TAKEN';
+          await serverDoUpsertAsync();
+        } catch (e) {
+          __srvDirty = true;
+          try {
+            const msg = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim();
+            if (/name_taken/i.test(msg)) {
+              $('syncState').textContent = 'СЕЙВ: NAME TAKEN';
+              $('syncState').style.opacity = '1';
+              return;
+            }
+            $('syncState').textContent = 'СЕЙВ: CLOUD ERR ' + msg.slice(0, 32);
             $('syncState').style.opacity = '1';
-            return;
-          }
-          $('syncState').textContent = 'СЕЙВ: CLOUD ERR ' + msg.slice(0, 32);
-          $('syncState').style.opacity = '1';
-        } catch (e2) {}
-      } finally {
-        __srvInFlight = false;
-        try { if (__srvDirty) serverMarkDirty(); } catch (e0) {}
-      }
+          } catch (e2) {}
+        } finally {
+          __srvInFlight = false;
+          try { if (__srvDirty) serverMarkDirty(); } catch (e0) {}
+        }
+      };
+      await run();
     }, 0);
   }
   function serverPushNow(){
