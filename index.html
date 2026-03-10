@@ -3881,6 +3881,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return await sbFnCallSkipNull('delete_clan', { initData, id });
     } catch (e) {}
   }
+  const __cloudMinGapMs = 2500;
+  let __cloudLastReqTs = 0;
+  let __cloudGatePromise = Promise.resolve();
   async function sbFnCall(fnName, payload){
     const workersBase = String(WORKERS_API_URL||'').trim();
     const useWorkers = !!workersBase;
@@ -3912,6 +3915,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       try { return String(fnName||'') + '::' + JSON.stringify(bodyObj||{}); } catch (e) { return String(fnName||''); }
     })();
     return await cloudOnce('act:'+reqKey, async ()=>{
+      const prev = __cloudGatePromise;
+      const myTurn = prev.then(async ()=>{
+        const t = now();
+        const elapsed = t - __cloudLastReqTs;
+        const wait = (__cloudLastReqTs > 0 && elapsed < __cloudMinGapMs) ? (__cloudMinGapMs - elapsed) : 0;
+        if (wait > 0) await new Promise(r=>setTimeout(r, wait));
+        __cloudLastReqTs = now();
+      });
+      __cloudGatePromise = myTurn;
+      await myTurn;
       const headers = {
         'Content-Type': 'application/json',
         'x-telegram-init-data': initData
@@ -8907,9 +8920,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return '';
     }
   }
+  let __bossPullLast = 0;
+  const BOSS_PULL_INTERVAL_MS = 12000;
   function renderBosses(){
-    try { bossFightsCloudPullMaybe().catch(()=>{}); } catch (e0) {}
-    try { bossLastWinnersCloudPullMaybe().catch(()=>{}); } catch (e1) {}
+    try {
+      const t = now();
+      if (t - __bossPullLast >= BOSS_PULL_INTERVAL_MS) {
+        __bossPullLast = t;
+        bossFightsCloudPullMaybe().catch(()=>{});
+        bossLastWinnersCloudPullMaybe().catch(()=>{});
+      }
+    } catch (e0) {}
     const BOSS_MEDAL_THRESHOLDS = BOSS_MEDAL_THRESHOLDS_DEFAULT;
     const box = $('bossList');
 
