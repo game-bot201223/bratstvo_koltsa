@@ -751,6 +751,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   letter-spacing:1.3px;
   font-size:12px;
   transition: transform var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
+  touch-action:manipulation;
+  user-select:none;
 }
 .btn:active{transform:translateY(1px);}
 .btnSmall{font-size:11px;padding:9px 13px;}
@@ -2195,6 +2197,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
               dbgUpdate();
             }
           } catch (e2) {}
+          bossHelpPullOnce().catch(()=>{});
         })
         .catch(()=>{});
     } catch (e) {}
@@ -2324,11 +2327,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         try {
           if (!bossHelpShouldRun()) return;
           const t = now();
-          if (__bossHelpLast && (t - __bossHelpLast) < 3000) return;
+          if (__bossHelpLast && (t - __bossHelpLast) < 150) return;
           __bossHelpLast = t;
           bossHelpPullOnce().catch(()=>{});
         } catch (e0) {}
-      }, 4000);
+      }, 300);
     } catch (e) {}
   }
 
@@ -2358,7 +2361,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const t = now();
           const cc = $('mClanChat');
           const chatOpen = !!(cc && cc.classList.contains('show'));
-          const minGap = chatOpen ? 3000 : 6000;
+          const minGap = chatOpen ? 1000 : 2000;
           if (__clanLiveLast && (t - __clanLiveLast) < minGap) return;
           __clanLiveLast = t;
           clansCloudPull()
@@ -2385,7 +2388,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             })
             .catch(()=>{});
         } catch (e0) {}
-      }, 2500);
+      }, 800);
     } catch (e) {}
   }
   function clanLiveStop(){
@@ -3630,9 +3633,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   let __srvSendT = 0;
   let __srvLastSent = 0;
   let __srvEnabled = true;
-  const MIN_CLOUD_SAVE_INTERVAL_MS = 15000; // не чаще раза в 15 сек — экономия запросов
+  const MIN_CLOUD_SAVE_INTERVAL_MS = 5000;
   let __srvLastMarkTs = 0;
-  const SAVE_MARK_THROTTLE_MS = 5000; // из save() не дергать облако чаще раза в 5 сек
+  const SAVE_MARK_THROTTLE_MS = 800;
   let __dbgOn = false;
   let __dbgFreeze = false;
   let __lastCloudErr = '';
@@ -3883,7 +3886,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return await sbFnCallSkipNull('delete_clan', { initData, id });
     } catch (e) {}
   }
-  const __cloudMinGapMs = 8000;
+  const __cloudMinGapMs = 0;
   let __cloudLastReqTs = 0;
   let __cloudGatePromise = Promise.resolve();
   async function sbFnCall(fnName, payload){
@@ -4070,7 +4073,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       if (!force) {
         const ts = parseInt(state.bosses && state.bosses.cloudPullTs || 0, 10) || 0;
-        if (ts && now() - ts < 10000) return;
+        if (ts && now() - ts < 2000) return;
       }
       await cloudOnce('pull:boss_fights', ()=>bossFightsCloudPull());
     } catch (e) {}
@@ -8927,7 +8930,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
   }
   let __bossPullLast = 0;
-  const BOSS_PULL_INTERVAL_MS = 12000;
+  const BOSS_PULL_INTERVAL_MS = 2000;
   function renderBosses(){
     try {
       const t = now();
@@ -9125,7 +9128,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try { box.__bossListBuilt = true; } catch (e0) {}
 
     const fho = $('friendHelpOpen');
-    if (fho) fho.onclick = ()=>{ showModal('mFriendHelp'); renderFriendHelp(); haptic('light'); };
+    if (fho) fho.onclick = ()=>{ bossHelpPullOnce().then(()=>{ showModal('mFriendHelp'); renderFriendHelp(); }).catch(()=>{ showModal('mFriendHelp'); renderFriendHelp(); }); haptic('light'); };
 
     box.querySelectorAll('[data-boss-attack]').forEach(btn=>{
       btn.onclick = ()=>{
@@ -9160,7 +9163,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         window.__skipBossFightGuard = true;
         if (bfEnsureFight(id)) {
           showModal('mBossFight');
-          bfRender(id);
+          bossHelpPullOnce().then(()=>{ bfRender(id); }).catch(()=>{ bfRender(id); });
         } else {
           state.bosses.activeFightId = 0;
           toast('Бой истёк или босс повержен','lose');
@@ -11636,7 +11639,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         renderHUD();
         save();
       } catch (e0) {}
-    }, 1000);
+    }, 500);
 
     // save on hide
     document.addEventListener('visibilitychange', ()=>{ if (document.hidden) save(); });
