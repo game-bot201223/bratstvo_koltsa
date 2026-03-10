@@ -10626,8 +10626,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const cnt = Math.max(0, (state.districtTaskCounts && state.districtTaskCounts[key]) ? (parseInt(state.districtTaskCounts[key]||0,10)||0) : 0);
           const done = cnt >= meta.max;
           const locked = districtTaskLocked(i, k, tasks.length);
-          const can = (!done) && (!locked) && (energy >= meta.cost);
-          const btnTxt = done ? 'ГОТОВО' : (locked ? 'НЕДОСТУПНО' : 'ВЫПОЛНИТЬ');
+          const can = (!locked) && (energy >= meta.cost);
+          const btnTxt = locked ? 'НЕДОСТУПНО' : (done ? 'ФАРМИТЬ' : 'ВЫПОЛНИТЬ');
           const btnStyle = 'height:34px; padding:0 12px; border-radius:999px; font-weight:900; letter-spacing:1px; border:1px solid rgba(255,255,255,.35);' + (can ? ' background:linear-gradient(180deg, rgba(37,99,235,.98), rgba(30,64,175,.98)); color:rgba(255,255,255,.98);' : ' background:rgba(120,120,120,.45); color:rgba(255,255,255,.92); opacity:.75;');
           const pct = meta.max>0 ? clamp((cnt/meta.max)*100, 0, 100) : 0;
           h += '<div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(45,30,18,.18)"></div>';
