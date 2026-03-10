@@ -4997,7 +4997,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       // Сбросить счётчики задач района для нового цикла фарма.
       districtResetTasks(id);
 
-      if (!state.districtClearedBannerTs || typeof state.districtClearedBannerTs !== 'object') state.districtClearedBannerTs[bk] = now();
+      if (!state.districtClearedBannerTs || typeof state.districtClearedBannerTs !== 'object') state.districtClearedBannerTs = {};
+      state.districtClearedBannerTs[bk] = now();
 
       toast('НАГРАДА: +'+mult+' XP, +'+mult+' '+TOAST_TOOTH_IMG+', +'+mult+' '+TOAST_FEAR_IMG,'win');
       feedAdd('Награда района: +'+mult+' XP, +'+mult+' зол. зубов, +'+mult+' страха','SYS');
@@ -10656,8 +10657,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const cnt = Math.min(rawCnt, max);
           const done = cnt >= max;
           const locked = districtTaskLocked(i, k, tasks.length);
-          const can = (!locked) && (energy >= meta.cost);
-          const btnTxt = locked ? 'НЕДОСТУПНО' : (done ? 'ФАРМИТЬ' : 'ВЫПОЛНИТЬ');
+          const can = (!locked) && (!done) && (energy >= meta.cost);
+          const btnTxt = locked ? 'НЕДОСТУПНО' : (done ? 'ГОТОВО' : 'ВЫПОЛНИТЬ');
           const btnStyle = 'height:34px; padding:0 12px; border-radius:999px; font-weight:900; letter-spacing:1px; border:1px solid rgba(255,255,255,.35);' + (can ? ' background:linear-gradient(180deg, rgba(37,99,235,.98), rgba(30,64,175,.98)); color:rgba(255,255,255,.98);' : ' background:rgba(120,120,120,.45); color:rgba(255,255,255,.92); opacity:.75;');
           const pct = max>0 ? clamp((cnt/max)*100, 0, 100) : 0;
           h += '<div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(45,30,18,.18)"></div>';
