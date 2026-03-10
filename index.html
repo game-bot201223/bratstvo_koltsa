@@ -4774,10 +4774,31 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       });
     }
   } catch (e) {}
-  // Раньше здесь была миграция, которая для уже пройденных районов
-  // дотягивала счётчики задач до максимума. Сейчас мы хотим, чтобы
-  // после полного прохождения района задания сбрасывались и район
-  // можно было фармить циклами, поэтому авто-дотягивание отключено.
+  // Миграция старого состояния районов: раньше счётчики задач могли
+  // накапливаться поверх максимума (например 11/5). Теперь после
+  // полного прохождения района мы сбрасываем задачи в 0, поэтому
+  // при загрузке обрезаем старые значения до диапазона [0, max).
+  try {
+    const data = districtData();
+    for (let dIdx = 0; dIdx < data.length; dIdx++){
+      const d = data[dIdx];
+      if (!d) continue;
+      const tasks = Array.isArray(d.tasks) ? d.tasks : [];
+      if (!state.districtTaskCounts || typeof state.districtTaskCounts !== 'object') state.districtTaskCounts = {};
+      tasks.forEach((t, ti)=>{
+        try {
+          const key = districtTaskKey(dIdx, ti);
+          const meta = districtTaskMeta(d.diff, ti, dIdx);
+          const max = Math.max(1, parseInt(meta.max||0,10)||0);
+          const cur = Math.max(0, parseInt(state.districtTaskCounts[key]||0,10)||0);
+          if (cur >= max){
+            // После полного цикла район считается обновлённым — считаем остаток.
+            state.districtTaskCounts[key] = cur % max;
+          }
+        } catch (e0) {}
+      });
+    }
+  } catch (e) {}
   if (!state.bosses || typeof state.bosses !== 'object') state.bosses = Object.assign({}, defaults.bosses);
   if (!state.bosses.hp) state.bosses.hp = {};
   if (typeof state.bosses.wins !== 'number') state.bosses.wins = 0;
