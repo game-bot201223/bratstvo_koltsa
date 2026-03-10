@@ -10651,13 +10651,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         for (let k=0;k<tasks.length;k++){
           const meta = districtTaskMeta(diff, k, i);
           const key = districtTaskKey(i, k);
-          const cnt = Math.max(0, (state.districtTaskCounts && state.districtTaskCounts[key]) ? (parseInt(state.districtTaskCounts[key]||0,10)||0) : 0);
-          const done = cnt >= meta.max;
+          const rawCnt = Math.max(0, (state.districtTaskCounts && state.districtTaskCounts[key]) ? (parseInt(state.districtTaskCounts[key]||0,10)||0) : 0);
+          const max = Math.max(1, parseInt(meta.max||0,10)||0);
+          const cnt = Math.min(rawCnt, max);
+          const done = cnt >= max;
           const locked = districtTaskLocked(i, k, tasks.length);
           const can = (!locked) && (energy >= meta.cost);
           const btnTxt = locked ? 'НЕДОСТУПНО' : (done ? 'ФАРМИТЬ' : 'ВЫПОЛНИТЬ');
           const btnStyle = 'height:34px; padding:0 12px; border-radius:999px; font-weight:900; letter-spacing:1px; border:1px solid rgba(255,255,255,.35);' + (can ? ' background:linear-gradient(180deg, rgba(37,99,235,.98), rgba(30,64,175,.98)); color:rgba(255,255,255,.98);' : ' background:rgba(120,120,120,.45); color:rgba(255,255,255,.92); opacity:.75;');
-          const pct = meta.max>0 ? clamp((cnt/meta.max)*100, 0, 100) : 0;
+          const pct = max>0 ? clamp((cnt/max)*100, 0, 100) : 0;
           h += '<div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(45,30,18,.18)"></div>';
           h += '<div style="display:grid; grid-template-columns: minmax(0,1fr) 92px 62px 112px; gap:8px; align-items:center; '+(locked ? 'opacity:.45; filter:grayscale(1);' : '')+'">';
           h += '<div style="min-width:0">'
@@ -10666,7 +10668,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             + '<div style="flex:1; height:8px; border-radius:999px; border:1px solid rgba(45,30,18,.28); background:rgba(255,255,255,.55); overflow:hidden">'
             + '<div style="height:100%; width:'+pct.toFixed(2)+'%; background:linear-gradient(90deg, rgba(187,36,36,.92), rgba(122,26,26,.92))"></div>'
             + '</div>'
-            + '<div style="font-size:11px; font-weight:900; opacity:.78; white-space:nowrap">'+cnt+'/'+meta.max+'</div>'
+            + '<div style="font-size:11px; font-weight:900; opacity:.78; white-space:nowrap">'+cnt+'/'+max+'</div>'
             + '</div>'
             + '</div>';
           h += '<div style="text-align:center; font-size:12px; font-weight:900; opacity:.95; overflow:hidden">'+(meta.fear ? ('<img src="страх.png" alt="Страх" class="fearIcon"> '+fmt4(meta.fear)) : ('<img src="голд.png" alt="Золото" class="goldIcon"> '+fmt4(meta.gold)))+'<div style="font-size:10px; opacity:.8; margin-top:2px">+ '+meta.xp+' XP</div></div>';
