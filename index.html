@@ -3,14 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
- <meta name="theme-color" content="#e2d6bc" />
- <!-- Workers+Redis -->
- <meta name="workers-api-url" content="https://bratstvo-koltsa.sshydlovskyi2027.workers.dev" />
- <title>Братство Конца — Mobile TG Edition</title>
- <script src="https://telegram.org/js/telegram-web-app.js"></script>
- <script>
-   (function(){ var m=document.querySelector('meta[name="workers-api-url"]'); if(m&&m.content) window.WORKERS_API_URL=m.content.trim(); })();
- </script>
+<meta name="theme-color" content="#e2d6bc" />
+<title>Братство Конца — Mobile TG Edition</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&display=swap" rel="stylesheet">
  <style>
 :root{
@@ -3634,8 +3629,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   const BUILD_ID = '2026-03-04_13-26_clanid_deputy';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
-  // Задать перед загрузкой: window.WORKERS_API_URL='https://xxx.workers.dev' — для Workers+Redis
-  const WORKERS_API_URL = (window && window.WORKERS_API_URL) ? String(window.WORKERS_API_URL||'').replace(/\/$/,'') : '';
   let __srvDirty = false;
   let __srvSendT = 0;
   let __srvLastSent = 0;
@@ -3898,17 +3891,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   let __cloudGatePromise = Promise.resolve();
   async function sbFnCall(fnName, payload){
     const supaBase = String(SUPABASE_URL||'').replace(/\/$/,'');
-    const workersBase = String(WORKERS_API_URL||'').trim();
-    if (!supaBase && !workersBase) throw new Error('no_supabase_url');
-
-    // По умолчанию, если есть Workers, используем их как прокси ко всем
-    // игровым функциям, чтобы минимизировать количество Edge Functions
-    // на Supabase и не упираться в их лимиты. Если WORKERS_API_URL не
-    // задан, ходим напрямую в Supabase Edge Functions.
-    const useWorkers = !!workersBase;
-    const base = useWorkers ? workersBase : supaBase;
-    if (!base) throw new Error('no_base_url');
-    const url = useWorkers ? (base + '/api/' + fnName) : (base + '/functions/v1/' + encodeURIComponent(fnName));
+    if (!supaBase) throw new Error('no_supabase_url');
+    const base = supaBase;
+    const url = base + '/functions/v1/' + encodeURIComponent(fnName);
     const initData = tgInitData();
     let bodyObj = payload||{};
     try {
@@ -3946,12 +3931,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       await myTurn;
       const headers = {
         'Content-Type': 'application/json',
-        'x-telegram-init-data': initData
+        'x-telegram-init-data': initData,
+        'apikey': String(SUPABASE_ANON_KEY||''),
+        'Authorization': 'Bearer ' + String(SUPABASE_ANON_KEY||'')
       };
-      if (!useWorkers) {
-        headers['apikey'] = String(SUPABASE_ANON_KEY||'');
-        headers['Authorization'] = 'Bearer ' + String(SUPABASE_ANON_KEY||'');
-      }
       const resp = await fetch(url, {
         method: 'POST',
         headers: headers,
