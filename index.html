@@ -7865,18 +7865,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const he = parseInt(hs.enema||0,10)||0;
     try {
       const q2 = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
+      const prevHp = Math.max(0, parseInt(f.hp||0,10)||0);
       const setDmgQty = (dmgEl, qtyEl, dmgVal, qtyTxt) => {
         if (dmgEl) dmgEl.textContent = dmgVal;
         if (qtyEl) qtyEl.textContent = qtyTxt;
       };
-      // Ногой: +1 урон за каждые 15 характеристик в зале
-      setDmgQty($('bfFreeHitDmg'), $('bfFreeHitQty'), 'УРОН ' + Math.max(1, bossHitDmg(15, 50)), '1 раз');
-      // Пинок: +1 урон за каждые 20 характеристик
-      setDmgQty($('bfHit1Dmg'), $('bfHit1Qty'), 'УРОН ' + (Math.max(1, bossHitDmg(20, 70)) * q2), ''+hk);
-      // Костет: +1 урон за каждые 10 характеристик
-      setDmgQty($('bfHit2Dmg'), $('bfHit2Qty'), 'УРОН ' + (Math.max(1, bossHitDmg(10, 85)) * q2), ''+hn);
-      // Клизма: +1 урон за каждые 5 характеристик
-      setDmgQty($('bfHit3Dmg'), $('bfHit3Qty'), 'УРОН ' + (Math.max(1, bossHitDmg(5, 100)) * q2), ''+he);
+      // Те же формулы, что при ударе: doFreeHit использует (14,50), doTokenHit — (10,70),(7,85),(4,100)
+      const freeDmg = Math.max(1, bossHitDmg(14, 50));
+      const kickDmg = Math.max(1, bossHitDmg(10, 70)) * q2;
+      const knuckleDmg = Math.max(1, bossHitDmg(7, 85)) * q2;
+      const enemaDmg = Math.max(1, bossHitDmg(4, 100)) * q2;
+      setDmgQty($('bfFreeHitDmg'), $('bfFreeHitQty'), 'УРОН ' + Math.min(prevHp, freeDmg), '1 раз');
+      setDmgQty($('bfHit1Dmg'), $('bfHit1Qty'), 'УРОН ' + Math.min(prevHp, kickDmg), ''+hk);
+      setDmgQty($('bfHit2Dmg'), $('bfHit2Qty'), 'УРОН ' + Math.min(prevHp, knuckleDmg), ''+hn);
+      setDmgQty($('bfHit3Dmg'), $('bfHit3Qty'), 'УРОН ' + Math.min(prevHp, enemaDmg), ''+he);
     } catch (e) {}
 
     try {
@@ -7981,13 +7983,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         ff.lastFriendTs = now();
 
         const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
-        const applied = (fhp!==null) ? Math.max(0, prevHp - Math.max(0, fhp)) : wantApply;
-        bfLogPush(bossId, state.playerName||'PLAYER', applied);
-        bfTopAdd(bossId, state.playerName||'PLAYER', applied);
         try {
           if (fhp!==null) ff.hp = Math.max(0, fhp);
-          else ff.hp = Math.max(0, prevHp - applied);
+          else ff.hp = Math.max(0, prevHp - wantApply);
         } catch (e1) {}
+        bfLogPush(bossId, state.playerName||'PLAYER', wantApply);
+        bfTopAdd(bossId, state.playerName||'PLAYER', wantApply);
         try {
           if (fhp!==null) {
             if (!state.bosses.cloud || typeof state.bosses.cloud !== 'object') state.bosses.cloud = {};
@@ -7996,8 +7997,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           }
         } catch (e9) {}
         bfSetFight(bossId, ff);
-        clanAddBossDamage(applied, state.playerName||'PLAYER');
-        try { bossHelpSend(bossId, applied); } catch (e0) {}
+        clanAddBossDamage(wantApply, state.playerName||'PLAYER');
+        try { bossHelpSend(bossId, wantApply); } catch (e0) {}
         bfCheckWin(bossId);
         try { bossFightsCloudPullMaybe(); } catch (e2) {}
         save();
@@ -8084,13 +8085,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         state.bosses.hitStocks = hs2;
 
         const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
-        const applied = (fhp!==null) ? Math.max(0, prevHp - Math.max(0, fhp)) : wantApply;
-        bfLogPush(bossId, state.playerName||'PLAYER', applied);
-        bfTopAdd(bossId, state.playerName||'PLAYER', applied);
         try {
           if (fhp!==null) ff.hp = Math.max(0, fhp);
-          else ff.hp = Math.max(0, prevHp - applied);
+          else ff.hp = Math.max(0, prevHp - wantApply);
         } catch (e1) {}
+        bfLogPush(bossId, state.playerName||'PLAYER', wantApply);
+        bfTopAdd(bossId, state.playerName||'PLAYER', wantApply);
         try {
           if (fhp!==null) {
             if (!state.bosses.cloud || typeof state.bosses.cloud !== 'object') state.bosses.cloud = {};
@@ -8099,8 +8099,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           }
         } catch (e9) {}
         bfSetFight(bossId, ff);
-        clanAddBossDamage(applied);
-        try { bossHelpSend(bossId, applied); } catch (e0) {}
+        clanAddBossDamage(wantApply);
+        try { bossHelpSend(bossId, wantApply); } catch (e0) {}
         bfCheckWin(bossId);
         try { bossFightsCloudPullMaybe(); } catch (e2) {}
         save();
