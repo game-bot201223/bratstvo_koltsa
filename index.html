@@ -2152,23 +2152,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function bossHelpShouldRun(){
     try {
       if (bossUiOpen()) return true;
+      const fh = $('mFriendHelp');
+      if (fh && fh.classList.contains('show')) return true;
     } catch (e0) {}
-
-    try {
-      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-        const cid = clanFindMyClanId();
-        const frOk = Array.isArray(state && state.friends) && state.friends.length > 0;
-        if (cid || frOk) return true;
-      }
-    } catch (e2) {}
-
-    try {
-      const id = parseInt(state && state.bosses && state.bosses.activeFightId || 0, 10) || 0;
-      if (id > 0) {
-        const f = bfGetFight(id);
-        if (f && (parseInt(f.hp||0,10)||0) > 0) return true;
-      }
-    } catch (e1) {}
+    // В остальных случаях (игрок не смотрит на боссов/помощь) — не поллим.
     return false;
   }
   function bossUiOpen(){
@@ -2327,11 +2314,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         try {
           if (!bossHelpShouldRun()) return;
           const t = now();
-          if (__bossHelpLast && (t - __bossHelpLast) < 150) return;
+          if (__bossHelpLast && (t - __bossHelpLast) < 1400) return;
           __bossHelpLast = t;
           bossHelpPullOnce().catch(()=>{});
         } catch (e0) {}
-      }, 300);
+      }, 1500);
     } catch (e) {}
   }
 
