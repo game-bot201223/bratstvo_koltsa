@@ -3877,11 +3877,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   let __cloudLastReqTs = 0;
   let __cloudGatePromise = Promise.resolve();
   async function sbFnCall(fnName, payload){
-    // Временно обрабатываем все вызовы напрямую через Supabase Edge Functions,
-    // не используя Cloudflare Workers как прокси.
-    const base = String(SUPABASE_URL||'').replace(/\/$/,'');
-    if (!base) throw new Error('no_supabase_url');
-    const url = base + '/functions/v1/' + encodeURIComponent(fnName);
+    const supaBase = String(SUPABASE_URL||'').replace(/\/$/,'');
+    const workersBase = String(WORKERS_API_URL||'').trim();
+    if (!supaBase && !workersBase) throw new Error('no_supabase_url');
+    const preferWorkers = fnName === 'boss_help_pull' || fnName === 'boss_help_send';
+    const useWorkers = !!workersBase && preferWorkers;
+    const base = useWorkers ? workersBase : supaBase;
+    if (!base) throw new Error('no_base_url');
+    const url = useWorkers ? (base + '/api/' + fnName) : (base + '/functions/v1/' + encodeURIComponent(fnName));
     const initData = tgInitData();
     let bodyObj = payload||{};
     try {
@@ -3921,8 +3924,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         'Content-Type': 'application/json',
         'x-telegram-init-data': initData
       };
-      headers['apikey'] = String(SUPABASE_ANON_KEY||'');
-      headers['Authorization'] = 'Bearer ' + String(SUPABASE_ANON_KEY||'');
+      if (!useWorkers) {
+        headers['apikey'] = String(SUPABASE_ANON_KEY||'');
+        headers['Authorization'] = 'Bearer ' + String(SUPABASE_ANON_KEY||'');
+      }
       const resp = await fetch(url, {
         method: 'POST',
         headers: headers,
