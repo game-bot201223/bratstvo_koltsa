@@ -3630,7 +3630,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   let __srvSendT = 0;
   let __srvLastSent = 0;
   let __srvEnabled = true;
-  const MIN_CLOUD_SAVE_INTERVAL_MS = 5000; // не чаще раза в 5 сек — меньше нагрузка на Redis/API
+  const MIN_CLOUD_SAVE_INTERVAL_MS = 15000; // не чаще раза в 15 сек — экономия запросов
+  let __srvLastMarkTs = 0;
+  const SAVE_MARK_THROTTLE_MS = 5000; // из save() не дергать облако чаще раза в 5 сек
   let __dbgOn = false;
   let __dbgFreeze = false;
   let __lastCloudErr = '';
@@ -3881,7 +3883,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return await sbFnCallSkipNull('delete_clan', { initData, id });
     } catch (e) {}
   }
-  const __cloudMinGapMs = 2500;
+  const __cloudMinGapMs = 8000;
   let __cloudLastReqTs = 0;
   let __cloudGatePromise = Promise.resolve();
   async function sbFnCall(fnName, payload){
@@ -4496,7 +4498,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const cloudEnabled = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
         if (el) el.textContent = cloudEnabled ? 'СЕЙВ: CLOUD' : 'СЕЙВ: LOCAL';
       } catch (e0) {}
-      try { serverMarkDirty(); } catch (e1) {}
+      const t = now();
+      if (t - __srvLastMarkTs >= SAVE_MARK_THROTTLE_MS) {
+        __srvLastMarkTs = t;
+        try { serverMarkDirty(); } catch (e1) {}
+      }
     } catch (e) {
       try {
         const el = $('syncState');
