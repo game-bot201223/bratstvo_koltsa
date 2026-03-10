@@ -4,6 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#e2d6bc" />
+<!-- Telegram ID единственного админа (узнать: написать @userinfobot в Telegram) -->
+<meta name="admin-tg-id" content="8794843839" />
 <!-- Ссылка на группу в Telegram (например https://t.me/bratstvo_koltsa_group) -->
 <meta name="telegram-group-url" content="https://t.me/+fHMBRFCqk39lYjJi" />
 <title>Братство Конца — Mobile TG Edition</title>
@@ -3609,6 +3611,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
   const TELEGRAM_GROUP_LINK = (function(){ var m=document.querySelector('meta[name="telegram-group-url"]'); if(m&&m.content&&String(m.content).trim()) return String(m.content).trim(); return (window && window.TELEGRAM_GROUP_URL) ? String(window.TELEGRAM_GROUP_URL||'').trim() : ''; })();
+  const ADMIN_TG_ID = (function(){ var m=document.querySelector('meta[name="admin-tg-id"]'); if(m&&m.content&&String(m.content).trim()) return String(m.content).trim(); return (window && window.ADMIN_TG_ID) ? String(window.ADMIN_TG_ID||'').trim() : ''; })();
   let __srvDirty = false;
   let __srvSendT = 0;
   let __srvLastSent = 0;
@@ -3727,6 +3730,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const id = u && (u.id || u.id===0) ? String(u.id) : '';
       return id;
     } catch (e) { return ''; }
+  }
+  function isAdmin(){
+    if (!ADMIN_TG_ID) return false;
+    return myTgUserId() === ADMIN_TG_ID;
   }
 
   function tgSuggestedName(){
