@@ -1023,7 +1023,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  #mBattle .hpFill{height:100%;width:0%;background:linear-gradient(90deg, rgba(52,211,153,.95), rgba(34,211,238,.85));}
  #mBattle .hpIn{position:absolute;inset:-8px 0 auto 0;height:22px;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:1px;white-space:nowrap;color:rgba(255,255,255,.98);font-weight:900;pointer-events:none;}
  #mBattle .hpTxt{font-size:11px;letter-spacing:1px;white-space:nowrap;}
-  #mBattle #bLog .feedItem{padding:5px 7px;border-radius:12px;font-size:10px;line-height:1.2;}
+ #mBattle #bLogDmg .feedItem,
+ #mBattle #bLogItems .feedItem{padding:5px 7px;border-radius:12px;font-size:10px;line-height:1.2;}
   #mBattle #bMyTeam .badge,
   #mBattle #bEnemyTeam .badge{width:100%;}
   #mBattle #bMyTeam .hpBar,
@@ -1729,7 +1730,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
       <div class="card" style="margin-top:10px;">
         <div class="row"><div class="k">ЛОГ БОЯ</div></div>
-        <div style="margin-top:8px; display:flex; flex-direction:column; gap:4px;" id="bLog"></div>
+        <div style="margin-top:8px; display:flex; gap:8px; align-items:flex-start;">
+          <div style="flex:1; min-width:0;">
+            <div class="k" style="font-size:10px; margin-bottom:4px;">УРОН</div>
+            <div style="display:flex; flex-direction:column; gap:4px;" id="bLogDmg"></div>
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div class="k" style="font-size:10px; margin-bottom:4px;">РАСХОДНИКИ</div>
+            <div style="display:flex; flex-direction:column; gap:4px;" id="bLogItems"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -5595,7 +5605,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           });
         }
       } catch (e0) {}
-      const sorted = list.slice().sort((a,b)=>{
+      // сортируем по уровню и силе уже с учётом облачных данных
+      const sorted = list.slice().map(f=>brosMergeCloudIntoFriend(f)).sort((a,b)=>{
         const al = parseInt(a && a.lvl || 1,10)||1;
         const bl = parseInt(b && b.lvl || 1,10)||1;
         if (bl !== al) return bl - al;
@@ -5604,8 +5615,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         return bp - ap;
       }).slice(0, 100);
       badge.textContent = String(sorted.length);
-      box.innerHTML = sorted.length ? sorted.map((f,idx)=>{
-        const fc = brosMergeCloudIntoFriend(f);
+      box.innerHTML = sorted.length ? sorted.map((fc,idx)=>{
         const photoUrl = (fc.photo_url || brosPhotoFor(fc.name)) ? String(fc.photo_url || brosPhotoFor(fc.name)).trim() : '';
         const ava = photoUrl ? ('<img src="'+photoUrl.replace(/"/g,'&quot;')+'" style="width:28px;height:28px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.45);flex-shrink:0;" />') : '<div style="width:28px;height:28px;border-radius:999px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.2);flex-shrink:0;"></div>';
         const medal = idx===0 ? '🥇' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
@@ -6817,26 +6827,47 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     });
 
-    const log = $('bLog');
-    log.innerHTML = '';
+    const logDmg = $('bLogDmg');
+    const logItems = $('bLogItems');
+    if (logDmg) logDmg.innerHTML = '';
+    if (logItems) logItems.innerHTML = '';
     const playerName = String(state.playerName||'ТЫ').trim();
-    const flt = (b.log||[]).filter(ev=>{
+    const all = (b.log||[]).filter(ev=>{
       if (!ev) return false;
       const tx = (ev.text) ? String(ev.text) : '';
       if (!tx) return false;
-      if (ev.kind === 'SYS') return false;
-      if (tx.indexOf('Ты ') === 0) return true;
-      if (tx.indexOf('Противник') >= 0 && (tx.indexOf('ТЫ') >= 0 || (playerName && tx.indexOf(playerName) >= 0))) return true;
       return false;
     });
-    flt.slice(0, 11).forEach(ev=>{
-      const d = document.createElement('div');
-      d.className = 'feedItem';
-      if (ev && ev.kind==='MISS') d.style.color = 'rgba(52,211,153,.95)';
-      if (ev && ev.kind==='CRIT') d.style.color = 'rgba(251,113,133,.95)';
-      d.textContent = (ev && ev.text) ? ev.text : String(ev||'');
-      log.appendChild(d);
+    const dmgEvents = all.filter(ev=>{
+      const tx = String(ev.text||'');
+      if (ev.kind === 'SYS') return false;
+      if (tx.indexOf('Ты ') === 0) return true;
+      if (tx.indexOf('Противник') >= 0 && (tx.indexOf('тебе') >= 0 || tx.indexOf('ТЕБЕ') >= 0 || (playerName && tx.indexOf(playerName) >= 0))) return true;
+      return false;
     });
+    const consumableEvents = all.filter(ev=>{
+      const tx = String(ev.text||'');
+      return tx.indexOf('аптечк') >= 0 || tx.indexOf('гранат') >= 0 || tx.indexOf('бомб') >= 0 || tx.indexOf('динамит') >= 0;
+    });
+
+    if (logDmg){
+      dmgEvents.slice(0, 11).forEach(ev=>{
+        const d = document.createElement('div');
+        d.className = 'feedItem';
+        if (ev && ev.kind==='MISS') d.style.color = 'rgba(52,211,153,.95)';
+        if (ev && ev.kind==='CRIT') d.style.color = 'rgba(251,113,133,.95)';
+        d.textContent = (ev && ev.text) ? ev.text : String(ev||'');
+        logDmg.appendChild(d);
+      });
+    }
+    if (logItems){
+      consumableEvents.slice(0, 11).forEach(ev=>{
+        const d = document.createElement('div');
+        d.className = 'feedItem';
+        d.textContent = (ev && ev.text) ? ev.text : String(ev||'');
+        logItems.appendChild(d);
+      });
+    }
   }
 
   function battleHit(id){
