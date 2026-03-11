@@ -31,33 +31,43 @@
   --btnBorder:rgba(56,42,28,.22);
   --surfaceCaramel:var(--caramel);
   --paperDark:var(--caramel);
+  /* Яркая контрастная палитра для мобильных экранов (Genshin/Hollow Knight style) */
   --accent:#c084fc;
   --accent2:#a855f7;
   --energy:#0ea5e9;
-  --gold:#eab308;
-  --silver:#cbd5e1;
+  --gold:#f59e0b;
+  --silver:#e2e8f0;
   --tooth:#c026d3;
   --win:#10b981;
-  --lose:#f43f5e;
+  --lose:#ef4444;
   --r:20px;
   --r2:16px;
   --r3:12px;
-  /* AAA-style: реалистичные многослойные тени (PBR-like soft shadows) */
-  --shadowAmbient: 0 2px 4px rgba(28,22,16,.04);
-  --shadowKey: 0 4px 12px rgba(28,22,16,.08), 0 2px 6px rgba(28,22,16,.05);
-  --shadowLift: 0 8px 24px rgba(28,22,16,.1), 0 4px 12px rgba(28,22,16,.06);
-  --shadowDramatic: 0 12px 40px rgba(28,22,16,.14), 0 6px 20px rgba(28,22,16,.08);
+  /* Touch targets: минимум 44px для 6" экрана (п.41) */
+  --touch-min: 44px;
+  /* Soft shadows + low-res blur для мобильной оптимизации (п.58) */
+  --shadowAmbient: 0 2px 4px rgba(28,22,16,.05);
+  --shadowKey: 0 4px 12px rgba(28,22,16,.08), 0 2px 6px rgba(28,22,16,.04);
+  --shadowLift: 0 8px 24px rgba(28,22,16,.1), 0 4px 12px rgba(28,22,16,.05);
+  --shadowDramatic: 0 12px 40px rgba(28,22,16,.12), 0 6px 20px rgba(28,22,16,.06);
   --shadowInsetTop: inset 0 1px 0 rgba(255,255,255,.5);
   --shadowInsetAO: inset 0 2px 4px rgba(0,0,0,.04);
   --shadowSm: var(--shadowAmbient);
   --shadowMd: var(--shadowKey);
   --shadowLg: var(--shadowDramatic);
   --shadowInset: var(--shadowInsetTop);
-  /* Кинематографическое освещение (цвет теней/подсветки) */
-  --lightWarm: rgba(255,248,235,.12);
+  /* Screen glow для магических/важных элементов (п.32) */
+  --glowGold: 0 0 12px rgba(245,158,11,.25), 0 0 24px rgba(245,158,11,.12);
+  --glowEnergy: 0 0 12px rgba(14,165,233,.25), 0 0 24px rgba(14,165,233,.12);
+  --glowWin: 0 0 10px rgba(16,185,129,.2);
+  --glowRim: 0 0 0 1px rgba(255,255,255,.35), 0 0 16px rgba(255,248,235,.3);
+  /* Gradient overlay для читабельности UI (п.39) */
+  --uiOverlay: linear-gradient(180deg, rgba(0,0,0,.03) 0%, transparent 12%, transparent 88%, rgba(0,0,0,.02) 100%);
+  /* Кинематографическое освещение */
+  --lightWarm: rgba(255,248,235,.14);
   --lightCool: rgba(220,235,255,.06);
-  --vignette: radial-gradient(ellipse 120% 100% at 50% 50%, transparent 35%, rgba(20,15,10,.25) 85%, rgba(12,8,5,.45) 100%);
-  /* Кинетика */
+  --vignette: radial-gradient(ellipse 130% 110% at 50% 50%, transparent 40%, rgba(20,15,10,.18) 80%, rgba(12,8,5,.32) 100%);
+  /* Кинетика: плавные анимации 60fps (п.8) */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -159,7 +169,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .hud{padding:6px 14px 5px;}
 .hudRow{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .hud .hudRow{gap:5px;}
-.globalChatBtn{width:42px;height:42px;border-radius:50%;flex-shrink:0;border:1px solid var(--btnBorder);background:var(--caramel);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;padding:0;box-shadow: var(--shadowKey), var(--shadowInsetTop);transition: transform var(--transition-fast), box-shadow var(--transition-fast);}
+.globalChatBtn{width:44px;height:44px;min-width:44px;min-height:44px;border-radius:50%;flex-shrink:0;border:1px solid var(--btnBorder);background:var(--caramel);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;padding:0;box-shadow: var(--shadowKey), var(--shadowInsetTop);transition: transform var(--transition-fast), box-shadow var(--transition-fast);}
 .globalChatBtn:active{transform:scale(0.94);box-shadow:none;}
 .hud .name{gap:5px;}
 .hud .nameCol{gap:1px;}
@@ -190,7 +200,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .energyPill{flex-direction:column;align-items:flex-start;gap:2px;line-height:1.05;}
 .energyPill .eRow{display:flex;align-items:center;gap:6px;}
 .energyPill .eTimer{font-size:9px;letter-spacing:1.5px;opacity:.70;margin-left:16px;}
-.energyRefillBtn{flex-shrink:0;min-width:auto;height:26px;padding:0 8px;border-radius:13px;border:1px solid rgba(14,165,233,.5);background:rgba(14,165,233,.22);color:var(--energy);font-size:11px;line-height:1;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:3px;transition:transform .15s, background .15s, box-shadow .15s;box-shadow: 0 1px 4px rgba(14,165,233,.2), inset 0 1px 0 rgba(255,255,255,.25);}
+/* Лёгкий screen glow для блока энергии (п.32) */
+.energyPill{ box-shadow: 0 0 8px rgba(14,165,233,.12); border-radius:999px; }
+.energyRefillBtn{flex-shrink:0;min-width:auto;height:26px;padding:0 8px;border-radius:13px;border:1px solid rgba(14,165,233,.5);background:rgba(14,165,233,.22);color:var(--energy);font-size:11px;line-height:1;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:3px;transition:transform .15s, background .15s, box-shadow .15s;box-shadow: 0 1px 4px rgba(14,165,233,.2), inset 0 1px 0 rgba(255,255,255,.25), var(--glowEnergy);}
 .energyRefillBtn .energyRefillLabel{display:inline-flex;align-items:center;gap:2px;}
 .energyRefillBtn:hover{background:rgba(14,165,233,.35);}
 .energyRefillBtn:active{transform:scale(0.9);box-shadow:none;}
@@ -203,10 +215,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .xpRow .xp{flex:1;min-width:0;}
 .xpRow .lvl{flex:0 0 auto;white-space:nowrap;}
 .xp{margin-top:0;margin-bottom:6px;position:relative;height:20px;border-radius:999px;background:var(--caramel);border:1px solid var(--paperLine);overflow:hidden;box-shadow: var(--shadowInsetTop), var(--shadowInsetAO);}
-.xpFill{position:absolute;inset:0;width:0%;background:linear-gradient(90deg, var(--caramelDark) 0%, var(--caramel) 100%);transition: width 0.5s var(--ease-out);}
+.xpFill{position:absolute;inset:0;width:0%;background:linear-gradient(90deg, var(--caramelDark) 0%, var(--caramel) 100%);transition: width 0.5s var(--ease-out);box-shadow: 0 0 8px rgba(255,248,235,.2);}
 .xpText{position:relative;z-index:1;font-size:10px;letter-spacing:1.5px;text-align:center;line-height:20px;opacity:.96;font-weight:800;}
 
-/* Main — без боковых отступов для картинки на всю ширину */
+/* Main — глубина: передний план (персонаж), средний (hero grid), фон (feed) — п.9 */
 .main{
   padding:0 0 16px 0;
   flex:1;
@@ -220,6 +232,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   width:100%;
   max-width:100%;
   box-sizing:border-box;
+  position:relative;
 }
 .mainCharacter{
   flex:0 0 auto;
@@ -236,8 +249,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   position:relative;
   overflow:hidden;
   min-height:70px;
+  /* Глубина: передний план — мягкая тень под персонажем (п.33) */
+  filter: drop-shadow(0 4px 12px rgba(28,22,16,.12));
 }
-/* Screen-space style reflection: мягкая полоса под персонажем (SSR-подобный эффект) */
+/* Rim lighting по контуру блока персонажа (п.35) */
+.mainCharacter::before{
+  content:'';
+  position:absolute;
+  inset:-1px;
+  border-radius:0;
+  pointer-events:none;
+  z-index:2;
+  box-shadow: var(--glowRim);
+}
+/* Screen-space reflection под персонажем */
 .mainCharacter::after{
   content:'';
   position:absolute;
@@ -259,7 +284,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   object-position:center top;
   pointer-events:none;
   border-radius:0;
-  /* Чуть богаче контраст для фотореализма */
   filter: contrast(1.03) saturate(1.06);
 }
 /* Кнопка доспехи и панели поверх картинки */
@@ -581,6 +605,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   box-shadow: var(--shadowLift), var(--shadowInsetTop), var(--shadowInsetAO);
 }
 .hero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:rgba(255,255,255,.5);pointer-events:none;z-index:1;}
+/* Лёгкий particle-эффект: искра/блеск (п.29, 66) — одна точка, низкая нагрузка */
+@keyframes sparkle{ 0%, 100%{ opacity:.12; transform:scale(0.9); } 50%{ opacity:.35; transform:scale(1.1); } }
+.hero::after{ content:''; position:absolute; top:8px; right:12px; width:6px; height:6px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #fff, rgba(255,248,235,.6)); pointer-events:none; z-index:2; animation: sparkle 3.5s var(--ease-in-out) infinite; will-change: opacity, transform; }
 .heroTop{padding:14px 14px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .heroTitle{font-weight:900;letter-spacing:4px;font-size:12px;opacity:.94;}
 .heroSub{font-size:11px;opacity:.82;margin-top:4px;letter-spacing:2px}
@@ -607,6 +634,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .tile .v{font-weight:900;letter-spacing:1px;font-size:9px;}
 .tile.gold,.tile.silver,.tile.tooth{align-items:center;text-align:left;padding-left:2px;}
 .tile.gold .v,.tile.silver .v,.tile.tooth .v{font-size:11px;line-height:1;}
+/* Screen glow для золота (п.32) */
+.tile.gold{ box-shadow: var(--shadowKey), var(--shadowInsetTop), var(--shadowInsetAO), var(--glowGold); }
+.tile.tooth{ box-shadow: var(--shadowKey), var(--shadowInsetTop), var(--shadowInsetAO), 0 0 10px rgba(192,38,211,.18); }
 /* Иконки валют — один размер по всей игре (на 20% меньше: 19px) */
 .goldIcon,.silverIcon,.toothIcon,.fearIcon{height:19px !important;max-height:19px !important;width:auto !important;vertical-align:middle;object-fit:contain;}
 .tile.shop{padding:6px;background:var(--caramel);}
@@ -821,7 +851,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   border-radius:50%;
   aspect-ratio:1/1;
   overflow:hidden;
-  min-width:0;
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
   width:100%;
   height:auto;
   box-sizing:border-box;
@@ -833,6 +864,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   box-shadow: var(--shadowInsetTop);
 }
 .dockRow .dockBtn:active{transform:scale(0.91);}
+/* Подсветка активной вкладки дока (п.43) — добавить класс .active в JS при смене экрана */
+.dockRow .dockBtn.active{ box-shadow: var(--shadowInsetTop), 0 0 0 2px rgba(14,165,233,.35); }
 .dockRow .dockBtn img{display:block;width:100%;height:100%;object-fit:cover;}
 .dockRow .dockBtn.dockBtnWithLabel{flex-direction:column;gap:2px;}
 .dockRow .dockBtn.dockBtnWithLabel img{flex-shrink:0;}
@@ -848,6 +881,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   border:none;
   border-radius:999px;
   padding:9px 13px;
+  min-height: var(--touch-min);
+  min-width: var(--touch-min);
   background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98));
   border:1px solid rgba(255,255,255,.55);
   color:#000;
@@ -862,10 +897,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   transition: transform var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
   touch-action:manipulation;
   user-select:none;
-  /* PBR-like: ключевая тень + мягкий specular highlight */
   box-shadow: 0 4px 14px rgba(37,99,235,.28), 0 2px 6px rgba(28,22,16,.1), inset 0 1px 0 rgba(255,255,255,.4);
 }
-.btn:active{transform:translateY(1px);box-shadow: 0 2px 8px rgba(37,99,235,.2), 0 1px 4px rgba(28,22,16,.08), inset 0 1px 0 rgba(255,255,255,.25);}
+.btn:active{transform:scale(0.97);box-shadow: 0 2px 8px rgba(37,99,235,.2), 0 1px 4px rgba(28,22,16,.08), inset 0 1px 0 rgba(255,255,255,.25);}
 .btnSmall{font-size:11px;padding:9px 13px;}
 
  .diceTitle{display:flex; align-items:center; justify-content:center; gap:10px; letter-spacing:4px; font-weight:900; font-size:14px; opacity:.92; margin-top:2px;}
@@ -1014,7 +1048,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .bossFightMeta{min-width:0;flex:1;}
  .bfHpBarWrap{margin-top:6px;width:100%;max-width:220px;}
  .bfHpBar{height:20px;border-radius:10px;border:1px solid rgba(45,30,18,.2);background:rgba(0,0,0,.2);overflow:hidden;position:relative;}
- .bfHpBarFill{height:100%;background:linear-gradient(90deg, #22c55e, #16a34a);transition:width .2s ease;}
+ .bfHpBarFill{height:100%;background:linear-gradient(90deg, #22c55e, #16a34a);transition:width .2s ease;box-shadow: var(--glowWin);}
  .bfHpBarIn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);pointer-events:none;}
  .bfHitQtyGrid{display:grid;grid-template-columns:1fr 1fr;gap:2px;max-width:100%;}
  .bfHitQtyGrid .btn{width:100%;min-width:0;padding:3px 6px;font-size:10px;}
@@ -1090,6 +1124,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   position:relative;
   transition: border-color var(--transition-fast), background-color var(--transition-fast);
   box-shadow: var(--shadowDramatic), var(--shadowInsetTop), var(--shadowInsetAO);
+  /* Gradient overlay для читабельности (п.39) */
+  background-image: var(--uiOverlay);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-color: var(--caramel);
 }
 .sheet::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:rgba(255,255,255,.5);pointer-events:none;z-index:1;}
 
@@ -1109,8 +1148,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 }
 
  #mBattle .hpMini{display:flex;align-items:center;gap:10px;min-width:0;}
- #mBattle .hpBar{position:relative;width:120px;max-width:32vw;height:6px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);overflow:hidden;}
- #mBattle .hpFill{height:100%;width:0%;background:linear-gradient(90deg, rgba(52,211,153,.95), rgba(34,211,238,.85));}
+#mBattle .hpBar{position:relative;width:120px;max-width:32vw;height:6px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);overflow:hidden;}
+#mBattle .hpFill{height:100%;width:0%;background:linear-gradient(90deg, rgba(52,211,153,.95), rgba(34,211,238,.85));box-shadow: var(--glowWin);}
  #mBattle .hpIn{position:absolute;inset:-8px 0 auto 0;height:22px;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:1px;white-space:nowrap;color:rgba(255,255,255,.98);font-weight:900;pointer-events:none;}
  #mBattle .hpTxt{font-size:11px;letter-spacing:1px;white-space:nowrap;}
  #mBattle #bLogDmg .feedItem,
