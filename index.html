@@ -763,18 +763,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .btn{
   border:none;
   border-radius:999px;
-  padding:11px 15px;
-  background: var(--caramel);
-  border:1px solid var(--btnBorder);
-  color:var(--ink);
+  padding:9px 13px;
+  background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98));
+  border:1px solid rgba(255,255,255,.55);
+  color:#000;
   cursor:pointer;
   display:flex;
   align-items:center;
   justify-content:center;
   gap:8px;
   font-weight:900;
-  letter-spacing:1.3px;
-  font-size:12px;
+  letter-spacing:1.1px;
+  font-size:11px;
   transition: transform var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
   touch-action:manipulation;
   user-select:none;
@@ -891,6 +891,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  #mDice .dicePrimary,
 #mLavka .lavkaProductBtn .btnSmall,
 #topBrosInviteBtn,
+#friendHelpOpen,
 #clanDelete,
 #clanLeave,
 #clanSetDeputy,
@@ -947,8 +948,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  #bossToothBtn{border-color: rgba(255,255,255,.55); color: rgba(255,255,255,.92);}
  #bossToothBtn.ready{border-color: rgba(255,255,255,.95);}
 
- .bossAtkBtn{font-size:9px !important; padding:5px 7px !important; letter-spacing:1px; min-height:28px;}
-.bossAtkBtn[data-boss-attack]{background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98)) !important; border:1px solid rgba(255,255,255,.55) !important; color:rgba(255,255,255,.96) !important;}
+.bossAtkBtn{font-size:9px !important; padding:5px 7px !important; letter-spacing:1px; min-height:28px;}
+.bossAtkBtn[data-boss-attack],
+.bossAtkBtn[data-boss-continue],
+.bossAtkBtn[data-boss-claim]{
+  background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98)) !important;
+  border:1px solid rgba(255,255,255,.55) !important;
+  color:#000 !important;
+}
 
 /* Modals — божественные карамельные слои */
 .overlay{position:fixed;inset:0;background:rgba(36,28,20,.35);backdrop-filter: blur(20px) saturate(0.98);-webkit-backdrop-filter: blur(20px) saturate(0.98);display:none;z-index:4900;transition: opacity var(--transition-normal);}
@@ -7975,8 +7982,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (box){
         const opts = [1,10,100,1000];
         box.innerHTML = opts.map(n=>{
-          const a = (n===q) ? '1' : '.7';
-          return '<button class="btn btnMini" data-bf-hitqty="'+n+'" style="opacity:'+a+'">x'+n+'</button>';
+          const isActive = (n===q);
+          const extra = isActive
+            ? 'background:linear-gradient(180deg, rgba(59,130,246,.98), rgba(37,99,235,.98)); color:#000;'
+            : 'opacity:.7;';
+          return '<button class="btn btnMini" data-bf-hitqty="'+n+'" style="'+extra+'">x'+n+'</button>';
         }).join('');
         box.querySelectorAll('[data-bf-hitqty]').forEach(bb=>{
           bb.onclick = ()=>{
@@ -8733,7 +8743,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const price = r.price;
       html += '<div class="row" style="align-items:flex-start">'
         + '<div style="min-width:0">'
-        + '<div class="k">БОСС '+bb.id+'</div>'
+        + '<div class="k">БОСС '+(bb.name || ('#'+bb.id))+'</div>'
         + '<div style="margin-top:4px; font-size:12px; opacity:.8; line-height:1.25">'+r.emoji+' '+r.itemName+': <b style="letter-spacing:1px">'+have+'</b> / '+r.need+'<br>Цена за 1: <span style="color:var(--gold); font-weight:900">'+price+' <img src="голд.png" alt="Золото" class="goldIcon"></span></div>'
         + '</div>'
         + '<button class="btn btnSmall" data-key-buy="'+r.itemKey+'" data-key-price="'+price+'">КУПИТЬ</button>'
@@ -10701,7 +10711,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const locked = districtTaskLocked(i, k, tasks.length);
           const can = (!locked) && (!done) && (energy >= meta.cost);
           const btnTxt = locked ? 'НЕДОСТУПНО' : (done ? 'ГОТОВО' : 'ВЫПОЛНИТЬ');
-          const btnStyle = 'height:34px; padding:0 12px; border-radius:999px; font-weight:900; letter-spacing:1px; border:1px solid rgba(255,255,255,.35);' + (can ? ' background:linear-gradient(180deg, rgba(37,99,235,.98), rgba(30,64,175,.98)); color:rgba(255,255,255,.98);' : ' background:rgba(120,120,120,.45); color:rgba(255,255,255,.92); opacity:.75;');
+          const btnStyle = 'height:34px; padding:0 12px; border-radius:999px; font-weight:900; letter-spacing:1px; border:1px solid rgba(255,255,255,.55);'
+            + (can
+              ? ' background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98)); color:#000;'
+              : ' background:rgba(209,213,219,.9); color:rgba(55,65,81,.9); opacity:.75;');
           const pct = max>0 ? clamp((cnt/max)*100, 0, 100) : 0;
           h += '<div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(45,30,18,.18)"></div>';
           h += '<div style="display:grid; grid-template-columns: minmax(0,1fr) 92px 62px 112px; gap:8px; align-items:center; '+(locked ? 'opacity:.45; filter:grayscale(1);' : '')+'">';
