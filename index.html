@@ -6967,7 +6967,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!ev) return false;
       const tx = (ev.text) ? String(ev.text) : '';
       if (!tx) return false;
-      return false;
+      return true;
     });
     const dmgEvents = all.filter(ev=>{
       const tx = String(ev.text||'');
