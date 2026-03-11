@@ -7348,20 +7348,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (el) el.innerHTML = '+' + amount + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
     if (btn) {
       btn.onclick = function(){
-        sbFnCall('get_player', { initData: tgInitData() }).then(function(res){
-          if (res && res.ok && res.player && res.player.state && typeof res.player.state === 'object') {
-            var s = res.player.state;
-            if (typeof s.gold === 'number' && s.gold >= 0) state.gold = Math.min(CURRENCY_CAP, s.gold);
-            save();
-            renderAll();
-          }
-          hideModal('mStarsReward');
-          toast('Награда получена!','win');
-          haptic('medium');
-        }).catch(function(){
-          hideModal('mStarsReward');
-          toast('Награда получена. Обновите экран.','win');
-        });
+        if (amount > 0) {
+          state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + amount);
+          save();
+        }
+        hideModal('mStarsReward');
+        renderAll();
+        toast(amount > 0 ? 'Награда получена! +'+amount+' золотых монет' : 'Награда получена!','win');
+        haptic('medium');
+        if (amount > 0) {
+          sbFnCall('get_player', { initData: tgInitData() }).then(function(res){
+            if (res && res.ok && res.player && res.player.state && typeof res.player.state === 'object') {
+              var s = res.player.state;
+              if (typeof s.gold === 'number' && s.gold >= 0) state.gold = Math.min(CURRENCY_CAP, Math.max(state.gold || 0, s.gold));
+              save();
+              renderAll();
+            }
+          }).catch(function(){});
+        }
       };
     }
     showModal('mStarsReward');
