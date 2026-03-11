@@ -7344,7 +7344,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function showStarsReward(goldAmount){
     var el = $('starsRewardAmount');
     var btn = $('starsRewardClaim');
-    if (el) el.innerHTML = '+' + (goldAmount || 0) + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
+    var amount = Math.max(0, Math.floor(Number(goldAmount) || 0));
+    if (el) el.innerHTML = '+' + amount + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
     if (btn) {
       btn.onclick = function(){
         sbFnCall('get_player', { initData: tgInitData() }).then(function(res){
@@ -7415,7 +7416,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       + '<div style="font-size:12px;opacity:.85;margin-bottom:10px;">Золотые монеты за звёзды Telegram. Оплата внутри приложения.</div>';
     STARS_PRODUCTS.forEach(function(p){
       html += '<div class="row" style="align-items:center; margin-bottom:8px;">'
-        + '<div style="min-width:0;flex:1"><span class="k">'+p.name+'</span></div>'
+        + '<div style="min-width:0;flex:1"><span class="k">'+p.name+'</span> <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:14px;width:auto;vertical-align:middle"></div>'
         + '<button type="button" class="btn btnSmall" data-stars-buy="'+p.productId+'">Купить за '+p.stars+' ⭐</button>'
         + '</div>';
     });
