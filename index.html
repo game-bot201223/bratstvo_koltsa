@@ -2993,7 +2993,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           list.appendChild(row);
           hasAny = true;
         }
-        if (!hasAny) list.innerHTML = '<div style="font-size:12px;opacity:.75">Пусто. Купи в Торговой лавке или получи в награду в групповом бою — все расходники используются одинаково.</div>';
+        if (!hasAny) list.innerHTML = '<div style="font-size:12px;opacity:.75">Пусто. Во время ГБ можно использовать только аптечку, бинт, бомбу и динамит из Торговой лавки.</div>';
       }
       // Аптечка и граната (арена) в групповых боях не показываются и не используются
     }
@@ -3048,16 +3048,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!list) return;
     const items = state.consumablesItems || {};
     list.innerHTML = '';
+    const inBattle = !!(state.groupFight && state.groupFight.battle);
+    const b = state.groupFight && state.groupFight.battle;
+    const myHp = b ? (parseInt(b.myHp||0,10)||0) : 0;
+    const canUseBuff = !inBattle;
+    const canUseInBattle = inBattle && myHp > 0 && b && !b.acted;
     CONSUMABLES_DATA.forEach(c=>{
       const qty = parseInt(items[c.id]||0,10)||0;
       if (qty<=0) return;
       const isBuff = (c.type==='buff');
-      const inBattle = !!(state.groupFight && state.groupFight.battle);
-      const b = state.groupFight && state.groupFight.battle;
-      const myHp = b ? (parseInt(b.myHp||0,10)||0) : 0;
-      const canUseBuff = !inBattle;
-      const canUseInBattle = inBattle && myHp > 0 && b && !b.acted;
       const useAllowed = isBuff ? canUseBuff : canUseInBattle;
+      const hint = isBuff ? (inBattle ? 'Только до боя' : '') : (inBattle ? '' : 'Только во время ГБ');
 
       const row = document.createElement('div');
       row.className = 'inventoryRow';
@@ -3066,6 +3067,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '<div class="k">'+c.name+'</div>'
         + '<div style="font-size:12px;opacity:.8">'+c.desc+'</div>'
         + '<div class="inventoryQty">В наличии: <strong>'+qty+'</strong></div>'
+        + (hint ? '<div style="font-size:10px;opacity:.7;margin-top:2px;">'+hint+'</div>' : '')
         + '</div>';
       const useBtn = document.createElement('button');
       useBtn.type = 'button';
@@ -3076,7 +3078,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       row.appendChild(useBtn);
       list.appendChild(row);
     });
-    if (!list.children.length) list.innerHTML = '<div style="font-size:12px;opacity:.75">Пусто. Купи в Торговой лавке или получи в награду в ГБ — батончики и расходники можно использовать в любом случае.</div>';
+    if (!list.children.length) list.innerHTML = '<div style="font-size:12px;opacity:.75">Пусто. Купи в Торговой лавке или получи в награду в ГБ. Батончики — только до боя; аптечка, бинт, бомба, динамит — только во время ГБ.</div>';
   }
   function useConsumableItem(id){
     const c = CONSUMABLES_DATA.find(x=>x.id===id);
@@ -3085,8 +3087,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const qty = parseInt(items[id]||0,10)||0;
     if (qty<=0){ toast('Нет в наличии','lose'); return; }
 
+    const inGbBattle = !!(state.groupFight && state.groupFight.battle);
+
     if (c.type==='buff'){
-      if (state.groupFight && state.groupFight.battle){ toast('Батончик можно использовать только до боя','lose'); return; }
+      if (inGbBattle){ toast('Батончик можно использовать только до боя','lose'); return; }
       state.consumablesItems[id] = qty - 1;
       if (!state.consumablesBuffs || typeof state.consumablesBuffs !== 'object') state.consumablesBuffs = { health:0, strength:0, agility:0, initiative:0, endurance:0, might:0, charisma:0 };
       state.consumablesBuffs[c.stat] = now() + 4 * 60 * 60 * 1000;
@@ -3098,8 +3102,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return;
     }
 
+    if (c.type==='heal' || c.type==='dmg'){
+      if (!inGbBattle){ toast('Аптечку, бинт, бомбу и динамит можно использовать только во время группового боя','lose'); return; }
+    }
+
     const b = state.groupFight && state.groupFight.battle;
-    if (!b){ toast('Использование только в групповом бою','lose'); return; }
+    if (!b){ toast('Аптечку, бинт, бомбу и динамит можно использовать только во время группового боя','lose'); return; }
     if ((parseInt(b.myHp||0,10)||0) <= 0){ toast('Ты наблюдатель','lose'); return; }
     if (b.acted){ toast('Уже использовано действие в этот ход','lose'); return; }
 
