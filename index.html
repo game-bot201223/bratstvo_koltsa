@@ -865,10 +865,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .districtBtn,
  #arenaWeak,
  #arenaNorm,
- #arenaElite{
+ #arenaElite,
+ #gf1010Open,
+ #gfEnter,
+ #gfJoinBtn,
+ #gf10Join{
   background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98)) !important;
   border:1px solid rgba(255,255,255,.55) !important;
-  color:rgba(255,255,255,.96) !important;
+  color:#000 !important;
  }
 
  #mDistricts .sheetBody{overflow-x:hidden;}
@@ -1430,7 +1434,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         </div>
       </div>
 
-      <div class="card" style="margin-top:9px;" id="arenaSectionGroup">
+      <div style="margin-top:9px; display:flex; gap:8px; align-items:stretch;">
+        <div class="card" style="margin-top:0; flex:0 0 65%; min-width:0;" id="arenaSectionGroup">
         <div class="row"><div class="k">ГРУППОВОЙ БОЙ</div><button class="btn btnMini" id="gf1010Open">ВХОД</button></div>
         <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.35" id="arenaGroupHint"></div>
         <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
@@ -1443,9 +1448,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <button class="btn" id="gfEnter" style="display:none;">ВОЙТИ В БОЙ</button>
         </div>
       </div>
+      <div class="card" style="margin-top:0; flex:1; min-width:0;" id="arenaStatsColumnCard">
+        <div class="k" style="margin-bottom:8px;">СТАТИСТИКА</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div><div class="k" style="font-size:11px;">АРЕНА</div><div class="badge" id="arenaWinsLosses">0 / 0</div></div>
+          <div><div class="k" style="font-size:11px;">ГБ</div><div class="badge" id="gfWinsLosses">0 / 0</div></div>
+        </div>
+      </div>
+      </div>
 
       <div class="card gymStatsColumnCard" id="gymStatsColumnCard" style="margin-top:9px;">
-        <div class="k" style="margin-bottom:10px;">ХАРАКТЕРИСТИКИ</div>
+        <div class="k" style="margin-bottom:4px;">ХАРАКТЕРИСТИКИ</div>
+        <div style="font-size:11px;opacity:.8;margin-bottom:10px;line-height:1.3;">Общие характеристики: спортзал, питомец, доспехи и бизнесы</div>
         <div class="gymStatsColumnLegend">
           <span class="gymStatLeg gymStatLegGym">Спортзал</span>
           <span class="gymStatLeg gymStatLegArmor">Доспехи</span>
@@ -2505,6 +2519,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   function gfEffStat(k){
     const baseGym = Math.max(1, parseInt(state.gym[k]||1,10) || 1);
+    if (k === 'charisma') return baseGym;
     const armor = (typeof armorStatBonus === 'function') ? armorStatBonus(k) : 0;
     const pct = gymBonusPct();
     let petBizAdd = Math.round(baseGym * pct);
@@ -4676,7 +4691,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     activePetId:0,
     gym:{},
     arena:{ cdUntil:0, wins:0, losses:0 },
-    groupFight:{ joined:false, startTs:0, resolvedTs:0, battle:null, autoShownStartTs:0, pendingReward:null },
+    groupFight:{ joined:false, startTs:0, resolvedTs:0, battle:null, autoShownStartTs:0, pendingReward:null, wins:0, losses:0 },
     gf1010:{ joined:false, startTs:0, costPaid:0, gathered:0, matchId:'', fight:{ round:1, turnLeft:10, myTarget:'', targets:[], log:[] } },
     diceGame:{ active:false, rolls:0, max:10, dice:[1,1,1,1,1] },
     consumables:{ med:0, nade:0 },
@@ -6805,6 +6820,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const rr = gfBattleComputeReward(b, true);
       b.log.unshift({ kind:'SYS', text:'Победа команды! Награда: +' + (parseInt(rr.gold||0,10)||0) + ' золота' });
       state.groupFight.pendingReward = rr;
+      state.groupFight.wins = (state.groupFight.wins||0) + 1;
       gfAddRandomConsumableReward();
       state.groupFight.joined = false;
       state.groupFight.startTs = 0;
@@ -6934,6 +6950,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!youAlive && !allyAlive){
       b.log.unshift({ kind:'SYS', text:'Поражение команды!' });
       state.groupFight.pendingReward = gfBattleComputeReward(b, false);
+      state.groupFight.losses = (state.groupFight.losses||0) + 1;
       gfAddRandomConsumableReward();
       state.groupFight.joined = false;
       state.groupFight.startTs = 0;
@@ -7018,13 +7035,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     rows.forEach(r=>{
       const baseVal = parseInt(state.gym[r.key]||1,10) || 1;
       const gym = Math.max(0, Math.floor(baseVal));
-      const armor = armorStatBonus(r.key);
-      const biz = Math.round(gym * bizPct);
-      const pet = Math.round(gym * petPct);
+      const isCharisma = r.key === 'charisma';
+      const armor = isCharisma ? 0 : armorStatBonus(r.key);
+      const biz = isCharisma ? 0 : Math.round(gym * bizPct);
+      const pet = isCharisma ? 0 : Math.round(gym * petPct);
       const buffUntil = parseInt(buffs[r.key],10)||0;
-      const consumables = buffUntil > now()
+      const consumables = isCharisma ? 0 : (buffUntil > now()
         ? Math.max(0, Math.round(gym * 0.30))
-        : 0;
+        : 0);
       const total = gym + armor + biz + pet + consumables;
       sumTotal += total;
       let segHtml = '';
@@ -7047,6 +7065,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     });
     box.innerHTML = html;
     if (sumEl) sumEl.textContent = 'Сумма: ' + sumTotal;
+  }
+  function renderArenaStatsColumn(){
+    const aw = $('arenaWinsLosses');
+    const gw = $('gfWinsLosses');
+    if (aw) aw.textContent = (state.arena && state.arena.wins || 0) + ' / ' + (state.arena && state.arena.losses || 0);
+    if (gw) gw.textContent = (state.groupFight && state.groupFight.wins || 0) + ' / ' + (state.groupFight && state.groupFight.losses || 0);
   }
   function renderGym(){
     const gs = $('gymSilver');
@@ -9598,6 +9622,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if ($('mArena').classList.contains('show')) {
       renderArena();
       renderGymStatsColumn();
+      renderArenaStatsColumn();
     }
     if ($('mGym').classList.contains('show')) {
       renderGym();
@@ -10897,6 +10922,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const rr = gfBattleComputeReward(b, true);
         b.log.unshift({ kind:'SYS', text:'Победа команды! Награда: +' + (parseInt(rr.gold||0,10)||0) + ' золота' });
         state.groupFight.pendingReward = rr;
+        state.groupFight.wins = (state.groupFight.wins||0) + 1;
         gfAddRandomConsumableReward();
         state.groupFight.joined = false;
         state.groupFight.startTs = 0;
@@ -10926,6 +10952,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const rr = gfBattleComputeReward(b, true);
       b.log.unshift({ kind:'SYS', text:'Победа команды! Награда: +' + (parseInt(rr.gold||0,10)||0) + ' золота' });
       state.groupFight.pendingReward = rr;
+      state.groupFight.wins = (state.groupFight.wins||0) + 1;
       gfAddRandomConsumableReward();
       state.groupFight.joined = false;
       state.groupFight.startTs = 0;
@@ -11717,6 +11744,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if ($('mArena').classList.contains('show')) {
           renderArena();
           renderGymStatsColumn();
+          renderArenaStatsColumn();
         }
         if ($('mGym').classList.contains('show')) {
           renderGym();
