@@ -578,13 +578,39 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .statTile .stBtn{margin-top:auto;}
 
  #arenaSectionGym .statGrid{gap:4px;margin-top:8px;}
- #arenaSectionGym .statTile{padding:7px;min-height:60px;gap:4px;}
- #arenaSectionGym .statTile .stK{font-size:9px;letter-spacing:1.6px;}
- #arenaSectionGym .statTile .stV{font-size:12px;}
- #arenaSectionGym .statTile .stMeta{font-size:9.5px;line-height:1.2;}
-.gymMultBtns{display:flex;align-items:center;gap:4px;}
-.gymMultBtns .btnMult{font-size:10px;padding:4px 8px;min-height:auto;line-height:1.2;}
-.gymMultBtns .btnMult.active{background:var(--accent);color:#fff;}
+#arenaSectionGym .statTile{padding:7px;min-height:60px;gap:4px;}
+#arenaSectionGym .statTile .stK{font-size:9px;letter-spacing:1.6px;}
+#arenaSectionGym .statTile .stV{font-size:12px;}
+#arenaSectionGym .statTile .stMeta{font-size:9.5px;line-height:1.2;}
+#arenaSectionGym .statTile .stBtn{
+  margin-top:auto;
+  font-size:9px;
+  padding:6px 9px;
+}
+.gymMultBtns{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-start;}
+.gymMultBtns .btnMult{
+  font-size:9px;
+  padding:3px 6px;
+  min-height:auto;
+  line-height:1.2;
+  background:linear-gradient(180deg, rgba(191,219,254,.98), rgba(147,197,253,.98));
+  border:1px solid rgba(255,255,255,.55);
+  color:#000;
+  flex:1 0 calc(25% - 4px);
+}
+.gymMultBtns .btnMult.active{
+  background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98));
+  border:1px solid rgba(30,64,175,.85);
+  color:#000;
+}
+
+/* Светло-синие кнопки улучшений и питомцев в спортзале (фон как у КОШМАРИТЬ, текст чёрный) */
+#arenaSectionGym .statTile .stBtn,
+#arenaSectionGym .petCard .pBtn{
+  background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98));
+  border:1px solid rgba(255,255,255,.55);
+  color:#000;
+}
 
 .gymStatsColumnCard{margin-top:10px;}
 .gymStatsColumnLegend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;font-size:10px;opacity:.88;letter-spacing:1px;}
@@ -1576,7 +1602,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 <div class="modal modalMini modalBossFightRes" id="mBossFightRes" role="dialog" aria-modal="true">
   <div class="sheet sheetMini">
     <div class="sheetHead">
-      <div style="width:44px"></div>
+      <button class="iconBtn" data-close="mBossFightRes">‹</button>
       <div class="title" id="bfrTitle">РЕЗУЛЬТАТ</div>
       <div style="width:44px"></div>
     </div>
@@ -1921,7 +1947,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="card" style="margin-top:10px;" id="arenaSectionGym">
         <div class="row" style="flex-wrap:wrap; align-items:center; gap:8px;">
           <div class="k">СПОРТЗАЛ</div>
-          <div id="gymMultBtns" class="gymMultBtns"></div>
           <div style="display:flex; align-items:center; gap:8px; margin-left:auto;"><div class="k">ПИТОМЕЦ + БИЗНЕСЫ =</div><div class="badge" id="gymPetBonus">0%</div></div>
         </div>
         <div id="gymList"></div>
@@ -7026,12 +7051,56 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function renderGym(){
     const gs = $('gymSilver');
     if (gs) gs.innerHTML = fmt4(state.silver||0) + ' <img src="сильвер.png" alt="Серебро" class="silverIcon">';
-    const mult = [1,10,100].indexOf(state.gymMult) >= 0 ? state.gymMult : 1;
+    const mult = [1,10,100,1000].indexOf(state.gymMult) >= 0 ? state.gymMult : 1;
     state.gymMult = mult;
+    $('gymPetBonus').textContent = Math.round(gymBonusPct()*100) + '%';
+    const box = $('gymList');
+    let total = 0;
+    let totalGym = 0;
+    let html = '<div class="statGrid">';
+    const pct = gymBonusPct();
+    const buffs = state.consumablesBuffs || {};
+
+    const gymDesc = {
+      health: 'Запас HP в боях',
+      strength: 'Насколько сильно бьёшь',
+      agility: 'Шанс увернуться от удара',
+      initiative: 'Кто ходит первым в раунде',
+      endurance: 'Переживать урон и затяжные бои',
+      might: 'Шанс и сила критических ударов',
+      charisma: 'Сколько серебра зарабатываешь на арене'
+    };
+
+    GYM_STATS.forEach(s=>{
+      const base = Math.max(1, parseInt(state.gym[s.key]||1,10) || 1);
+      const costOne = gymCost(base);
+      const costN = gymCostN(base, mult);
+      totalGym += base;
+      const costLabel = mult > 1 ? costN + ' <img src="сильвер.png" alt="Серебро" class="silverIcon">' : (costOne + ' <img src="сильвер.png" alt="Серебро" class="silverIcon">');
+      const meta = gymDesc[s.key] || '';
+      html += '<div class="statTile">'
+        + '<div class="stK">'+s.name.toUpperCase()+'</div>'
+        + '<div class="stV">'+base+'</div>'
+        + '<div class="stMeta">'+meta+'</div>'
+        + '<button class="btn btnSmall stBtn" data-gym="'+s.key+'">'+costLabel+'</button>'
+        + '</div>';
+    });
+
+    html += '<div class="statTile" style="border-color:rgba(192,132,252,.22)">'
+      + '<div class="stK">СТАТИСТИКА</div>'
+      + '<div class="stV">'+totalGym+'</div>'
+      + '<div class="stMeta">Общие характеристики спортзала</div>'
+      + '<div class="gymMultBtns" id="gymMultBtns" style="margin-top:6px;"></div>'
+      + '</div>';
+
+    html += '</div>';
+    box.innerHTML = html;
+
+    // отрисовываем кнопки множителей уже после того, как DOM для спортзала построен
     const multBtnsEl = $('gymMultBtns');
     if (multBtnsEl) {
       multBtnsEl.innerHTML = '';
-      [1, 10, 100].forEach(n=>{
+      [1, 10, 100, 1000].forEach(n=>{
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'btn btnSmall btnMult' + (mult === n ? ' active' : '');
@@ -7040,45 +7109,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         multBtnsEl.appendChild(b);
       });
     }
-    $('gymPetBonus').textContent = Math.round(gymBonusPct()*100) + '%';
-    const box = $('gymList');
-    let total = 0;
-    let html = '<div class="statGrid">';
-    const pct = gymBonusPct();
-    const buffs = state.consumablesBuffs || {};
-
-    GYM_STATS.forEach(s=>{
-      const base = Math.max(1, parseInt(state.gym[s.key]||1,10) || 1);
-      const armor = armorStatBonus(s.key);
-      let add = Math.round(base * pct);
-      if (pct > 0 && base > 0 && add <= 0) add = 1;
-      const buffUntil = parseInt(buffs[s.key],10)||0;
-      const consumables = buffUntil > now() ? Math.max(0, Math.round(base * 0.30)) : 0;
-      const tot = base + armor + add + consumables;
-      const costOne = gymCost(base);
-      const costN = gymCostN(base, mult);
-      total += tot;
-      const costLabel = mult > 1 ? costN + ' <img src="сильвер.png" alt="Серебро" class="silverIcon">' : (costOne + ' <img src="сильвер.png" alt="Серебро" class="silverIcon">');
-      const metaParts = ['База '+base, 'доспехи '+armor, 'бонус '+add];
-      if (consumables > 0) metaParts.push('расход. '+consumables);
-      html += '<div class="statTile">'
-        + '<div class="stK">'+s.name.toUpperCase()+'</div>'
-        + '<div class="stV">'+tot+'</div>'
-        + '<div class="stMeta">'+metaParts.join(' + ')+'</div>'
-        + '<button class="btn btnSmall stBtn" data-gym="'+s.key+'">'+costLabel+'</button>'
-        + '</div>';
-    });
-
-    const wins = (state.arena && state.arena.wins) ? state.arena.wins : 0;
-    const losses = (state.arena && state.arena.losses) ? state.arena.losses : 0;
-    html += '<div class="statTile" style="border-color:rgba(192,132,252,.22)">'
-      + '<div class="stK">СТАТИСТИКА</div>'
-      + '<div class="stV">'+wins+' / '+losses+'</div>'
-      + '<div class="stMeta">Победы / Поражения<br>Общие характеристики:<br><span style="font-weight:900">'+total+'</span></div>'
-      + '</div>';
-
-    html += '</div>';
-    box.innerHTML = html;
 
     box.querySelectorAll('[data-gym]').forEach(btn=>{
       btn.onclick = ()=>{
@@ -7088,7 +7118,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         } catch (e0) {}
         const key = btn.getAttribute('data-gym');
         const baseVal = Math.max(1, parseInt(state.gym[key]||1,10) || 1);
-        const mult = [1,10,100].indexOf(state.gymMult) >= 0 ? state.gymMult : 1;
+        const mult = [1,10,100,1000].indexOf(state.gymMult) >= 0 ? state.gymMult : 1;
         const cost = gymCostN(baseVal, mult);
         if ((state.silver||0) < cost){ toast('Нужно '+cost+' '+TOAST_SILVER_IMG,'lose'); return; }
         state.silver -= cost;
@@ -11217,6 +11247,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         return;
       }
       if (bid && f && alive && !inTime && hasBoss) {
+        openScreen('mBoss');
+        renderBosses();
         bfCheckLose(bid);
         haptic('light');
         return;
