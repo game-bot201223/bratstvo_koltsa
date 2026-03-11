@@ -1226,26 +1226,64 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   background: var(--caramel);
 }
 
-/* Arena compact — на 7% компактнее по вертикали */
-#mArena .sheetHead{padding:9px 10px;}
+/* Arena compact — на 20% компактнее по вертикали */
+#mArena .sheetHead{padding:7px 10px;}
 #mArena .sheetBody{padding:0;}
-#mArena .card{padding:9px; margin-top:5px !important; border-radius:16px;}
-#mArena .btn{padding:9px 10px;}
-#mArena .btnSmall{padding:6px 8px;}
-#mArena .badge{padding:5px 7px;}
+#mArena .card{padding:7px 8px; margin-top:4px !important; border-radius:14px;}
+#mArena .btn{padding:7px 8px;}
+#mArena .btnSmall{padding:5px 6px;}
+#mArena .badge{padding:4px 6px; font-size:11px;}
 #mArena #arenaSectionGroup .row{align-items:center;}
-#mArena #arenaGroupHint{margin-top:5px !important;}
-#mArena .grid3{gap:7px;}
-#mArena .arenaTopImg{display:block;width:100%;margin:0;padding:0;max-height:26vh;object-fit:cover;}
-#mArena .sheetBody > .card:first-of-type{padding:6px 10px;margin-top:5px !important;}
-#mArena .sheetBody > .card:first-of-type .row + div{margin-top:5px;}
-#mArena .sheetBody > .card:first-of-type .btnSmall{padding:5px 7px;}
-#mArena #arenaSectionGroup [style*="margin-top:10px"]{margin-top:9px !important;}
-#mArena #arenaSectionGroup [style*="margin-top:12px"]{margin-top:11px !important;}
-#mArena #arenaSectionGroup [style*="gap:10px"]{gap:9px !important;}
+#mArena #arenaGroupHint{margin-top:4px !important; font-size:11px; line-height:1.28;}
+#mArena .grid3{gap:6px;}
+#mArena .arenaTopImg{display:block;width:100%;margin:0;padding:0;max-height:21vh;object-fit:cover;}
+#mArena .sheetBody > div[style*="margin-top:9px"]{margin-top:7px !important; gap:6px !important;}
+#mArena .sheetBody > .card:first-of-type{padding:5px 8px;margin-top:4px !important;}
+#mArena .sheetBody > .card:first-of-type .row + div{margin-top:4px;}
+#mArena .sheetBody > .card:first-of-type .row + div{gap:6px !important;}
+#mArena .sheetBody > .card:first-of-type .btnSmall{padding:4px 6px;}
+#mArena #arenaSectionGroup [style*="margin-top:10px"]{margin-top:8px !important;}
+#mArena #arenaSectionGroup [style*="margin-top:12px"]{margin-top:9px !important;}
+#mArena #arenaSectionGroup [style*="margin-top:9px"]{margin-top:7px !important;}
+#mArena #arenaSectionGroup [style*="gap:10px"]{gap:8px !important;}
+#mArena #arenaSectionGroup [style*="gap:8px"]{gap:6px !important;}
+#mArena .gymStatsColumnCard{margin-top:7px !important;}
+#mArena .gymStatsColumnCard .k{margin-bottom:3px !important;}
+#mArena .gymStatsColumnCard div[style*="margin-bottom:10px"]{margin-bottom:7px !important;}
+#mArena .gymStatsColumnCard .gymStatsColumnLegend{margin-bottom:7px;gap:7px;font-size:10px;}
+#mArena .gymStatsColumnCard .gymStatRow{margin-bottom:5px;}
+#mArena .gymStatsColumnCard .gymStatBarWrap{height:12px;}
+#mArena .gymStatsColumnCard .gymStatsSum{margin-top:7px;padding-top:6px;font-size:11px;}
+#mArena #arenaStatsColumnCard .k{margin-bottom:6px !important;}
+#mArena #arenaStatsColumnCard [style*="gap:8px"]{gap:6px !important;}
+#mArena .sheetHead .title{font-size:12px;}
 .arenaInventoryBtn{width:44px;height:44px;border-radius:var(--r2);border:1px solid var(--paperLine);background:var(--caramel);cursor:pointer;padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
 .arenaInventoryBtn img{width:100%;height:100%;object-fit:cover;}
 .arenaInventoryBtn:active{transform:scale(0.94);}
+
+/* Спортзал — на 20% компактнее по вертикали */
+#mGym .sheetHead{padding:7px 10px;}
+#mGym .sheetHead .title{font-size:12px;}
+#mGym .sheetBody{padding:8px 10px;}
+#mGym .card{padding:7px 8px; margin-top:6px !important; border-radius:14px;}
+#mGym .card:first-of-type{margin-top:8px !important;}
+#mGym #arenaSectionGym .row[style*="gap:8px"]{gap:6px !important;}
+#mGym #arenaSectionGym .statGrid{gap:3px; margin-top:6px;}
+#mGym #arenaSectionGym .statTile{padding:6px; min-height:48px; gap:3px;}
+#mGym #arenaSectionGym .statTile .stK{font-size:8px; letter-spacing:1.4px;}
+#mGym #arenaSectionGym .statTile .stV{font-size:11px;}
+#mGym #arenaSectionGym .statTile .stMeta{font-size:9px; line-height:1.15;}
+#mGym #arenaSectionGym .statTile .stBtn{font-size:8px; padding:5px 7px;}
+#mGym .gymMultBtns{gap:3px;}
+#mGym .gymMultBtns .btnMult{font-size:8px; padding:2px 5px;}
+#mGym #arenaPetShopWrap{margin-top:6px !important;}
+#mGym #arenaPetShopWrap .row + div{margin-top:6px !important;}
+#mGym #arenaPetShopWrap .k{font-size:10px;}
+#mGym .petRow{gap:5px;}
+#mGym .petCard{padding:8px; gap:5px; min-height:77px;}
+#mGym .petCard .petPct{font-size:9px; padding:3px 5px;}
+#mGym .petCard .pBtn{padding:5px 7px; font-size:9px;}
+#mGym .badge{padding:4px 6px; font-size:11px;}
 .havchikBtn{width:44px;height:44px;min-width:44px;border-radius:var(--r2);border:1px solid var(--paperLine);background:var(--caramel);cursor:pointer;padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
 .havchikBtn img{width:100%;height:100%;object-fit:cover;}
 .havchikBtn:active{transform:scale(0.94);}
@@ -1265,25 +1303,31 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
 .havchikCardSelected{border-color:var(--gold) !important; box-shadow:0 0 0 2px rgba(200,160,80,.4);}
 .havchikCardLocked{opacity:.6;pointer-events:auto;}
-#mLavka .sheetBody{padding:8px 14px;}
+#mLavka .sheetBody{padding:6px 10px;}
 #mShop #promoInput{ display:block !important; min-height:44px !important; opacity:1 !important; }
-#mLavka .sheetHead{padding:7px 10px;}
-#mLavka .k[style*="margin-bottom"]{margin-bottom:5px !important;}
+#mLavka .sheetHead{padding:5px 8px;}
+#mLavka .sheetHead .title{font-size:12px;}
+#mLavka .k[style*="margin-bottom"]{margin-bottom:9px !important;}
 .lavkaGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
-#mLavka .lavkaGrid{gap:6px;}
+#mLavka .lavkaGrid{gap:4px;}
 .lavkaProductBtn{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;border-radius:var(--r2);border:1px solid var(--paperLine);background:var(--caramel);cursor:pointer;text-align:center;}
-#mLavka .lavkaProductBtn{gap:4px;padding:5px;}
+#mLavka .lavkaProductBtn{gap:3px;padding:4px;}
 .lavkaProductBtn:active{transform:scale(0.98);}
 .lavkaProductBtn:disabled{opacity:.7;cursor:not-allowed;}
 .lavkaProductBtn img{width:80px;height:80px;object-fit:cover;border-radius:var(--r3);}
-#mLavka .lavkaProductBtn img{width:40px;height:40px;}
+#mLavka .lavkaProductBtn img{width:30px;height:30px;}
 .lavkaProductBtn .lavkaName{font-size:11px;font-weight:900;letter-spacing:1px;line-height:1.2;}
-#mLavka .lavkaProductBtn .lavkaName{font-size:9px;line-height:1.12;}
+#mLavka .lavkaProductBtn .lavkaName{font-size:8px;line-height:1.1;}
 .lavkaProductBtn .lavkaDesc{font-size:10px;opacity:.85;line-height:1.25;max-width:100%;}
-#mLavka .lavkaProductBtn .lavkaDesc{font-size:8px;line-height:1.18;}
+#mLavka .lavkaProductBtn .lavkaDesc{font-size:7px;line-height:1.15;}
 .lavkaProductBtn .lavkaPrice{font-size:12px;color:#000;}
-#mLavka .lavkaProductBtn .lavkaPrice{font-size:9px;}
-#mLavka .lavkaProductBtn .btnSmall{padding:4px 6px;font-size:9px;}
+#mLavka .lavkaProductBtn .lavkaPrice{font-size:7px;}
+#mLavka .lavkaProductBtn .btnSmall{padding:3px 5px;font-size:8px;}
+/* Топ-100: подсветка золото / серебро / медь вместо медалек */
+#mTop #top100List .topRow{padding:6px 8px; border-radius:10px;}
+#mTop #top100List .topRowGold{background:linear-gradient(90deg, rgba(245,158,11,.18) 0%, rgba(245,158,11,.06) 100%); border:1px solid rgba(245,158,11,.4);}
+#mTop #top100List .topRowSilver{background:linear-gradient(90deg, rgba(203,213,225,.25) 0%, rgba(203,213,225,.08) 100%); border:1px solid rgba(148,163,184,.5);}
+#mTop #top100List .topRowBronze{background:linear-gradient(90deg, rgba(205,127,50,.2) 0%, rgba(205,127,50,.06) 100%); border:1px solid rgba(205,127,50,.45);}
 .inventoryList{display:flex;flex-direction:column;gap:10px;}
 .inventoryRow{display:flex;align-items:center;gap:12px;padding:10px;border-radius:var(--r2);border:1px solid var(--paperLine);background:rgba(0,0,0,.04);}
 .inventoryRow img{width:48px;height:48px;object-fit:cover;border-radius:8px;}
@@ -11838,13 +11882,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }).slice(0,100);
 
       box.innerHTML = sorted2.map((r,idx)=>{
-        const medal = idx===0 ? '🥇' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
-        const mStyle = idx===0 ? 'color:var(--gold);' : (idx===1 ? 'color:rgba(226,232,240,.95);' : (idx===2 ? 'color:rgba(251,146,60,.95);' : ''));
-        const left = medal ? ('<div class="badge" style="padding:6px 8px; font-size:11px; '+mStyle+'">'+medal+'</div>') : '';
+        const rowClass = idx===0 ? ' topRow topRowGold' : (idx===1 ? ' topRow topRowSilver' : (idx===2 ? ' topRow topRowBronze' : ''));
         const val = 'ЛВЛ '+r.lvl+' · '+fmt4(r.dmg)+' · '+r.members+'/100';
-        return '<div class="row">'
+        return '<div class="row'+rowClass+'">'
           + '<div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1">'
-          + left
           + '<div style="min-width:0; font-size:12px; opacity:.9">#'+(idx+1)+' '+r.name+'</div>'
           + '</div>'
           + '<div class="badge" style="padding:6px 8px; font-size:11px">'+val+'</div>'
@@ -11857,16 +11898,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     topPlayersCloudList(kind, 100).then((rows)=>{
       const list = Array.isArray(rows) ? rows : [];
       box.innerHTML = list.length ? list.map((r,idx)=>{
-        const medal = idx===0 ? '🥇' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
-        const mStyle = idx===0 ? 'color:var(--gold);' : (idx===1 ? 'color:rgba(226,232,240,.95);' : (idx===2 ? 'color:rgba(251,146,60,.95);' : ''));
+        const rowClass = idx===0 ? ' topRow topRowGold' : (idx===1 ? ' topRow topRowSilver' : (idx===2 ? ' topRow topRowBronze' : ''));
         const v = (kind==='LVL') ? ('УР. '+(parseInt(r && r.level || 1,10)||1)) : (kind==='WEALTH' ? (String(parseInt(r && r.stats_sum || 0,10)||0)) : (String(parseInt(r && r.boss_wins || 0,10)||0)));
-        const left = medal ? ('<div class="badge" style="padding:6px 8px; font-size:11px; '+mStyle+'">'+medal+'</div>') : '';
         const nm = r && r.name ? String(r.name) : '—';
         const photo = r && r.photo_url ? String(r.photo_url) : '';
         const ava = photo ? ('<img src="'+photo.replace(/"/g,'&quot;')+'" style="width:28px;height:28px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.45);" />') : '<div style="width:28px;height:28px;border-radius:999px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.20);"></div>';
-        return '<div class="row">'
+        return '<div class="row'+rowClass+'">'
           + '<div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1">'
-          + left
           + '<div style="min-width:0; display:flex; flex-direction:column; gap:6px;">'
           + '<div style="min-width:0; font-size:12px; opacity:.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">#'+(idx+1)+' '+nm+'</div>'
           + '<div style="display:flex; justify-content:flex-start;">'+ava+'</div>'
