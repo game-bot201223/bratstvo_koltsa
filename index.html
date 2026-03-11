@@ -6840,9 +6840,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     });
     const dmgEvents = all.filter(ev=>{
       const tx = String(ev.text||'');
-      if (ev.kind === 'SYS') return false;
       if (tx.indexOf('Ты ') === 0) return true;
-      if (tx.indexOf('Противник') >= 0 && (tx.indexOf('тебе') >= 0 || tx.indexOf('ТЕБЕ') >= 0 || (playerName && tx.indexOf(playerName) >= 0))) return true;
+      if (tx.indexOf('Противник') >= 0) return true;
       return false;
     });
     const consumableEvents = all.filter(ev=>{
