@@ -6198,7 +6198,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
 
     function runArenaFightWith(mult, oppName){
-      // Используем те же эффективные статы, что и в ГБ (база + питомец + бизнес + расходники)
+      // Используем те же эффективные статы, что и в ГБ (база + питомец + доспехи + бизнесы + расходники)
       function effStat(k){
         return gfEffStat(k);
       }
@@ -6433,8 +6433,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const statsSum = (function(){
       try {
         if (typeof GYM_STATS !== 'undefined' && Array.isArray(GYM_STATS) && typeof gfEffStat === 'function') {
+          // Все эффективные статы (спортзал + бонусы)
           return GYM_STATS.reduce(function(a,s){ return a + (gfEffStat(s.key)||0); }, 0);
         }
+        // Фоллбек на клановые статы, если что-то пошло не так
         return (typeof clanStatsSum==='function') ? (parseInt(clanStatsSum()||0,10)||0) : 0;
       } catch (e) { return 0; }
     })();
@@ -6514,6 +6516,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     function buildPreview(mult, oppName, oppPhoto){
       try {
+        // Для соперника в предпросмотре показываем те же эффективные статы, что идут в бой
         function effStat(k){ return gfEffStat(k); }
         const pRaw = {
           health: effStat('health'),
@@ -6556,7 +6559,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           avaEl.textContent = '👤';
         }
 
-        attackBtn.onclick = ()=>{ tryArenaFight('NORMAL'); haptic('light'); };
+        attackBtn.onclick = ()=>{ hideModal('mArenaOpponent'); tryArenaFight('NORMAL'); haptic('light'); };
         anotherBtn.onclick = ()=>{ arenaSearchOpponent(); haptic('light'); };
       } catch (e) {
         statsEl.innerHTML = '<div style="opacity:.8;">Не удалось показать соперника</div>';
