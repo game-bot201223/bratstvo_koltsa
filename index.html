@@ -8368,39 +8368,46 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (qtyEl) qtyEl.textContent = qtyTxt;
       };
       // Те же формулы, что при ударе: doFreeHit использует (14,50), doTokenHit — (10,70),(7,85),(4,100)
-      const freePer = Math.max(1, bossHitDmg(14, 50));
-      const kickPer = Math.max(1, bossHitDmg(10, 70));
-      const knucklePer = Math.max(1, bossHitDmg(7, 85));
-      const enemaPer = Math.max(1, bossHitDmg(4, 100));
+      const freeBase = Math.max(1, bossHitDmg(14, 50));
+      const kickBase = Math.max(1, bossHitDmg(10, 70));
+      const knuckleBase = Math.max(1, bossHitDmg(7, 85));
+      const enemaBase = Math.max(1, bossHitDmg(4, 100));
 
-      const freeTotal = Math.min(prevHp, freePer * 1);
-      const kickTotal = Math.min(prevHp, kickPer * hk);
-      const knuckleTotal = Math.min(prevHp, knucklePer * hn);
-      const enemaTotal = Math.min(prevHp, enemaPer * he);
+      // Урон за один НАЖАТИЕ с учётом выбранного множителя x1/x10/x100/x1000
+      const freePerPress = freeBase; // свободный удар всегда 1 раз
+      const kickPerPress = kickBase * q2;
+      const knucklePerPress = knuckleBase * q2;
+      const enemaPerPress = enemaBase * q2;
+
+      // Общий потенциальный урон всеми оставшимися ударами данного типа
+      const freeTotal = Math.min(prevHp, freeBase * 1);
+      const kickTotal = Math.min(prevHp, kickBase * hk);
+      const knuckleTotal = Math.min(prevHp, knuckleBase * hn);
+      const enemaTotal = Math.min(prevHp, enemaBase * he);
 
       setDmgQty(
         $('bfFreeHitDmg'),
         $('bfFreeHitQty'),
-        'УРОН ' + freePer + ' (всего ' + freeTotal + ')',
-        '1 раз'
+        'УРОН ' + freePerPress,
+        'всего ' + freeTotal
       );
       setDmgQty(
         $('bfHit1Dmg'),
         $('bfHit1Qty'),
-        'УРОН ' + kickPer + ' (всего ' + kickTotal + ')',
-        String(hk)
+        'УРОН ' + kickPerPress,
+        'всего ' + kickTotal
       );
       setDmgQty(
         $('bfHit2Dmg'),
         $('bfHit2Qty'),
-        'УРОН ' + knucklePer + ' (всего ' + knuckleTotal + ')',
-        String(hn)
+        'УРОН ' + knucklePerPress,
+        'всего ' + knuckleTotal
       );
       setDmgQty(
         $('bfHit3Dmg'),
         $('bfHit3Qty'),
-        'УРОН ' + enemaPer + ' (всего ' + enemaTotal + ')',
-        String(he)
+        'УРОН ' + enemaPerPress,
+        'всего ' + enemaTotal
       );
     } catch (e) {}
 
