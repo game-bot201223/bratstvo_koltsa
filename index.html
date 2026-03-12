@@ -1724,7 +1724,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody" id="arenaSheetBody">
       <img src="бк.png" alt="" class="arenaTopImg" id="arenaTopImg">
       <div class="card" style="margin-top:10px;">
-        <div class="row"><div><div class="k">БОЙЦОВСКИЙ КЛУБ</div></div><div class="badge" id="arenaCdCard" style="display:none; font-size:11px; padding:7px 9px;"><span style="opacity:.75; letter-spacing:1px;">КУЛДАУН</span> <span id="arenaCd">00:00</span></div></div>
+        <div class="row">
+          <div><div class="k">БОЙЦОВСКИЙ КЛУБ</div></div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+            <div class="badge" id="arenaCdCard" style="display:none; font-size:11px; padding:7px 9px;"><span style="opacity:.75; letter-spacing:1px;">КУЛДАУН</span> <span id="arenaCd">00:00</span></div>
+            <button type="button" class="btn btnMini" id="arenaCdResetBtn" style="display:none; font-size:10px; padding:3px 6px;">Сброс за 15 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></button>
+          </div>
+        </div>
         <div style="margin-top:8px; display:flex; flex-direction:column; gap:6px;">
           <button class="btn" id="arenaSearch">ПОИСК ПРОТИВНИКА</button>
           <div style="font-size:11px; opacity:.8; line-height:1.25;" id="arenaSearchHint">Подбирается соперник с характеристиками от 70% до 120% от твоих общих характеристик.</div>
@@ -5440,21 +5446,23 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   ];
   const BIZ_MAX_LVL = 10;
   const BIZ_LVL_COSTS = [
-    5000,
-    10000,
     50000,
-    100000,
+    150000,
     500000,
-    1000000,
+    1500000,
     5000000,
     10000000,
+    30000000,
     50000000,
-    100000000
+    80000000,
+    120000000
   ];
 
   const BIZ2_FEAR_PER_LVL = [200,400,600,800,1000,1200,1400,1600,1800,2000];
   const BIZ3_PCT_PER_LVL = [0.005,0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05];
-  const BIZ4_GOLD_PER_LVL = [1,2,3,4,5,6,7,8,9,10];
+  const BIZ4_MAX_LVL = 5;
+  const BIZ4_GOLD_PER_LVL = [1,2,3,4,5]; // ежедневный доход золотом за уровень
+  const BIZ4_LVL_COSTS = [10000000,50000000,100000000,150000000,200000000]; // цена улучшения для золотого бизнеса
 
   function bizKey(dIdx, bIdx){
     return 'D' + String(dIdx) + 'B' + String(bIdx);
@@ -5468,13 +5476,21 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
   function bizSetLvl(dIdx, bIdx, lvl){
     if (!state.districtBizLvls || typeof state.districtBizLvls !== 'object') state.districtBizLvls = {};
-    const newLvl = clamp(parseInt(lvl||0,10)||0, 0, BIZ_MAX_LVL);
+    let newLvl = clamp(parseInt(lvl||0,10)||0, 0, BIZ_MAX_LVL);
+    if (bIdx===3) newLvl = clamp(newLvl, 0, BIZ4_MAX_LVL);
     state.districtBizLvls[bizKey(dIdx, bIdx)] = newLvl;
     if (newLvl >= 1 && !state.districtBizFirstPurchaseTs) state.districtBizFirstPurchaseTs = now();
   }
-  function bizCostNext(lvl){
-    const nxt = clamp((parseInt(lvl||0,10)||0) + 1, 1, BIZ_MAX_LVL);
-    const c = BIZ_LVL_COSTS[nxt-1];
+  function bizCostNext(lvl, bIdx){
+    const isGoldBiz = (bIdx===3);
+    const maxLvlForThis = isGoldBiz ? BIZ4_MAX_LVL : BIZ_MAX_LVL;
+    const nxt = clamp((parseInt(lvl||0,10)||0) + 1, 1, maxLvlForThis);
+    let c = 0;
+    if (isGoldBiz){
+      c = BIZ4_LVL_COSTS[nxt-1];
+    } else {
+      c = BIZ_LVL_COSTS[nxt-1];
+    }
     return (typeof c === 'number' && c>0) ? c : 0;
   }
 
@@ -5498,7 +5514,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
   function bizSyncEnergyMax(){
     try {
-      const want = bizTotalLvl(0) * 2;
+      const want = bizTotalLvl(0) * 1;
       const cur = Math.max(0, Math.floor(state._bizEnergyApplied||0));
       const delta = want - cur;
       if (delta!==0){
@@ -5546,7 +5562,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
 
       if (!state.districtBizDaily.claimed[c4k]){
-        const lvl4 = bizLvl(id, 3);
+        const lvl4raw = bizLvl(id, 3);
+        const lvl4 = Math.min(lvl4raw, BIZ4_MAX_LVL);
         const addGold = lvl4>0 ? (BIZ4_GOLD_PER_LVL[lvl4-1]||0) : 0;
         if (addGold>0){
           state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + addGold);
@@ -5582,14 +5599,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       for (let i=0;i<4;i++){
         const bn = list[i] ? String(list[i]) : ('Бизнес '+(i+1));
         const lvl = bizLvl(id, i);
-        const maxed = lvl >= BIZ_MAX_LVL;
-        const cost = maxed ? 0 : bizCostNext(lvl);
+        const isGoldBiz = (i===3);
+        const maxLvlForThis = isGoldBiz ? BIZ4_MAX_LVL : BIZ_MAX_LVL;
+        const maxed = lvl >= maxLvlForThis;
+        const cost = maxed ? 0 : bizCostNext(lvl, i);
         const hasCost = cost>0;
         let eff = '—';
         if (i===0){
-          const curAdd = lvl*2;
-          const nextAdd = (lvl+1)*2;
-          eff = '+2 к максимуму энергии за уровень (сейчас +' + curAdd + (maxed?')':(', следующий: +' + nextAdd + ')'));
+          const curAdd = lvl*1;
+          const nextAdd = (lvl+1)*1;
+          eff = '+1 к максимуму энергии за уровень (сейчас +' + curAdd + (maxed?')':(', следующий: +' + nextAdd + ')'));
         } else if (i===1){
           const addFear = lvl>0 ? (BIZ2_FEAR_PER_LVL[lvl-1]||0) : 0;
           const nextFear = maxed ? addFear : (BIZ2_FEAR_PER_LVL[lvl]||addFear);
@@ -5599,14 +5618,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const nextPct = maxed ? pct : (BIZ3_PCT_PER_LVL[lvl]||pct);
           eff = 'Бонус к спортзалу: +' + (pct*100).toFixed(1) + '% (суммируется по районам)' + (maxed ? '' : (' · следующий: +' + (nextPct*100).toFixed(1) + '%'));
         } else if (i===3){
-          const addGold = lvl>0 ? (BIZ4_GOLD_PER_LVL[lvl-1]||0) : 0;
-          const nextGold = maxed ? addGold : (BIZ4_GOLD_PER_LVL[lvl]||addGold);
+          const effLvl = Math.min(lvl, BIZ4_MAX_LVL);
+          const addGold = effLvl>0 ? (BIZ4_GOLD_PER_LVL[effLvl-1]||0) : 0;
+          const nextLvl = Math.min(effLvl+1, BIZ4_MAX_LVL);
+          const nextGold = maxed ? addGold : (BIZ4_GOLD_PER_LVL[nextLvl-1]||addGold);
           eff = 'Раз в 24 ч: +' + fmt4(addGold) + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">' + (maxed ? '' : (' · следующий: +' + fmt4(nextGold) + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">'));
         }
         html += '<div class="card" style="margin:0;">'
           + '<div class="row"><div style="min-width:0"><div class="k">'+String(bn).toUpperCase()+'</div><div style="margin-top:6px; font-size:12px; opacity:.8; line-height:1.35">'+eff+'</div></div>'
           + '<div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px">'
-          + '<div class="badge">УРОВЕНЬ '+lvl+'/'+BIZ_MAX_LVL+'</div>'
+          + '<div class="badge">УРОВЕНЬ '+lvl+'/'+maxLvlForThis+'</div>'
           + '<button class="btn btnSmall" data-biz-up="'+id+':'+i+'" '+((maxed||!hasCost)?'disabled':'')+'>'
           + (maxed ? 'МАКС' : (hasCost ? ('УЛУЧШИТЬ ЗА '+fmt4(cost)+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon">') : 'СКОРО'))
           + '</button>'
@@ -5622,8 +5643,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const dd = clamp(parseInt(parts[0]||'0',10)||0, 0, 11);
           const bb = clamp(parseInt(parts[1]||'0',10)||0, 0, 3);
           const cur = bizLvl(dd, bb);
-          if (cur>=BIZ_MAX_LVL){ toast('Уже максимум','lose'); return; }
-          const cost = bizCostNext(cur);
+          const isGoldBiz = (bb===3);
+          const maxLvlForThis = isGoldBiz ? BIZ4_MAX_LVL : BIZ_MAX_LVL;
+          if (cur>=maxLvlForThis){ toast('Уже максимум','lose'); return; }
+          const cost = bizCostNext(cur, bb);
           if (!(cost>0)){ toast('Скоро','lose'); return; }
           if ((state.tooth||0) < cost){ toast('Нужно '+fmt4(cost)+' '+TOAST_TOOTH_IMG,'lose'); return; }
           state.tooth -= cost;
@@ -6150,6 +6173,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     haptic('light');
   }
 
+  const ARENA_CD_MS = 15 * 60 * 1000; // 15 минут кулдаун для ОБ
+
   function arenaCdLeft(){
     return Math.max(0, (state.arena && state.arena.cdUntil ? (state.arena.cdUntil - now()) : 0));
   }
@@ -6168,14 +6193,40 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     return pad2(hh)+':'+pad2(mm)+':'+pad2(ss);
   }
 
+  function arenaResetCd(){
+    const left = arenaCdLeft();
+    if (left <= 0){
+      return;
+    }
+    const cost = 15;
+    if ((state.gold||0) < cost){
+      toast('Нужно 15 золотых монет '+TOAST_GOLD_IMG,'lose');
+      return;
+    }
+    if (!state.arena) state.arena = { cdUntil:0, wins:0, losses:0, power:0 };
+    state.gold -= cost;
+    state.arena.cdUntil = now();
+    save();
+    renderAll();
+    toast('Кулдаун сброшен','win');
+    haptic('light');
+  }
+
   function renderArena(){
     const left = arenaCdLeft();
     const card = $('arenaCdCard');
+    const resetBtn = $('arenaCdResetBtn');
     if (left>0){
       card.style.display = '';
       $('arenaCd').textContent = fmtMMSS(left);
+      if (resetBtn){
+        resetBtn.style.display = '';
+        const cost = 15;
+        resetBtn.disabled = ((state.gold||0) < cost);
+      }
     } else {
       card.style.display = 'none';
+      if (resetBtn) resetBtn.style.display = 'none';
     }
 
     // group hint on arena
@@ -6270,7 +6321,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     __arenaFightLockUntil = t0 + 1500;
     try {
       if (!state.arena) state.arena = { cdUntil:0, wins:0, losses:0, power:0 };
-      // set cooldown immediately to block double taps
+      // лёгкий лок от дабл-тапов, реальный кулдаун выставится по завершении боя
       state.arena.cdUntil = t0 + 1200;
       save();
       renderAll();
@@ -6280,6 +6331,21 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     // Новый диапазон сложности: всегда 70–120% от твоих общих характеристик
     const pMin = 0.70;
     const pMax = 1.20;
+
+    // Шанс победы игрока в зависимости от относительной силы противника
+    // relMult = enemyPower / playerPower (0.7–1.2 и выше)
+    function arenaPlayerWinChance(relMult){
+      const r = Math.round(relMult * 100); // в процентах
+      if (r < 70) return 1.00;   // противник <70% → без шансов для него
+      if (r <= 80) return 0.90;  // 70–80%  → мы выигрываем ~90%
+      if (r <= 90) return 0.80;  // 81–90%  → ~80%
+      if (r <= 99) return 0.70;  // 91–99%  → ~70%
+      if (r === 100) return 0.50;// равный  → 50/50
+      if (r <= 110) return 0.30; // 101–110 → ~30%
+      if (r <= 120) return 0.20; // 111–120 → ~20%
+      if (r <= 130) return 0.10; // 121–130 → ~10%
+      return 0.00;               // дальше без шансов
+    }
 
     function arenaBotName(kind0){
       const oppPool = kind0==='ELITE'
@@ -6424,10 +6490,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
       }
 
+      // Базовый результат боя по HP
       let win = false;
       if (pHP>0 && eHP<=0) win = true;
       else if (pHP<=0 && eHP>0) win = false;
       else win = pHP >= eHP;
+
+      // Корректируем финальный исход по заданным шансам победы
+      const pWin = arenaPlayerWinChance(mult);
+      const roll = Math.random();
+      if (roll < pWin && !win) {
+        win = true;
+      } else if (roll >= pWin && win) {
+        win = false;
+      }
       const chaCost = gymCost(gymVal('charisma'));
 
       // Награда зависит от силы соперника:
@@ -6517,7 +6593,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         haptic('medium');
       }
 
-      state.arena.cdUntil = now() + 1000;
+      state.arena.cdUntil = now() + ARENA_CD_MS;
       __arenaFightLockUntil = now() + 500;
       save();
       renderAll();
@@ -12088,6 +12164,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       save();
       renderDice();
     };
+
+    const arenaCdReset = $('arenaCdResetBtn');
+    if (arenaCdReset) arenaCdReset.onclick = ()=>{ arenaResetCd(); };
 
     const bsk = $('bfShopBuyKick');
     if (bsk) bsk.onclick = ()=>bfShopBuy('kick', 5);
