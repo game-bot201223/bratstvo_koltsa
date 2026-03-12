@@ -1467,11 +1467,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div class="armorScrollItem"><img src="персонаж.png" alt=""><button type="button" class="armorItemBuy">купить</button></div>
       </div>
       <div class="armorTierRow" id="armorTierRow" aria-hidden="true">
-        <button type="button" class="armorTierBtn" data-armor-tier="0">чахлые (+20)</button>
-        <button type="button" class="armorTierBtn" data-armor-tier="1">обычные (+50)</button>
-        <button type="button" class="armorTierBtn" data-armor-tier="2">редкие (+100)</button>
-        <button type="button" class="armorTierBtn" data-armor-tier="3">эпические (+250)</button>
-        <button type="button" class="armorTierBtn" data-armor-tier="4" title="+500 к здоровью, силе, ловкости, выносливости, мощи, инициативе">мифические (+500)</button>
+        <button type="button" class="armorTierBtn" data-armor-tier="0">чахлые (+120)</button>
+        <button type="button" class="armorTierBtn" data-armor-tier="1">обычные (+300)</button>
+        <button type="button" class="armorTierBtn" data-armor-tier="2">редкие (+600)</button>
+        <button type="button" class="armorTierBtn" data-armor-tier="3">эпические (+1500)</button>
+        <button type="button" class="armorTierBtn" data-armor-tier="4" title="+500 к здоровью, силе, ловкости, выносливости, мощи, инициативе (в сумме +3000 к характеристикам)">мифические (+3000)</button>
       </div>
       <button type="button" class="btn charCornerBtn" id="btnDospekhi" aria-label="Доспехи"><img src="доспехи.png" alt="Доспехи"></button>
     </div>
@@ -4904,13 +4904,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     4: ['миф1.png', 'миф2.png', 'миф3.png']
   };
   const ARMOR_TIER_STAT_BONUS = { 0: 20, 1: 50, 2: 100, 3: 250, 4: 500 };
+  // Суммарные характеристики от полного сета доспехов по ярусам
+  const ARMOR_TIER_TOTAL_STATS = { 0: 120, 1: 300, 2: 600, 3: 1500, 4: 3000 };
   // Цены по ярусам: чахлые/обычные — золотые зубы, редкие/эпические — золотые монеты
   const ARMOR_TIER_PRICES = {
-    0: { amount: 50000, currency: 'tooth' },   // чахлые — 50к золотых зубов
-    1: { amount: 1000000, currency: 'tooth' }, // обычные — 1м золотых зубов
-    2: { amount: 1000, currency: 'gold' },     // редкие — 1000 монет
-    3: { amount: 2500, currency: 'gold' },     // эпические — 2500 монет
-    4: { amount: 5000, currency: 'gold' }      // мифические — 5000 монет
+    0: { amount: 40000,  currency: 'tooth' }, // чахлые — 40к золотых зубов
+    1: { amount: 100000, currency: 'tooth' }, // обычные — 100к золотых зубов
+    2: { amount: 1000,   currency: 'gold' },  // редкие — 1000 монет
+    3: { amount: 2500,   currency: 'gold' },  // эпические — 2500 монет
+    4: { amount: 5000,   currency: 'gold' }   // мифические — 5000 монет
   };
   const ARMOR_ITEM_PRICE = 5000;
   const GYM_STATS = [
@@ -8366,14 +8368,40 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (qtyEl) qtyEl.textContent = qtyTxt;
       };
       // Те же формулы, что при ударе: doFreeHit использует (14,50), doTokenHit — (10,70),(7,85),(4,100)
-      const freeDmg = Math.max(1, bossHitDmg(14, 50));
-      const kickDmg = Math.max(1, bossHitDmg(10, 70)) * q2;
-      const knuckleDmg = Math.max(1, bossHitDmg(7, 85)) * q2;
-      const enemaDmg = Math.max(1, bossHitDmg(4, 100)) * q2;
-      setDmgQty($('bfFreeHitDmg'), $('bfFreeHitQty'), 'УРОН ' + Math.min(prevHp, freeDmg), '1 раз');
-      setDmgQty($('bfHit1Dmg'), $('bfHit1Qty'), 'УРОН ' + Math.min(prevHp, kickDmg), ''+hk);
-      setDmgQty($('bfHit2Dmg'), $('bfHit2Qty'), 'УРОН ' + Math.min(prevHp, knuckleDmg), ''+hn);
-      setDmgQty($('bfHit3Dmg'), $('bfHit3Qty'), 'УРОН ' + Math.min(prevHp, enemaDmg), ''+he);
+      const freePer = Math.max(1, bossHitDmg(14, 50));
+      const kickPer = Math.max(1, bossHitDmg(10, 70));
+      const knucklePer = Math.max(1, bossHitDmg(7, 85));
+      const enemaPer = Math.max(1, bossHitDmg(4, 100));
+
+      const freeTotal = Math.min(prevHp, freePer * 1);
+      const kickTotal = Math.min(prevHp, kickPer * hk);
+      const knuckleTotal = Math.min(prevHp, knucklePer * hn);
+      const enemaTotal = Math.min(prevHp, enemaPer * he);
+
+      setDmgQty(
+        $('bfFreeHitDmg'),
+        $('bfFreeHitQty'),
+        'УРОН ' + freePer + ' (всего ' + freeTotal + ')',
+        '1 раз'
+      );
+      setDmgQty(
+        $('bfHit1Dmg'),
+        $('bfHit1Qty'),
+        'УРОН ' + kickPer + ' (всего ' + kickTotal + ')',
+        String(hk)
+      );
+      setDmgQty(
+        $('bfHit2Dmg'),
+        $('bfHit2Qty'),
+        'УРОН ' + knucklePer + ' (всего ' + knuckleTotal + ')',
+        String(hn)
+      );
+      setDmgQty(
+        $('bfHit3Dmg'),
+        $('bfHit3Qty'),
+        'УРОН ' + enemaPer + ' (всего ' + enemaTotal + ')',
+        String(he)
+      );
     } catch (e) {}
 
     try {
@@ -11629,6 +11657,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             }
             if (!state.armorOwned) state.armorOwned = {};
             state.armorOwned[key] = true;
+            try {
+              // Определяем ярус по ключу и выдаём XP, равный суммарному бонусу характеристик сета
+              var tierNum = parseInt(String(key).split('-')[0], 10);
+              var tierTotalStats = (typeof ARMOR_TIER_TOTAL_STATS !== 'undefined' && ARMOR_TIER_TOTAL_STATS[tierNum] != null) ? ARMOR_TIER_TOTAL_STATS[tierNum] : 0;
+              if (tierTotalStats > 0) addXp(tierTotalStats);
+            } catch (eXp) {}
             buyBtn.setAttribute('data-armor-owned', '1');
             buyBtn.textContent = 'выбрать';
             save();
