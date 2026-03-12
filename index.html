@@ -8380,34 +8380,39 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const enemaPerPress = enemaBase * q2;
 
       // Общий потенциальный урон всеми оставшимися ударами данного типа
-      const freeTotal = Math.min(prevHp, freeBase * 1);
-      const kickTotal = Math.min(prevHp, kickBase * hk);
-      const knuckleTotal = Math.min(prevHp, knuckleBase * hn);
-      const enemaTotal = Math.min(prevHp, enemaBase * he);
+      const freeHits = 1;
+      const kickHits = hk;
+      const knuckleHits = hn;
+      const enemaHits = he;
+
+      const freeTotal = Math.min(prevHp, freeBase * freeHits);
+      const kickTotal = Math.min(prevHp, kickBase * kickHits);
+      const knuckleTotal = Math.min(prevHp, knuckleBase * knuckleHits);
+      const enemaTotal = Math.min(prevHp, enemaBase * enemaHits);
 
       setDmgQty(
         $('bfFreeHitDmg'),
         $('bfFreeHitQty'),
         'УРОН ' + freePerPress,
-        'всего ' + freeTotal
+        freeHits + ' удар'
       );
       setDmgQty(
         $('bfHit1Dmg'),
         $('bfHit1Qty'),
         'УРОН ' + kickPerPress,
-        'всего ' + kickTotal
+        kickHits + ' ударов'
       );
       setDmgQty(
         $('bfHit2Dmg'),
         $('bfHit2Qty'),
         'УРОН ' + knucklePerPress,
-        'всего ' + knuckleTotal
+        knuckleHits + ' ударов'
       );
       setDmgQty(
         $('bfHit3Dmg'),
         $('bfHit3Qty'),
         'УРОН ' + enemaPerPress,
-        'всего ' + enemaTotal
+        enemaHits + ' ударов'
       );
     } catch (e) {}
 
