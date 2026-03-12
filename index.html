@@ -1648,10 +1648,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <img src="бк.png" alt="" class="arenaTopImg" id="arenaTopImg">
       <div class="card" style="margin-top:10px;">
         <div class="row"><div><div class="k">БОЙЦОВСКИЙ КЛУБ</div></div><div class="badge" id="arenaCdCard" style="display:none; font-size:11px; padding:7px 9px;"><span style="opacity:.75; letter-spacing:1px;">КУЛДАУН</span> <span id="arenaCd">00:00</span></div></div>
-        <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
-          <button class="btn btnSmall" id="arenaWeak">Слабый</button>
-          <button class="btn btnSmall" id="arenaNorm">Равный</button>
-          <button class="btn btnSmall" id="arenaElite">Сильный</button>
+        <div style="margin-top:8px; display:flex; flex-direction:column; gap:6px;">
+          <button class="btn" id="arenaSearch">ПОИСК ПРОТИВНИКА</button>
+          <div style="font-size:11px; opacity:.8; line-height:1.25;" id="arenaSearchHint">Подбирается соперник с характеристиками от 70% до 120% от твоих общих характеристик.</div>
+          <div id="arenaOpponentCard" style="margin-top:4px; display:none; font-size:11px; line-height:1.3; border-radius:12px; border:1px solid var(--paperLine); padding:8px; background:rgba(0,0,0,.03);"></div>
         </div>
       </div>
 
@@ -1729,6 +1729,34 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="card" style="margin-top:12px;">
         <div class="row"><div class="k">ЛОГ ПО РАУНДАМ</div></div>
         <div id="arenaCombatLog" style="margin-top:10px; display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal modalMini" id="mArenaOpponent" role="dialog" aria-modal="true">
+  <div class="sheet sheetMini">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mArenaOpponent">‹</button>
+      <div class="title">ПРОТИВНИК</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody">
+      <div class="card">
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">
+          <div id="arenaOppAvatar" style="width:52px;height:52px;border-radius:999px;background:rgba(0,0,0,.12);border:1px solid rgba(255,255,255,.35);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:26px;">👤</div>
+          <div style="min-width:0;display:flex;flex-direction:column;gap:2px;">
+            <div style="font-size:13px;font-weight:900;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="arenaOppName">—</div>
+            <div style="font-size:11px;opacity:.8;" id="arenaOppSum">Сумма характеристик: —</div>
+          </div>
+        </div>
+        <div id="arenaOppStats" style="font-size:11px;opacity:.9;line-height:1.3;margin-bottom:8px;">
+          Поиск соперника...
+        </div>
+        <div style="display:flex; gap:8px; margin-top:4px;">
+          <button class="btn btnSmall" id="arenaOppAttackBtn" style="flex:1;">НАПАСТЬ</button>
+          <button class="btn btnSmall" id="arenaOppAnotherBtn" style="flex:1;">ДРУГОЙ</button>
+        </div>
       </div>
     </div>
   </div>
@@ -4928,7 +4956,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     inventory: Array(9).fill(' '),
     petsOwned:{},
     activePetId:0,
-    gym:{},
+    gym:{ health:10, strength:10, agility:10, initiative:10, endurance:10, might:10, charisma:10 },
     arena:{ cdUntil:0, wins:0, losses:0 },
     groupFight:{ joined:false, startTs:0, resolvedTs:0, battle:null, autoShownStartTs:0, pendingReward:null, wins:0, losses:0 },
     gf1010:{ joined:false, startTs:0, costPaid:0, gathered:0, matchId:'', fight:{ round:1, turnLeft:10, myTarget:'', targets:[], log:[] } },
@@ -5012,7 +5040,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   state.playerName = String(state.playerName||'').trim().substring(0, 16) || 'PLAYER';
   if (!Array.isArray(state.inventory)) state.inventory = Array(9).fill(' ');
   if (!state.petsOwned || typeof state.petsOwned !== 'object') state.petsOwned = {};
-  if (!state.gym || typeof state.gym !== 'object') state.gym = {};
+  if (!state.gym || typeof state.gym !== 'object') state.gym = Object.assign({}, defaults.gym);
   if (!state.arena || typeof state.arena !== 'object') state.arena = Object.assign({}, defaults.arena);
   if (!state.groupFight || typeof state.groupFight !== 'object') state.groupFight = Object.assign({}, defaults.groupFight);
   if (typeof state.groupFight.autoShownStartTs !== 'number') state.groupFight.autoShownStartTs = 0;
@@ -6156,8 +6184,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e9) {}
     // энергия больше не участвует в боях арены
 
-    const pMin = kind==='ELITE' ? 1.10 : (kind==='NORMAL' ? 0.95 : 0.60);
-    const pMax = kind==='ELITE' ? 1.30 : (kind==='NORMAL' ? 1.05 : 0.80);
+    // Новый диапазон сложности: всегда 70–120% от твоих общих характеристик
+    const pMin = 0.70;
+    const pMax = 1.20;
 
     function arenaBotName(kind0){
       const oppPool = kind0==='ELITE'
@@ -6307,10 +6336,25 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       else if (pHP<=0 && eHP>0) win = false;
       else win = pHP >= eHP;
       const chaCost = gymCost(gymVal('charisma'));
-      const mulMin = kind==='ELITE' ? 3.0 : (kind==='NORMAL' ? 2.8 : 2.5);
-      const mulMax = kind==='ELITE' ? 3.2 : (kind==='NORMAL' ? 3.0 : 2.8);
-      const mul = mulMin + Math.random() * (mulMax - mulMin);
-      const silverGain = win ? Math.max(0, Math.round(chaCost * mul)) : Math.max(0, Math.round(chaCost * 0.5));
+
+      // Награда зависит от силы соперника:
+      // 70–80% от твоих статов  → 2.0–2.1×
+      // 81–90%                  → 2.1–2.2×
+      // 91–100%                 → 2.2–2.3×
+      // 101–110%                → 2.3–2.4×
+      // 111–120%                → 2.4–2.5×
+      function pickRewardMultiplier(relMult){
+        const rel = Math.max(70, Math.min(120, Math.round(relMult * 100)));
+        function rr(a,b){ return a + Math.random() * (b - a); }
+        if (rel <= 80) return rr(2.0, 2.1);
+        if (rel <= 90) return rr(2.1, 2.2);
+        if (rel <= 100) return rr(2.2, 2.3);
+        if (rel <= 110) return rr(2.3, 2.4);
+        return rr(2.4, 2.5);
+      }
+      const rewardMult = pickRewardMultiplier(mult);
+      // При победе — по таблице выше, при поражении — 50% от стоимости харизмы
+      const silverGain = win ? Math.max(0, Math.round(chaCost * rewardMult)) : Math.max(0, Math.round(chaCost * 0.5));
       const xpGain = win ? 5 : 0;
 
       try {
@@ -6426,6 +6470,124 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e0) {}
 
     return runArenaFightWith(botMult, botName);
+  }
+
+  // Поиск соперника на арене без мгновенного начала боя:
+  // открывает отдельное окно с именем, (опциональным) фото, статами и кнопками
+  // НАПАСТЬ / ДРУГОЙ.
+  function arenaSearchOpponent(){
+    const nameEl = $('arenaOppName');
+    const sumEl = $('arenaOppSum');
+    const statsEl = $('arenaOppStats');
+    const avaEl = $('arenaOppAvatar');
+    const attackBtn = $('arenaOppAttackBtn');
+    const anotherBtn = $('arenaOppAnotherBtn');
+    if (!nameEl || !sumEl || !statsEl || !avaEl || !attackBtn || !anotherBtn) return;
+
+    nameEl.textContent = 'ПОИСК...';
+    sumEl.textContent = 'Сумма характеристик: —';
+    statsEl.innerHTML = '<div style="opacity:.8;">Поиск соперника...</div>';
+    avaEl.innerHTML = '👤';
+    avaEl.style.backgroundImage = '';
+
+    showModal('mArenaOpponent');
+
+    const pMin = 0.70;
+    const pMax = 1.20;
+
+    const statsSum = (function(){
+      try {
+        if (typeof GYM_STATS !== 'undefined' && Array.isArray(GYM_STATS) && typeof gfEffStat === 'function') {
+          return GYM_STATS.reduce(function(a,s){ return a + (gfEffStat(s.key)||0); }, 0);
+        }
+        return (typeof clanStatsSum==='function') ? (parseInt(clanStatsSum()||0,10)||0) : 0;
+      } catch (e) { return 0; }
+    })();
+    const mySum = Math.max(1, statsSum);
+    const minSum = Math.max(1, Math.round(mySum * pMin));
+    const maxSum = Math.max(minSum + 1, Math.round(mySum * pMax));
+
+    function arenaBotName(){
+      const oppPool = ['Новичок', 'Опытный Боец', 'Закалённый Воин', 'Мастер Арены'];
+      return oppPool[Math.floor(Math.random()*oppPool.length)];
+    }
+
+    function buildPreview(mult, oppName, oppPhoto){
+      try {
+        function effStat(k){ return gfEffStat(k); }
+        const pRaw = {
+          health: effStat('health'),
+          strength: effStat('strength'),
+          agility: effStat('agility'),
+          initiative: effStat('initiative'),
+          endurance: effStat('endurance'),
+          might: effStat('might')
+        };
+        const e = {
+          health: Math.max(1, Math.round(pRaw.health * mult)),
+          strength: Math.max(1, Math.round(pRaw.strength * mult)),
+          agility: Math.max(1, Math.round(pRaw.agility * mult)),
+          initiative: Math.max(1, Math.round(pRaw.initiative * mult)),
+          endurance: Math.max(1, Math.round(pRaw.endurance * mult)),
+          might: Math.max(1, Math.round(pRaw.might * mult))
+        };
+        const oppSum = e.health + e.strength + e.agility + e.initiative + e.endurance + e.might;
+        const rel = Math.round(mult * 100);
+
+        nameEl.textContent = oppName;
+        sumEl.textContent = 'Сумма характеристик: '+oppSum+' ('+rel+'% от твоих)';
+
+        statsEl.innerHTML =
+          '<div>Здоровье: <b>'+e.health+'</b></div>'
+          + '<div>Сила: <b>'+e.strength+'</b></div>'
+          + '<div>Ловкость: <b>'+e.agility+'</b></div>'
+          + '<div>Инициатива: <b>'+e.initiative+'</b></div>'
+          + '<div>Выносливость: <b>'+e.endurance+'</b></div>'
+          + '<div>Мощь: <b>'+e.might+'</b></div>';
+
+        if (oppPhoto){
+          const imgPath = oppPhoto.replace(/\"/g,'&quot;');
+          avaEl.style.backgroundImage = 'url("'+imgPath+'")';
+          avaEl.style.backgroundSize = 'cover';
+          avaEl.style.backgroundPosition = 'center';
+          avaEl.textContent = '';
+        } else {
+          avaEl.style.backgroundImage = '';
+          avaEl.textContent = '👤';
+        }
+
+        attackBtn.onclick = ()=>{ tryArenaFight('NORMAL'); haptic('light'); };
+        anotherBtn.onclick = ()=>{ arenaSearchOpponent(); haptic('light'); };
+      } catch (e) {
+        statsEl.innerHTML = '<div style="opacity:.8;">Не удалось показать соперника</div>';
+      }
+    }
+
+    const botName = arenaBotName();
+    const botMult = pMin + Math.random() * (pMax - pMin);
+
+    try {
+      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+        sbFnCall('find_arena_opponent', { initData: tgInitData(), min_sum: minSum, max_sum: maxSum, min_power: 0, max_power: 0 })
+          .then((r)=>{
+            try {
+              const o = r && r.opponent ? r.opponent : null;
+              const oppSum = parseInt(o && o.stats_sum || 0, 10) || 0;
+              if (oppSum > 0 && mySum > 0) {
+                const mult = clamp(oppSum / mySum, pMin, pMax);
+                const nm = o && o.name ? String(o.name).trim().substring(0, 18) : botName;
+                const photo = o && o.photo_url ? String(o.photo_url) : '';
+                return buildPreview(mult, nm, photo);
+              }
+            } catch (e0) {}
+            return buildPreview(botMult, botName, '');
+          })
+          .catch(()=>buildPreview(botMult, botName, ''));
+        return;
+      }
+    } catch (e0) {}
+
+    buildPreview(botMult, botName, '');
   }
 
   // --- Group fight
@@ -11666,9 +11828,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       };
     } catch (e) {}
 
-    $('arenaWeak').onclick = ()=>tryArenaFight('WEAK');
-    $('arenaNorm').onclick = ()=>tryArenaFight('NORMAL');
-    $('arenaElite').onclick = ()=>tryArenaFight('ELITE');
+    const aSearch = $('arenaSearch');
+    if (aSearch) aSearch.onclick = ()=>{ arenaSearchOpponent(); haptic('light'); };
     const aib = $('arenaInventoryBtn'); if (aib) aib.onclick = ()=>{ showModal('mInventory'); renderInventory(); haptic('light'); };
 
     try {
