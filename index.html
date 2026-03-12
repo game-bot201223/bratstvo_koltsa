@@ -2928,13 +2928,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     return gfClamp(cc, 0.05, 0.40);
   }
   function gfCritMultiplier(){
-    return 1.5 + Math.random() * 0.5;
+    // такой же диапазон крита, как на арене: 1.3–1.6
+    return 1.3 + Math.random() * 0.3;
   }
   function gfDoHit(att, def, hpDef, allowCrit){
     const hc = gfHitChance(att.a, def.a, 0);
     if (Math.random() > hc) return { dmg: 0, crit:false, dodge:true };
 
-    let dmg = gfSafePos(att.s) * 6;
+    let dmg = gfSafePos(att.s) * 6; // такая же базовая сила удара, как на арене
     dmg = dmg * gfArmorFactor(att.s, def.e);
 
     let isCrit = false;
@@ -2946,7 +2947,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     }
 
-    dmg = dmg * (0.85 + Math.random() * 0.30);
+    // небольшой разброс урона, как на арене: 0.95–1.05
+    dmg = dmg * (0.95 + Math.random() * 0.10);
     dmg = Math.max(1, Math.round(dmg));
     return { dmg:dmg, crit:isCrit, dodge:false };
   }
