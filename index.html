@@ -6216,16 +6216,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const left = arenaCdLeft();
     const card = $('arenaCdCard');
     const resetBtn = $('arenaCdResetBtn');
+    const searchBtn = $('arenaSearch');
     if (left>0){
-      card.style.display = '';
-      $('arenaCd').textContent = fmtMMSS(left);
+      if (card) card.style.display = 'none';
+      if (searchBtn){
+        searchBtn.disabled = true;
+        searchBtn.textContent = 'КУЛДАУН ' + fmtMMSS(left);
+      }
       if (resetBtn){
         resetBtn.style.display = '';
         const cost = 15;
         resetBtn.disabled = ((state.gold||0) < cost);
       }
     } else {
-      card.style.display = 'none';
+      if (card) card.style.display = 'none';
+      if (searchBtn){
+        searchBtn.disabled = false;
+        searchBtn.textContent = 'ПОИСК ПРОТИВНИКА';
+      }
       if (resetBtn) resetBtn.style.display = 'none';
     }
 
