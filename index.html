@@ -923,14 +923,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   display:grid;
   grid-template-columns:repeat(3, 1fr);
   grid-template-rows:repeat(3, 1fr);
-  padding:5px;
-  gap:5px;
+  padding:4px;
+  gap:2px;
   touch-action: manipulation;
   user-select:none;
   transform: rotate(0deg);
 }
  .dice.rolling{ transition: transform .425s ease-in-out; transform: rotate(720deg); }
- .dice .pip{ width:10px; height:10px; border-radius:50%; background:#000; opacity:0;
+ .dice .pip{ width:7px; height:7px; border-radius:50%; background:#000; opacity:0;
    justify-self:center; align-self:center;
  }
  /* pip positions: 1..9 = left-top .. right-bottom */
