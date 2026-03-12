@@ -989,6 +989,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   color:#1f2933;
   box-shadow:0 0 0 1px rgba(0,0,0,.12);
 }
+.diceMultWrap.locked .diceMultBtn{
+  pointer-events:none;
+  opacity:0.65;
+  cursor:not-allowed;
+}
 .dicePrimary{
   margin-top:24px;
   padding:14px 16px;
@@ -9919,8 +9924,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
     const m1 = $('diceMult1');
     const m5 = $('diceMult5');
-    if (m1) m1.classList.toggle('active', mult===1);
-    if (m5) m5.classList.toggle('active', mult===5);
+    const multWrap = document.querySelector('.diceMultWrap');
+    if (m1) { m1.classList.toggle('active', mult===1); m1.disabled = !!g.active; }
+    if (m5) { m5.classList.toggle('active', mult===5); m5.disabled = !!g.active; }
+    if (multWrap) multWrap.classList.toggle('locked', !!g.active);
 
     const res = $('diceRes');
     if (res) {
@@ -12070,11 +12077,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const dm1 = $('diceMult1');
     const dm5 = $('diceMult5');
     if (dm1) dm1.onclick = ()=>{
+      if (state.diceGame && state.diceGame.active) return;
       state.diceGame.mult = 1;
       save();
       renderDice();
     };
     if (dm5) dm5.onclick = ()=>{
+      if (state.diceGame && state.diceGame.active) return;
       state.diceGame.mult = 5;
       save();
       renderDice();
