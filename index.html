@@ -7586,6 +7586,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         toast('Прокачано','win');
         save();
         renderAll();
+        try {
+          const topModal = $('mTop');
+          if (topModal && topModal.classList.contains('show') && __topLastKind === 'WEALTH'){
+            renderTop100('WEALTH');
+          }
+        } catch (e1) {}
         haptic('light');
       };
     });
@@ -10084,6 +10090,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if ($('mInventory').classList.contains('show')) renderInventory();
     if ($('mLavka').classList.contains('show')) renderLavka();
     if ($('mHavchikCollect').classList.contains('show')) renderHavchikCollect();
+    try {
+      const topModal = $('mTop');
+      if (topModal && topModal.classList.contains('show') && __topLastKind === 'WEALTH'){
+        renderTop100('WEALTH');
+      }
+    } catch (e) {}
   }
 
   function clanLevelFromDmg(dmg){
@@ -12034,10 +12046,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     })();
   }
 
+  let __topLastKind = 'LVL';
   function renderTop100(kind){
     const box = $('top100List');
     if (!box) return;
     kind = String(kind||'LVL').toUpperCase();
+    __topLastKind = kind;
 
     if (kind==='CLANS'){
       try { clanDbSeed(); } catch (e0) {}
