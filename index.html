@@ -295,6 +295,41 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .mainCharacter .charCornerBtn{
   z-index:3;
 }
+.mainCharacter .vipBadgeBtn{
+  position:absolute;
+  top:6px;
+  left:6px;
+  z-index:3;
+  width:56px;
+  height:56px;
+  padding:0;
+  border-radius:50%;
+  border:2px solid rgba(250,204,21,.9);
+  background:rgba(15,23,42,.8);
+  box-shadow:0 2px 6px rgba(0,0,0,.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+.mainCharacter .vipBadgeBtn img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+.mainCharacter .vipBadgeBtn .vipBadgeTimer{
+  position:absolute;
+  right:4px;
+  bottom:4px;
+  padding:1px 5px;
+  border-radius:999px;
+  font-size:10px;
+  line-height:1;
+  background:rgba(0,0,0,.75);
+  color:#facc6b;
+  pointer-events:none;
+}
 /* Декоративная панель-свиток (фэнтези/RPG) между валютой и фото — открывается вниз до дока */
 .parchmentPanel{
   flex:0 0 auto;
@@ -1537,6 +1572,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       </div>
     </div>
     <div class="mainCharacter" id="mainCharacterWrap">
+      <button type="button" class="vipBadgeBtn" id="vipInfoBtn" aria-label="VIP статус" title="VIP статус" style="display:none">
+        <img src="vip.png" alt="VIP">
+        <span class="vipBadgeTimer" id="vipBadgeTimer"></span>
+      </button>
       <img src="персонаж.png" alt="" id="mainCharacterPhoto">
       <div class="armorScrollStrip" id="armorScrollStrip" aria-hidden="true">
         <div class="armorScrollItem"><img src="персонаж.png" alt=""><button type="button" class="armorItemBuy">купить</button></div>
@@ -4938,7 +4977,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   // --- Game data
   const ITEMS = [
-    { key:'VIP', name:'VIP статус', desc:'Открывает VIP возможности', cost:500, currency:'TOOTH', apply:()=>{ if (state.vip){ toast('VIP уже активен','lose'); return; } state.vip = true; toast('VIP активирован','win'); } },
+    { key:'VIP', name:'VIP статус', desc:'VIP на 7 дней: кулдаун ОБ 5 мин, энергия 1/мин', cost:500, currency:'TOOTH', apply:()=>{ 
+      const nowTs = now();
+      if (isVipActive()){ toast('VIP уже активен','lose'); return; }
+      state.vip = true;
+      state.vipUntil = nowTs + VIP_MS;
+      toast('VIP активирован на 7 дней','win');
+      save();
+    } },
   ];
 
   // Товары за Telegram Stars (productId должен совпадать с бэкендом stars_create_invoice)
@@ -5083,6 +5129,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     havchikLastCollectTs:0,
     havchikLastSendTs:0,
     vip:false,
+    vipUntil:0,
     shopX2:false,
     feed:[],
     friends:[],
@@ -5240,6 +5287,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (typeof state.bosses.hitUseQty !== 'number') state.bosses.hitUseQty = 1;
   if (typeof state.bosses.strikes !== 'number') state.bosses.strikes = 10;
   if (typeof state.bosses.lastStrikeTs !== 'number') state.bosses.lastStrikeTs = now();
+  if (typeof state.vipUntil !== 'number') state.vipUntil = 0;
+  if (state.vip && state.vipUntil && now() > state.vipUntil){
+    state.vip = false;
+  }
   if (typeof state.rings !== 'number') state.rings = 0;
   if (!state.promoUsedCodes || typeof state.promoUsedCodes !== 'object') state.promoUsedCodes = {};
   // Fix invalid activeFightId: боссы районов (district_N) и боссы со страницы Боссы — разные; общее только количество ударов (hitStocks).
@@ -5836,6 +5887,30 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     $('energy').textContent = String(Math.floor(state.energy||0));
     $('energyMax').textContent = String(Math.floor(state.energyMax||0));
 
+    try {
+      const vipBtn = $('vipInfoBtn');
+      const vipTimer = $('vipBadgeTimer');
+      const active = isVipActive();
+      if (vipBtn){
+        vipBtn.style.display = active ? '' : 'none';
+      }
+      if (vipTimer){
+        if (!active){
+          vipTimer.textContent = '';
+        } else {
+          const msLeft = Math.max(0, (state.vipUntil||0) - now());
+          const days = Math.floor(msLeft / (24*60*60*1000));
+          const hours = Math.floor((msLeft % (24*60*60*1000)) / (60*60*1000));
+          if (days >= 1){
+            vipTimer.textContent = days + 'д';
+          } else {
+            const mm = Math.floor((msLeft % (60*60*1000)) / (60*1000));
+            vipTimer.textContent = pad2(hours)+':'+pad2(mm);
+          }
+        }
+      }
+    } catch (e0) {}
+
     const need = xpNeed(state.level);
     const cur = Math.floor(state.xp||0);
     const pct = need>0 ? clamp((cur/need)*100,0,100) : 0;
@@ -6175,7 +6250,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     haptic('light');
   }
 
-  const ARENA_CD_MS = 15 * 60 * 1000; // 15 минут кулдаун для ОБ
+  const ARENA_CD_MS_BASE = 15 * 60 * 1000; // базовый кулдаун для ОБ
+  const VIP_MS = 7 * 24 * 60 * 60 * 1000; // 7 дней
+
+  function isVipActive(){
+    return !!(state && state.vip && typeof state.vipUntil === 'number' && now() < state.vipUntil);
+  }
+  function arenaCdMs(){
+    // VIP: сокращённый кулдаун до 5 минут
+    return isVipActive() ? 5 * 60 * 1000 : ARENA_CD_MS_BASE;
+  }
+  const ARENA_CD_MS = ARENA_CD_MS_BASE;
 
   function arenaCdLeft(){
     return Math.max(0, (state.arena && state.arena.cdUntil ? (state.arena.cdUntil - now()) : 0));
@@ -6200,9 +6285,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (left <= 0){
       return;
     }
-    const cost = 15;
+    const cost = isVipActive() ? 5 : 15;
     if ((state.gold||0) < cost){
-      toast('Нужно 15 золотых монет '+TOAST_GOLD_IMG,'lose');
+      toast('Нужно '+cost+' золотых монет '+TOAST_GOLD_IMG,'lose');
       return;
     }
     if (!state.arena) state.arena = { cdUntil:0, wins:0, losses:0, power:0 };
@@ -6227,7 +6312,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
       if (resetBtn){
         resetBtn.style.display = '';
-        const cost = 15;
+        const cost = isVipActive() ? 5 : 15;
+        resetBtn.textContent = 'Сброс за '+cost+' ';
+        resetBtn.innerHTML = 'Сброс за '+cost+' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
         resetBtn.disabled = ((state.gold||0) < cost);
       }
     } else {
@@ -6581,7 +6668,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         haptic('medium');
       }
 
-      state.arena.cdUntil = now() + ARENA_CD_MS;
+      state.arena.cdUntil = now() + arenaCdMs();
       __arenaFightLockUntil = now() + 500;
       save();
       renderAll();
@@ -7958,6 +8045,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (pi) pi.onkeydown = (e)=>{ try { if ((e && (e.key==='Enter' || e.keyCode===13))) promoApply(); } catch (e2) {} };
 
     box.querySelectorAll('[data-buy]').forEach(btn=>{
+      const key = btn.getAttribute('data-buy');
+      const it = ITEMS.find(x=>x.key===key);
+      if (it && it.key === 'VIP'){
+        // если VIP уже активен или ещё не истёк — отключаем кнопку
+        if (isVipActive()){
+          btn.disabled = true;
+        }
+      }
       btn.onclick = ()=>{
         const key = btn.getAttribute('data-buy');
         const it = ITEMS.find(x=>x.key===key);
@@ -11543,12 +11638,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e) {}
   }
 
-  // --- Energy regen (1 energy per 2 min until max)
-  const ENERGY_REGEN_MIN = 2;
+  // --- Energy regen (VIP: 1 energy per 1 min, иначе 1 per 2 min)
+  const ENERGY_REGEN_MIN_BASE = 2;
+  function energyRegenMinutes(){
+    return isVipActive() ? 1 : ENERGY_REGEN_MIN_BASE;
+  }
   function tickEnergy(){
     const ts = parseInt(state.lastEnergyTs||0,10) || now();
     const diff = Math.max(0, now() - ts);
-    const per = ENERGY_REGEN_MIN*60*1000;
+    const per = energyRegenMinutes()*60*1000;
     if ((state.energy||0) >= state.energyMax){
       state.lastEnergyTs = now();
       return;
@@ -11562,7 +11660,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function energyTimerText(){
     if ((state.energy||0) >= state.energyMax) return 'MAX';
     const ts = parseInt(state.lastEnergyTs||0,10) || now();
-    const per = ENERGY_REGEN_MIN*60*1000;
+    const per = energyRegenMinutes()*60*1000;
     const next = ts + per;
     return fmtMMSS(Math.max(0, next - now()));
   }
@@ -12160,6 +12258,19 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     const arenaCdReset = $('arenaCdResetBtn');
     if (arenaCdReset) arenaCdReset.onclick = ()=>{ arenaResetCd(); };
+
+    const vipInfo = $('vipInfoBtn');
+    if (vipInfo) vipInfo.onclick = ()=>{
+      const daysLeft = isVipActive() ? Math.max(0, Math.ceil((state.vipUntil - now()) / (24*60*60*1000))) : 0;
+      const msg = isVipActive()
+        ? ('VIP активен. Осталось примерно '+daysLeft+' дн.\n\n' +
+           'Бонусы VIP:\n' +
+           '• Кулдаун одиночных боёв на арене: 5 минут\n' +
+           '• Восстановление энергии: 1 ⚡ за 1 минуту')
+        : 'VIP статус не активен. Его можно купить в Торговой лавке.';
+      alert(msg);
+      haptic('light');
+    };
 
     const bsk = $('bfShopBuyKick');
     if (bsk) bsk.onclick = ()=>bfShopBuy('kick', 5);
