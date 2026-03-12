@@ -909,12 +909,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   margin-top:14px;
   display:grid;
   grid-template-columns:repeat(5,minmax(0,1fr));
-  gap:6px; /* минимальный отступ между кубиками */
+  gap:4px; /* минимальный отступ между кубиками */
   justify-items:center;
 }
 .dice{
   width:100%;
-  max-width:52px; /* чуть меньше, чтобы 5 штук влезали по ширине */
+  max-width:50px; /* 50x50, чтобы 5 штук влезали по ширине */
   aspect-ratio:1/1;
   height:auto;
   background:#fff;
@@ -923,7 +923,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   display:grid;
   grid-template-columns:repeat(3, 1fr);
   grid-template-rows:repeat(3, 1fr);
-  padding:6px;
+  padding:5px;
   gap:5px;
   touch-action: manipulation;
   user-select:none;
