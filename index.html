@@ -4984,6 +4984,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     _bizEnergyApplied:0,
     bosses:{ hp:{}, strikes:10, wins:0, winsPerBoss:{}, lastWinners:{}, keys:{}, hitStocks:{ kick:0, knuckle:0, enema:0 }, shopQty:1, hitUseQty:1, fights:{}, dmgLog:{}, dmgTop:{}, daily:{ day:'', counts:{} }, toothNextTs:0 },
     friendHelpLvl:0,
+    arenaRejectedOpps:[],
     havchikLastCollectTs:0,
     havchikLastSendTs:0,
     vip:false,
@@ -5041,6 +5042,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (!Array.isArray(state.inventory)) state.inventory = Array(9).fill(' ');
   if (!state.petsOwned || typeof state.petsOwned !== 'object') state.petsOwned = {};
   if (!state.gym || typeof state.gym !== 'object') state.gym = Object.assign({}, defaults.gym);
+  if (!Array.isArray(state.arenaRejectedOpps)) state.arenaRejectedOpps = [];
   if (!state.arena || typeof state.arena !== 'object') state.arena = Object.assign({}, defaults.arena);
   if (!state.groupFight || typeof state.groupFight !== 'object') state.groupFight = Object.assign({}, defaults.groupFight);
   if (typeof state.groupFight.autoShownStartTs !== 'number') state.groupFight.autoShownStartTs = 0;
@@ -6562,8 +6564,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           avaEl.textContent = '👤';
         }
 
+        const oppKey = (String(oppName||'').trim().toUpperCase() || 'BOT') + '|' + String(oppSum);
+
         attackBtn.onclick = ()=>{ hideModal('mArenaOpponent'); tryArenaFight('NORMAL'); haptic('light'); };
-        anotherBtn.onclick = ()=>{ arenaSearchOpponent(); haptic('light'); };
+        anotherBtn.onclick = ()=>{ try { if (Array.isArray(state.arenaRejectedOpps)) state.arenaRejectedOpps.push(oppKey); } catch(e2) {} arenaSearchOpponent(); haptic('light'); };
       } catch (e) {
         statsEl.innerHTML = '<div style="opacity:.8;">Не удалось показать соперника</div>';
       }
@@ -6583,7 +6587,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
                 const mult = clamp(oppSum / mySum, pMin, pMax);
                 const nm = o && o.name ? String(o.name).trim().substring(0, 18) : botName;
                 const photo = o && o.photo_url ? String(o.photo_url) : '';
-                return buildPreview(mult, nm, photo);
+                const key = (nm.toUpperCase() || 'BOT') + '|' + String(oppSum);
+                const rejected = Array.isArray(state.arenaRejectedOpps) ? state.arenaRejectedOpps : [];
+                if (rejected.indexOf(key) === -1) {
+                  return buildPreview(mult, nm, photo);
+                }
               }
             } catch (e0) {}
             return buildPreview(botMult, botName, '');
@@ -12062,11 +12070,33 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
 
     box.innerHTML = '<div style="opacity:.75; font-size:12px">Загрузка...</div>';
+    function localEffStatsSum(){
+      try {
+        if (typeof GYM_STATS !== 'undefined' && Array.isArray(GYM_STATS) && typeof gfEffStat === 'function') {
+          return GYM_STATS.reduce(function(a,s){ return a + (gfEffStat(s.key)||0); }, 0);
+        }
+      } catch (e) {}
+      return 0;
+    }
+    const myName = String(state.playerName||'').trim().toUpperCase();
     topPlayersCloudList(kind, 100).then((rows)=>{
       const list = Array.isArray(rows) ? rows : [];
       box.innerHTML = list.length ? list.map((r,idx)=>{
         const rowClass = idx===0 ? ' topRow topRowGold' : (idx===1 ? ' topRow topRowSilver' : (idx===2 ? ' topRow topRowBronze' : ''));
-        const v = (kind==='LVL') ? ('УР. '+(parseInt(r && r.level || 1,10)||1)) : (kind==='WEALTH' ? (String(parseInt(r && r.stats_sum || 0,10)||0)) : (String(parseInt(r && r.boss_wins || 0,10)||0)));
+        let v;
+        if (kind==='LVL'){
+          v = 'УР. '+(parseInt(r && r.level || 1,10)||1);
+        } else if (kind==='WEALTH'){
+          const nmUpper = (r && r.name ? String(r.name) : '').trim().toUpperCase();
+          if (nmUpper && nmUpper === myName){
+            // Для себя показываем эффективные характеристики с учётом питомца, спортзала, доспехов и бизнесов
+            v = String(localEffStatsSum()||0);
+          } else {
+            v = String(parseInt(r && r.stats_sum || 0,10)||0);
+          }
+        } else {
+          v = String(parseInt(r && r.boss_wins || 0,10)||0);
+        }
         const nm = r && r.name ? String(r.name) : '—';
         const photo = r && r.photo_url ? String(r.photo_url) : '';
         const ava = photo ? ('<img src="'+photo.replace(/"/g,'&quot;')+'" style="width:28px;height:28px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.45);" />') : '<div style="width:28px;height:28px;border-radius:999px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.20);"></div>';
