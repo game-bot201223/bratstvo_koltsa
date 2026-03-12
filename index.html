@@ -6524,7 +6524,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           agility: effStat('agility'),
           initiative: effStat('initiative'),
           endurance: effStat('endurance'),
-          might: effStat('might')
+          might: effStat('might'),
+          charisma: gymVal('charisma')
         };
         const e = {
           health: Math.max(1, Math.round(pRaw.health * mult)),
@@ -6532,9 +6533,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           agility: Math.max(1, Math.round(pRaw.agility * mult)),
           initiative: Math.max(1, Math.round(pRaw.initiative * mult)),
           endurance: Math.max(1, Math.round(pRaw.endurance * mult)),
-          might: Math.max(1, Math.round(pRaw.might * mult))
+          might: Math.max(1, Math.round(pRaw.might * mult)),
+          charisma: Math.max(1, Math.round(pRaw.charisma * mult))
         };
-        const oppSum = e.health + e.strength + e.agility + e.initiative + e.endurance + e.might;
+        const oppSum = e.health + e.strength + e.agility + e.initiative + e.endurance + e.might + e.charisma;
         const rel = Math.round(mult * 100);
 
         nameEl.textContent = oppName;
@@ -6546,7 +6548,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           + '<div>Ловкость: <b>'+e.agility+'</b></div>'
           + '<div>Инициатива: <b>'+e.initiative+'</b></div>'
           + '<div>Выносливость: <b>'+e.endurance+'</b></div>'
-          + '<div>Мощь: <b>'+e.might+'</b></div>';
+          + '<div>Мощь: <b>'+e.might+'</b></div>'
+          + '<div>Харизма: <b>'+e.charisma+'</b></div>';
 
         if (oppPhoto){
           const imgPath = oppPhoto.replace(/\"/g,'&quot;');
