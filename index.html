@@ -1389,6 +1389,19 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   .tile.shop .shopMini{height:28px;font-size:9px}
 }
 
+/* Вертикально компактные экраны: ужимаем отступы, чтобы страницы влезали */
+@media (max-height: 720px){
+  .sheetHead{padding:10px 10px;}
+  .sheetBody{padding:10px;}
+  .card{margin-top:8px;}
+  .btn{min-height:36px;padding:8px 10px;}
+  /* Экран костей — ещё компактнее по вертикали */
+  #mDice .sheetBody{padding:8px;}
+  #mDice .card:first-of-type{margin-top:6px;}
+  #mDice .diceGrid{margin-top:10px;}
+  #mDice .dicePrimary{margin-top:14px;padding:10px 12px;font-size:11px;}
+}
+
 @media (prefers-reduced-motion: reduce){
   *{scroll-behavior:auto !important;transition:none !important;animation:none !important;}
 }
