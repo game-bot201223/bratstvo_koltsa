@@ -955,6 +955,40 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .dice-6 .pip:nth-child(6),
  .dice-6 .pip:nth-child(7),
  .dice-6 .pip:nth-child(9){opacity:1;}
+.diceMultWrap{
+  margin-top:6px;
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  font-size:11px;
+}
+.diceMultLabel{
+  opacity:.8;
+  align-self:center;
+}
+.diceMultBtns{
+  display:inline-flex;
+  padding:2px;
+  border-radius:999px;
+  background:rgba(0,0,0,.04);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);
+  gap:2px;
+}
+.diceMultBtn{
+  min-width:32px;
+  padding:2px 6px;
+  border-radius:999px;
+  border:none;
+  background:transparent;
+  font-size:11px;
+  font-weight:600;
+  color:rgba(0,0,0,.6);
+}
+.diceMultBtn.active{
+  background:linear-gradient(135deg, var(--gold), #facc6b);
+  color:#1f2933;
+  box-shadow:0 0 0 1px rgba(0,0,0,.12);
+}
 .dicePrimary{
   margin-top:24px;
   padding:14px 16px;
@@ -2431,7 +2465,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody">
       <div class="card">
         <div class="diceTitle"><span class="ico">🎲</span><span>БРАТСТВО КОЛЬЦА</span></div>
-        <div class="dicePrice">Цена: <span style="color:var(--gold); font-weight:900">1 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></span></div>
+        <div class="dicePrice">Цена: <span id="dicePriceVal" style="color:var(--gold); font-weight:900">1 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></span></div>
+        <div class="diceMultWrap">
+          <div class="diceMultLabel">Множитель</div>
+          <div class="diceMultBtns">
+            <button type="button" class="diceMultBtn active" id="diceMult1">x1</button>
+            <button type="button" class="diceMultBtn" id="diceMult5">x5</button>
+          </div>
+        </div>
         <div class="diceGrid" id="diceRow"></div>
         <button class="btn dicePrimary" id="diceRoll">БРОСИТЬ</button>
         <div style="margin-top:12px; font-size:12px; opacity:.85; text-align:center" id="diceRes">—</div>
@@ -5000,7 +5041,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     arena:{ cdUntil:0, wins:0, losses:0 },
     groupFight:{ joined:false, startTs:0, resolvedTs:0, battle:null, autoShownStartTs:0, pendingReward:null, wins:0, losses:0 },
     gf1010:{ joined:false, startTs:0, costPaid:0, gathered:0, matchId:'', fight:{ round:1, turnLeft:10, myTarget:'', targets:[], log:[] } },
-    diceGame:{ active:false, rolls:0, max:10, dice:[1,1,1,1,1] },
+    diceGame:{ active:false, rolls:0, max:10, dice:[1,1,1,1,1], mult:1 },
     consumables:{ med:0, nade:0 },
     consumablesItems:{ 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0 },
     consumablesBuffs:{ health:0, strength:0, agility:0, initiative:0, endurance:0, might:0, charisma:0 },
@@ -5091,6 +5132,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (typeof state.groupFight.pendingReward === 'undefined') state.groupFight.pendingReward = null;
   if (!state.gf1010 || typeof state.gf1010 !== 'object') state.gf1010 = Object.assign({}, defaults.gf1010);
   if (!state.diceGame || typeof state.diceGame !== 'object') state.diceGame = Object.assign({}, defaults.diceGame);
+  if (typeof state.diceGame.mult !== 'number' || (state.diceGame.mult!==1 && state.diceGame.mult!==5)) state.diceGame.mult = 1;
   if (!state.armorOwned || typeof state.armorOwned !== 'object') state.armorOwned = {};
   if (typeof state.mainCharacterImg !== 'string' && state.mainCharacterImg !== null) state.mainCharacterImg = null;
   if (!state.consumables || typeof state.consumables !== 'object') state.consumables = Object.assign({}, defaults.consumables);
@@ -9851,6 +9893,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     row.innerHTML = '';
 
     const g = state.diceGame || { active:false, rolls:0, max:10, dice:[1,1,1,1,1] };
+    const mult = (g && g.mult===5) ? 5 : 1;
+    g.mult = mult;
     const d = Array.isArray(g.dice) && g.dice.length===5 ? g.dice : [1,1,1,1,1];
     for (let i=0;i<5;i++){
       const box = document.createElement('div');
@@ -9867,6 +9911,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     const btn = $('diceRoll');
     if (btn) btn.textContent = g.active ? 'ЗАБРАТЬ' : 'БРОСИТЬ';
+
+    const price = $('dicePriceVal');
+    if (price){
+      const cost = mult;
+      price.innerHTML = cost+' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
+    }
+    const m1 = $('diceMult1');
+    const m5 = $('diceMult5');
+    if (m1) m1.classList.toggle('active', mult===1);
+    if (m5) m5.classList.toggle('active', mult===5);
 
     const res = $('diceRes');
     if (res) {
@@ -9933,8 +9987,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   function diceStart(){
     // HARD: roll animation first, then assign values.
-    if ((state.gold||0) < 1){ toast('Нужно 1 золотых монет '+TOAST_GOLD_IMG,'lose'); return false; }
-    state.gold -= 1;
+    const mult = (state.diceGame && state.diceGame.mult===5) ? 5 : 1;
+    const cost = mult;
+    if ((state.gold||0) < cost){ toast('Нужно '+cost+' золотых монет '+TOAST_GOLD_IMG,'lose'); return false; }
+    state.gold -= cost;
     state.diceGame.active = true;
     state.diceGame.rolls = 0;
     state.diceGame.max = 10;
@@ -10018,6 +10074,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function diceClaim(){
     const g = state.diceGame;
     if (!g || !g.active) return;
+    const mult = (g && g.mult===5) ? 5 : 1;
+    g.mult = mult;
     const beforeDice = Array.isArray(g.dice) ? g.dice.slice(0,5) : [1,1,1,1,1];
     const counts = {};
     for (let i=0;i<beforeDice.length;i++){
@@ -10041,38 +10099,43 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     g.target = 0;
     g.comboTarget = 0;
 
-    let rewardText = '50 <img src="зуб.png" alt="Золотые зубы" class="toothIcon">';
+    const baseTooth = 50 * mult;
+    let rewardText = baseTooth+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon">';
     if (!was4x){
-      state.tooth += 50;
+      state.tooth += baseTooth;
     } else {
-      if (was5x) state.gold += 20;
+      if (was5x) state.gold += 20 * mult;
       if (face===1){
-        state.rings = (parseInt(state.rings||0,10)||0) + 15;
-        rewardText = '15 💍 Козырных колец';
+        const ringsGain = 15 * mult;
+        state.rings = (parseInt(state.rings||0,10)||0) + ringsGain;
+        rewardText = ringsGain+' 💍 Козырных колец';
       } else if (face===2){
         if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
-        state.bosses.hitStocks.kick = clamp((parseInt(state.bosses.hitStocks.kick||0,10)||0) + 1, 0, 999999);
-        rewardText = '+ 1 удар ногой';
+        const gain = 1 * mult;
+        state.bosses.hitStocks.kick = clamp((parseInt(state.bosses.hitStocks.kick||0,10)||0) + gain, 0, 999999);
+        rewardText = '+ '+gain+' ударов ногой';
       } else if (face===3){
         if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
-        state.bosses.hitStocks.knuckle = clamp((parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + 1, 0, 999999);
-        rewardText = '+ 1 удар костетом';
+        const gain = 1 * mult;
+        state.bosses.hitStocks.knuckle = clamp((parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + gain, 0, 999999);
+        rewardText = '+ '+gain+' ударов костетом';
       } else if (face===4){
         if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
-        state.bosses.hitStocks.enema = clamp((parseInt(state.bosses.hitStocks.enema||0,10)||0) + 1, 0, 999999);
-        rewardText = '+ 1 клизма';
+        const gain = 1 * mult;
+        state.bosses.hitStocks.enema = clamp((parseInt(state.bosses.hitStocks.enema||0,10)||0) + gain, 0, 999999);
+        rewardText = '+ '+gain+' клизм';
       } else if (face===5){
         const r6 = bossReq(6);
-        if (r6) bossKeyAdd(r6.itemKey, r6.need);
-        rewardText = 'Кольцо на босса «Паучиха»';
+        if (r6) bossKeyAdd(r6.itemKey, r6.need * mult);
+        rewardText = (mult>1 ? (mult+'× ') : '')+'Кольцо на босса «Паучиха»';
       } else if (face===6){
         const r8 = bossReq(8);
-        if (r8) bossKeyAdd(r8.itemKey, r8.need);
-        rewardText = 'Кольцо на босса «Сарумян»';
+        if (r8) bossKeyAdd(r8.itemKey, r8.need * mult);
+        rewardText = (mult>1 ? (mult+'× ') : '')+'Кольцо на босса «Сарумян»';
       } else {
-        state.tooth += 50;
+        state.tooth += baseTooth;
       }
-      if (was5x) rewardText = rewardText + ' +20 <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
+      if (was5x) rewardText = rewardText + ' +' + (20*mult) + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
     }
 
     try { $('diceRewardVal').innerHTML = rewardText; } catch (e) {}
@@ -12004,6 +12067,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     $('diceRoll').onclick = ()=>rollDice();
     $('diceRewardOk').onclick = ()=>hideModal('mDiceReward');
+    const dm1 = $('diceMult1');
+    const dm5 = $('diceMult5');
+    if (dm1) dm1.onclick = ()=>{
+      state.diceGame.mult = 1;
+      save();
+      renderDice();
+    };
+    if (dm5) dm5.onclick = ()=>{
+      state.diceGame.mult = 5;
+      save();
+      renderDice();
+    };
 
     const bsk = $('bfShopBuyKick');
     if (bsk) bsk.onclick = ()=>bfShopBuy('kick', 5);
