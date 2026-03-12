@@ -6485,18 +6485,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const chaCost = gymCost(gymVal('charisma'));
 
       // Награда зависит от силы соперника:
-      // 70–80% от твоих статов  → 2.0–2.1×
-      // 81–90%                  → 2.1–2.2×
-      // 91–100%                 → 2.2–2.3×
-      // 101–110%                → 2.3–2.4×
-      // 111–120%                → 2.4–2.5×
+      // 50–60% от твоих статов  → 2.0–2.1×
+      // 61–70%                  → 2.1–2.2×
+      // 71–80%                  → 2.2–2.3×
+      // 81–90%                  → 2.3–2.4×
+      // 91–100%                 → 2.4–2.5×
       function pickRewardMultiplier(relMult){
-        const rel = Math.max(70, Math.min(120, Math.round(relMult * 100)));
+        const rel = Math.max(50, Math.min(100, Math.round(relMult * 100)));
         function rr(a,b){ return a + Math.random() * (b - a); }
-        if (rel <= 80) return rr(2.0, 2.1);
-        if (rel <= 90) return rr(2.1, 2.2);
-        if (rel <= 100) return rr(2.2, 2.3);
-        if (rel <= 110) return rr(2.3, 2.4);
+        if (rel <= 60) return rr(2.0, 2.1);
+        if (rel <= 70) return rr(2.1, 2.2);
+        if (rel <= 80) return rr(2.2, 2.3);
+        if (rel <= 90) return rr(2.3, 2.4);
         return rr(2.4, 2.5);
       }
       const rewardMult = pickRewardMultiplier(mult);
