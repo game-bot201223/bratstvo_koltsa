@@ -4984,6 +4984,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     districtBizFirstPurchaseTs:0,
     districtBizLastClaimTs:0,
     _bizEnergyApplied:0,
+    districtClearedCount:{},
     bosses:{ hp:{}, strikes:10, wins:0, winsPerBoss:{}, lastWinners:{}, keys:{}, hitStocks:{ kick:0, knuckle:0, enema:0 }, shopQty:1, hitUseQty:1, fights:{}, dmgLog:{}, dmgTop:{}, daily:{ day:'', counts:{} }, toothNextTs:0 },
     friendHelpLvl:0,
     arenaRejectedOpps:[],
@@ -5089,6 +5090,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   if (!state.districtFearLeaders || typeof state.districtFearLeaders !== 'object') state.districtFearLeaders = {};
   if (!state.districtDailyFear || typeof state.districtDailyFear !== 'object') state.districtDailyFear = { day:'', byDistrict:{} };
   if (!state.districtDailyFear.byDistrict || typeof state.districtDailyFear.byDistrict !== 'object') state.districtDailyFear.byDistrict = {};
+  if (!state.districtClearedCount || typeof state.districtClearedCount !== 'object') state.districtClearedCount = {};
   if (!state.districtBizLvls || typeof state.districtBizLvls !== 'object') state.districtBizLvls = {};
   if (!state.districtBizDaily || typeof state.districtBizDaily !== 'object') state.districtBizDaily = { day:'', claimed:{} };
   if (!state.districtBizDaily.claimed || typeof state.districtBizDaily.claimed !== 'object') state.districtBizDaily.claimed = {};
@@ -5316,6 +5318,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       try {
         if (!state.districtClearedEver || typeof state.districtClearedEver !== 'object') state.districtClearedEver = {};
         if (!state.districtClearedEver[bk]) state.districtClearedEver[bk] = now();
+        if (!state.districtClearedCount || typeof state.districtClearedCount !== 'object') state.districtClearedCount = {};
+        state.districtClearedCount[bk] = (parseInt(state.districtClearedCount[bk]||0,10)||0) + 1;
       } catch (e0) {}
 
       try {
@@ -11114,9 +11118,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (enEl) enEl.innerHTML = '⚡ ' + Math.floor(state.energy||0) + '/' + Math.floor(state.energyMax||100);
       if (t) t.textContent = nm.toUpperCase();
       if (b) {
+        // На странице кошмара: страх за текущие сутки + сколько раз район был пройден
         const fk = 'D' + String(i);
-        const totalFear = Math.max(0, (state.districtFear && state.districtFear[fk]) ? (parseInt(state.districtFear[fk]||0,10)||0) : 0);
-        b.innerHTML = '<img src="страх.png" alt="Страх" class="fearIcon"> ' + fmt4(totalFear);
+        let dayFear = 0;
+        let clears = 0;
+        try {
+          const you = String(state.playerName||'PLAYER').trim().toUpperCase();
+          const box = (state.districtDailyFear && state.districtDailyFear.byDistrict) ? state.districtDailyFear.byDistrict : null;
+          const rec = box && box[fk] ? box[fk] : null;
+          const nmDay = rec && rec.name ? String(rec.name).trim().toUpperCase() : '';
+          if (nmDay && nmDay === you) {
+            dayFear = Math.max(0, (parseInt(rec.fear||0,10)||0));
+          }
+          if (state.districtClearedCount && typeof state.districtClearedCount === 'object') {
+            clears = Math.max(0, parseInt(state.districtClearedCount[fk]||0,10)||0);
+          }
+        } catch (eFear) { dayFear = 0; clears = 0; }
+        const clearsText = clears > 0 ? (' · пройдено ' + clears + ' раз') : '';
+        b.innerHTML = '<img src="страх.png" alt="Страх" class="fearIcon"> ' + fmt4(dayFear) + clearsText;
       }
       if (d){
         const energy = Math.floor(state.energy||0);
