@@ -6328,24 +6328,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e9) {}
     // энергия больше не участвует в боях арены
 
-    // Новый диапазон сложности: всегда 70–120% от твоих общих характеристик
-    const pMin = 0.70;
-    const pMax = 1.20;
-
-    // Шанс победы игрока в зависимости от относительной силы противника
-    // relMult = enemyPower / playerPower (0.7–1.2 и выше)
-    function arenaPlayerWinChance(relMult){
-      const r = Math.round(relMult * 100); // в процентах
-      if (r < 70) return 1.00;   // противник <70% → без шансов для него
-      if (r <= 80) return 0.90;  // 70–80%  → мы выигрываем ~90%
-      if (r <= 90) return 0.80;  // 81–90%  → ~80%
-      if (r <= 99) return 0.70;  // 91–99%  → ~70%
-      if (r === 100) return 0.50;// равный  → 50/50
-      if (r <= 110) return 0.30; // 101–110 → ~30%
-      if (r <= 120) return 0.20; // 111–120 → ~20%
-      if (r <= 130) return 0.10; // 121–130 → ~10%
-      return 0.00;               // дальше без шансов
-    }
+    // Диапазон сложности: соперник от 50% до 100% от твоих общих характеристик
+    const pMin = 0.50;
+    const pMax = 1.00;
 
     function arenaBotName(kind0){
       const oppPool = kind0==='ELITE'
@@ -6439,7 +6424,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
 
       function critMultiplier(){
-        return 1.5 + Math.random() * 0.5;
+        // слегка сузили разброс крита, чтобы удача меньше ломала бой
+        return 1.3 + Math.random() * 0.3;
       }
 
       function doAttack(isPlayer, round){
@@ -6452,8 +6438,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           return;
         }
 
-        // BaseDamage = Strength * 3
-        let dmg = safePos(A.strength) * 6;
+        // Базовый урон: сила даёт урон, ловкость помогает реализовать (через хитчанс)
+        let dmgBase = 4 * safePos(A.strength);
+        let dmg = dmgBase;
 
         // Defense via endurance
         dmg = dmg * armorFactor(A.strength, D.endurance);
@@ -6463,8 +6450,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const isCrit = Math.random() < cc;
         if (isCrit) dmg = dmg * critMultiplier();
 
-        // RandomFactor = random(0.85, 1.15)
-        dmg = dmg * (0.85 + Math.random() * 0.30);
+        // RandomFactor = random(0.95, 1.05) — небольшой разброс, чтобы статы решали
+        dmg = dmg * (0.95 + Math.random() * 0.10);
         dmg = Math.max(1, Math.round(dmg));
 
         combatLog.push({ round: round, who: isPlayer ? 'YOU' : 'ENEMY', miss:false, crit:isCrit, dmg:dmg });
@@ -6490,20 +6477,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
       }
 
-      // Базовый результат боя по HP
+      // Итог боя целиком определяется HP и нанесённым уроном
       let win = false;
       if (pHP>0 && eHP<=0) win = true;
       else if (pHP<=0 && eHP>0) win = false;
       else win = pHP >= eHP;
-
-      // Корректируем финальный исход по заданным шансам победы
-      const pWin = arenaPlayerWinChance(mult);
-      const roll = Math.random();
-      if (roll < pWin && !win) {
-        win = true;
-      } else if (roll >= pWin && win) {
-        win = false;
-      }
       const chaCost = gymCost(gymVal('charisma'));
 
       // Награда зависит от силы соперника:
@@ -6647,6 +6625,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // открывает отдельное окно с именем, (опциональным) фото, статами и кнопками
   // НАПАСТЬ / ДРУГОЙ.
   function arenaSearchOpponent(){
+    if (arenaCdLeft() > 0){
+      toast('Сначала дождись окончания кулдауна или сбрось его за 15 золотых монет','lose');
+      haptic('light');
+      return;
+    }
     const nameEl = $('arenaOppName');
     const sumEl = $('arenaOppSum');
     const statsEl = $('arenaOppStats');
@@ -6663,8 +6646,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     showModal('mArenaOpponent');
 
-    const pMin = 0.70;
-    const pMax = 1.20;
+    const pMin = 0.50;
+    const pMax = 1.00;
 
     const statsSum = (function(){
       try {
