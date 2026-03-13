@@ -12781,8 +12781,48 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
         if (!__skipCloudPull) {
           const r = await sbFnCall('get_player', { initData: tgInitData() });
-          const ps = r && r.player && r.player.state;
-          if (ps && typeof ps === 'object') {
+          const hasOk = r && typeof r === 'object' && r.ok === true;
+          const hasPlayer = !!(r && typeof r === 'object' && r.player && typeof r.player === 'object' && r.player.state && typeof r.player.state === 'object');
+          const isNewPlayer = !!(hasOk && (r.player === null || typeof r.player === 'undefined'));
+
+          if (isNewPlayer) {
+            // Глобальный вайп мира: если на сервере игрока нет, принудительно обнуляем локальное состояние.
+            try {
+              for (let i = localStorage.length - 1; i >= 0; i--) {
+                const k = localStorage.key(i);
+                if (!k) continue;
+                if (/^mora_mobile_save_v2/.test(String(k))) {
+                  try { localStorage.removeItem(k); } catch (e1) {}
+                }
+              }
+            } catch (e2) {}
+            state = JSON.parse(JSON.stringify(defaults));
+            try { state.playerName = tgSuggestedName(); } catch (e0) {}
+            try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e3) {}
+            try {
+              const initData = tgInitData();
+              const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
+              let photo = '';
+              try {
+                const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+                photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
+              } catch (e0) { photo = ''; }
+              sbFnCall('upsert_player', {
+                initData,
+                name: state.playerName,
+                photo_url: String(photo||'').trim(),
+                level: state.level,
+                arena_power: (state.arena && (state.arena.power||0)) || 0,
+                arena_wins: (state.arena && (state.arena.wins||0)) || 0,
+                arena_losses: (state.arena && (state.arena.losses||0)) || 0,
+                stats_sum: statsSum,
+                boss_wins: (state.bosses && state.bosses.wins) || 0,
+                referrer_tg_id: '',
+                state: cloudStateSnapshot(state)
+              }).then(()=>{ try { __srvLastSent = now(); } catch (e5) {} }).catch(()=>{});
+            } catch (e4) {}
+          } else if (hasPlayer) {
+            const ps = r.player.state;
             const localFights = state.bosses && state.bosses.fights && typeof state.bosses.fights === 'object' ? state.bosses.fights : null;
             const localCloud = state.bosses && state.bosses.cloud && typeof state.bosses.cloud === 'object' ? state.bosses.cloud : null;
             const localHp = state.bosses && state.bosses.hp && typeof state.bosses.hp === 'object' ? state.bosses.hp : null;
@@ -12798,6 +12838,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             }
             if (localGateKilled && Object.keys(localGateKilled).length > 0) state.districtGateBossKilled = localGateKilled;
             if (localGateFight) state.districtGateBossFight = localGateFight;
+          }
           try {
             const cur = String(state.playerName||'').trim();
             if (!cur || cur.toUpperCase() === 'PLAYER') {
