@@ -4957,7 +4957,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       state.silver = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.silver||0)));
       state.tooth = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.tooth||0)));
       state.rings = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.rings||0)));
-      localStorage.setItem(saveKey(), JSON.stringify(state));
+      // Локально не храним уровень, харки и баланс – только на сервере.
+      const toStore = Object.assign({}, state);
+      delete toStore.level;
+      delete toStore.gym;
+      delete toStore.gold;
+      delete toStore.silver;
+      delete toStore.tooth;
+      delete toStore.rings;
+      localStorage.setItem(saveKey(), JSON.stringify(toStore));
       try {
         const el = $('syncState');
         const cloudEnabled = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
@@ -12812,7 +12820,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
               toast('Полный рестарт выполнен. Мир и локальные данные очищены.','win');
               try {
                 if (typeof localStorage !== 'undefined' && localStorage) localStorage.clear();
-              } catch (e1) {}
+        Ф      } catch (e1) {}
               try { location.reload(); } catch (e2) {}
             } else {
               toast(r && r.error ? r.error : 'Ошибка рестарта','lose');
