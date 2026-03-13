@@ -12420,22 +12420,17 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       var fullRestartBtn = $('adminFullRestartBtn');
       if (!fullRestartBtn) return;
       fullRestartBtn.onclick = async function(){
-        if (!confirm('Полный рестарт игры? Будут удалены ВСЕ игроки, кланы и прогресс. Каждый зайдёт как в первый раз.')) return;
+        if (!confirm('Полный рестарт игры? Будут удалены ВСЕ игроки, кланы и прогресс, а также локальные данные на устройстве. Каждый зайдёт как в первый раз.')) return;
         try {
           var r = await sbFnCall('admin_full_restart', { initData: tgInitData() });
           if (r && r.ok) {
-            toast('Рестарт выполнен. Локальные данные сброшены.','win');
+            toast('Полный рестарт выполнен. Мир и локальные данные очищены.','win');
             try {
-              for (var i = localStorage.length - 1; i >= 0; i--) {
-                var k = localStorage.key(i);
-                if (k && /^mora_mobile_save_v2/.test(String(k))) localStorage.removeItem(k);
+              if (typeof localStorage !== 'undefined' && localStorage) {
+                localStorage.clear();
               }
             } catch (e1) {}
-            state = JSON.parse(JSON.stringify(defaults));
-            try { state.playerName = tgSuggestedName(); } catch (e0) {}
-            try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e2) {}
-            renderAll();
-            setTimeout(function(){ location.reload(); }, 800);
+            try { location.reload(); } catch (e2) {}
           } else {
             toast(r && r.error ? r.error : 'Ошибка рестарта','lose');
           }
