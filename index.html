@@ -12847,6 +12847,30 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
       }
     } catch (eRef) {}
+
+    try {
+      var fullRestartBtn = $('adminFullRestartBtn');
+      if (fullRestartBtn) {
+        fullRestartBtn.onclick = async function(){
+          if (!confirm('Полный рестарт игры? Будут удалены ВСЕ игроки, кланы и прогресс, а также локальные данные на устройстве. Каждый зайдёт как в первый раз.')) return;
+          try {
+            var r = await sbFnCall('admin_full_restart', { initData: tgInitData() });
+            if (r && r.ok) {
+              toast('Полный рестарт выполнен. Мир и локальные данные очищены.','win');
+              try {
+                if (typeof localStorage !== 'undefined' && localStorage) localStorage.clear();
+              } catch (e1) {}
+              try { location.reload(); } catch (e2) {}
+            } else {
+              toast(r && r.error ? r.error : 'Ошибка рестарта','lose');
+            }
+          } catch (e) {
+            toast('Ошибка: ' + (e && e.message ? e.message : 'network'), 'lose');
+          }
+          haptic('light');
+        };
+      }
+    } catch (eFR) {}
     try { bossHelpPollStart(); } catch (e0) {}
     init();
   }
