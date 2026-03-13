@@ -1711,6 +1711,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       </div>
       <div class="card" id="adminCard" style="margin-top:12px; display:none;">
         <div class="row"><div class="k">АДМИН</div><button class="btn btnSmall" id="adminEditPlayerBtn">Редактировать игрока</button></div>
+        <div class="row" style="margin-top:8px;"><div class="k">Полный рестарт игры</div><button class="btn btnSmall" id="adminFullRestartBtn" style="background:#b91c1c; color:#fff;">ПОЛНЫЙ РЕСТАРТ</button></div>
       </div>
     </div>
   </div>
@@ -5084,9 +5085,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     level:1,
     xp:0,
     totalXp:0,
-    gold:1000000,
-    silver:5200,
-    tooth:12,
+    gold:20,
+    silver:2000,
+    tooth:2000,
     rings:0,
     energy:100,
     energyMax:100,
@@ -12411,6 +12412,36 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           var r = await sbFnCall('admin_update_player', { initData: tgInitData(), target_tg_id: tid, state: state });
           if (r && r.ok) toast('Сохранено','win'); else toast(r && r.error ? r.error : 'Ошибка','lose');
         } catch (e) { toast('Ошибка: ' + (e && e.message ? e.message : 'network'), 'lose'); }
+        haptic('light');
+      };
+    })();
+
+    (function(){
+      var fullRestartBtn = $('adminFullRestartBtn');
+      if (!fullRestartBtn) return;
+      fullRestartBtn.onclick = async function(){
+        if (!confirm('Полный рестарт игры? Будут удалены ВСЕ игроки, кланы и прогресс. Каждый зайдёт как в первый раз.')) return;
+        try {
+          var r = await sbFnCall('admin_full_restart', { initData: tgInitData() });
+          if (r && r.ok) {
+            toast('Рестарт выполнен. Локальные данные сброшены.','win');
+            try {
+              for (var i = localStorage.length - 1; i >= 0; i--) {
+                var k = localStorage.key(i);
+                if (k && /^mora_mobile_save_v2/.test(String(k))) localStorage.removeItem(k);
+              }
+            } catch (e1) {}
+            state = JSON.parse(JSON.stringify(defaults));
+            try { state.playerName = tgSuggestedName(); } catch (e0) {}
+            try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e2) {}
+            renderAll();
+            setTimeout(function(){ location.reload(); }, 800);
+          } else {
+            toast(r && r.error ? r.error : 'Ошибка рестарта','lose');
+          }
+        } catch (e) {
+          toast('Ошибка: ' + (e && e.message ? e.message : 'network'), 'lose');
+        }
         haptic('light');
       };
     })();
