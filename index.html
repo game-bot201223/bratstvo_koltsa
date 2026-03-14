@@ -1211,6 +1211,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 #mStarsReward .sheet{ width: 150px; height: 150px; min-width: 150px; min-height: 150px; max-width: 150px; max-height: 150px; border-radius: 16px; padding: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
 #mStarsReward #starsRewardAmount{ font-size: 14px; margin-bottom: 0; }
 #mStarsReward #starsRewardClaim{ width: 100%; font-size: 11px; padding: 8px 10px; }
+.halturkiTaskRewardPop{ position: fixed; left: 50%; transform: translateX(-50%) translateY(10px); bottom: calc(78px + env(safe-area-inset-bottom)); z-index: 9000; padding: 10px 16px; border-radius: 14px; border: 1px solid rgba(217,70,239,.5); background: var(--caramel); box-shadow: var(--shadowDramatic), 0 0 20px rgba(192,38,211,.2); display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 900; letter-spacing: 0.5px; color: var(--tooth); opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; }
+.halturkiTaskRewardPop.show{ opacity: 1; transform: translateX(-50%) translateY(0); }
 .sheet{
   height:100%;
   width:100%;
@@ -1695,6 +1697,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div id="starsRewardAmount" style="text-align:center; font-size:18px; color:var(--gold); margin-bottom:16px;">+0 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div>
     <button type="button" class="btn" id="starsRewardClaim" style="width:100%">ЗАБРАТЬ НАГРАДУ</button>
   </div>
+</div>
+
+<!-- Мини-всплывашка награды за задание халтурок (внизу, 1 сек) -->
+<div class="halturkiTaskRewardPop" id="mHalturkiTaskReward" aria-live="polite">
+  <span>Задание выполнено!</span>
+  <span id="halturkiRewardAmount">+100 <img src="зуб.png" alt="Золотые зубы" class="toothIcon" style="height:18px;vertical-align:middle"></span>
 </div>
 
 <!-- Халтурки — ежедневные задания -->
@@ -9797,7 +9805,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         state.tooth += 100;
         state.bosses.toothNextTs = now() + 10*60*1000;
         let halturkiBonus = 0;
-        try { halturkiBonus = markHalturkiDone('arenaTeeth', 100); } catch (e) {}
+        try { halturkiBonus = markHalturkiDone('arenaTeeth', 100, true); } catch (e) {}
         save();
         renderAll();
         renderHUD();
@@ -10437,11 +10445,30 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       state.halturki = { day:today, arenaTeeth:false, killBoss:false, nightmareDistrict:false, dicePlay:false, havchikSend:false, arenaWin:false, allClaimed:false };
     }
   }
-  function markHalturkiDone(key, toothBonus){
+  var __halturkiRewardTmr = 0;
+  function showHalturkiTaskReward(bonusTeeth){
+    try {
+      const pop = $('mHalturkiTaskReward');
+      const el = $('halturkiRewardAmount');
+      if (!pop || !el) return;
+      if (__halturkiRewardTmr) clearTimeout(__halturkiRewardTmr);
+      el.innerHTML = '+'+bonusTeeth+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon" style="height:18px;vertical-align:middle">';
+      pop.classList.add('show');
+      __halturkiRewardTmr = setTimeout(function(){
+        pop.classList.remove('show');
+        __halturkiRewardTmr = 0;
+      }, 1000);
+    } catch (e) {}
+  }
+  function markHalturkiDone(key, toothBonus, optNoToast){
     halturkiNormalize();
-    if (state.halturki[key] === true) return 0;
+    if (!!state.halturki[key]) return 0;
     const bonus = Math.max(0, parseInt(toothBonus,10)||100);
-    if (bonus > 0) state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + bonus);
+    if (bonus > 0) {
+      const cur = Math.max(0, parseInt(state.tooth,10)||0);
+      state.tooth = Math.min(CURRENCY_CAP, cur + bonus);
+      if (!optNoToast) try { showHalturkiTaskReward(bonus); } catch (e) {}
+    }
     state.halturki[key] = true;
     save();
     return bonus;
@@ -10470,7 +10497,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       claimBtn.disabled = !allDone || !!h.allClaimed;
       claimBtn.textContent = h.allClaimed ? 'НАГРАДА ПОЛУЧЕНА' : 'ЗАБРАТЬ НАГРАДУ';
       claimBtn.onclick = ()=>{
-        if (h.allClaimed || !allDone) return;
+        halturkiNormalize();
+        const cur = state.halturki;
+        const allSixDone = !!(cur.arenaTeeth && cur.killBoss && cur.nightmareDistrict && cur.dicePlay && cur.havchikSend && cur.arenaWin);
+        if (cur.allClaimed) { toast('Награда уже получена сегодня','lose'); return; }
+        if (!allSixDone) { toast('Выполни все 6 заданий','lose'); return; }
         state.halturki.allClaimed = true;
         state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + 10);
         state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + 1000);
