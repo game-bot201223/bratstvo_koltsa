@@ -867,6 +867,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
 /* Bottom dock — божественный карамельный док */
 .bottomStack{margin-top:0;display:flex;flex-direction:column;width:100%;}
+.bottomStack .btnHalturki{ width:100%; padding:12px 14px; font-size:13px; font-weight:900; letter-spacing:2px; border-radius:12px; background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98)); border:1px solid rgba(255,255,255,.55); color:#000; box-shadow: 0 2px 8px rgba(0,0,0,.15); margin:6px 0 calc(14px + env(safe-area-inset-bottom)); box-sizing:border-box; }
+.bottomStack .btnHalturki:active{ opacity:.9; transform:scale(0.98); }
 .dock{
   padding:0 0 calc(14px + env(safe-area-inset-bottom));
   margin-top:0;
@@ -1202,10 +1204,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .modal.modalMini.modalBfShop{ z-index: 5400; }
 .modal.modalMini.modalBossFightRes{ z-index: 5500; }
 .modalEnergyRefillConfirm{ padding: 0; align-items: center; justify-content: center; z-index: 9999; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.4); inset: 0; }
-.modalEnergyRefillConfirm .sheet{ width: 100px; height: 100px; max-width: 92vw; min-width: 100px; min-height: 100px; border-radius: 12px; padding: 6px; background: #e2d6bc !important; border: 1px solid rgba(45,30,18,.25); box-shadow: 0 4px 20px rgba(0,0,0,.35); opacity: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.modalEnergyRefillConfirm .sheet{ width: 140px; height: 140px; max-width: 92vmin; max-height: 92vmin; min-width: 100px; min-height: 100px; border-radius: 4px; padding: 6px; background: #e2d6bc !important; border: 1px solid rgba(45,30,18,.25); box-shadow: 0 4px 20px rgba(0,0,0,.35); opacity: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; aspect-ratio: 1/1; box-sizing: border-box; }
 .modalEnergyRefillConfirm .sheet > div:first-child{ font-size: 9px; line-height: 1.2; text-align: center; letter-spacing: 0; }
 .modalEnergyRefillConfirm .energyRefillConfirmBtns{ display: flex; gap: 4px; justify-content: center; margin-top: 0; flex-wrap: wrap; }
-.modalEnergyRefillConfirm .energyRefillConfirmBtns .btn{ width: 40px; height: 40px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; background: #e2d6bc !important; flex-shrink: 0; }
+.modalEnergyRefillConfirm .energyRefillConfirmBtns .btn{ width: 40px; height: 40px; padding: 0; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; background: #e2d6bc !important; flex-shrink: 0; }
 #mStarsReward .sheet{ width: 150px; height: 150px; min-width: 150px; min-height: 150px; max-width: 150px; max-height: 150px; border-radius: 16px; padding: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
 #mStarsReward #starsRewardAmount{ font-size: 14px; margin-bottom: 0; }
 #mStarsReward #starsRewardClaim{ width: 100%; font-size: 11px; padding: 8px 10px; }
@@ -1542,6 +1544,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="pills">
         <div class="pill energyPill" style="border-color:rgba(34,211,238,.20)">
           <div class="eRow">⚡ <strong id="energy">100</strong>/<span id="energyMax">100</span>
+            <button type="button" class="energyRefillBtn" id="energyRefillBtn" aria-label="Купить энергию" title="Восстановить 100% энергии за 20 золотых монет">
+              <span class="energyRefillLabel">20 <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;width:auto;vertical-align:middle"></span>
+            </button>
             <button type="button" class="resetProgressBtn" id="resetProgressBtn" aria-label="Сброс прогресса" title="Сброс прогресса">↺</button>
           </div>
           <div class="eTimer" id="energyTimer">02:00</div>
@@ -1601,6 +1606,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <button class="btn dockBtn" id="btnPloshchad" aria-label="Площадь"><img src="площадь.png" alt=""></button>
         </div>
       </div>
+      <button type="button" class="btn btnHalturki" id="btnHalturki" aria-label="Халтурки">Халтурки</button>
     </div>
   </div>
 </div>
@@ -1691,6 +1697,28 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   </div>
 </div>
 
+<!-- Халтурки — ежедневные задания -->
+<div class="modal modalPage" id="mHalturki" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mHalturki">‹</button>
+      <div class="title">ХАЛТУРКИ</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody">
+      <div class="card">
+        <div class="k" style="margin-bottom:10px;">ЕЖЕДНЕВНЫЕ ЗАДАНИЯ</div>
+        <div style="font-size:12px; opacity:.85; margin-bottom:12px; line-height:1.35;">Задания обновляются в 18:00 UTC. Каждое — 1 раз в сутки. Награду можно забрать только выполнив все 6 заданий (раз в сутки).</div>
+        <div id="halturkiTaskList" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--paperLine);">
+          <div class="row"><div class="k">НАГРАДА ЗА ВСЕ 6</div><div class="badge" style="color:var(--gold)">10 <img src="голд.png" alt="Золотые монеты" class="goldIcon"> + 1000 <img src="зуб.png" alt="Золотые зубы" class="toothIcon"></div></div>
+          <button type="button" class="btn" id="halturkiClaimAll" style="margin-top:10px; width:100%;" disabled>ЗАБРАТЬ НАГРАДУ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Settings -->
 <div class="modal" id="mSettings" role="dialog" aria-modal="true">
   <div class="sheet">
@@ -1759,7 +1787,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetHead">
       <button class="iconBtn" data-close="mArena">‹</button>
       <div class="title">АРЕНА</div>
-      <button type="button" class="arenaInventoryBtn" id="arenaInventoryBtn" aria-label="Инвентарь" title="Инвентарь"><img src="инвентарь.jpg" alt="Инвентарь"></button>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="toothBtn" id="bossToothBtn" type="button"><div class="ico"><img src="зуб.png" alt="Золотые зубы" class="toothIcon"></div><div class="tm" id="bossToothTimer">00:00</div></button>
+        <button type="button" class="arenaInventoryBtn" id="arenaInventoryBtn" aria-label="Инвентарь" title="Инвентарь"><img src="инвентарь.jpg" alt="Инвентарь"></button>
+      </div>
     </div>
     <div class="sheetBody" id="arenaSheetBody">
       <img src="бк.png" alt="" class="arenaTopImg" id="arenaTopImg">
@@ -2457,7 +2488,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="title">БОССЫ</div>
       <div style="display:flex; gap:8px; align-items:center;">
         <div class="badge" id="bossRingBadge" style="padding:8px 10px; border-color:rgba(255,255,255,.10); background:rgba(0,0,0,.18)">💍 <b id="bossRingVal" style="letter-spacing:1px">0</b></div>
-        <button class="toothBtn" id="bossToothBtn" type="button"><div class="ico"><img src="зуб.png" alt="Золотые зубы" class="toothIcon"></div><div class="tm" id="bossToothTimer">00:00</div></button>
       </div>
     </div>
     <div class="sheetBody" id="bossList"></div>
@@ -3712,6 +3742,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             sbFnCall('havchik_send', { initData: tgInitData(), type_id: typeId })
               .then((res)=>{
                 state.havchikLastSendTs = now();
+                try { markHalturkiDone('havchikSend', 100); } catch (e) {}
                 save();
                 renderHavchik();
                 renderHUD();
@@ -3730,6 +3761,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             return;
           }
           state.havchikLastSendTs = nowTs;
+          try { markHalturkiDone('havchikSend', 100); } catch (e) {}
           save();
           renderHavchik();
           toast('Хавчик отправлен браткам','win');
@@ -5143,6 +5175,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     feed:[],
     friends:[],
     havchikInbox:[],
+    halturki:{ day:'', arenaTeeth:false, killBoss:false, nightmareDistrict:false, dicePlay:false, havchikSend:false, arenaWin:false, allClaimed:false },
     armorOwned:{},
     mainCharacterImg:null,
     selectedArmorKey:null
@@ -5473,6 +5506,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (!state.districtClearedEver[bk]) state.districtClearedEver[bk] = now();
         if (!state.districtClearedCount || typeof state.districtClearedCount !== 'object') state.districtClearedCount = {};
         state.districtClearedCount[bk] = (parseInt(state.districtClearedCount[bk]||0,10)||0) + 1;
+        try { markHalturkiDone('nightmareDistrict', 100); } catch (e1) {}
       } catch (e0) {}
 
       try {
@@ -5746,7 +5780,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   // --- Modal system
   const overlay = $('overlay');
   const stack = [];
-  const SCREEN_IDS = new Set(['mArena','mBoss','mTop','mDice','mDistricts','mBattle','mPloshchad','mGym','mLavka']);
+  const SCREEN_IDS = new Set(['mArena','mBoss','mTop','mDice','mDistricts','mBattle','mPloshchad','mGym','mLavka','mHalturki']);
   function setOverlay(){
     if (!overlay) return;
     const top = stack.length ? stack[stack.length-1] : '';
@@ -6664,6 +6698,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
       if (win) {
         state.arena.wins = (state.arena.wins||0)+1;
+        try { markHalturkiDone('arenaWin', 100); } catch (e) {}
         state.silver += silverGain;
         feedAdd('Победа в Бойцовском клубе ('+kind+'): +'+silverGain+' серебра','ARENA');
         if (xpGain>0) addXp(xpGain);
@@ -9142,6 +9177,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (rm>0) state.tooth += rm;
       if (rg>0) state.gold += rg;
       if (rxp>0) addXp(rxp);
+      try { markHalturkiDone('killBoss', 100); } catch (e) {}
 
       // give next boss keys only on claim
       try {
@@ -9731,6 +9767,45 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
   let __bossPullLast = 0;
   const BOSS_PULL_INTERVAL_MS = 2000;
+  function updateBossToothTimerOnly(){
+    try {
+      const btn = $('bossToothBtn');
+      const tm = $('bossToothTimer');
+      if (btn && tm){
+        const nextTs = parseInt(state.bosses && state.bosses.toothNextTs || 0, 10) || 0;
+        const ready = now() >= nextTs;
+        btn.classList.toggle('ready', ready);
+        const left = Math.max(0, nextTs - now());
+        const mm = String(Math.floor(left/60000)).padStart(2,'0');
+        const ss = String(Math.floor((left%60000)/1000)).padStart(2,'0');
+        tm.textContent = ready ? '+100' : (mm+':'+ss);
+      }
+    } catch (e) {}
+  }
+  function setupBossToothButton(){
+    try {
+      const rv = $('bossRingVal');
+      if (rv) rv.textContent = String(parseInt(state.rings||0,10)||0);
+    } catch (e) {}
+    const btn = $('bossToothBtn');
+    const tm = $('bossToothTimer');
+    if (btn && tm){
+      updateBossToothTimerOnly();
+      btn.onclick = ()=>{
+        const nextTs2 = parseInt(state.bosses && state.bosses.toothNextTs || 0, 10) || 0;
+        if (now() < nextTs2){ toast('Рано. Подожди таймер.','lose'); haptic('light'); return; }
+        state.tooth += 100;
+        state.bosses.toothNextTs = now() + 10*60*1000;
+        let halturkiBonus = 0;
+        try { halturkiBonus = markHalturkiDone('arenaTeeth', 100); } catch (e) {}
+        save();
+        renderAll();
+        renderHUD();
+        toast('+' + (100 + halturkiBonus) + ' '+TOAST_TOOTH_IMG + (halturkiBonus ? ' (задание)' : ''),'win');
+        haptic('light');
+      };
+    }
+  }
   function renderBosses(){
     try {
       const t = now();
@@ -9742,22 +9817,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e0) {}
     const BOSS_MEDAL_THRESHOLDS = BOSS_MEDAL_THRESHOLDS_DEFAULT;
     const box = $('bossList');
-
-    function updateBossToothTimerOnly(){
-      try {
-        const btn = $('bossToothBtn');
-        const tm = $('bossToothTimer');
-        if (btn && tm){
-          const nextTs = parseInt(state.bosses && state.bosses.toothNextTs || 0, 10) || 0;
-          const ready = now() >= nextTs;
-          btn.classList.toggle('ready', ready);
-          const left = Math.max(0, nextTs - now());
-          const mm = String(Math.floor(left/60000)).padStart(2,'0');
-          const ss = String(Math.floor((left%60000)/1000)).padStart(2,'0');
-          tm.textContent = ready ? '+100' : (mm+':'+ss);
-        }
-      } catch (e) {}
-    }
 
     // Prevent flicker: if boss list state did not change, do not rebuild DOM.
     try {
@@ -9788,7 +9847,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
       const sig = parts.join('|');
       if (window.__bossListSig === sig && box && box.__bossListBuilt){
-        updateBossToothTimerOnly();
         return;
       }
       window.__bossListSig = sig;
@@ -10004,6 +10062,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             if (rm>0) state.tooth += rm;
             if (rg>0) state.gold += rg;
             if (rxp>0) addXp(rxp);
+            try { markHalturkiDone('killBoss', 100); } catch (e) {}
 
             try {
               if (!state.bosses.winsPerBoss || typeof state.bosses.winsPerBoss !== 'object') state.bosses.winsPerBoss = {};
@@ -10037,32 +10096,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     });
 
     try {
-      try {
-        const rv = $('bossRingVal');
-        if (rv) rv.textContent = String(parseInt(state.rings||0,10)||0);
-      } catch (e) {}
-      const btn = $('bossToothBtn');
-      const tm = $('bossToothTimer');
-      if (btn && tm){
-        const nextTs = parseInt(state.bosses && state.bosses.toothNextTs || 0, 10) || 0;
-        const ready = now() >= nextTs;
-        btn.classList.toggle('ready', ready);
-        const left = Math.max(0, nextTs - now());
-        const mm = String(Math.floor(left/60000)).padStart(2,'0');
-        const ss = String(Math.floor((left%60000)/1000)).padStart(2,'0');
-        tm.textContent = ready ? '+100' : (mm+':'+ss);
-        btn.onclick = ()=>{
-          const nextTs2 = parseInt(state.bosses && state.bosses.toothNextTs || 0, 10) || 0;
-          if (now() < nextTs2){ toast('Рано. Подожди таймер.','lose'); haptic('light'); return; }
-          state.tooth += 100;
-          state.bosses.toothNextTs = now() + 10*60*1000;
-          save();
-          renderBosses();
-          renderHUD();
-          toast('+100 '+TOAST_TOOTH_IMG,'win');
-          haptic('light');
-        };
-      }
+      const rv = $('bossRingVal');
+      if (rv) rv.textContent = String(parseInt(state.rings||0,10)||0);
     } catch (e) {}
   }
 
@@ -10180,6 +10215,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!Array.isArray(state.diceGame.dice) || state.diceGame.dice.length!==5) state.diceGame.dice = [1,1,1,1,1];
     save();
     renderDice();
+    try { markHalturkiDone('dicePlay', 100); } catch (e) {}
 
     const ms = 350 + Math.floor(Math.random()*151);
     const nodes = document.querySelectorAll('#diceRow .dice');
@@ -10389,6 +10425,64 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
   }
 
+  function halturkiDay(){
+    const d = new Date();
+    if (d.getUTCHours() < 18) d.setUTCDate(d.getUTCDate() - 1);
+    return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');
+  }
+  function halturkiNormalize(){
+    if (!state.halturki || typeof state.halturki !== 'object') state.halturki = { day:'', arenaTeeth:false, killBoss:false, nightmareDistrict:false, dicePlay:false, havchikSend:false, arenaWin:false, allClaimed:false };
+    const today = halturkiDay();
+    if (state.halturki.day !== today) {
+      state.halturki = { day:today, arenaTeeth:false, killBoss:false, nightmareDistrict:false, dicePlay:false, havchikSend:false, arenaWin:false, allClaimed:false };
+    }
+  }
+  function markHalturkiDone(key, toothBonus){
+    halturkiNormalize();
+    if (state.halturki[key] === true) return 0;
+    const bonus = Math.max(0, parseInt(toothBonus,10)||100);
+    if (bonus > 0) state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + bonus);
+    state.halturki[key] = true;
+    save();
+    return bonus;
+  }
+  function renderHalturki(){
+    halturkiNormalize();
+    const list = $('halturkiTaskList');
+    const claimBtn = $('halturkiClaimAll');
+    if (!list) return;
+    const h = state.halturki;
+    const tasks = [
+      { key: 'arenaTeeth', label: 'Собрать зубы на арене', reward: '+100 золотых зубов', done: !!h.arenaTeeth },
+      { key: 'killBoss', label: 'Убить любого босса', reward: '+100 золотых зубов', done: !!h.killBoss },
+      { key: 'nightmareDistrict', label: 'Закошмарить любой район', reward: '+100 золотых зубов', done: !!h.nightmareDistrict },
+      { key: 'dicePlay', label: 'Сыграть в кости', reward: '+100 золотых зубов', done: !!h.dicePlay },
+      { key: 'havchikSend', label: 'Отправить хавчик', reward: '+100 золотых зубов', done: !!h.havchikSend },
+      { key: 'arenaWin', label: 'Победить противника на арене', reward: '+100 золотых зубов', done: !!h.arenaWin }
+    ];
+    list.innerHTML = tasks.map(function(t){
+      const left = '<div style="flex:1; font-size:12px;">' + (t.done ? '✅ ' : '○ ') + t.label + '</div>';
+      const right = t.done ? '<div class="badge" style="font-size:11px; background:rgba(34,197,94,.25); border-color:rgba(34,197,94,.5); color:#166534;">Выполнено</div>' : '<div class="badge" style="font-size:11px;">' + t.reward + '</div>';
+      return '<div class="row" style="align-items:center;' + (t.done ? ' opacity:.92;' : '') + '">' + left + right + '</div>';
+    }).join('');
+    const allDone = tasks.every(function(t){ return t.done; });
+    if (claimBtn) {
+      claimBtn.disabled = !allDone || !!h.allClaimed;
+      claimBtn.textContent = h.allClaimed ? 'НАГРАДА ПОЛУЧЕНА' : 'ЗАБРАТЬ НАГРАДУ';
+      claimBtn.onclick = ()=>{
+        if (h.allClaimed || !allDone) return;
+        state.halturki.allClaimed = true;
+        state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + 10);
+        state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + 1000);
+        save();
+        renderHalturki();
+        renderHUD();
+        toast('+10 золотых монет, +1000 золотых зубов','win');
+        haptic('light');
+      };
+    }
+  }
+
   function renderAll(){
     renderParchmentPanelMedals();
     renderHUD();
@@ -10397,6 +10491,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       renderArena();
       renderGymStatsColumn();
       renderArenaStatsColumn();
+      setupBossToothButton();
     }
     if ($('mGym').classList.contains('show')) {
       renderGym();
@@ -10415,6 +10510,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if ($('mInventory').classList.contains('show')) renderInventory();
     if ($('mLavka').classList.contains('show')) renderLavka();
     if ($('mHavchikCollect').classList.contains('show')) renderHavchikCollect();
+    if ($('mHalturki').classList.contains('show')) renderHalturki();
     try {
       const topModal = $('mTop');
       if (topModal && topModal.classList.contains('show') && __topLastKind === 'WEALTH'){
@@ -11317,6 +11413,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const bk = 'D' + String(idx);
       if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
       state.districtFear[bk] = Math.max(0, (parseInt(state.districtFear[bk]||0,10)||0) + mult);
+      try {
+        // Обновляем общий страх района и страшилу дня.
+        districtFearLeaderUpdate(idx);
+        districtDailyFearAdd(idx, mult);
+      } catch (e1) {}
       state.bosses.pendingDistrictReward = null;
       save();
       try { hideModal('mDistrictGateReward'); } catch (e) {}
@@ -11995,8 +12096,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const eb = $('energyRefillBtn');
       const dnEb = $('dnEnergyRefillBtn');
       if (eb) {
-        // Покупка энергии доступна только из экранов районов — глобальную кнопку блокируем.
-        eb.onclick = ()=>{ toast('Покупать энергию можно только в районах','lose'); haptic('light'); };
+        eb.onclick = ()=>{ doEnergyRefillClick(); };
       }
       if (dnEb) dnEb.onclick = ()=>{ doEnergyRefillClick(); };
       function doEnergyRefillClick(){
@@ -12062,6 +12162,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       haptic('light');
     };
     const hb = $('havchikBtn'); if (hb) hb.onclick = ()=>{ showModal('mHavchik'); renderHavchik(); haptic('light'); };
+    const halturkiBtn = $('btnHalturki'); if (halturkiBtn) halturkiBtn.onclick = ()=>{ openScreen('mHalturki'); renderHalturki(); haptic('light'); };
     $('btnBoss').onclick = ()=>{
       const bid = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
       const f = bid ? bfGetFight(bid) : null;
