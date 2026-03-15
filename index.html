@@ -1793,6 +1793,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div class="row"><div class="k">Харизма</div><input type="number" id="adminGymCharisma" min="1" style="width:80px; padding:6px; border-radius:6px; border:1px solid var(--paperLine);"></div>
         <div style="margin-top:14px;"><button class="btn" id="adminPlayerSave" style="width:100%">Сохранить</button></div>
       </div>
+      <div class="card" id="adminCurrencyLogCard" style="margin-top:12px; display:none;">
+        <div class="k" style="margin-bottom:8px;">ИСТОРИЯ ВАЛЮТЫ</div>
+        <div id="adminCurrencyTotals" style="font-size:12px; opacity:.9; margin-bottom:10px;"></div>
+        <div id="adminCurrencyLog" style="max-height:320px; overflow-y:auto; font-size:11px; line-height:1.4;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -2705,7 +2710,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   function bossHelpCapPerUnit(b){
     if (!b) return 0;
-    if (Number(b.id) === 1) return BOSS_HELP_CAP_FEDOR;
+    if (Number(b.id) === 1) return 500; // Фёдор: фикс 500 урона на братка
     const lvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
     const capPct = 0.10 + lvl*0.01;
     return Math.floor((b.maxHP||0) * capPct);
@@ -3151,6 +3156,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
       state.dailyRewardsBizDay = k;
 
+      if (addGoldSum > 0) try { logCurrency('gold', addGoldSum, 'Награда за бизнесы'); } catch (e0) {}
       if (addFearSum>0 || addGoldSum>0){
         save();
         renderHUD();
@@ -3319,6 +3325,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const c = parseInt(cost||0,10)||0;
     if ((state.gold||0) < c){ toast('Нужно '+c+' золотых монет '+TOAST_GOLD_IMG,'lose'); return; }
     state.gold -= c;
+    try { logCurrency('gold', -c, 'Покупка на арене'); } catch (e0) {}
     if (!state.consumables) state.consumables = { med:0, nade:0 };
     if (kind==='med') state.consumables.med = (parseInt(state.consumables.med||0,10)||0) + 1;
     if (kind==='nade') state.consumables.nade = (parseInt(state.consumables.nade||0,10)||0) + 1;
@@ -3471,6 +3478,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const price = parseInt(c.price||0,10)||0;
     if ((state.gold||0) < price){ toast('Нужно '+price+' золотых монет '+TOAST_GOLD_IMG,'lose'); return; }
     state.gold -= price;
+    try { logCurrency('gold', -price, 'Покупка в лавке'); } catch (e0) {}
     if (!state.consumablesItems) state.consumablesItems = { 1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0 };
     state.consumablesItems[id] = (parseInt(state.consumablesItems[id]||0,10)||0) + 1;
     save();
@@ -3581,6 +3589,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const cost2 = (PRICES2[cur+1] || 0);
           if ((state.tooth||0) < cost2){ toast('Нужно '+cost2+' '+TOAST_TOOTH_IMG,'lose'); return; }
           state.tooth -= cost2;
+          try { logCurrency('tooth', -cost2, 'Прокачка помощи братков'); } catch (e0) {}
           state.friendHelpLvl = cur + 1;
           save();
           renderFriendHelp();
@@ -3960,7 +3969,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!boss) return null;
       return { id: bossId, name: boss.name, img: boss.img, emoji: '👹', maxHP: boss.hp || 50000 };
     }
-    return BOSSES.find(x=>x.id===bossId) || null;
+    return BOSSES.find(x=>x.id==bossId) || null;
   }
 
   function districtData(){
@@ -5102,6 +5111,19 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       } catch (e) {}
     } catch (e) {}
   }
+  const CURRENCY_LOG_MAX = 500;
+  function logCurrency(currency, delta, reason){
+    try {
+      if (!state.currencyLog || !Array.isArray(state.currencyLog)) state.currencyLog = [];
+      var total = 0;
+      if (currency === 'gold') total = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.gold||0)));
+      else if (currency === 'silver') total = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.silver||0)));
+      else if (currency === 'tooth') total = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.tooth||0)));
+      else return;
+      state.currencyLog.push({ ts: now(), currency: currency, delta: delta, reason: String(reason||'').slice(0, 80), total: total });
+      while (state.currencyLog.length > CURRENCY_LOG_MAX) state.currencyLog.shift();
+    } catch (e) {}
+  }
   function save(){
     try {
       state.gold = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.gold||0)));
@@ -5300,6 +5322,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     dailyRewardsFearDay:'',
     dailyRewardsHolderDay:'',
     dailyRewardsBizDay:'',
+    currencyLog:[],
     armorOwned:{},
     mainCharacterImg:null,
     selectedArmorKey:null
@@ -5374,6 +5397,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try { state.consumablesBuffs[state.consumablesBuffStat] = state.consumablesBuffUntil; } catch(e){}
   }
   if (!Array.isArray(state.havchikInbox)) state.havchikInbox = [];
+  if (!Array.isArray(state.currencyLog)) state.currencyLog = [];
   delete state.consumablesBuffUntil;
   delete state.consumablesBuffStat;
   if (!state.clan || typeof state.clan !== 'object') state.clan = Object.assign({}, defaults.clan);
@@ -5622,7 +5646,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
       addXp(mult);
       state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + mult);
-
+      try { logCurrency('tooth', mult, 'Прохождение района'); } catch (e0) {}
       const curFear = Math.max(0, (state.districtFear && state.districtFear[bk]) ? (parseInt(state.districtFear[bk]||0,10)||0) : 0);
       if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
       state.districtFear[bk] = curFear + mult;
@@ -5872,6 +5896,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (!(cost>0)){ toast('Скоро','lose'); return; }
           if ((state.tooth||0) < cost){ toast('Нужно '+fmt4(cost)+' '+TOAST_TOOTH_IMG,'lose'); return; }
           state.tooth -= cost;
+          try { logCurrency('tooth', -cost, 'Улучшение бизнеса'); } catch (e0) {}
           bizSetLvl(dd, bb, cur+1);
           if (bb===0) bizSyncEnergyMax();
           save();
@@ -6407,8 +6432,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         ok.textContent = hasAny ? 'ЗАБРАТЬ' : 'НАЗАД';
         ok.onclick = ()=>{
           if (hasAny){
-            if (mm>0) state.tooth = (parseInt(state.tooth||0,10)||0) + mm;
-            if (gg>0) state.gold = (parseInt(state.gold||0,10)||0) + gg;
+            if (mm>0) { state.tooth = (parseInt(state.tooth||0,10)||0) + mm; try { logCurrency('tooth', mm, 'Групповой бой'); } catch (e0) {} }
+            if (gg>0) { state.gold = (parseInt(state.gold||0,10)||0) + gg; try { logCurrency('gold', gg, 'Групповой бой'); } catch (e0) {} }
             if (pr && pr.consumableId){
               const cid = parseInt(pr.consumableId,10)||0;
               if (cid>=1 && cid<=10){
@@ -6481,6 +6506,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
     if (!state.arena) state.arena = { cdUntil:0, wins:0, losses:0, power:0 };
     state.gold -= cost;
+    try { logCurrency('gold', -cost, 'Сброс кулдауна арены'); } catch (e0) {}
     state.arena.cdUntil = now();
     save();
     renderAll();
@@ -6564,6 +6590,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (hasAny) { toast('Сначала продай текущего питомца','lose'); return; }
           if ((state.gold||0) < p.cost) { toast('Нужно '+p.cost+' '+TOAST_GOLD_IMG,'lose'); return; }
           state.gold -= p.cost;
+          try { logCurrency('gold', -p.cost, 'Покупка питомца'); } catch (e0) {}
           state.petsOwned = {};
           state.petsOwned[String(p.id)] = true;
           state.activePetId = p.id;
@@ -6584,6 +6611,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         sell.style.opacity = '.9';
         sell.onclick = ()=>{
           state.gold += back;
+          try { logCurrency('gold', back, 'Продажа питомца'); } catch (e0) {}
           state.activePetId = 0;
           state.petsOwned = {};
           feedAdd('Продан питомец ' + p.emoji + ' ' + p.name + ' (+'+back+' золотых монет)','PET');
@@ -6846,6 +6874,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         state.arena.wins = (state.arena.wins||0)+1;
         try { markHalturkiDone('arenaWin', 100); } catch (e) {}
         state.silver += silverGain;
+        try { logCurrency('silver', silverGain, 'Арена'); } catch (e0) {}
         feedAdd('Победа в Бойцовском клубе ('+kind+'): +'+silverGain+' серебра','ARENA');
         if (xpGain>0) addXp(xpGain);
         toast('Ты '+genderWon(),'win');
@@ -6853,6 +6882,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       } else {
         state.arena.losses = (state.arena.losses||0)+1;
         state.silver += silverGain;
+        try { logCurrency('silver', silverGain, 'Арена'); } catch (e0) {}
         feedAdd('Поражение в Бойцовском клубе ('+kind+'): +'+silverGain+' серебра','ARENA');
         toast('Ты '+genderLost(),'lose');
         haptic('medium');
@@ -7115,6 +7145,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     // placeholder local join until backend
     state.gold -= cost;
+    try { logCurrency('gold', -cost, 'Групповой бой 10x10'); } catch (e0) {}
     state.gf1010.joined = true;
     state.gf1010.startTs = startTs;
     state.gf1010.costPaid = cost;
@@ -8123,6 +8154,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       state.silver = Math.min(CURRENCY_CAP, (parseInt(state.silver||0,10)||0) + (r.silver||0));
       state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + (r.tooth||0));
       state.rings = Math.min(CURRENCY_CAP, (parseInt(state.rings||0,10)||0) + (r.rings||0));
+      if (r.gold) try { logCurrency('gold', r.gold, 'Промокод'); } catch (e0) {}
+      if (r.silver) try { logCurrency('silver', r.silver, 'Промокод'); } catch (e0) {}
+      if (r.tooth) try { logCurrency('tooth', r.tooth, 'Промокод'); } catch (e0) {}
       promoMarkUsed();
       const txt = promoRewardText(r);
       feedAdd('Промокод: '+txt,'SHOP');
@@ -8156,6 +8190,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       btn.onclick = function(){
         if (amount > 0) {
           state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + amount);
+          try { logCurrency('gold', amount, 'Звёзды'); } catch (e0) {}
           save();
         }
         hideModal('mStarsReward');
@@ -8559,7 +8594,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   function bfFriendTick(bossId){
-    const b = BOSSES.find(x=>x.id===bossId);
+    const b = BOSSES.find(x=>x.id==bossId);
     if (!b) return;
     const f = bfGetFight(bossId);
     if (!f) return;
@@ -8607,7 +8642,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   function bfClanTick(bossId){
-    const b = BOSSES.find(x=>x.id===bossId);
+    const b = BOSSES.find(x=>x.id==bossId);
     if (!b) return;
     const f = bfGetFight(bossId);
     if (!f) return;
@@ -9331,8 +9366,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const rxp = parseInt(pr.xp||0,10)||0;
       const rm = parseInt(pr.tooth||0,10)||0;
       const rg = parseInt(pr.gold||0,10)||0;
-      if (rm>0) state.tooth += rm;
-      if (rg>0) state.gold += rg;
+      if (rm>0) { state.tooth += rm; try { logCurrency('tooth', rm, 'Победа над боссом'); } catch (e0) {} }
+      if (rg>0) { state.gold += rg; try { logCurrency('gold', rg, 'Победа над боссом'); } catch (e0) {} }
       if (rxp>0) addXp(rxp);
       try { markHalturkiDone('killBoss', 100); } catch (e) {}
 
@@ -9952,6 +9987,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const nextTs2 = parseInt(state.bosses && state.bosses.toothNextTs || 0, 10) || 0;
         if (now() < nextTs2){ toast('Рано. Подожди таймер.','lose'); haptic('light'); return; }
         state.tooth += 100;
+        try { logCurrency('tooth', 100, 'Зубы за босса'); } catch (e0) {}
         state.bosses.toothNextTs = now() + 10*60*1000;
         let halturkiBonus = 0;
         try { halturkiBonus = markHalturkiDone('arenaTeeth', 100, true); } catch (e) {}
@@ -10216,8 +10252,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             const rxp = rew ? (parseInt(rew.xp||0,10)||0) : 0;
             const rm = rew ? (parseInt(rew.tooth||0,10)||0) : 0;
             const rg = rew ? (parseInt(rew.gold||0,10)||0) : 0;
-            if (rm>0) state.tooth += rm;
-            if (rg>0) state.gold += rg;
+            if (rm>0) { state.tooth += rm; try { logCurrency('tooth', rm, 'Победа над боссом'); } catch (e0) {} }
+            if (rg>0) { state.gold += rg; try { logCurrency('gold', rg, 'Победа над боссом'); } catch (e0) {} }
             if (rxp>0) addXp(rxp);
             try { markHalturkiDone('killBoss', 100); } catch (e) {}
 
@@ -10476,8 +10512,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     let rewardText = baseTooth+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon">';
     if (!was4x){
       state.tooth += baseTooth;
+      try { logCurrency('tooth', baseTooth, 'Кости'); } catch (e0) {}
     } else {
-      if (was5x) state.gold += 20 * mult;
+      if (was5x) { state.gold += 20 * mult; try { logCurrency('gold', 20 * mult, 'Кости'); } catch (e0) {} }
       if (face===1){
         const ringsGain = 15 * mult;
         state.rings = (parseInt(state.rings||0,10)||0) + ringsGain;
@@ -10507,6 +10544,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         rewardText = (mult>1 ? (mult+'× ') : '')+'Кольцо на босса «Сарумян»';
       } else {
         state.tooth += baseTooth;
+        try { logCurrency('tooth', baseTooth, 'Кости'); } catch (e0) {}
       }
       if (was5x) rewardText = rewardText + ' +' + (20*mult) + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
     }
@@ -10713,6 +10751,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         state.halturki.allClaimed = true;
         state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + 10);
         state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + 1000);
+        try { logCurrency('gold', 10, 'Награда за задания'); logCurrency('tooth', 1000, 'Награда за задания'); } catch (e0) {}
         save();
         renderHalturki();
         renderHUD();
@@ -11418,6 +11457,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!nm){ toast('Введите название','lose'); return; }
     clanDbSeed();
     state.gold -= 1000;
+    try { logCurrency('gold', -1000, 'Создание клана'); } catch (e0) {}
     const id = 'CLN'+String(Date.now());
     const me = clanMyName();
     const obj = { id:id, name:nm, leader: me, deputy:'', members:[me], apps:[], createdTs: now(), totalBossDmg:0, lvl:1, bossDmgByMember:{}, memberMeta:{}, bankGold:0, filters:{ minLvl:1, minStats:0 }, chat:[] };
@@ -11641,6 +11681,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (!amIStrasilaDnyaForReward()) { toast('Ты не '+genderPast()+' страшилой дня в те сутки','lose'); return; }
         state.dailyRewardsFearDay = dk;
         state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + 15);
+        try { logCurrency('gold', 15, 'Страшила дня'); } catch (e0) {}
         if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
         state.bosses.hitStocks.kick = Math.min(999999, (parseInt(state.bosses.hitStocks.kick||0,10)||0) + 5);
         state.bosses.hitStocks.knuckle = Math.min(999999, (parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + 5);
@@ -11661,6 +11702,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (!amIDistrictHolder()) { toast('Ты не держишь район','lose'); return; }
         state.dailyRewardsHolderDay = dk;
         state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + 30);
+        try { logCurrency('gold', 30, 'Держатель района'); } catch (e0) {}
         if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
         state.bosses.hitStocks.kick = Math.min(999999, (parseInt(state.bosses.hitStocks.kick||0,10)||0) + 10);
         state.bosses.hitStocks.knuckle = Math.min(999999, (parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + 10);
@@ -11742,10 +11784,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
       state.districtFear[bk] = Math.max(0, (parseInt(state.districtFear[bk]||0,10)||0) + mult);
       try {
-        // Обновляем общий страх района и страшилу дня.
         districtFearLeaderUpdate(idx);
         districtDailyFearAdd(idx, mult);
       } catch (e1) {}
+      if (mult > 0) { try { logCurrency('tooth', mult, 'Босс района'); } catch (e0) {} try { logCurrency('gold', mult, 'Босс района'); } catch (e0) {} }
       state.bosses.pendingDistrictReward = null;
       save();
       try { hideModal('mDistrictGateReward'); } catch (e) {}
@@ -12842,6 +12884,31 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           });
           if (infoEl) infoEl.textContent = r.player.name + ' (tg_id: ' + r.player.tg_id + ')';
           formCard.style.display = '';
+          var logCard = $('adminCurrencyLogCard');
+          var totalsEl = $('adminCurrencyTotals');
+          var logEl = $('adminCurrencyLog');
+          if (logCard && totalsEl && logEl) {
+            logCard.style.display = '';
+            var g = Math.max(0, parseInt(st.gold,10)||0), s = Math.max(0, parseInt(st.silver,10)||0), t = Math.max(0, parseInt(st.tooth,10)||0);
+            totalsEl.textContent = 'Всего: ' + g + ' золотых монет · ' + s + ' серебро · ' + t + ' золотых зубов';
+            var log = Array.isArray(st.currencyLog) ? st.currencyLog : [];
+            var rows = log.slice().reverse();
+            var labels = { gold:'Золото', silver:'Серебро', tooth:'Зубы' };
+            if (!rows.length) logEl.innerHTML = '<div style="opacity:.7;">Записей нет (логирование включено после обновления)</div>';
+            else {
+              logEl.innerHTML = rows.map(function(e){
+                var d = e.ts ? new Date(e.ts) : null;
+                var timeStr = d ? (d.getDate()+'.'+(d.getMonth()+1)+'.'+d.getFullYear()+' '+(d.getHours()<10?'0':'')+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes()) : '—';
+                var delta = parseInt(e.delta,10)||0;
+                var deltaStr = (delta >= 0 ? '+' : '') + delta;
+                return '<div style="padding:6px 0; border-bottom:1px solid var(--paperLine); display:flex; flex-wrap:wrap; gap:6px; align-items:center;">' +
+                  '<span style="opacity:.8;">'+timeStr+'</span>' +
+                  '<span style="font-weight:700;">'+ (labels[e.currency]||e.currency) +'</span>' +
+                  '<span>'+(e.reason||'—')+'</span>' +
+                  '<span style="margin-left:auto;">'+deltaStr+' → '+ (e.total!= null ? e.total : '') +'</span></div>';
+              }).join('');
+            }
+          }
           toast('Загружено','win');
         } catch (e) { toast('Ошибка: ' + (e && e.message ? e.message : 'network'), 'lose'); }
         haptic('light');
