@@ -171,6 +171,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .hud .hudRow{gap:5px;}
 .globalChatBtn{width:44px;height:44px;min-width:44px;min-height:44px;border-radius:50%;flex-shrink:0;border:1px solid var(--btnBorder);background:var(--caramel);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;padding:0;box-shadow: var(--shadowKey), var(--shadowInsetTop);transition: transform var(--transition-fast), box-shadow var(--transition-fast);}
 .globalChatBtn:active{transform:scale(0.94);box-shadow:none;}
+.genderToggleBtn{flex-shrink:0;width:32px;height:32px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;font-weight:900;transition:transform var(--transition-fast), box-shadow var(--transition-fast);}
+.genderToggleBtn--m{background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98));color:#000;box-shadow: 0 1px 4px rgba(37,99,235,.35), inset 0 1px 0 rgba(255,255,255,.3);}
+.genderToggleBtn--f{background:linear-gradient(180deg, rgba(251,207,232,.98), rgba(236,72,153,.98));color:#000;box-shadow: 0 1px 4px rgba(236,72,153,.35), inset 0 1px 0 rgba(255,255,255,.35);}
+.genderToggleBtn:active{transform:scale(0.92);}
 .hud .name{gap:5px;}
 .hud .nameCol{gap:1px;}
 .hud .nameLine{gap:4px;}
@@ -1535,7 +1539,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   <div class="hud">
     <div class="hudRow">
       <div class="name" id="nameBtn">
-        <div style="opacity:.9">👑</div>
+        <button type="button" class="genderToggleBtn genderToggleBtn--m" id="genderToggleBtn" aria-label="Пол">♂</button>
         <div class="nameCol">
           <div class="nameLine"><span id="playerName">PLAYER</span></div>
           <div class="utcRow"><span class="utcMini" id="utc">00:00</span><span class="utcTag">UTC</span></div>
@@ -3350,7 +3354,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
     const b = state.groupFight && state.groupFight.battle;
     if (!b){ toast('Аптечку, бинт, бомбу и динамит можно использовать только во время группового боя','lose'); return; }
-    if ((parseInt(b.myHp||0,10)||0) <= 0){ toast('Ты наблюдатель','lose'); return; }
+    if ((parseInt(b.myHp||0,10)||0) <= 0){ toast('Ты '+genderObserver(),'lose'); return; }
     if (b.acted){ toast('Уже использовано действие в этот ход','lose'); return; }
 
     if (c.type==='heal'){
@@ -3360,7 +3364,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const before = parseInt(b.myHp||0,10)||0;
       b.myHp = clamp(before + heal, 0, myMaxHp);
       b.acted = true;
-      b.log.unshift({ kind:'SYS', text:'Ты использовал '+c.name+' и восстановил ' + (b.myHp - before) + ' HP' });
+      b.log.unshift({ kind:'SYS', text:'Ты '+genderUsed()+' '+c.name+' и '+genderRestored()+' ' + (b.myHp - before) + ' HP' });
       save();
       renderBattle();
       renderInventory();
@@ -3388,7 +3392,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
       b.acted = true;
       const hitText = hit.map(x=>x.id+' -'+x.dmg).join(', ');
-      b.log.unshift({ kind:'SYS', text:'Ты использовал '+c.name+': '+hitText });
+      b.log.unshift({ kind:'SYS', text:'Ты '+genderUsed()+' '+c.name+': '+hitText });
       save();
       renderBattle();
       renderInventory();
@@ -3477,7 +3481,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (String(state._consCtx||'')!=='battle'){ toast('Использование только в бою','lose'); return; }
     const b = state.groupFight && state.groupFight.battle;
     if (!b){ toast('Нет активного боя','lose'); return; }
-    if ((parseInt(b.myHp||0,10)||0) <= 0){ toast('Ты наблюдатель','lose'); return; }
+    if ((parseInt(b.myHp||0,10)||0) <= 0){ toast('Ты '+genderObserver(),'lose'); return; }
     if (b.acted){ toast('Уже использовано действие в этот ход','lose'); return; }
     // Аптечка и граната (арена) в групповом бою разрешены
     if (!state.consumables) state.consumables = { med:0, nade:0 };
@@ -3490,7 +3494,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const before = parseInt(b.myHp||0,10)||0;
       b.myHp = clamp(before + heal, 0, parseInt(b.myMaxHp||0,10)||0);
       b.acted = true;
-      b.log.unshift({ kind:'SYS', text:'Ты использовал аптечку и восстановил ' + (b.myHp-before) + ' HP' });
+      b.log.unshift({ kind:'SYS', text:'Ты '+genderUsed()+' аптечку и '+genderRestored()+' ' + (b.myHp-before) + ' HP' });
       save();
       renderBattle();
       renderConsumables();
@@ -3508,7 +3512,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const real = Math.min(parseInt(t.hp||0,10)||0, dmg);
       t.hp = Math.max(0, (parseInt(t.hp||0,10)||0) - real);
       b.acted = true;
-      b.log.unshift({ kind:'HIT', text:'Ты бросил гранату и нанес ' + real + ' урона цели ' + t.id });
+      b.log.unshift({ kind:'HIT', text:'Ты '+genderThrew()+' гранату и '+genderDealt()+' ' + real + ' урона цели ' + t.id });
       save();
       renderBattle();
       renderConsumables();
@@ -4254,6 +4258,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     return myTgUserId() === ADMIN_TG_ID;
   }
 
+  function getGenderFromTelegram(){
+    try {
+      const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+      const first = (u && u.first_name) ? String(u.first_name).trim() : '';
+      const last = (u && u.last_name) ? String(u.last_name).trim() : '';
+      const name = (first + ' ' + last).trim() || first;
+      if (!name) return 'm';
+      const n = name.toLowerCase();
+      if (/[ая]$/.test(n) || /ия$/.test(n) || /ья$/.test(n) || /ова$/.test(n) || /ева$/.test(n) || /ина$/.test(n) || /на$/.test(n)) return 'f';
+      return 'm';
+    } catch (e) { return 'm'; }
+  }
   function tgSuggestedName(){
     try {
       const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
@@ -4722,6 +4738,35 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       save();
     } catch (e) {}
   }
+  async function districtDailyLeadersCloudPullForDay(dayKey){
+    try {
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) || !dayKey) return;
+      const r = await sbFnCall('district_daily_leaders_list', { initData: tgInitData(), day: dayKey });
+      const rows = (r && Array.isArray(r.leaders)) ? r.leaders : [];
+      const next = {};
+      rows.forEach(it=>{
+        try {
+          const k = String(it && it.district_key || '').trim();
+          if (!k) return;
+          const nm = it && it.name ? String(it.name) : '—';
+          const fear = Math.max(0, parseInt(it && it.fear || 0, 10) || 0);
+          const photo = it && it.photo_url ? String(it.photo_url) : '';
+          const ts = it && it.updated_at ? Date.parse(String(it.updated_at)) : 0;
+          const cur = next[k];
+          const curFear = cur && typeof cur.fear !== 'undefined' ? (parseInt(cur.fear||0,10)||0) : -1;
+          const curTs = cur && typeof cur.ts !== 'undefined' ? (parseInt(cur.ts||0,10)||0) : 0;
+          const ts2 = ts || now();
+          if (!cur || fear > curFear || (fear === curFear && ts2 > curTs)) {
+            next[k] = { name: nm, fear: fear, ts: ts2, photo: photo };
+          }
+        } catch (e0) {}
+      });
+      if (!state.districtDailyFearCloudPrev || typeof state.districtDailyFearCloudPrev !== 'object') state.districtDailyFearCloudPrev = { day: '', byDistrict: {} };
+      state.districtDailyFearCloudPrev.day = dayKey;
+      state.districtDailyFearCloudPrev.byDistrict = next;
+      save();
+    } catch (e) {}
+  }
   async function districtDailyLeadersCloudPullMaybe(){
     try {
       await cloudOnce('pull:district_daily_leaders', ()=>districtDailyLeadersCloudPull());
@@ -5146,6 +5191,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     lastEnergyTs: now(),
     nextWinBonus:0,
     settings:{ sound:true, haptics:true, reduced:false },
+    gender:'m',
     inventory: Array(9).fill(' '),
     petsOwned:{},
     activePetId:0,
@@ -5188,6 +5234,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     friends:[],
     havchikInbox:[],
     halturki:{ day:'', arenaTeeth:false, killBoss:false, nightmareDistrict:false, dicePlay:false, havchikSend:false, arenaWin:false, allClaimed:false },
+    dailyRewardsFearDay:'',
+    dailyRewardsHolderDay:'',
     armorOwned:{},
     mainCharacterImg:null,
     selectedArmorKey:null
@@ -5232,6 +5280,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   } catch (e0) {}
   // normalize
   if (!state.settings || typeof state.settings !== 'object') state.settings = Object.assign({}, defaults.settings);
+  if (state.gender !== 'f' && state.gender !== 'm') state.gender = getGenderFromTelegram() || 'm';
   if (typeof state.totalXp !== 'number') state.totalXp = 0;
   if (typeof state.playerName !== 'string') state.playerName = 'PLAYER';
   state.playerName = String(state.playerName||'').trim().substring(0, 16) || 'PLAYER';
@@ -5971,6 +6020,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const pct = need>0 ? clamp((cur/need)*100,0,100) : 0;
     $('xpFill').style.width = pct.toFixed(2)+'%';
     $('xpText').textContent = cur + ' / ' + need + ' XP';
+
+    var gBtn = $('genderToggleBtn');
+    if (gBtn) { gBtn.textContent = (state.gender === 'f') ? '♀' : '♂'; gBtn.className = 'genderToggleBtn ' + (state.gender === 'f' ? 'genderToggleBtn--f' : 'genderToggleBtn--m'); }
   }
 
   function getBratkiList(){
@@ -6695,14 +6747,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
               if (ev.miss) {
                 color = 'rgba(52,211,153,.95)';
                 text = (ev.who==='YOU')
-                  ? 'Ты промахнулся и не нанес урона противнику'
+                  ? 'Ты '+genderMissed()+' и не нанес урона противнику'
                   : 'Противник промахнулся и не нанес тебе урона';
               } else {
                 if (ev.crit) color = 'rgba(251,113,133,.95)';
                 if (ev.who==='YOU') {
                   text = ev.crit
-                    ? ('Ты нанес противнику критический урон в размере ' + ev.dmg)
-                    : ('Ты нанес противнику урон в размере ' + ev.dmg);
+                    ? ('Ты '+genderDealt()+' противнику критический урон в размере ' + ev.dmg)
+                    : ('Ты '+genderDealt()+' противнику урон в размере ' + ev.dmg);
                 } else {
                   text = ev.crit
                     ? ('Противник нанес тебе критический урон в размере ' + ev.dmg)
@@ -7546,7 +7598,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function battleHit(id){
     const b = state.groupFight.battle;
     if (!b) return;
-    if ((parseInt(b.myHp||0,10)||0) <= 0){ toast('Ты наблюдатель','lose'); return; }
+    if ((parseInt(b.myHp||0,10)||0) <= 0){ toast('Ты '+genderObserver(),'lose'); return; }
     b.myTarget = String(id||'');
     const t = b.targets.find(x=>x.id===id);
     try { $('bTarget').textContent = t ? String(t.name||t.id||'Авто') : 'Авто'; } catch (e) {}
@@ -7560,9 +7612,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!b.dmgBy || typeof b.dmgBy !== 'object') b.dmgBy = {};
       b.dmgBy.YOU = (parseInt(b.dmgBy.YOU||0,10)||0) + (parseInt(real||0,10)||0);
     } catch (e0) {}
-    if (h.dodge) b.log.unshift({ kind:'MISS', text:'Ты промахнулся и не нанес урона противнику' });
-    else if (h.crit) b.log.unshift({ kind:'CRIT', text:'Ты нанес противнику критический урон в размере ' + real });
-    else b.log.unshift({ kind:'HIT', text:'Ты нанес противнику урон в размере ' + real });
+    if (h.dodge) b.log.unshift({ kind:'MISS', text:'Ты '+genderMissed()+' и не нанес урона противнику' });
+    else if (h.crit) b.log.unshift({ kind:'CRIT', text:'Ты '+genderDealt()+' противнику критический урон в размере ' + real });
+    else b.log.unshift({ kind:'HIT', text:'Ты '+genderDealt()+' противнику урон в размере ' + real });
 
     // win condition
     const alive = b.targets.some(x=>(x.hp||0)>0);
@@ -7612,9 +7664,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!b.dmgBy || typeof b.dmgBy !== 'object') b.dmgBy = {};
       b.dmgBy.YOU = (parseInt(b.dmgBy.YOU||0,10)||0) + (parseInt(real||0,10)||0);
     } catch (e0) {}
-    if (h.dodge) b.log.unshift({ kind:'MISS', text:'Ты промахнулся и не нанес урона противнику' });
-    else if (h.crit) b.log.unshift({ kind:'CRIT', text:'Ты нанес противнику критический урон в размере ' + real });
-    else b.log.unshift({ kind:'HIT', text:'Ты нанес противнику урон в размере ' + real });
+    if (h.dodge) b.log.unshift({ kind:'MISS', text:'Ты '+genderMissed()+' и не нанес урона противнику' });
+    else if (h.crit) b.log.unshift({ kind:'CRIT', text:'Ты '+genderDealt()+' противнику критический урон в размере ' + real });
+    else b.log.unshift({ kind:'HIT', text:'Ты '+genderDealt()+' противнику урон в размере ' + real });
   }
 
   function battleAlliesTurn(){
@@ -8280,6 +8332,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const pad = n => (n<10 ? '0'+n : ''+n);
       return y+'-'+pad(m+1)+'-'+pad(day);
     } catch (e) { return '1970-01-01'; }
+  }
+  function previousUtcDayKey(){
+    try {
+      const k = utcDayKey();
+      const parts = k.split('-');
+      const y = parseInt(parts[0],10)||0, m = (parseInt(parts[1],10)||1)-1, d = parseInt(parts[2],10)||1;
+      const prev = new Date(Date.UTC(y, m, d) - 24*60*60*1000);
+      const pad = n => (n<10 ? '0'+n : ''+n);
+      return prev.getUTCFullYear()+'-'+pad(prev.getUTCMonth()+1)+'-'+pad(prev.getUTCDate());
+    } catch (e) { return ''; }
   }
   function havchikGameDayStartMs(){
     try {
@@ -9685,9 +9747,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const fhp2 = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
         const applied2 = (fhp2!==null) ? Math.max(0, prevHp - Math.max(0, fhp2)) : wantApply;
         bossHelpSend(id, applied2);
-        feedAdd('Ты ударил босса: '+b.name+' -'+applied2, 'BOSS');
+        feedAdd('Ты '+genderStruck()+' босса: '+b.name+' -'+applied2, 'BOSS');
       } catch (e0) {
-        feedAdd('Ты ударил босса: '+b.name+' -'+wantApply, 'BOSS');
+        feedAdd('Ты '+genderStruck()+' босса: '+b.name+' -'+wantApply, 'BOSS');
         bossHelpSend(id, wantApply);
         toast('Босс: -'+wantApply, 'win');
       }
@@ -10455,6 +10517,56 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (d.getUTCHours() < 18) d.setUTCDate(d.getUTCDate() - 1);
     return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');
   }
+  function amIStrasilaDnya(){
+    try {
+      const cloud = state.districtDailyFearCloud;
+      if (!cloud || cloud.day !== utcDayKey()) return false;
+      const byDistrict = cloud.byDistrict || {};
+      const me = String(state.playerName||'').trim().toUpperCase();
+      for (const k in byDistrict) {
+        const leader = byDistrict[k];
+        if (leader && String(leader.name||'').trim().toUpperCase() === me) return true;
+      }
+      return false;
+    } catch (e) { return false; }
+  }
+  function amIStrasilaDnyaForReward(){
+    try {
+      const prevDay = previousUtcDayKey();
+      if (!prevDay) return false;
+      const cloud = state.districtDailyFearCloudPrev;
+      if (!cloud || cloud.day !== prevDay) return false;
+      const byDistrict = cloud.byDistrict || {};
+      const me = String(state.playerName||'').trim().toUpperCase();
+      for (const k in byDistrict) {
+        const leader = byDistrict[k];
+        if (leader && String(leader.name||'').trim().toUpperCase() === me) return true;
+      }
+      return false;
+    } catch (e) { return false; }
+  }
+  function genderPast(){ return (state.gender === 'f') ? 'была' : 'был'; }
+  function genderDid(){ return (state.gender === 'f') ? 'сделала' : 'сделал'; }
+  function genderChanged(){ return (state.gender === 'f') ? 'изменила' : 'изменил'; }
+  function genderMissed(){ return (state.gender === 'f') ? 'промахнулась' : 'промахнулся'; }
+  function genderDealt(){ return (state.gender === 'f') ? 'нанесла' : 'нанес'; }
+  function genderUsed(){ return (state.gender === 'f') ? 'использовала' : 'использовал'; }
+  function genderRestored(){ return (state.gender === 'f') ? 'восстановила' : 'восстановил'; }
+  function genderThrew(){ return (state.gender === 'f') ? 'бросила' : 'бросил'; }
+  function genderStruck(){ return (state.gender === 'f') ? 'ударила' : 'ударил'; }
+  function genderLeft(){ return (state.gender === 'f') ? 'вышла' : 'вышел'; }
+  function genderObserver(){ return (state.gender === 'f') ? 'наблюдательница' : 'наблюдатель'; }
+  function amIDistrictHolder(){
+    try {
+      const leaders = state.districtFearLeaders || {};
+      const me = String(state.playerName||'').trim().toUpperCase();
+      for (const k in leaders) {
+        const top = leaders[k];
+        if (top && String(top.name||'').trim().toUpperCase() === me) return true;
+      }
+      return false;
+    } catch (e) { return false; }
+  }
   function halturkiNormalize(){
     if (!state.halturki || typeof state.halturki !== 'object') state.halturki = { day:'', arenaTeeth:false, killBoss:false, nightmareDistrict:false, dicePlay:false, havchikSend:false, arenaWin:false, allClaimed:false };
     const today = halturkiDay();
@@ -10821,7 +10933,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             try { if (state && state.clansDb && state.clansDb.myApps) delete state.clansDb.myApps[clanId]; } catch (e3) {}
             state.clan = Object.assign({}, defaults.clan);
             save();
-            toast((role==='leader') ? 'Клан расформирован' : 'Ты вышел из клана','win');
+            toast((role==='leader') ? 'Клан расформирован' : 'Ты '+genderLeft()+' из клана','win');
             haptic((role==='leader') ? 'heavy' : 'light');
           })
           .then((r)=>{ if (r===null) return null; return clansCloudPull(); })
@@ -10877,7 +10989,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (nm === String(c.leader||'')) { toast('Глава не может быть замом','lose'); return; }
     const prev = c.deputy ? String(c.deputy) : '';
     c.deputy = nm;
-    clanLog(c, 'Смена зама: ' + (prev?prev:'—') + ' → ' + nm + ' (сделал: ' + clanMyName() + ')');
+    clanLog(c, 'Смена зама: ' + (prev?prev:'—') + ' → ' + nm + ' ('+genderDid()+': ' + clanMyName() + ')');
     try { clansCloudUpsert(c); } catch (e2) {}
     save();
     renderClans();
@@ -10900,7 +11012,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const ns = Math.max(0, parseInt(p2||'0',10)||0);
     c.filters.minLvl = nl;
     c.filters.minStats = ns;
-    clanLog(c, 'Фильтр заявок: ур. '+nl+' / статы '+fmt4(ns)+' (изменил: ' + clanMyName() + ')');
+    clanLog(c, 'Фильтр заявок: ур. '+nl+' / статы '+fmt4(ns)+' ('+genderChanged()+': ' + clanMyName() + ')');
     try { clansCloudUpsert(c); } catch (e2) {}
     save();
     renderClans();
@@ -11297,6 +11409,28 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     }
 
+    var rewardDay = previousUtcDayKey();
+    if (rewardDay && (!state.districtDailyFearCloudPrev || state.districtDailyFearCloudPrev.day !== rewardDay)) {
+      try { districtDailyLeadersCloudPullForDay(rewardDay).then(function(){ renderDistricts(); }).catch(function(){}); } catch (e0) {}
+    }
+    var fearClaimed = (state.dailyRewardsFearDay === rewardDay);
+    var holderClaimed = (state.dailyRewardsHolderDay === rewardDay);
+    var isStrasila = amIStrasilaDnyaForReward();
+    var isHolder = amIDistrictHolder();
+    html += '<div class="card" style="padding:12px;">'
+      + '<div class="k" style="margin-bottom:8px;">Награды в 18:00 UTC</div>'
+      + '<div style="font-size:11px; opacity:.85; margin-bottom:10px;">Награда за предыдущие сутки. Забрать можно с 18:00 UTC до следующих 18:00 UTC (до назначения новых страшил и держателя).</div>'
+      + '<div style="display:flex; flex-direction:column; gap:10px;">'
+      + '<div class="row" style="align-items:center; flex-wrap:wrap; gap:8px;">'
+      + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Страшила дня</span><div style="font-size:11px; opacity:.9; margin-top:2px;">15 монет + 5 ударов ногой, 5 костетом, 5 клизм</div></div>'
+      + ((state.districtDailyFearCloudPrev && state.districtDailyFearCloudPrev.day === rewardDay) ? (isStrasila ? (fearClaimed ? '<div class="badge" style="background:rgba(34,197,94,.25); color:#166534;">Получено</div>' : '<button type="button" class="btn btnSmall" id="claimFearDailyBtn">ЗАБРАТЬ</button>') : '<div style="font-size:11px; opacity:.7;">Ты не '+genderPast()+' страшилой в те сутки</div>') : '<div style="font-size:11px; opacity:.7;">Загрузка…</div>')
+      + '</div>'
+      + '<div class="row" style="align-items:center; flex-wrap:wrap; gap:8px;">'
+      + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Держатель района</span><div style="font-size:11px; opacity:.9; margin-top:2px;">30 монет + 10 ударов ногой, 10 костетом, 10 клизм</div></div>'
+      + (isHolder ? (holderClaimed ? '<div class="badge" style="background:rgba(34,197,94,.25); color:#166534;">Получено</div>' : '<button type="button" class="btn btnSmall" id="claimHolderDailyBtn">ЗАБРАТЬ</button>') : '<div style="font-size:11px; opacity:.7;">Ты не держишь район</div>')
+      + '</div>'
+      + '</div></div>';
+
     for (let i=1;i<=data.length;i++){
       const name = data[i-1].name;
       const img = data[i-1].img ? String(data[i-1].img) : '';
@@ -11431,6 +11565,47 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         btn.onclick = ()=>{ try { renderDistrictBiz(parseInt(btn.getAttribute('data-db')||'0',10)||0); } catch (e) {} };
       });
     } catch (e) {}
+
+    try {
+      const claimFear = $('claimFearDailyBtn');
+      if (claimFear) claimFear.onclick = ()=>{
+        var dk = previousUtcDayKey();
+        if (!dk) { toast('Награда ещё недоступна','lose'); return; }
+        if (state.dailyRewardsFearDay === dk) { toast('Уже получено за те сутки','lose'); return; }
+        if (!amIStrasilaDnyaForReward()) { toast('Ты не '+genderPast()+' страшилой дня в те сутки','lose'); return; }
+        state.dailyRewardsFearDay = dk;
+        state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + 15);
+        if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
+        state.bosses.hitStocks.kick = Math.min(999999, (parseInt(state.bosses.hitStocks.kick||0,10)||0) + 5);
+        state.bosses.hitStocks.knuckle = Math.min(999999, (parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + 5);
+        state.bosses.hitStocks.enema = Math.min(999999, (parseInt(state.bosses.hitStocks.enema||0,10)||0) + 5);
+        save();
+        renderDistricts();
+        renderHUD();
+        toast('Награда страшилы дня: +15 монет, +5 ударов каждого типа','win');
+        haptic('light');
+      };
+    } catch (e0) {}
+    try {
+      const claimHolder = $('claimHolderDailyBtn');
+      if (claimHolder) claimHolder.onclick = ()=>{
+        var dk = previousUtcDayKey();
+        if (!dk) { toast('Награда ещё недоступна','lose'); return; }
+        if (state.dailyRewardsHolderDay === dk) { toast('Уже получено за те сутки','lose'); return; }
+        if (!amIDistrictHolder()) { toast('Ты не держишь район','lose'); return; }
+        state.dailyRewardsHolderDay = dk;
+        state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + 30);
+        if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
+        state.bosses.hitStocks.kick = Math.min(999999, (parseInt(state.bosses.hitStocks.kick||0,10)||0) + 10);
+        state.bosses.hitStocks.knuckle = Math.min(999999, (parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + 10);
+        state.bosses.hitStocks.enema = Math.min(999999, (parseInt(state.bosses.hitStocks.enema||0,10)||0) + 10);
+        save();
+        renderDistricts();
+        renderHUD();
+        toast('Награда держателя района: +30 монет, +10 ударов каждого типа','win');
+        haptic('light');
+      };
+    } catch (e1) {}
   }
 
   function districtNightmareOpen(idx){
@@ -12472,6 +12647,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const bse = $('bfShopBuyEnema');
     if (bse) bse.onclick = ()=>bfShopBuy('enema', 15);
 
+    var gTog = $('genderToggleBtn');
+    if (gTog) {
+      gTog.onclick = (e)=>{ e.stopPropagation(); state.gender = (state.gender === 'f') ? 'm' : 'f'; save(); renderHUD(); haptic('light'); };
+    }
     $('nameBtn').onclick = ()=>{
       const n = prompt('Имя персонажа:', state.playerName || 'PLAYER');
       if (!n) return;
@@ -12729,7 +12908,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         return '<div class="row'+rowClass+'">'
           + '<div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1">'
           + '<div style="min-width:0; display:flex; flex-direction:column; gap:6px;">'
-          + '<div style="min-width:0; font-size:12px; opacity:.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">#'+(idx+1)+' '+nm+'</div>'
+          + '<div style="min-width:0; font-size:12px; opacity:.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">#'+(idx+1)+' '+nm+(row.raw && row.raw.vip ? ' <span style="color:var(--gold); font-weight:800; letter-spacing:1px;">VIP</span>' : '')+'</div>'
           + '<div style="display:flex; justify-content:flex-start;">'+ava+'</div>'
           + '</div>'
           + '</div>'
