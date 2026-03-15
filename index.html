@@ -8,7 +8,7 @@
 <meta name="admin-tg-id" content="8794843839" />
 <!-- Ссылка на группу в Telegram (например https://t.me/bratstvo_koltsa_group) -->
 <meta name="telegram-group-url" content="https://t.me/+fHMBRFCqk39lYjJi" />
-<title>Братство Конца — Mobile TG Edition</title>
+<title>Братство Кольца — Mobile TG Edition</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&display=swap" rel="stylesheet">
  <style>
@@ -1754,6 +1754,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       </div>
       <div class="card" id="adminCard" style="margin-top:12px; display:none;">
         <div class="row"><div class="k">АДМИН</div><button class="btn btnSmall" id="adminEditPlayerBtn">Редактировать игрока</button></div>
+        <div class="row" style="margin-top:8px;"><div class="k">Начислить всем игрокам</div><button class="btn btnSmall" id="adminGrantAllBtn">ВАЛЮТА И УДАРЫ</button></div>
         <div class="row" style="margin-top:8px;"><div class="k">Полный рестарт игры</div><button class="btn btnSmall" id="adminFullRestartBtn" style="background:#b91c1c; color:#fff;">ПОЛНЫЙ РЕСТАРТ</button></div>
       </div>
     </div>
@@ -1791,6 +1792,31 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div class="row"><div class="k">Мощь</div><input type="number" id="adminGymMight" min="1" style="width:80px; padding:6px; border-radius:6px; border:1px solid var(--paperLine);"></div>
         <div class="row"><div class="k">Харизма</div><input type="number" id="adminGymCharisma" min="1" style="width:80px; padding:6px; border-radius:6px; border:1px solid var(--paperLine);"></div>
         <div style="margin-top:14px;"><button class="btn" id="adminPlayerSave" style="width:100%">Сохранить</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Admin: grant to all players -->
+<div class="modal" id="mAdminGrantAll" role="dialog" aria-modal="true">
+  <div class="sheet">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mAdminGrantAll">‹</button>
+      <div class="title">НАЧИСЛИТЬ ВСЕМ</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody">
+      <div class="card">
+        <div style="font-size:12px; opacity:.85; margin-bottom:10px;">Сколько добавить каждому игроку (на сервере). Пустые поля = 0.</div>
+        <div class="k" style="margin-bottom:6px;">ВАЛЮТА</div>
+        <div class="row"><div class="k">Золотые монеты</div><input type="number" id="adminGrantGold" min="0" value="0" placeholder="0" style="width:100px; padding:8px; border-radius:8px; border:1px solid var(--paperLine);"></div>
+        <div class="row"><div class="k">Серебро</div><input type="number" id="adminGrantSilver" min="0" value="0" placeholder="0" style="width:100px; padding:8px; border-radius:8px; border:1px solid var(--paperLine);"></div>
+        <div class="row"><div class="k">Золотые зубы</div><input type="number" id="adminGrantTooth" min="0" value="0" placeholder="0" style="width:100px; padding:8px; border-radius:8px; border:1px solid var(--paperLine);"></div>
+        <div class="k" style="margin-top:12px; margin-bottom:6px;">УДАРЫ ПО БОССАМ</div>
+        <div class="row"><div class="k">Пинки</div><input type="number" id="adminGrantKick" min="0" value="0" placeholder="0" style="width:100px; padding:8px; border-radius:8px; border:1px solid var(--paperLine);"></div>
+        <div class="row"><div class="k">Костет</div><input type="number" id="adminGrantKnuckle" min="0" value="0" placeholder="0" style="width:100px; padding:8px; border-radius:8px; border:1px solid var(--paperLine);"></div>
+        <div class="row"><div class="k">Клизма</div><input type="number" id="adminGrantEnema" min="0" value="0" placeholder="0" style="width:100px; padding:8px; border-radius:8px; border:1px solid var(--paperLine);"></div>
+        <div style="margin-top:14px;"><button class="btn" id="adminGrantAllSubmit" style="width:100%">Начислить всем игрокам</button></div>
       </div>
     </div>
   </div>
@@ -2519,8 +2545,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody">
       <div class="card">
         <div class="row"><div class="k">УРОВЕНЬ</div><div class="badge" id="fhLvl">0</div></div>
-        <div class="row" style="margin-top:10px;"><div class="k">ЛИМИТ НА БРАТКА</div><div class="badge" id="fhPct">10%</div></div>
-        <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.35">Каждый уровень увеличивает лимит помощи братков в бою с боссом на +1%.</div>
+        <div class="row" style="margin-top:10px;"><div class="k">ЛИМИТ НА БРАТКА</div><div class="badge" id="fhPct">Фёдор: 500</div></div>
         <button class="btn" style="margin-top:12px;" id="fhUp">ПРОКАЧАТЬ</button>
       </div>
     </div>
@@ -2678,11 +2703,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e) {}
   }
 
+  function bossHelpCapPerUnit(b){
+    if (!b) return 0;
+    if (Number(b.id) === 1) return BOSS_HELP_CAP_FEDOR;
+    const lvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
+    const capPct = 0.10 + lvl*0.01;
+    return Math.floor((b.maxHP||0) * capPct);
+  }
   function bossHelpCapRemainFriend(b, f, nm){
     try {
-      const lvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
-      const capPct = 0.10 + lvl*0.01;
-      const capPerFriend = Math.floor(b.maxHP * capPct);
+      const capPerFriend = bossHelpCapPerUnit(b);
       if (!f.friendCap) f.friendCap = {};
       const used = parseInt((f.friendCap && f.friendCap[nm])||0,10)||0;
       return Math.max(0, capPerFriend - used);
@@ -2690,10 +2720,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
   function bossHelpCapRemainClan(b, f, nm){
     try {
-      const c = clanGetMyClan();
-      const lvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
-      const capPct = 0.10 + lvl*0.01;
-      const capPerMember = Math.floor(b.maxHP * capPct);
+      const capPerMember = bossHelpCapPerUnit(b);
       if (!f.clanCap) f.clanCap = {};
       const used = parseInt((f.clanCap && f.clanCap[nm])||0,10)||0;
       return Math.max(0, capPerMember - used);
@@ -3528,7 +3555,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try {
       const lvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
       $('fhLvl').textContent = String(lvl);
-      $('fhPct').textContent = String(10 + lvl) + '%';
+      $('fhPct').textContent = 'Фёдор: ' + BOSS_HELP_CAP_FEDOR + ' · др.: ' + (10 + lvl) + '%';
       const btn = $('fhUp');
       if (btn) {
         const PRICES = [0, 50000, 1000000, 5000000, 10000000, 20000000, 50000000, 100000000, 200000000, 500000000, 1000000000];
@@ -4037,7 +4064,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       state.inventory[0] = '❤️';
       state.inventory[1] = '📜';
     }
-    feedAdd('Добро пожаловать в Enhanced Mobile TG Edition','SYS');
+    feedAdd('Добро пожаловать в Братство Кольца!','SYS');
   }
 
   function hardReset(){
@@ -4312,7 +4339,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!myId) { toast('Нет Telegram ID','lose'); return; }
       const payload = 'u' + myId;
       const deep = 'https://t.me/' + bot + '?startapp=' + encodeURIComponent(payload);
-      const text = 'Залетай в «Братство Конца» в Telegram!';
+      const text = 'Залетай в «Братство Кольца» в Telegram!';
       const share = 'https://t.me/share/url?url=' + encodeURIComponent(deep) + '&text=' + encodeURIComponent(text);
       if (tg && tg.openTelegramLink) tg.openTelegramLink(share);
       else if (tg && tg.openLink) tg.openLink(share);
@@ -5123,6 +5150,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     { id:4, name:'Морской Феникс', emoji:'🦅', img:'40.jpg', cost:1500, pct:0.40 }
   ];
 
+  const BOSS_HELP_CAP_FEDOR = 500;
   const BOSSES = [
     { id:1, name:'Фёдор', emoji:'🦈', img:'фёдор.png', maxHP:1000, reward:{ xp:50, tooth:100, gold:0 } },
     { id:2, name:'Гиви', emoji:'🧨', img:'гиви.png', maxHP:10000, reward:{ xp:100, tooth:500, gold:0 } },
@@ -8523,9 +8551,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (turns<=0) return;
     f.lastFriendTs = (parseInt(f.lastFriendTs||0,10)||now()) + turns*step;
 
-    const lvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
-    const capPct = 0.10 + lvl*0.01;
-    const capPerFriend = Math.floor(b.maxHP * capPct);
+    const capPerFriend = bossHelpCapPerUnit(b);
     const friends = Array.isArray(state.friends) ? state.friends : [];
     for (let t=0;t<turns;t++){
       friends.forEach(fr=>{
@@ -8579,9 +8605,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     f.lastClanTs = (parseInt(f.lastClanTs||0,10)||now()) + turns*step;
 
     if (!f.clanCap) f.clanCap = {};
-    const lvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
-    const capPct = 0.10 + lvl*0.01;
-    const capPerMember = Math.floor(b.maxHP * capPct);
+    const capPerMember = bossHelpCapPerUnit(b);
     const maxMembersPerTurn = Math.min(12, Math.max(1, mem.length-1));
     const helpers = mem
       .filter(n=>String(n)!==clanMyName())
@@ -8619,9 +8643,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       // friends help
       const friends = Array.isArray(state.friends) ? state.friends : [];
       if (!f.friendCap) f.friendCap = {};
-      const frLvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
-      const frCapPct = 0.10 + frLvl*0.01;
-      const capPerFriend = Math.floor(b.maxHP * frCapPct);
+      const capPerFriend = bossHelpCapPerUnit(b);
       friends.forEach(fr=>{
         const nm = fr && fr.name ? String(fr.name) : 'FRIEND';
         const used = parseInt((f.friendCap && f.friendCap[nm])||0,10)||0;
@@ -8643,9 +8665,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const mem = Array.isArray(myClan.members) ? myClan.members : [];
         if (mem.length>1){
           if (!f.clanCap) f.clanCap = {};
-          const clLvl2 = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
-          const capPct = 0.10 + clLvl2*0.01;
-          const capPerMember = Math.floor(b.maxHP * capPct);
+          const capPerMember = bossHelpCapPerUnit(b);
           mem.filter(n=>String(n)!==clanMyName()).forEach(nm=>{
             const key = String(nm||'BRAT');
             const used = parseInt((f.clanCap && f.clanCap[key])||0,10)||0;
@@ -11374,7 +11394,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e0) {}
     if ((state.gold||0) < 1000){ toast('Нужно 1000 золотых монет '+TOAST_GOLD_IMG,'lose'); return; }
-    const name = prompt('Название клана:', 'Братство');
+    const name = prompt('Название клана:', 'Братство Кольца');
     if (!name) return;
     const nm = String(name).trim().substring(0, 18);
     if (!nm){ toast('Введите название','lose'); return; }
@@ -12832,6 +12852,49 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       };
     })();
 
+    (function(){
+      var grantAllBtn = $('adminGrantAllBtn');
+      if (grantAllBtn) grantAllBtn.onclick = function(){ showModal('mAdminGrantAll'); haptic('light'); };
+    })();
+    (function(){
+      var submitBtn = $('adminGrantAllSubmit');
+      if (!submitBtn) return;
+      submitBtn.onclick = async function(){
+        var gold = Math.max(0, parseInt(($('adminGrantGold')&&$('adminGrantGold').value)!=='' ? $('adminGrantGold').value : 0, 10) || 0);
+        var silver = Math.max(0, parseInt(($('adminGrantSilver')&&$('adminGrantSilver').value)!=='' ? $('adminGrantSilver').value : 0, 10) || 0);
+        var tooth = Math.max(0, parseInt(($('adminGrantTooth')&&$('adminGrantTooth').value)!=='' ? $('adminGrantTooth').value : 0, 10) || 0);
+        var kick = Math.max(0, parseInt(($('adminGrantKick')&&$('adminGrantKick').value)!=='' ? $('adminGrantKick').value : 0, 10) || 0);
+        var knuckle = Math.max(0, parseInt(($('adminGrantKnuckle')&&$('adminGrantKnuckle').value)!=='' ? $('adminGrantKnuckle').value : 0, 10) || 0);
+        var enema = Math.max(0, parseInt(($('adminGrantEnema')&&$('adminGrantEnema').value)!=='' ? $('adminGrantEnema').value : 0, 10) || 0);
+        if (gold===0 && silver===0 && tooth===0 && kick===0 && knuckle===0 && enema===0) {
+          toast('Введите хотя бы одно значение','lose');
+          return;
+        }
+        if (!confirm('Начислить всем игрокам на сервере?\n\nЗолотые монеты: +'+gold+'\nСеребро: +'+silver+'\nЗолотые зубы: +'+tooth+'\nПинки: +'+kick+'\nКостет: +'+knuckle+'\nКлизма: +'+enema)) return;
+        submitBtn.disabled = true;
+        try {
+          var r = await sbFnCall('admin_grant_all', {
+            initData: tgInitData(),
+            gold: gold,
+            silver: silver,
+            tooth: tooth,
+            kick: kick,
+            knuckle: knuckle,
+            enema: enema
+          });
+          if (r && r.ok) {
+            toast('Начислено игрокам: ' + (r.count != null ? r.count : 'ok'), 'win');
+            hideModal('mAdminGrantAll');
+          } else {
+            toast(r && r.error ? r.error : 'Ошибка','lose');
+          }
+        } catch (e) {
+          toast('Ошибка: ' + (e && e.message ? e.message : 'network'), 'lose');
+        }
+        submitBtn.disabled = false;
+        haptic('light');
+      };
+    })();
     (function(){
       var fullRestartBtn = $('adminFullRestartBtn');
       if (!fullRestartBtn) return;
