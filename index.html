@@ -8793,6 +8793,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } catch (e00) {}
     }
 
+    // Если босса добили (в т.ч. братки) — показываем экран победы и «Забрать награду», не закрываем бой автоматически
+    if (!isDistrict && (parseInt(f.hp||0,10)||0) <= 0) {
+      try { bfCheckWin(bossId); } catch (e0) {}
+      return;
+    }
+
     function bossGymTotal(){
       try {
         if (!Array.isArray(GYM_STATS)) return 0;
@@ -9149,8 +9155,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     } else if (!f && Array.isArray(state.bosses.dmgLog[String(bossId)])) {
       logArr = state.bosses.dmgLog[String(bossId)];
     }
+    const playerNameForLog = String(state.playerName||'PLAYER').trim();
     log.innerHTML = logArr.length ? logArr.map(e=>{
-      return '<div class="row"><div style="min-width:0; font-size:12px; opacity:.9">'+String(e.who)+'</div><div class="badge" style="padding:6px 8px; font-size:11px">'+String(e.dmg)+'</div></div>';
+      const isPlayer = String(e.who||'').trim() === playerNameForLog;
+      const rowStyle = isPlayer ? ' style="color:rgba(52,211,153,.95)"' : '';
+      const badgeStyle = isPlayer ? 'padding:6px 8px; font-size:11px; color:rgba(52,211,153,.95)' : 'padding:6px 8px; font-size:11px';
+      return '<div class="row"'+rowStyle+'><div style="min-width:0; font-size:12px; opacity:.9">'+String(e.who)+'</div><div class="badge" style="'+badgeStyle+'">'+String(e.dmg)+'</div></div>';
     }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
 
     const top = $('bfTop');
@@ -9340,6 +9350,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             try { bossLastWinnersCloudPullMaybe(true); } catch (e2) {}
             hideModal('mBossFightRes');
             while (stack.length) hideModal(stack[stack.length-1]);
+            openScreen('mPloshchad');
             renderBosses();
             renderAll();
             haptic('heavy');
@@ -9395,6 +9406,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       try { hideModal('mBossFightRes'); } catch (e1) {}
       try { hideModal('mBossFight'); } catch (e2) {}
       while (stack.length) hideModal(stack[stack.length-1]);
+      openScreen('mPloshchad');
       renderBosses();
       renderAll();
       haptic('heavy');
