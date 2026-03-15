@@ -5296,9 +5296,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     }
   } catch (e0) {}
-  // normalize
+  // normalize (пол игрока: все надписи в игре зависят от state.gender, должен быть всегда 'm' или 'f')
   if (!state.settings || typeof state.settings !== 'object') state.settings = Object.assign({}, defaults.settings);
   if (state.gender !== 'f' && state.gender !== 'm') state.gender = getGenderFromTelegram() || 'm';
+  function ensureGender(){ if (state.gender !== 'f' && state.gender !== 'm') state.gender = getGenderFromTelegram() || 'm'; }
   if (typeof state.totalXp !== 'number') state.totalXp = 0;
   if (typeof state.playerName !== 'string') state.playerName = 'PLAYER';
   state.playerName = String(state.playerName||'').trim().substring(0, 16) || 'PLAYER';
@@ -11462,11 +11463,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       + '<div style="font-size:11px; opacity:.85; margin-bottom:10px;">Награда за предыдущие сутки. Забрать можно с 18:00 UTC до следующих 18:00 UTC (до назначения новых страшил и держателя).</div>'
       + '<div style="display:flex; flex-direction:column; gap:10px;">'
       + '<div class="row" style="align-items:center; flex-wrap:wrap; gap:8px;">'
-      + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Страшила дня</span><div style="font-size:11px; opacity:.9; margin-top:2px;">15 монет + 5 ударов ногой, 5 костетом, 5 клизм</div></div>'
+      + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Страшила дня</span><div style="font-size:11px; opacity:.9; margin-top:2px;">15 <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;vertical-align:middle"> золотых монет + 5 ударов ногой, 5 костетом, 5 клизм</div></div>'
       + ((state.districtDailyFearCloudPrev && state.districtDailyFearCloudPrev.day === rewardDay) ? (isStrasila ? (fearClaimed ? '<div class="badge" style="background:rgba(34,197,94,.25); color:#166534;">Получено</div>' : '<button type="button" class="btn btnSmall" id="claimFearDailyBtn">ЗАБРАТЬ</button>') : '<div style="font-size:11px; opacity:.7;">Ты не '+genderPast()+' страшилой в те сутки</div>') : '<div style="font-size:11px; opacity:.7;">Загрузка…</div>')
       + '</div>'
       + '<div class="row" style="align-items:center; flex-wrap:wrap; gap:8px;">'
-      + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Держатель района</span><div style="font-size:11px; opacity:.9; margin-top:2px;">30 монет + 10 ударов ногой, 10 костетом, 10 клизм</div></div>'
+      + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Держатель района</span><div style="font-size:11px; opacity:.9; margin-top:2px;">30 <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;vertical-align:middle"> золотых монет + 10 ударов ногой, 10 костетом, 10 клизм</div></div>'
       + (isHolder ? (holderClaimed ? '<div class="badge" style="background:rgba(34,197,94,.25); color:#166534;">Получено</div>' : '<button type="button" class="btn btnSmall" id="claimHolderDailyBtn">ЗАБРАТЬ</button>') : '<div style="font-size:11px; opacity:.7;">Ты не держишь район</div>')
       + '</div>'
       + '</div></div>';
@@ -11624,7 +11625,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         save();
         renderDistricts();
         renderHUD();
-        toast('Награда страшилы дня: +15 монет, +5 ударов каждого типа','win');
+        toast('Награда страшилы дня: +15 '+TOAST_GOLD_IMG+' золотых монет, +5 ударов каждого типа','win');
         haptic('light');
       };
     } catch (e0) {}
@@ -11644,7 +11645,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         save();
         renderDistricts();
         renderHUD();
-        toast('Награда держателя района: +30 монет, +10 ударов каждого типа','win');
+        toast('Награда держателя района: +30 '+TOAST_GOLD_IMG+' золотых монет, +10 ударов каждого типа','win');
         haptic('light');
       };
     } catch (e1) {}
@@ -12507,6 +12508,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
               const localGateKilled = state.districtGateBossKilled && typeof state.districtGateBossKilled === 'object' ? state.districtGateBossKilled : null;
               const localGateFight = state.districtGateBossFight;
               state = Object.assign({}, state, r.player.state);
+              ensureGender();
               if (state.bosses) {
                 if (localFights && Object.keys(localFights).length > 0) state.bosses.fights = localFights;
                 if (localActiveFightId != null) state.bosses.activeFightId = localActiveFightId;
@@ -12538,6 +12540,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
                 const localGateKilled = state.districtGateBossKilled && typeof state.districtGateBossKilled === 'object' ? state.districtGateBossKilled : null;
                 const localGateFight = state.districtGateBossFight;
                 state = Object.assign({}, state, r.player.state);
+                ensureGender();
                 if (state.bosses) {
                   if (localFights && Object.keys(localFights).length > 0) state.bosses.fights = localFights;
                   if (localActiveFightId != null) state.bosses.activeFightId = localActiveFightId;
@@ -13157,6 +13160,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             const localGateKilled = state.districtGateBossKilled && typeof state.districtGateBossKilled === 'object' ? state.districtGateBossKilled : null;
             const localGateFight = state.districtGateBossFight;
             state = Object.assign({}, state, ps);
+            ensureGender();
             if (state.bosses) {
               state.bosses.fights = (localFights && Object.keys(localFights).length > 0) ? localFights : {};
               if (localCloud && Object.keys(localCloud).length > 0) state.bosses.cloud = localCloud; else state.bosses.cloud = {};
