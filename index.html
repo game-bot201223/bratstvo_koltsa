@@ -8788,10 +8788,16 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             bfSetFight(bossId, f);
             try { bossFightsCloudPullMaybe(true); } catch (e2) {}
           } else {
-            const localAlive = (parseInt(f.hp||0,10)||0) > 0 && (parseInt(f.expiresTs||0,10)||0) > now();
-            if (!localAlive) {
+            // Когда с сервера пришло hp=0 (добил браток) — всегда подтягиваем, иначе не покажем экран победы
+            if (chp <= 0) {
               f.hp = chp;
               bfSetFight(bossId, f);
+            } else {
+              const localAlive = (parseInt(f.hp||0,10)||0) > 0 && (parseInt(f.expiresTs||0,10)||0) > now();
+              if (!localAlive) {
+                f.hp = chp;
+                bfSetFight(bossId, f);
+              }
             }
           }
         } else {
