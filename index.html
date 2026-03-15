@@ -3091,24 +3091,34 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       return false;
     } catch (e) { return false; }
   }
-  const BIZ_24H_MS = 24 * 60 * 60 * 1000;
   function bizRewardNextClaimMs(){
     if (!hasAnyBusiness()) return 0;
-    const first = state.districtBizFirstPurchaseTs || 0;
-    const last = state.districtBizLastClaimTs || 0;
-    const nextAt = last ? (last + BIZ_24H_MS) : (first + BIZ_24H_MS);
-    return Math.max(0, nextAt - now());
+    const k = utcDayKey();
+    if ((state.dailyRewardsBizDay||'') !== k) return 0;
+    const dayStartMs = typeof havchikGameDayStartMs === 'function' ? havchikGameDayStartMs() : 0;
+    const nextDayStart = dayStartMs + 24 * 60 * 60 * 1000;
+    return Math.max(0, nextDayStart - now());
   }
   function bizRewardCanClaim(){
-    return hasAnyBusiness() && bizRewardNextClaimMs() <= 0;
+    return hasAnyBusiness() && (state.dailyRewardsBizDay||'') !== utcDayKey();
+  }
+  function bizRewardFearGoldSum(){
+    let fearSum = 0, goldSum = 0;
+    for (let id = 0; id < 12; id++) {
+      const lvl2 = bizLvl(id, 1);
+      fearSum += lvl2 > 0 ? (BIZ2_FEAR_PER_LVL[lvl2 - 1] || 0) : 0;
+      const lvl4 = bizLvl(id, 3);
+      goldSum += lvl4 > 0 ? (BIZ4_GOLD_PER_LVL[lvl4 - 1] || 0) : 0;
+    }
+    return { fearSum, goldSum };
   }
 
   function bizDailyClaimAll(){
     try {
       if (!hasAnyBusiness()) { toast('Нет бизнесов','lose'); return; }
-      const msLeft = bizRewardNextClaimMs();
-      if (msLeft > 0) {
-        toast('Следующая награда через ' + fmtHHMMSS(msLeft), 'lose');
+      const k = utcDayKey();
+      if ((state.dailyRewardsBizDay||'') === k) {
+        toast('Награда за бизнесы уже получена за эти сутки','lose');
         return;
       }
 
@@ -3139,7 +3149,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
       }
 
-      state.districtBizLastClaimTs = now();
+      state.dailyRewardsBizDay = k;
 
       if (addFearSum>0 || addGoldSum>0){
         save();
@@ -3147,7 +3157,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         toast('БИЗНЕС: +' + fmt4(addFearSum) + ' '+TOAST_FEAR_IMG+' · +' + fmt4(addGoldSum) + ' '+TOAST_GOLD_IMG,'win');
         haptic('heavy');
       } else {
-        toast('Бизнес награда уже собрана','lose');
+        toast('Награда за бизнесы уже получена за эти сутки','lose');
       }
     } catch (e) {}
   }
@@ -3587,11 +3597,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!lastSend) return true;
     return utcDayKeyAt(lastSend) !== utcDayKey();
   }
+  function havchikItemTs(item){
+    const raw = item && (item.sent_ts != null || item.created_at != null || item.ts != null) ? (item.sent_ts || item.created_at || item.ts) : 0;
+    if (typeof raw === 'number' && raw > 0) return raw;
+    if (typeof raw === 'string' && /^\d+$/.test(raw)) return parseInt(raw, 10) || 0;
+    if (typeof raw === 'string') return new Date(raw).getTime() || 0;
+    return 0;
+  }
   function havchikFilterInbox(items){
     const dayStart = havchikGameDayStartMs();
     const seen = {};
     return (items||[]).filter((item)=>{
-      const ts = parseInt(item.sent_ts||item.created_at||item.ts||0,10)||0;
+      const ts = havchikItemTs(item);
       if (ts < dayStart) return false;
       const sender = String(item.from_id!=null ? item.from_id : (item.from_tg_id!=null ? item.from_tg_id : (item.from_name||item.from||'')||'')).trim();
       if (seen[sender]) return false;
@@ -3673,7 +3690,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!dayStart || !Array.isArray(state.havchikInbox)) return;
     const before = state.havchikInbox.length;
     state.havchikInbox = state.havchikInbox.filter((item)=>{
-      const ts = parseInt(item.sent_ts||item.created_at||item.ts||0,10)||0;
+      const ts = havchikItemTs(item);
       return ts >= dayStart;
     });
     if (state.havchikInbox.length < before) save();
@@ -5282,6 +5299,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     halturki:{ day:'', arenaTeeth:false, killBoss:false, nightmareDistrict:false, dicePlay:false, havchikSend:false, arenaWin:false, allClaimed:false },
     dailyRewardsFearDay:'',
     dailyRewardsHolderDay:'',
+    dailyRewardsBizDay:'',
     armorOwned:{},
     mainCharacterImg:null,
     selectedArmorKey:null
@@ -11442,33 +11460,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const dayBox = (state.districtDailyFearCloud && state.districtDailyFearCloud.byDistrict) ? state.districtDailyFearCloud.byDistrict : ((state.districtDailyFear && state.districtDailyFear.byDistrict) ? state.districtDailyFear.byDistrict : null);
 
     const bizCol = $('districtBizRewardColumn');
-    if (bizCol) {
-      if (hasAnyBusiness()) {
-        bizCol.style.display = '';
-        const msLeft = bizRewardNextClaimMs();
-        const canClaim = msLeft <= 0;
-        let fearSum = 0, goldSum = 0;
-        for (let id=0; id<12; id++){
-          const lvl2 = bizLvl(id, 1);
-          fearSum += lvl2>0 ? (BIZ2_FEAR_PER_LVL[lvl2-1]||0) : 0;
-          const lvl4 = bizLvl(id, 3);
-          goldSum += lvl4>0 ? (BIZ4_GOLD_PER_LVL[lvl4-1]||0) : 0;
-        }
-        bizCol.innerHTML = '<div class="card districtStatBox" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:12px;">'
-          + '<div><div style="font-size:11px; opacity:.85; margin-bottom:4px">Ближайшая прибыль:</div><div id="bizRewardColumnTimer" style="font-size:14px; font-weight:900; letter-spacing:1px">' + (canClaim ? 'Готово' : fmtHHMMSS(msLeft)) + '</div></div>'
-          + '<div><div style="font-size:11px; opacity:.85; margin-bottom:4px">Общая прибыль:</div><div style="display:flex; align-items:center; gap:10px; font-size:14px; font-weight:900">'
-          + '<span title="Страх"><img src="страх.png" alt="Страх" class="fearIcon"> '+fmt4(fearSum)+'</span>'
-          + '<span title="Золотые монеты"><img src="голд.png" alt="Золотые монеты" class="goldIcon"> '+fmt4(goldSum)+'</span>'
-          + '</div></div>'
-          + '<button type="button" class="btn btnSmall" id="bizRewardColumnCollect" ' + (canClaim ? '' : 'disabled') + '>Собрать все</button>'
-          + '</div>';
-        const collectBtn = $('bizRewardColumnCollect');
-        if (collectBtn) collectBtn.onclick = ()=>{ try { bizDailyClaimAll(); renderDistricts(); } catch (e2) {} };
-      } else {
-        bizCol.style.display = 'none';
-        bizCol.innerHTML = '';
-      }
-    }
+    if (bizCol) { bizCol.style.display = 'none'; bizCol.innerHTML = ''; }
 
     var rewardDay = previousUtcDayKey();
     if (rewardDay && (!state.districtDailyFearCloudPrev || state.districtDailyFearCloudPrev.day !== rewardDay)) {
@@ -11480,7 +11472,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     var isHolder = amIDistrictHolder();
     html += '<div class="card" style="padding:12px;">'
       + '<div class="k" style="margin-bottom:8px;">Награды в 18:00 UTC</div>'
-      + '<div style="font-size:11px; opacity:.85; margin-bottom:10px;">Награда за предыдущие сутки. Забрать можно с 18:00 UTC до следующих 18:00 UTC (до назначения новых страшил и держателя).</div>'
+      + '<div style="font-size:11px; opacity:.85; margin-bottom:4px;">Награда за предыдущие сутки. Забрать можно с 18:00 UTC до следующих 18:00 UTC (до назначения новых страшил и держателя).</div>'
+      + '<div style="font-size:11px; opacity:.75; margin-bottom:10px;">Один игрок может получить только одну награду страшилы, одну награду держателя и одну награду за бизнесы за эти сутки.</div>'
       + '<div style="display:flex; flex-direction:column; gap:10px;">'
       + '<div class="row" style="align-items:center; flex-wrap:wrap; gap:8px;">'
       + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Страшила дня</span><div style="font-size:11px; opacity:.9; margin-top:2px;">15 <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;vertical-align:middle"> золотых монет + 5 ударов ногой, 5 костетом, 5 клизм</div></div>'
@@ -11489,8 +11482,18 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       + '<div class="row" style="align-items:center; flex-wrap:wrap; gap:8px;">'
       + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Держатель района</span><div style="font-size:11px; opacity:.9; margin-top:2px;">30 <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;vertical-align:middle"> золотых монет + 10 ударов ногой, 10 костетом, 10 клизм</div></div>'
       + (isHolder ? (holderClaimed ? '<div class="badge" style="background:rgba(34,197,94,.25); color:#166534;">Получено</div>' : '<button type="button" class="btn btnSmall" id="claimHolderDailyBtn">ЗАБРАТЬ</button>') : '<div style="font-size:11px; opacity:.7;">Ты не держишь район</div>')
-      + '</div>'
-      + '</div></div>';
+      + '</div>';
+    if (hasAnyBusiness()) {
+      const bizClaimed = (state.dailyRewardsBizDay||'') === utcDayKey();
+      const sums = typeof bizRewardFearGoldSum === 'function' ? bizRewardFearGoldSum() : { fearSum: 0, goldSum: 0 };
+      html += '<div class="row" style="align-items:center; flex-wrap:wrap; gap:8px;">'
+        + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Награда за бизнесы</span><div style="font-size:11px; opacity:.9; margin-top:2px;">Сумма со всех районов: '
+        + '<img src="страх.png" alt="Страх" class="fearIcon" style="height:12px;vertical-align:middle"> '+fmt4(sums.fearSum||0)+' страх · '
+        + '<img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;vertical-align:middle"> '+fmt4(sums.goldSum||0)+' золотых монет</div></div>'
+        + (bizClaimed ? '<div class="badge" style="background:rgba(34,197,94,.25); color:#166534;">Получено</div>' : '<button type="button" class="btn btnSmall" id="claimBizDailyBtn">ЗАБРАТЬ</button>')
+        + '</div>';
+    }
+    html += '</div></div>';
 
     for (let i=1;i<=data.length;i++){
       const name = data[i-1].name;
@@ -11669,6 +11672,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         haptic('light');
       };
     } catch (e1) {}
+    try {
+      const claimBiz = $('claimBizDailyBtn');
+      if (claimBiz) claimBiz.onclick = ()=>{ try { bizDailyClaimAll(); renderDistricts(); } catch (e2) {} };
+    } catch (e2) {}
   }
 
   function districtNightmareOpen(idx){
@@ -11793,14 +11800,23 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       fight.hp = Math.max(0, (parseInt(fight.hp||0,10)||0) - damage);
       haptic('light');
       if (fight.hp <= 0) {
+        const idx = fight.districtIdx;
         if (!state.districtGateBossKilled || typeof state.districtGateBossKilled !== 'object') state.districtGateBossKilled = {};
-        state.districtGateBossKilled[fight.districtIdx] = true;
+        state.districtGateBossKilled[idx] = true;
         state.districtGateBossFight = null;
+        const mult = DISTRICT_GATE_REWARDS[idx] || 0;
+        state.bosses.pendingDistrictReward = mult > 0 ? { idx: idx, mult: mult } : null;
         save();
         try { const mm = $('mDistrictGateBoss'); if (mm) mm.classList.remove('show'); } catch (e) {}
         renderDistricts();
-        toast('Босс побеждён! Район открыт.','win');
+        if (mult > 0) {
+          showModal('mDistrictGateReward');
+          renderDistrictGateRewardModal();
+        } else {
+          toast('Босс побеждён! Район открыт.','win');
+        }
         haptic('medium');
+        renderAll();
         return;
       }
       save();
