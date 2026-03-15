@@ -9167,7 +9167,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const topObj = (f && f.dmgTop) ? f.dmgTop : {};
     const rows = Object.keys(topObj).map(k=>({ who:k, dmg: parseInt(topObj[k]||0,10)||0 })).sort((a,b)=>b.dmg-a.dmg).slice(0,12);
     top.innerHTML = rows.length ? rows.map((r,i)=>{
-      return '<div class="row"><div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+r.who+'</div><div class="badge" style="padding:6px 8px; font-size:11px">'+r.dmg+'</div></div>';
+      const isPlayerTop = String(r.who||'').trim() === playerNameForLog;
+      const rowStyle = isPlayerTop ? ' style="color:rgba(52,211,153,.95)"' : '';
+      const badgeStyle = isPlayerTop ? 'padding:6px 8px; font-size:11px; color:rgba(52,211,153,.95)' : 'padding:6px 8px; font-size:11px';
+      return '<div class="row"'+rowStyle+'><div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+r.who+'</div><div class="badge" style="'+badgeStyle+'">'+r.dmg+'</div></div>';
     }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
   }
 
@@ -9350,7 +9353,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             try { bossLastWinnersCloudPullMaybe(true); } catch (e2) {}
             hideModal('mBossFightRes');
             while (stack.length) hideModal(stack[stack.length-1]);
-            openScreen('mPloshchad');
             renderBosses();
             renderAll();
             haptic('heavy');
@@ -9406,7 +9408,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       try { hideModal('mBossFightRes'); } catch (e1) {}
       try { hideModal('mBossFight'); } catch (e2) {}
       while (stack.length) hideModal(stack[stack.length-1]);
-      openScreen('mPloshchad');
       renderBosses();
       renderAll();
       haptic('heavy');
