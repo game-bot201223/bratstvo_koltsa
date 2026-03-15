@@ -175,6 +175,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .genderToggleBtn--m{background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98));color:#000;box-shadow: 0 1px 4px rgba(37,99,235,.35), inset 0 1px 0 rgba(255,255,255,.3);}
 .genderToggleBtn--f{background:linear-gradient(180deg, rgba(251,207,232,.98), rgba(236,72,153,.98));color:#000;box-shadow: 0 1px 4px rgba(236,72,153,.35), inset 0 1px 0 rgba(255,255,255,.35);}
 .genderToggleBtn:active{transform:scale(0.92);}
+.genderBadge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:12px;line-height:1;font-weight:900;flex-shrink:0;border:1px solid rgba(255,255,255,.5);}
+.genderBadge--m{background:linear-gradient(180deg, rgba(96,165,250,.95), rgba(37,99,235,.95));color:#000;}
+.genderBadge--f{background:linear-gradient(180deg, rgba(251,207,232,.95), rgba(236,72,153,.95));color:#000;}
 .hud .name{gap:5px;}
 .hud .nameCol{gap:1px;}
 .hud .nameLine{gap:4px;}
@@ -3285,7 +3288,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     save();
     renderAll();
     renderConsumables();
-    toast('Куплено','win');
+    toast('Ты '+genderBought(),'win');
     haptic('light');
   }
 
@@ -3343,7 +3346,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       save();
       renderInventory();
       renderAll();
-      toast('Активировано: '+c.name+' на 4 ч (в ГБ)','win');
+      toast('Ты '+genderActivated()+': '+c.name+' на 4 ч (в ГБ)','win');
       haptic('light');
       return;
     }
@@ -3369,7 +3372,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       renderBattle();
       renderInventory();
       renderAll();
-      toast('Использовано','win');
+      toast('Ты '+genderUsed(),'win');
       haptic('light');
       return;
     }
@@ -3397,7 +3400,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       renderBattle();
       renderInventory();
       renderAll();
-      toast('Использовано','win');
+      toast('Ты '+genderUsed(),'win');
       haptic('light');
       return;
     }
@@ -3437,7 +3440,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     renderLavka();
     renderInventory();
     renderAll();
-    toast('Куплено: '+c.name,'win');
+    toast('Ты '+genderBought()+': '+c.name,'win');
     haptic('light');
   }
   function gfAddRandomConsumableReward(){
@@ -4269,6 +4272,21 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (/[ая]$/.test(n) || /ия$/.test(n) || /ья$/.test(n) || /ова$/.test(n) || /ева$/.test(n) || /ина$/.test(n) || /на$/.test(n)) return 'f';
       return 'm';
     } catch (e) { return 'm'; }
+  }
+  function getGenderFromName(displayName){
+    try {
+      const s = (displayName && String(displayName).trim()) ? String(displayName).trim() : '';
+      const first = s.split(/#|\s/)[0] || s;
+      if (!first) return 'm';
+      const n = first.toLowerCase();
+      if (/[ая]$/.test(n) || /ия$/.test(n) || /ья$/.test(n) || /ова$/.test(n) || /ева$/.test(n) || /ина$/.test(n) || /на$/.test(n)) return 'f';
+      return 'm';
+    } catch (e) { return 'm'; }
+  }
+  function genderBadgeHtml(gender){
+    const g = (gender === 'f' || gender === 'm') ? gender : 'm';
+    const sym = g === 'f' ? '♀' : '♂';
+    return '<span class="genderBadge genderBadge--'+g+'" aria-hidden="true">'+sym+'</span>';
   }
   function tgSuggestedName(){
     try {
@@ -6077,11 +6095,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const fc = brosMergeCloudIntoFriend(f);
       const photoUrl = (fc.photo_url || brosPhotoFor(fc.name)) ? String(fc.photo_url || brosPhotoFor(fc.name)).trim() : '';
       const ava = photoUrl ? ('<img src="'+photoUrl.replace(/"/g,'&quot;')+'" alt="" style="width:36px;height:36px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.35);flex-shrink:0;" />') : '<div style="width:36px;height:36px;border-radius:999px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.25);flex-shrink:0;"></div>';
+        const gFriend = (String(fc.name||'').trim().toUpperCase() === String(state.playerName||'').trim().toUpperCase()) ? state.gender : getGenderFromName(fc.name||'');
       c.innerHTML = ''
         + '<div style="display:flex;align-items:center;gap:10px;">'
         + ava
         + '<div style="min-width:0;flex:1;">'
-        + '<div class="friendTop"><div class="friendName">'+(medal?('<span style="margin-right:6px">'+medal+'</span>'):'')+String(fc.name||'Браток')+'</div><div class="dot '+(on?'on':'')+'"></div></div>'
+        + '<div class="friendTop"><div class="friendName" style="display:flex;align-items:center;gap:6px;">'+(medal?('<span style="margin-right:6px">'+medal+'</span>'):'')+genderBadgeHtml(gFriend)+String(fc.name||'Браток')+'</div><div class="dot '+(on?'on':'')+'"></div></div>'
         + '<div class="friendMeta">Ур. '+(fc.lvl||1)+' • Сила '+(fc.power||0)+'</div>'
         + '</div></div>';
       c.onclick = ()=>{ toast('#'+(idx+1)+' ' + (fc.name||'Браток') + ' · ур. ' + (fc.lvl||1)); haptic('light'); };
@@ -6132,11 +6151,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const medal = idx===0 ? '🥇' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
         const left = medal ? ('<div class="badge" style="padding:6px 8px; font-size:11px">'+medal+'</div>') : '';
         const val = 'УР. '+(parseInt(fc.lvl||1,10)||1);
+        const gBros = (String(fc.name||'').trim().toUpperCase() === String(state.playerName||'').trim().toUpperCase()) ? state.gender : getGenderFromName(fc.name||'');
         return '<div class="row">'
           + '<div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1">'
           + left
           + ava
-          + '<div style="min-width:0; font-size:12px; opacity:.9">#'+(idx+1)+' '+String(fc.name||'—')+'</div>'
+          + '<div style="min-width:0; font-size:12px; opacity:.9; display:flex; align-items:center; gap:6px">#'+(idx+1)+' '+genderBadgeHtml(gBros)+' '+String(fc.name||'—')+'</div>'
           + '</div>'
           + '<div class="badge" style="padding:6px 8px; font-size:11px">'+val+'</div>'
           + '</div>';
@@ -6177,8 +6197,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const isLeader = whoNorm === leaderNorm;
         const showKick = canKick && !isMe && (role !== 'deputy' || !isLeader);
         const kickBtn = showKick ? ('<button class="btn btnMini" data-clan-kick="'+encodeURIComponent(String(r.who))+'">ИЗГНАТЬ</button>') : '';
+        const gClanWho = isMe ? state.gender : getGenderFromName(r.who);
         return '<div class="row">'
-          + '<div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+String(r.who)+'</div>'
+          + '<div style="min-width:0; font-size:12px; opacity:.9; display:flex; align-items:center; gap:6px">#'+(i+1)+' '+genderBadgeHtml(gClanWho)+' '+String(r.who)+'</div>'
           + '<div style="display:flex; gap:6px; align-items:center">'+badge2+kickBtn+'</div>'
           + '</div>';
       }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
@@ -6236,7 +6257,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const wrap = 'display:flex; ' + (isMe ? 'justify-content:flex-end;' : 'justify-content:flex-start;');
         const bubble = 'max-width:85%; padding:10px 12px; border-radius:14px; font-size:12px; line-height:1.35; '
           + (isMe ? 'background:rgba(59,130,246,.20); border:1px solid rgba(59,130,246,.25); text-align:right;' : 'background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.10);');
-        const head = isMe ? '' : ('<div style="font-size:10px; opacity:.65; margin-bottom:4px">'+from+'</div>');
+        const gChat = isMe ? state.gender : getGenderFromName(from);
+        const head = isMe ? '' : ('<div style="font-size:10px; opacity:.65; margin-bottom:4px; display:flex; align-items:center; gap:6px">'+genderBadgeHtml(gChat)+from+'</div>');
         const foot = timeStr ? ('<div style="font-size:10px; opacity:.5; margin-top:4px'+(isMe?'; text-align:right':'')+'">'+timeStr+'</div>') : '';
         return '<div style="'+wrap+'">'
           + '<div style="'+bubble+'">'
@@ -6281,8 +6303,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       box.innerHTML = apps.map(nm=>{
         const btns = can ? ('<button class="btn btnMini" data-ca="'+encodeURIComponent(nm)+'" data-cid="'+encodeURIComponent(cid)+'">ПРИНЯТЬ</button>'
           + '<button class="btn btnMini" data-cr="'+encodeURIComponent(nm)+'" style="opacity:.85">ОТКЛОН</button>') : '';
+        const gApp = (String(nm).trim().toUpperCase() === String(state.playerName||'').trim().toUpperCase()) ? state.gender : getGenderFromName(nm);
         return '<div class="row">'
-          + '<div style="min-width:0; font-size:12px; opacity:.9">'+String(nm)+'</div>'
+          + '<div style="min-width:0; font-size:12px; opacity:.9; display:flex; align-items:center; gap:6px">'+genderBadgeHtml(gApp)+String(nm)+'</div>'
           + '<div style="display:flex; gap:6px">'+btns+'</div>'
           + '</div>';
       }).join('');
@@ -6302,7 +6325,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const ok = $('brOk');
       const pr = state.groupFight && state.groupFight.pendingReward ? state.groupFight.pendingReward : null;
       if (out) {
-        out.textContent = win ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ';
+        out.textContent = win ? ('Ты '+genderWon()) : ('Ты '+genderLost());
         out.style.color = win ? 'rgba(52,211,153,.95)' : 'rgba(251,113,133,.95)';
       }
       if (rew) {
@@ -6724,7 +6747,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         $('arOpponent').textContent = oppName;
         $('arYouDmg').textContent = String(youDmg);
         $('arEnemyDmg').textContent = String(enemyDmg);
-        $('arOutcome').textContent = win ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ';
+        $('arOutcome').textContent = win ? ('Ты '+genderWon()) : ('Ты '+genderLost());
         try {
           const rw = $('arReward');
           if (rw){
@@ -6778,13 +6801,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         state.silver += silverGain;
         feedAdd('Победа в Бойцовском клубе ('+kind+'): +'+silverGain+' серебра','ARENA');
         if (xpGain>0) addXp(xpGain);
-        toast('ПОБЕДА','win');
+        toast('Ты '+genderWon(),'win');
         haptic('heavy');
       } else {
         state.arena.losses = (state.arena.losses||0)+1;
         state.silver += silverGain;
         feedAdd('Поражение в Бойцовском клубе ('+kind+'): +'+silverGain+' серебра','ARENA');
-        toast('ПОРАЖЕНИЕ','lose');
+        toast('Ты '+genderLost(),'lose');
         haptic('medium');
       }
 
@@ -6908,7 +6931,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const oppSum = e.health + e.strength + e.agility + e.initiative + e.endurance + e.might + e.charisma;
         const rel = Math.round(mult * 100);
 
-        nameEl.textContent = oppName;
+        nameEl.style.display = 'flex';
+        nameEl.style.alignItems = 'center';
+        nameEl.style.gap = '8px';
+        nameEl.innerHTML = genderBadgeHtml(getGenderFromName(oppName)) + '<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+String(oppName).replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span>';
         sumEl.textContent = 'Сумма характеристик: '+oppSum+' ('+rel+'% от твоих)';
 
         statsEl.innerHTML =
@@ -7500,9 +7526,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           el.style.boxShadow = '0 0 0 3px rgba(59,130,246,.18)';
         }
         const safePh = ph ? String(ph).replace(/"/g,'').trim() : '';
+        const gP = (id==='YOU') ? state.gender : getGenderFromName(nm);
         el.innerHTML = ''
           + '<div class="bNmRow">'
           + (safePh ? ('<img class="bAva" src="'+safePh+'" onerror="this.style.display=\'none\'">') : '')
+          + genderBadgeHtml(gP)
           + '<div class="bNmTxt" style="font-weight:900; letter-spacing:1px; font-size:11px; line-height:1.1">'+nm+'</div>'
           + '</div>'
           + '<div style="font-size:11px; font-weight:900; opacity:.92; letter-spacing:1px; width:100%; text-align:center;">'+(dead?'DEAD':(hp0+'/'+mx0))+'</div>';
@@ -7524,10 +7552,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       el.style.padding = '8px 10px';
       el.style.opacity = dead ? '.45' : '1';
       const safePh = ph ? String(ph).replace(/"/g,'').trim() : '';
+      const tName = String((t && (t.name||t.id))||t.id);
+      const gT = getGenderFromName(tName);
       el.innerHTML = ''
         + '<div class="bNmRow">'
         + (safePh ? ('<img class="bAva" src="'+safePh+'" onerror="this.style.display=\'none\'">') : '')
-        + '<div class="bNmTxt" style="font-weight:900; letter-spacing:1px; font-size:11px; line-height:1.1">'+String((t && (t.name||t.id))||t.id)+'</div>'
+        + genderBadgeHtml(gT)
+        + '<div class="bNmTxt" style="font-weight:900; letter-spacing:1px; font-size:11px; line-height:1.1">'+tName+'</div>'
         + '</div>'
         + '<div style="font-size:11px; font-weight:900; opacity:.92; letter-spacing:1px; width:100%; text-align:center;">'+(dead?'DEAD':(hp+'/'+mx))+'</div>';
       enemyTeam.appendChild(el);
@@ -7629,7 +7660,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       state.groupFight.resolvedTs = now();
       // keep battle for view until close
       feedAdd('Победа в групповом бою!','GF');
-      toast('ПОБЕДА','win');
+      toast('Ты '+genderWon(),'win');
       save();
       renderAll();
       haptic('heavy');
@@ -7758,7 +7789,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       state.groupFight.startTs = 0;
       state.groupFight.resolvedTs = now();
       feedAdd('Поражение в групповом бою.','GF');
-      toast('ПОРАЖЕНИЕ','lose');
+      toast('Ты '+genderLost(),'lose');
       save();
       renderAll();
       gfShowBattleResult(false);
@@ -9093,7 +9124,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (kind==='kick') state.bosses.hitStocks.kick = clamp((parseInt(state.bosses.hitStocks.kick||0,10)||0) + q, 0, 999999);
     if (kind==='knuckle') state.bosses.hitStocks.knuckle = clamp((parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + q, 0, 999999);
     if (kind==='enema') state.bosses.hitStocks.enema = clamp((parseInt(state.bosses.hitStocks.enema||0,10)||0) + q, 0, 999999);
-    toast('Куплено: +'+q,'win');
+    toast('Ты '+genderBought()+': +'+q,'win');
     save();
     bfShopRender();
     const bid = state.bosses && state.bosses.activeFightId;
@@ -9122,8 +9153,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e0) {}
     $('bfrName').textContent = b.name;
-    $('bfrTitle').textContent = win ? 'БОСС ПОВЕРЖЕН' : 'Вы проиграли';
-    $('bfrOutcome').textContent = win ? 'БОСС ПОВЕРЖЕН' : 'Вы проиграли';
+    $('bfrTitle').textContent = win ? 'БОСС ПОВЕРЖЕН' : ('Ты '+genderLost());
+    $('bfrOutcome').textContent = win ? ('Ты '+genderWon()) : ('Ты '+genderLost());
     $('bfrOutcome').style.color = win ? 'rgba(52,211,153,.95)' : 'rgba(251,113,133,.95)';
 
     const rewardCard = $('bfrRewardCard');
@@ -9361,7 +9392,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     state.bosses.lastWinners[String(bossId)] = { name: (state.playerName||'PLAYER'), ts: now() };
 
     feedAdd('Босс повержен! Награда доступна.', 'BOSS');
-    toast('БОСС ПОВЕРЖЕН','win');
+    toast('Ты '+genderWon(),'win');
     haptic('heavy');
 
     bfShowResult(bossId, true);
@@ -9412,7 +9443,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!state.bosses.lastTopByBoss || typeof state.bosses.lastTopByBoss !== 'object') state.bosses.lastTopByBoss = {};
       state.bosses.lastTopByBoss[String(bossId)] = (f && f.dmgTop) ? f.dmgTop : {};
     } catch (e0) {}
-    toast('Вы проиграли','lose');
+    toast('Ты '+genderLost(),'lose');
 
     setBossHp(bossId, b.maxHP);
     try {
@@ -9757,7 +9788,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       save();
       renderAll();
       if ((parseInt(bossHp(id)||0,10)||0) <= 0) {
-        toast('БОСС ПОВЕРЖЕН. Забери награду.','win');
+        toast('Ты '+genderWon()+'. Забери награду.','win');
         haptic('heavy');
       } else {
         try {
@@ -10000,8 +10031,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
       const hasActiveFight = !dead && bfHasActiveFight(b.id);
       html += '<div class="card">'
-        + '<div class="bossWinnerTop">ПОСЛЕДНИЙ ПОБЕДИТЕЛЬ</div>'
-        + '<div class="bossWinnerNm">'+lwName+'</div>'
+        + '<div class="bossWinnerTop">'+genderWinnerLabel((String(lwName).trim().toUpperCase() === String(state.playerName||'PLAYER').trim().toUpperCase()) ? state.gender : getGenderFromName(lwName))+'</div>'
+        + '<div class="bossWinnerNm" style="display:flex;align-items:center;gap:8px;">'+genderBadgeHtml((String(lwName).trim().toUpperCase() === String(state.playerName||'PLAYER').trim().toUpperCase()) ? state.gender : getGenderFromName(lwName))+' '+lwName+'</div>'
         + '<div style="height:10px"></div>'
         + '<div class="bossRow">'
         + '<div class="bossMiniWrap">'
@@ -10556,6 +10587,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function genderStruck(){ return (state.gender === 'f') ? 'ударила' : 'ударил'; }
   function genderLeft(){ return (state.gender === 'f') ? 'вышла' : 'вышел'; }
   function genderObserver(){ return (state.gender === 'f') ? 'наблюдательница' : 'наблюдатель'; }
+  function genderLost(){ return (state.gender === 'f') ? 'проиграла' : 'проиграл'; }
+  function genderWon(){ return (state.gender === 'f') ? 'победила' : 'победил'; }
+  function genderWinnerLabel(g){ return (g === 'f') ? 'ПОСЛЕДНЯЯ ПОБЕДИТЕЛЬНИЦА' : 'ПОСЛЕДНИЙ ПОБЕДИТЕЛЬ'; }
+  function genderAppointedDeputy(g){ return (g === 'f') ? 'Назначена заместительница' : 'Назначен заместитель'; }
+  function genderAccepted(g){ return (g === 'f') ? 'Принята' : 'Принят'; }
+  function genderKickedLabel(g){ return (g === 'f') ? 'Участница изгнана' : 'Участник изгнан'; }
+  function genderBought(){ return (state.gender === 'f') ? 'купила' : 'купил'; }
+  function genderActivated(){ return (state.gender === 'f') ? 'активировала' : 'активировал'; }
+  function genderDeposited(){ return (state.gender === 'f') ? 'внесла' : 'внёс'; }
   function amIDistrictHolder(){
     try {
       const leaders = state.districtFearLeaders || {};
@@ -10859,7 +10899,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         sbFnCallSkipNull('clan_accept', { initData: tgInitData(), clan_id: id, applicant_name: nm })
           .then((r)=>{ if (r===null) return null; return clansCloudPull(); })
           .then((r)=>{ if (r===null) return; try { renderClans(); } catch (e4) {} })
-          .then((r)=>{ if (r===null) return; toast('Принято: '+nm,'win'); haptic('light'); })
+          .then((r)=>{ if (r===null) return; toast(genderAccepted(getGenderFromName(nm))+': '+nm,'win'); haptic('light'); })
           .catch((e)=>{ const msg = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim(); toast('Не удалось принять: '+msg.slice(0,24),'lose'); });
       }
     } catch (e1) {}
@@ -10964,7 +11004,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         sbFnCallSkipNull('clan_kick', { initData: tgInitData(), clan_id: clanId, member_name: nm })
           .then((r)=>{
             if (r===null) return null;
-            toast('Участник изгнан','win');
+            toast(genderKickedLabel(getGenderFromName(nm)),'win');
             haptic('light');
             return clansCloudPull();
           })
@@ -10993,7 +11033,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try { clansCloudUpsert(c); } catch (e2) {}
     save();
     renderClans();
-    toast('Назначен заместитель','win');
+    toast(genderAppointedDeputy(getGenderFromName(nm)),'win');
     haptic('light');
   }
 
@@ -11094,7 +11134,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             save();
             renderHUD();
             renderClans();
-            toast('Внесено: '+amt+' золотых монет '+TOAST_GOLD_IMG,'win');
+            toast('Ты '+genderDeposited()+': '+amt+' золотых монет '+TOAST_GOLD_IMG,'win');
             haptic('light');
             return null;
           })
@@ -11108,7 +11148,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     save();
     renderHUD();
     renderClans();
-    toast('Внесено: '+amt+' золотых монет '+TOAST_GOLD_IMG,'win');
+    toast('Ты '+genderDeposited()+': '+amt+' золотых монет '+TOAST_GOLD_IMG,'win');
     haptic('light');
   }
 
@@ -11186,7 +11226,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (!myClan.filters || typeof myClan.filters !== 'object') myClan.filters = { minLvl:1, minStats:0 };
         const fl = parseInt(myClan.filters.minLvl||1,10)||1;
         const fs = parseInt(myClan.filters.minStats||0,10)||0;
-        $('clanDesc').innerHTML = 'Уровень: <b>'+lvl+'</b><br>Урон по боссам: <b>'+fmt4(myClan.totalBossDmg||0)+'</b><br>Роль: <b>'+rTxt+'</b><br>Глава: <b>'+String(myClan.leader||'—')+'</b><br>Зам: <b>'+deputy+'</b><br>Участники: <b>'+members+'/100</b><br>Фильтр заявок: <b>УР. '+fl+'</b> · <b>'+fmt4(fs)+'</b>';
+        $('clanDesc').innerHTML = 'Уровень: <b>'+lvl+'</b><br>Урон по боссам: <b>'+fmt4(myClan.totalBossDmg||0)+'</b><br>Роль: <b>'+rTxt+'</b><br>Глава: '+genderBadgeHtml((String(myClan.leader||'').trim().toUpperCase() === String(me||'').trim().toUpperCase()) ? state.gender : getGenderFromName(myClan.leader))+' <b>'+String(myClan.leader||'—')+'</b><br>Зам: '+genderBadgeHtml((String(deputy||'').trim().toUpperCase() === String(me||'').trim().toUpperCase()) ? state.gender : getGenderFromName(deputy))+' <b>'+deputy+'</b><br>Участники: <b>'+members+'/100</b><br>Фильтр заявок: <b>УР. '+fl+'</b> · <b>'+fmt4(fs)+'</b>';
       }
     } catch (e) {}
 
@@ -11517,6 +11557,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '<div class="districtTag" style="text-align:left">ДЕРЖИТ РАЙОН</div>'
         + '<div class="districtNick" style="margin-top:4px; display:flex; align-items:center; gap:8px">'
         + (topPhoto ? ('<img src="'+encodeURI(topPhoto)+'" style="width:52px; height:52px; border-radius:999px; object-fit:cover; border:1px solid rgba(255,255,255,.22)"/>') : '<div style="width:52px; height:52px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.12);"></div>')
+        + genderBadgeHtml((String(topName).trim().toUpperCase() === you) ? state.gender : getGenderFromName(topName))
         + '<span style="min-width:0; overflow:hidden; text-overflow:ellipsis;">'+String(topName).toUpperCase()+'</span>'
         + '</div>'
         + '<div class="districtStatBox" style="margin-top:6px">'
@@ -11529,6 +11570,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '<div class="districtTag" style="text-align:left">СТРАШИЛА ДНЯ</div>'
         + '<div class="districtNick" style="margin-top:4px; display:flex; align-items:center; gap:8px">'
         + (dayPhoto ? ('<img src="'+encodeURI(dayPhoto)+'" style="width:52px; height:52px; border-radius:999px; object-fit:cover; border:1px solid rgba(255,255,255,.22)"/>') : '<div style="width:52px; height:52px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.12);"></div>')
+        + genderBadgeHtml((String(dayName).trim().toUpperCase() === you) ? state.gender : getGenderFromName(dayName))
         + '<span style="min-width:0; overflow:hidden; text-overflow:ellipsis;">'+String(dayName).toUpperCase()+'</span>'
         + '</div>'
         + '<div class="districtStatBox" style="margin-top:6px">'
@@ -12089,7 +12131,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         state.groupFight.resolvedTs = now();
         // keep battle for view until close
         feedAdd('Победа в групповом бою!','GF');
-        toast('ПОБЕДА','win');
+        toast('Ты '+genderWon(),'win');
         save();
         renderAll();
         haptic('heavy');
@@ -12118,7 +12160,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       state.groupFight.startTs = 0;
       state.groupFight.resolvedTs = now();
       feedAdd('Победа в групповом бою!','GF');
-      toast('ПОБЕДА','win');
+      toast('Ты '+genderWon(),'win');
       haptic('heavy');
       save();
       renderAll();
@@ -12341,7 +12383,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             buyBtn.textContent = 'выбрать';
             save();
             renderHUD();
-            toast('Куплено','win');
+            toast('Ты '+genderBought(),'win');
             haptic('medium');
           });
         }
@@ -12904,11 +12946,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const nm = row.name;
         const photo = row.photo;
         const v = row.vLabel;
+        const g = (nm.trim().toUpperCase() === myName) ? state.gender : getGenderFromName(nm);
         const ava = photo ? ('<img src="'+photo.replace(/"/g,'&quot;')+'" style="width:28px;height:28px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.45);" />') : '<div style="width:28px;height:28px;border-radius:999px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.20);"></div>';
         return '<div class="row'+rowClass+'">'
           + '<div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1">'
           + '<div style="min-width:0; display:flex; flex-direction:column; gap:6px;">'
-          + '<div style="min-width:0; font-size:12px; opacity:.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">#'+(idx+1)+' '+nm+(row.raw && row.raw.vip ? ' <span style="color:var(--gold); font-weight:800; letter-spacing:1px;">VIP</span>' : '')+'</div>'
+          + '<div style="min-width:0; font-size:12px; opacity:.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:6px;">#'+(idx+1)+' '+genderBadgeHtml(g)+' '+nm+(row.raw && row.raw.vip ? ' <span style="color:var(--gold); font-weight:800; letter-spacing:1px;">VIP</span>' : '')+'</div>'
           + '<div style="display:flex; justify-content:flex-start;">'+ava+'</div>'
           + '</div>'
           + '</div>'
