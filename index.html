@@ -9130,6 +9130,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             if (rg>0) state.gold += rg;
             if (rxp>0) addXp(rxp);
             state.bosses.pendingReward = null;
+            try { markHalturkiDone('killBoss', 100); } catch (e) {}
 
             try {
               if (!state.bosses.winsPerBoss || typeof state.bosses.winsPerBoss !== 'object') state.bosses.winsPerBoss = {};
@@ -9155,7 +9156,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             try { bossFightsCloudPullMaybe(); } catch (e1) {}
             try { bossLastWinnersCloudPullMaybe(true); } catch (e2) {}
             hideModal('mBossFightRes');
-            openScreen('mBoss');
+            while (stack.length) hideModal(stack[stack.length-1]);
             renderBosses();
             renderAll();
             haptic('heavy');
@@ -9210,7 +9211,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       save();
       try { hideModal('mBossFightRes'); } catch (e1) {}
       try { hideModal('mBossFight'); } catch (e2) {}
-      openScreen('mBoss');
+      while (stack.length) hideModal(stack[stack.length-1]);
       renderBosses();
       renderAll();
       haptic('heavy');
