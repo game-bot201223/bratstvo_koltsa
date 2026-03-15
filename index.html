@@ -4328,6 +4328,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (Array.isArray(c.members) && c.members.map(x=>String(x||'').trim().toUpperCase()).includes(String(me||'').trim().toUpperCase())) {
             found = true;
             if (!state.clan || !state.clan.id) state.clan = Object.assign({}, c);
+            if (state.clansDb.myApps && typeof state.clansDb.myApps === 'object' && Object.keys(state.clansDb.myApps).length) {
+              state.clansDb.myApps = {};
+              save();
+            }
             break;
           }
         }
@@ -6110,13 +6114,25 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         return b.stats - a.stats;
       }).slice(0, 100);
       badge.textContent = String(rows.length);
+      const me = clanMyName();
+      const role = clanMyRole(c);
+      const canKick = clanCanManage(c);
+      const leaderNorm = String(c.leader||'').trim().toUpperCase();
       box.innerHTML = rows.length ? rows.map((r,i)=>{
         const badge2 = '<div class="badge" style="padding:6px 8px; font-size:11px">УР. '+r.lvl+'</div>';
+        const whoNorm = String(r.who||'').trim().toUpperCase();
+        const isMe = whoNorm === String(me||'').trim().toUpperCase();
+        const isLeader = whoNorm === leaderNorm;
+        const showKick = canKick && !isMe && (role !== 'deputy' || !isLeader);
+        const kickBtn = showKick ? ('<button class="btn btnMini" data-clan-kick="'+encodeURIComponent(String(r.who))+'">ИЗГНАТЬ</button>') : '';
         return '<div class="row">'
           + '<div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+String(r.who)+'</div>'
-          + badge2
+          + '<div style="display:flex; gap:6px; align-items:center">'+badge2+kickBtn+'</div>'
           + '</div>';
       }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+      box.querySelectorAll('[data-clan-kick]').forEach(b=>{
+        b.onclick = ()=>clanKick(decodeURIComponent(b.getAttribute('data-clan-kick')||''));
+      });
     } catch (e) {}
   }
 
@@ -10818,6 +10834,37 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       }
     } catch (e1) {}
   }
+  function clanKick(memberName){
+    const c = clanGetMyClan();
+    if (!c) return;
+    if (!clanCanManage(c)) { toast('Только глава или зам','lose'); return; }
+    const nm = String(memberName||'').trim().substring(0, 18);
+    if (!nm) return;
+    const me = clanMyName();
+    if (String(me||'').trim().toUpperCase() === String(nm||'').trim().toUpperCase()) { toast('Используй «Выйти»','lose'); return; }
+    if (String(c.leader||'').trim().toUpperCase() === String(nm||'').trim().toUpperCase()) { toast('Нельзя изгнать главу','lose'); return; }
+    if (clanMyRole(c)==='deputy' && String(c.leader||'').trim().toUpperCase() === String(nm||'').trim().toUpperCase()) return;
+    if (!confirm('Исключить «'+nm+'» из клана?')) return;
+    const clanId = String(c.id||'').trim();
+    if (!/^CLN\d{1,20}$/.test(clanId)) { toast('Неверный клан','lose'); return; }
+    try {
+      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+        sbFnCallSkipNull('clan_kick', { initData: tgInitData(), clan_id: clanId, member_name: nm })
+          .then((r)=>{
+            if (r===null) return null;
+            toast('Участник изгнан','win');
+            haptic('light');
+            return clansCloudPull();
+          })
+          .then((r)=>{ if (r===null) return; try { renderClans(); renderHUD(); renderClanTopModal(); } catch (e4) {} })
+          .catch((e)=>{
+            const msg = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim();
+            if (/cannot_kick_leader|forbidden/i.test(msg)) toast('Нельзя изгнать этого участника','lose');
+            else toast('Не удалось изгнать: '+msg.slice(0,24),'lose');
+          });
+      }
+    } catch (e1) {}
+  }
   function clanSetDeputy(){
     const c = clanGetMyClan();
     if (!c) return;
@@ -10980,6 +11027,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     const myClan = clanGetMyClan();
     const has = !!(myClan && myClan.id);
     const me = clanMyName();
+    if (has && state.clansDb.myApps && typeof state.clansDb.myApps === 'object' && Object.keys(state.clansDb.myApps).length) {
+      state.clansDb.myApps = {};
+      save();
+    }
 
     try {
       if (!has) clansCloudPullMaybe();
