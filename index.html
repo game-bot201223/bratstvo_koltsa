@@ -4630,10 +4630,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         try {
           const bid = parseInt(f && f.boss_id || 0, 10) || 0;
           if (!bid || bid < 1 || bid > 12) return;
-          // Не перезаписывать активный бой — там уже свежие HP от start/hit
-          if (parseInt(state.bosses && state.bosses.activeFightId||0,10) === bid) return;
+          const srvHp = Math.max(0, Math.floor(parseInt(f && f.hp || 0, 10) || 0));
+          const isActive = parseInt(state.bosses && state.bosses.activeFightId||0,10) === bid;
+          // Для активного боя не перезаписывать cloud, кроме случая hp=0 (добил браток) — чтобы показать экран победы
+          if (isActive && srvHp > 0) return;
           next[String(bid)] = {
-            hp: Math.max(0, Math.floor(parseInt(f && f.hp || 0, 10) || 0)),
+            hp: srvHp,
             max_hp: Math.max(0, Math.floor(parseInt(f && f.max_hp || 0, 10) || 0)),
             expires_at: f && f.expires_at ? String(f.expires_at) : '',
             reward_claimed: !!(f && f.reward_claimed)
@@ -4660,6 +4662,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       state.bosses.cloud = next;
       try { state.bosses.cloudPullTs = now(); } catch (e9) {}
       save();
+      const activeId = parseInt(state.bosses && state.bosses.activeFightId||0,10)||0;
+      if (activeId && next[String(activeId)] && (parseInt(next[String(activeId)].hp||0,10)||0) <= 0) {
+        try { bfRender(activeId); } catch (e0) {}
+      }
     } catch (e) {}
   }
   async function bossFightsCloudPullMaybe(force){
@@ -8547,6 +8553,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if ((storedHp<=0) && b.maxHP>0) return null;
     const startHp = storedHp;
     if (f && (parseInt(f.hp||0,10)||0) <= 0) {
+      // Не сбрасывать бой, если это активный бой — bfRender покажет экран победы и вызовет bfCheckWin
+      if (parseInt(state.bosses.activeFightId||0,10) === parseInt(id,10)) return f;
       try { delete state.bosses.fights[String(id)]; } catch (e) {}
       f = null;
     }
