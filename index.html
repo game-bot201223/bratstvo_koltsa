@@ -2218,6 +2218,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           <button class="btn btnSmall" id="clanTopOpen" style="display:none;">ТОП</button>
           <button class="btn btnSmall" id="clanChatOpen" style="display:none;">ЧАТ</button>
           <button class="btn btnSmall" id="clanTransfer" style="display:none;">ПЕРЕДАТЬ</button>
+          <button class="btn btnSmall" id="clanBonusInfo" style="display:none;">БОНУС КЛАНА</button>
         </div>
           </div>
         </div>
@@ -2239,6 +2240,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div class="row"><div class="k">БАНК КЛАНА</div><div class="badge" style="color:var(--gold)" id="clanBankGold">0 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div></div>
         <button class="btn" style="margin-top:12px;" id="clanBankAdd">ВНЕСТИ <img src="голд.png" alt="Золотые монеты" class="goldIcon"></button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Clan Bonus Info -->
+<div class="modal modalMini" id="mClanBonus" role="dialog" aria-modal="true">
+  <div class="sheet sheetMini">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mClanBonus">‹</button>
+      <div class="title">БОНУС КЛАНА</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody" id="clanBonusBody" style="font-size:12px; line-height:1.4;">
+      <!-- Наполняется в renderClanBonusModal() -->
     </div>
   </div>
 </div>
@@ -10844,6 +10859,63 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
     return clamp(lvl, 1, 10);
   }
+  function clanBonusPctFromLevel(lvl){
+    const cl = Math.max(1, Math.min(10, parseInt(lvl||1,10)||1));
+    return cl * 0.05;
+  }
+  function clanBonusThresholds(){
+    // Пороги такие же, как в clanLevelFromDmg
+    return [
+      { lvl:1, dmg:0 },
+      { lvl:2, dmg:1000000 },
+      { lvl:3, dmg:10000000 },
+      { lvl:4, dmg:100000000 },
+      { lvl:5, dmg:1000000000 },
+      { lvl:6, dmg:10000000000 },
+      { lvl:7, dmg:100000000000 },
+      { lvl:8, dmg:1000000000000 },
+      { lvl:9, dmg:10000000000000 },
+      { lvl:10, dmg:100000000000000 }
+    ];
+  }
+  function renderClanBonusModal(){
+    try {
+      const body = $('clanBonusBody');
+      if (!body) return;
+      const myClan = clanGetMyClan();
+      if (!myClan){
+        body.innerHTML = '<div class="card"><div class="row"><div class="k">НЕТ КЛАНА</div></div><div style="margin-top:8px;font-size:12px;opacity:.85;">Создай клан или вступи в существующий, чтобы получать бонус к наградам за боссов.</div></div>';
+        return;
+      }
+      const total = parseInt(myClan.totalBossDmg||0,10)||0;
+      const lvl = clanLevelFromDmg(total);
+      const pct = clanBonusPctFromLevel(lvl);
+      const rows = clanBonusThresholds();
+      let html = '';
+      html += '<div class="card">';
+      html += '<div class="row"><div class="k">ТЕКУЩИЙ БОНУС</div></div>';
+      html += '<div style="margin-top:8px;font-size:12px;">';
+      html += 'Уровень клана: <b>'+lvl+'</b><br>';
+      html += 'Суммарный урон по боссам: <b>'+fmt4(total)+'</b><br>';
+      html += 'Бонус к наградам за боссов: <b>+'+(Math.round(pct*100))+'%</b> к XP, зубам и золоту за победу над любым боссом для всех участников клана.';
+      html += '</div>';
+      html += '</div>';
+
+      html += '<div class="card" style="margin-top:12px;">';
+      html += '<div class="row"><div class="k">УРОВНИ КЛАНА</div></div>';
+      html += '<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">';
+      rows.forEach(r=>{
+        const bp = clanBonusPctFromLevel(r.lvl);
+        const curMark = (r.lvl === lvl) ? ' (текущий)' : '';
+        html += '<div style="font-size:12px;opacity:.9;">ЛВЛ '+r.lvl+': с урона <b>'+fmt4(r.dmg)+'</b> · бонус <b>+'+(Math.round(bp*100))+'%</b>'+curMark+'</div>';
+      });
+      html += '</div>';
+      html += '<div style="margin-top:10px;font-size:11px;opacity:.8;">Урон считается суммарно за всё время по всем боссам, включая помощь клана. Максимальный бонус: +50% на 10 уровне.</div>';
+      html += '</div>';
+
+      body.innerHTML = html;
+    } catch (e) {}
+  }
   function clanDbSeed(){
     return;
   }
@@ -11370,6 +11442,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (ch){
         ch.style.display = has ? '' : 'none';
         ch.onclick = ()=>{ openScreen('mClanChat'); try { clansCloudPull().then(()=>{ try { renderClanChatModal(); } catch (e2) {} }).catch(()=>{}); } catch (e3) { renderClanChatModal(); } try { clanLiveStart(); } catch (e4) {} haptic('light'); };
+      }
+    } catch (e) {}
+
+    try {
+      const cb = $('clanBonusInfo');
+      if (cb){
+        cb.style.display = has ? '' : 'none';
+        cb.onclick = ()=>{ renderClanBonusModal(); showModal('mClanBonus'); haptic('light'); };
       }
     } catch (e) {}
 
