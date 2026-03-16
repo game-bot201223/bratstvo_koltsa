@@ -6055,10 +6055,12 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
   function fmt4(n){
     n = Math.floor(n||0);
-    if (n < 10000) return String(n);
-    if (n < 1000000) return String(Math.floor(n/1000)) + 'K';
-    if (n < 1000000000) return String(Math.floor(n/1000000)) + 'M';
-    return '999M';
+    if (n < 10_000) return String(n);
+    if (n < 1_000_000) return String(Math.floor(n / 1_000)) + 'K';
+    if (n < 1_000_000_000) return String(Math.floor(n / 1_000_000)) + 'M';
+    if (n < 1_000_000_000_000) return String(Math.floor(n / 1_000_000_000)) + 'B';
+    if (n < 1_000_000_000_000_000) return String(Math.floor(n / 1_000_000_000_000)) + 'T';
+    return String(n);
   }
   function fmtBossHpShort(n){
     n = parseInt(n,10)||0;
