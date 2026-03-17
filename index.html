@@ -1507,9 +1507,36 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   .btn{min-height:36px;padding:8px 10px;}
   /* Экран костей — ещё компактнее по вертикали */
   #mDice .sheetBody{padding:8px;}
-  #mDice .card:first-of-type{margin-top:6px;}
   #mDice .diceGrid{margin-top:10px;}
   #mDice .dicePrimary{margin-top:14px;padding:10px 12px;font-size:11px;}
+}
+
+/* Кости: первая колонка всегда квадратная с фоном фк.png */
+#mDice .card:first-of-type{
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1;
+  padding:16px;
+  border-radius:24px;
+  background:url("фк.png") center center / cover no-repeat;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+#mDice .card:first-of-type::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle at 50% 0, rgba(255,255,255,.18), transparent 55%),
+             linear-gradient(180deg, rgba(0,0,0,.22), rgba(0,0,0,.32));
+  mix-blend-mode:multiply;
+  opacity:.3;
+  z-index:0;
+}
+#mDice .card:first-of-type > *{
+  position:relative;
+  z-index:1;
 }
 
 @media (prefers-reduced-motion: reduce){
