@@ -4611,6 +4611,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const text = await resp.text().catch(()=> '');
       const j = (()=>{ try { return text ? JSON.parse(text) : null; } catch (e) { return null; } })();
       if (!resp.ok || !j || j.ok===false) {
+        if (j && typeof j === 'object' && String(j.error||'').trim() === 'session_conflict') {
+          try { lockoutBecauseNewLogin(); } catch (eLock) {}
+        }
         let err = 'http_'+resp.status;
         try {
           if (j && typeof j === 'object') {
@@ -5036,6 +5039,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try { return String(state && state._sessionId || '').trim(); } catch (e) { return ''; }
   }
   function lockoutBecauseNewLogin(){
+    // Жёсткая блокировка: используется, когда сервер ЯВНО говорит,
+    // что активна другая сессия этого игрока (второе устройство).
     try { __srvEnabled = false; } catch (e0) {}
     try { if (IS_DEV) dbgUpdate(); } catch (e1) {}
     try {
@@ -5089,7 +5094,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (srv && sid && srv !== sid) {
             clearInterval(__sessionWatchT);
             __sessionWatchT = 0;
-            lockoutBecauseNewLogin();
           }
         } catch (e0) {}
       }, 5000);
@@ -13066,24 +13070,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
               return;
             }
             if (/session_conflict/i.test(msg)) {
-              // take over session on this device, then retry once
-              try {
-                sessionStartAndPull(false).then(function(){
-                  doRename().then(function(){
-                    state.playerName = next;
-                    try { renameEverywhere(prev, next); } catch (e9) {}
-                    save();
-                    renderAll();
-                    haptic('light');
-                    try { __srvLastSent = now(); } catch (e0) {}
-                    try { clansCloudPull().catch(()=>{}); } catch (e1) {}
-                    try { districtLeadersCloudPullMaybe(true).catch(()=>{}); } catch (e2) {}
-                    try { bossLastWinnersCloudPullMaybe(true).catch(()=>{}); } catch (e3) {}
-                  }).catch(function(e2){
-                    try { lockoutBecauseNewLogin(); } catch (e0) {}
-                  });
-                }).catch(function(){ try { lockoutBecauseNewLogin(); } catch (e0) {} });
-              } catch (e1) { try { lockoutBecauseNewLogin(); } catch (e0) {} }
               return;
             }
             toast('СЕРВЕР: ERR','lose');
