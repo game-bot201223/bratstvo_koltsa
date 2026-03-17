@@ -12996,6 +12996,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
           sbFnCall('upsert_player', {
             initData: tgInitData(),
+            session_id: mySessionId(),
             name: next,
             photo_url: String(photo||'').trim(),
             level: state.level,
@@ -13023,6 +13024,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
               save();
               renderAll();
               toast('Имя занято','lose');
+              return;
+            }
+            if (/session_conflict/i.test(msg)) {
+              try { lockoutBecauseNewLogin(); } catch (e0) {}
               return;
             }
             toast('СЕРВЕР: ERR','lose');
