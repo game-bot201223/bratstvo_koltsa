@@ -1823,6 +1823,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="card" id="adminClanFormCard" style="margin-top:12px; display:none;">
         <div class="k" style="margin-bottom:8px;">ПАРАМЕТРЫ</div>
         <div class="row"><div class="k">Название</div><input type="text" id="adminClanName" maxlength="18" style="flex:1; min-width:0; padding:8px; border-radius:8px; border:1px solid var(--paperLine);"></div>
+        <div class="row" style="margin-top:10px;"><div class="k">Фото (URL/путь)</div><input type="text" id="adminClanPhoto" maxlength="500" placeholder="например: hl.jpg или https://..." style="flex:1; min-width:0; padding:8px; border-radius:8px; border:1px solid var(--paperLine);"></div>
         <div style="margin-top:14px;"><button class="btn" id="adminClanSave" style="width:100%">Сохранить</button></div>
         <div style="margin-top:10px; font-size:11px; opacity:.75; line-height:1.35;">Сейчас: переименование и базовые поля. Остальные «всё» будем добавлять как отдельные админ-действия.</div>
       </div>
@@ -13084,6 +13085,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       var infoEl = $('adminClanInfo');
       var queryEl = $('adminClanQuery');
       var nameEl = $('adminClanName');
+      var photoEl = $('adminClanPhoto');
       if (!loadBtn || !saveBtn || !editBtn || !formCard) return;
       editBtn.onclick = function(){
         showModal('mAdminClan');
@@ -13091,6 +13093,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (infoEl) infoEl.textContent = '';
         if (queryEl) queryEl.value = '';
         if (nameEl) nameEl.value = '';
+        if (photoEl) photoEl.value = '';
         window.__adminTargetClanId = '';
         haptic('light');
       };
@@ -13105,6 +13108,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           window.__adminTargetClanId = r.clan.id;
           if (infoEl) infoEl.textContent = (r.clan.name||'—') + ' (id: ' + r.clan.id + ', owner_tg_id: ' + (r.clan.owner_tg_id||'—') + ')';
           if (nameEl) nameEl.value = String(r.clan.name||'').trim().substring(0,18);
+          try {
+            var d = (r.clan.data && typeof r.clan.data === 'object') ? r.clan.data : {};
+            if (photoEl) photoEl.value = d.photo ? String(d.photo||'').trim().substring(0,500) : '';
+          } catch (e0) { if (photoEl) photoEl.value = ''; }
           formCard.style.display = '';
           toast('Загружено','win');
         } catch (e) {
@@ -13117,10 +13124,25 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         if (!cid) { toast('Сначала загрузите клан','lose'); return; }
         var nm = (nameEl && typeof nameEl.value !== 'undefined') ? String(nameEl.value).trim().substring(0,18) : '';
         if (!nm) { toast('Введите название','lose'); return; }
+        var ph = (photoEl && typeof photoEl.value !== 'undefined') ? String(photoEl.value).trim().substring(0,500) : '';
         try {
-          var r = await sbFnCall('admin_update_clan', { initData: tgInitData(), clan_id: cid, name: nm });
+          var payload2 = { initData: tgInitData(), clan_id: cid, name: nm };
+          if (ph) payload2.data_patch = { photo: ph };
+          var r = await sbFnCall('admin_update_clan', payload2);
           if (r && r.ok) {
             toast('Сохранено','win');
+            try {
+              // применить сразу в локальный кэш (игра использует data.name/data.photo)
+              if (state && state.clansDb && state.clansDb.clans && state.clansDb.clans[cid]) {
+                state.clansDb.clans[cid].name = nm;
+                if (ph) state.clansDb.clans[cid].photo = ph;
+              }
+              if (state && state.clan && String(state.clan.id||'') === String(cid)) {
+                state.clan.name = nm;
+              }
+              save();
+              try { renderAll(); } catch (eR0) {}
+            } catch (eLocal) {}
             try { clansCloudPull().catch(()=>{}); } catch (e0) {}
           } else {
             var msg = (r && r.error) ? String(r.error) : 'Ошибка';
