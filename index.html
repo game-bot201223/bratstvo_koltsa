@@ -5024,6 +5024,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   async function sessionStartAndPull(){
     try {
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
+      const applyState = arguments && arguments.length ? !!arguments[0] : true;
       const r = await sbFnCall('session_start', { initData: tgInitData() });
       if (!r || !r.ok || !r.session_id) return;
       const sid = String(r.session_id||'').trim();
@@ -5033,7 +5034,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const p = r.player;
         if (p && typeof p === 'object') {
           if (p.name && String(p.name).trim()) state.playerName = String(p.name).trim().slice(0,18);
-          if (p.state && typeof p.state === 'object') {
+          if (applyState && p.state && typeof p.state === 'object') {
             const s2 = p.state;
             // Preserve local-only settings UX but keep server authoritative for progress.
             const keepSettings = state && state.settings ? state.settings : null;
@@ -5071,6 +5072,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
     const initData = tgInitData();
     if (!initData) return;
+    try {
+      if (!mySessionId()) {
+        await sessionStartAndPull(false);
+      }
+    } catch (e0) {}
     const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
     let refTgId = '';
     try {
@@ -12994,20 +13000,26 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
           } catch (e0) { photo = ''; }
           const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
-          sbFnCall('upsert_player', {
-            initData: tgInitData(),
-            session_id: mySessionId(),
-            name: next,
-            photo_url: String(photo||'').trim(),
-            level: state.level,
-            arena_power: (state.arena && (state.arena.power||0)) || 0,
-            arena_wins: (state.arena && (state.arena.wins||0)) || 0,
-            arena_losses: (state.arena && (state.arena.losses||0)) || 0,
-            stats_sum: statsSum,
-            boss_wins: (state.bosses && state.bosses.wins) || 0,
-            referrer_tg_id: '',
-            state: cloudStateSnapshot(state)
-          }).then(()=>{
+          const doRename = async function(){
+            try {
+              if (!mySessionId()) await sessionStartAndPull(false);
+            } catch (e0) {}
+            return await sbFnCall('upsert_player', {
+              initData: tgInitData(),
+              session_id: mySessionId(),
+              name: next,
+              photo_url: String(photo||'').trim(),
+              level: state.level,
+              arena_power: (state.arena && (state.arena.power||0)) || 0,
+              arena_wins: (state.arena && (state.arena.wins||0)) || 0,
+              arena_losses: (state.arena && (state.arena.losses||0)) || 0,
+              stats_sum: statsSum,
+              boss_wins: (state.bosses && state.bosses.wins) || 0,
+              referrer_tg_id: '',
+              state: cloudStateSnapshot(state)
+            });
+          };
+          doRename().then(()=>{
             state.playerName = next;
             try { renameEverywhere(prev, next); } catch (e9) {}
             save();
@@ -13027,7 +13039,24 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
               return;
             }
             if (/session_conflict/i.test(msg)) {
-              try { lockoutBecauseNewLogin(); } catch (e0) {}
+              // take over session on this device, then retry once
+              try {
+                sessionStartAndPull(false).then(function(){
+                  doRename().then(function(){
+                    state.playerName = next;
+                    try { renameEverywhere(prev, next); } catch (e9) {}
+                    save();
+                    renderAll();
+                    haptic('light');
+                    try { __srvLastSent = now(); } catch (e0) {}
+                    try { clansCloudPull().catch(()=>{}); } catch (e1) {}
+                    try { districtLeadersCloudPullMaybe(true).catch(()=>{}); } catch (e2) {}
+                    try { bossLastWinnersCloudPullMaybe(true).catch(()=>{}); } catch (e3) {}
+                  }).catch(function(e2){
+                    try { lockoutBecauseNewLogin(); } catch (e0) {}
+                  });
+                }).catch(function(){ try { lockoutBecauseNewLogin(); } catch (e0) {} });
+              } catch (e1) { try { lockoutBecauseNewLogin(); } catch (e0) {} }
               return;
             }
             toast('СЕРВЕР: ERR','lose');
