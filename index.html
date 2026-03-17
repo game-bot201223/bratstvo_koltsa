@@ -4670,7 +4670,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         throw new Error(String(err));
       }
       try { if (IS_DEV) dbgUpdate(); } catch (e3) {}
-      if (j && j.ok && (fnName === 'session_start' || fnName === 'upsert_player')) try { __sessionEstablished = true; } catch (e4) {}
+      if (j && j.ok && fnName === 'upsert_player') try { __sessionEstablished = true; } catch (e4) {}
       return j;
     });
   }
@@ -5102,6 +5102,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (srv && sid && srv !== sid) {
             clearInterval(__sessionWatchT);
             __sessionWatchT = 0;
+            try { lockoutBecauseNewLogin(); } catch (e1) {}
           }
         } catch (e0) {}
       }, 5000);
