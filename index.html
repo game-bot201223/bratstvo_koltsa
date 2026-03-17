@@ -5005,6 +5005,68 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   }
 
   let __srvInFlight = false;
+  function mySessionId(){
+    try { return String(state && state._sessionId || '').trim(); } catch (e) { return ''; }
+  }
+  function lockoutBecauseNewLogin(){
+    try { __srvEnabled = false; } catch (e0) {}
+    try { if (IS_DEV) dbgUpdate(); } catch (e1) {}
+    try {
+      const msg = 'Вход выполнен с другого устройства.\n\nОткрой игру заново на новом устройстве.';
+      toast('Вход с другого устройства','lose');
+      alert(msg);
+    } catch (e2) {}
+    try { if (tg && typeof tg.close === 'function') { tg.close(); return; } } catch (e3) {}
+    try {
+      document.body.innerHTML = '<div style="padding:24px; font-family:system-ui; line-height:1.4;"><div style="font-weight:900; font-size:16px; margin-bottom:10px;">Сессия завершена</div><div style="opacity:.85;">Вход выполнен с другого устройства. Эта вкладка больше не активна.</div></div>';
+    } catch (e4) {}
+  }
+  async function sessionStartAndPull(){
+    try {
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
+      const r = await sbFnCall('session_start', { initData: tgInitData() });
+      if (!r || !r.ok || !r.session_id) return;
+      const sid = String(r.session_id||'').trim();
+      if (sid) state._sessionId = sid;
+      // If server already has state/name, prefer it for cross-device continuity.
+      try {
+        const p = r.player;
+        if (p && typeof p === 'object') {
+          if (p.name && String(p.name).trim()) state.playerName = String(p.name).trim().slice(0,18);
+          if (p.state && typeof p.state === 'object') {
+            const s2 = p.state;
+            // Preserve local-only settings UX but keep server authoritative for progress.
+            const keepSettings = state && state.settings ? state.settings : null;
+            state = Object.assign({}, defaults, s2);
+            if (keepSettings) state.settings = keepSettings;
+            state._sessionId = sid;
+          }
+        }
+      } catch (e2) {}
+      save();
+      try { renderAll(); } catch (e3) {}
+    } catch (e) {}
+  }
+  let __sessionWatchT = 0;
+  function sessionWatchStart(){
+    try {
+      if (__sessionWatchT) return;
+      __sessionWatchT = setInterval(async ()=>{
+        try {
+          if (!tgInitData() || !SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+          const sid = mySessionId();
+          if (!sid) return;
+          const r = await sbFnCall('get_player', { initData: tgInitData() });
+          const srv = r && r.ok && r.player ? String(r.player.active_session_id||'').trim() : '';
+          if (srv && sid && srv !== sid) {
+            clearInterval(__sessionWatchT);
+            __sessionWatchT = 0;
+            lockoutBecauseNewLogin();
+          }
+        } catch (e0) {}
+      }, 5000);
+    } catch (e) {}
+  }
   async function serverDoUpsertAsync(){
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
     const initData = tgInitData();
@@ -5022,6 +5084,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try { const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null; photo = (u && u.photo_url) ? String(u.photo_url||'') : ''; } catch (e0) { photo = ''; }
     await sbFnCall('upsert_player', {
       initData,
+      session_id: mySessionId(),
       name: state.playerName,
       photo_url: String(photo||'').trim(),
       level: state.level,
@@ -13409,6 +13472,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     bindUI();
     renderAll();
     save();
+    try { sessionStartAndPull().then(()=>{ try { sessionWatchStart(); } catch (e0) {} }).catch(()=>{}); } catch (e0) {}
 
     // main loop
     tickUTC();
