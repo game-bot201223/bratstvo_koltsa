@@ -1754,6 +1754,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       </div>
       <div class="card" id="adminCard" style="margin-top:12px; display:none;">
         <div class="row"><div class="k">АДМИН</div><button class="btn btnSmall" id="adminEditPlayerBtn">Редактировать игрока</button></div>
+        <div class="row" style="margin-top:8px;"><div class="k">Кланы</div><button class="btn btnSmall" id="adminEditClanBtn">РЕДАКТИРОВАТЬ</button></div>
         <div class="row" style="margin-top:8px;"><div class="k">Начислить всем игрокам</div><button class="btn btnSmall" id="adminGrantAllBtn">ВАЛЮТА И УДАРЫ</button></div>
         <div class="row" style="margin-top:8px;"><div class="k">Полный рестарт игры</div><button class="btn btnSmall" id="adminFullRestartBtn" style="background:#b91c1c; color:#fff;">ПОЛНЫЙ РЕСТАРТ</button></div>
       </div>
@@ -1797,6 +1798,33 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div class="k" style="margin-bottom:8px;">ИСТОРИЯ ВАЛЮТЫ</div>
         <div id="adminCurrencyTotals" style="font-size:12px; opacity:.9; margin-bottom:10px;"></div>
         <div id="adminCurrencyLog" style="max-height:320px; overflow-y:auto; font-size:11px; line-height:1.4;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Admin: edit clan (only for admin) -->
+<div class="modal" id="mAdminClan" role="dialog" aria-modal="true">
+  <div class="sheet">
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mAdminClan">‹</button>
+      <div class="title">АДМИН: КЛАН</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="sheetBody">
+      <div class="card">
+        <div class="row"><div class="k">ID или название</div></div>
+        <div style="margin-top:6px; display:flex; gap:8px;">
+          <input type="text" id="adminClanQuery" placeholder="CLN123… или название" style="flex:1; padding:10px 12px; border-radius:10px; border:1px solid var(--paperLine); font-size:14px;">
+          <button class="btn" id="adminClanLoad">Загрузить</button>
+        </div>
+        <div id="adminClanInfo" style="margin-top:10px; font-size:12px; opacity:.85;"></div>
+      </div>
+      <div class="card" id="adminClanFormCard" style="margin-top:12px; display:none;">
+        <div class="k" style="margin-bottom:8px;">ПАРАМЕТРЫ</div>
+        <div class="row"><div class="k">Название</div><input type="text" id="adminClanName" maxlength="18" style="flex:1; min-width:0; padding:8px; border-radius:8px; border:1px solid var(--paperLine);"></div>
+        <div style="margin-top:14px;"><button class="btn" id="adminClanSave" style="width:100%">Сохранить</button></div>
+        <div style="margin-top:10px; font-size:11px; opacity:.75; line-height:1.35;">Сейчас: переименование и базовые поля. Остальные «всё» будем добавлять как отдельные админ-действия.</div>
       </div>
     </div>
   </div>
@@ -13047,6 +13075,63 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     (function(){
       var grantAllBtn = $('adminGrantAllBtn');
       if (grantAllBtn) grantAllBtn.onclick = function(){ showModal('mAdminGrantAll'); haptic('light'); };
+    })();
+    (function(){
+      var loadBtn = $('adminClanLoad');
+      var saveBtn = $('adminClanSave');
+      var editBtn = $('adminEditClanBtn');
+      var formCard = $('adminClanFormCard');
+      var infoEl = $('adminClanInfo');
+      var queryEl = $('adminClanQuery');
+      var nameEl = $('adminClanName');
+      if (!loadBtn || !saveBtn || !editBtn || !formCard) return;
+      editBtn.onclick = function(){
+        showModal('mAdminClan');
+        if (formCard) formCard.style.display = 'none';
+        if (infoEl) infoEl.textContent = '';
+        if (queryEl) queryEl.value = '';
+        if (nameEl) nameEl.value = '';
+        window.__adminTargetClanId = '';
+        haptic('light');
+      };
+      loadBtn.onclick = async function(){
+        var q = (queryEl && queryEl.value) ? String(queryEl.value).trim() : '';
+        if (!q) { toast('Введите ID или название клана','lose'); return; }
+        var payload = { initData: tgInitData() };
+        if (/^CLN\d+$/i.test(q)) payload.clan_id = q.toUpperCase(); else payload.clan_name = q;
+        try {
+          var r = await sbFnCall('admin_get_clan', payload);
+          if (!r || !r.ok || !r.clan) { toast(r && r.error ? r.error : 'Клан не найден','lose'); return; }
+          window.__adminTargetClanId = r.clan.id;
+          if (infoEl) infoEl.textContent = (r.clan.name||'—') + ' (id: ' + r.clan.id + ', owner_tg_id: ' + (r.clan.owner_tg_id||'—') + ')';
+          if (nameEl) nameEl.value = String(r.clan.name||'').trim().substring(0,18);
+          formCard.style.display = '';
+          toast('Загружено','win');
+        } catch (e) {
+          toast('Ошибка: ' + (e && e.message ? e.message : 'network'), 'lose');
+        }
+        haptic('light');
+      };
+      saveBtn.onclick = async function(){
+        var cid = window.__adminTargetClanId;
+        if (!cid) { toast('Сначала загрузите клан','lose'); return; }
+        var nm = (nameEl && typeof nameEl.value !== 'undefined') ? String(nameEl.value).trim().substring(0,18) : '';
+        if (!nm) { toast('Введите название','lose'); return; }
+        try {
+          var r = await sbFnCall('admin_update_clan', { initData: tgInitData(), clan_id: cid, name: nm });
+          if (r && r.ok) {
+            toast('Сохранено','win');
+            try { clansCloudPull().catch(()=>{}); } catch (e0) {}
+          } else {
+            var msg = (r && r.error) ? String(r.error) : 'Ошибка';
+            if (/clan_name_taken/i.test(msg)) msg = 'Имя клана занято';
+            toast(msg,'lose');
+          }
+        } catch (e) {
+          toast('Ошибка: ' + (e && e.message ? e.message : 'network'), 'lose');
+        }
+        haptic('light');
+      };
     })();
     (function(){
       var submitBtn = $('adminGrantAllSubmit');
