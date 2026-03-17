@@ -6314,6 +6314,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const role = clanMyRole(c);
       const canKick = clanCanManage(c);
       const leaderNorm = String(c.leader||'').trim().toUpperCase();
+      const clanPhoto = (c && c.photo) ? String(c.photo||'').trim() : '';
+      const clanAva = clanPhoto
+        ? ('<img src="'+clanPhoto.replace(/"/g,'&quot;')+'" style="width:18px;height:18px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.45);flex-shrink:0;" />')
+        : '';
       box.innerHTML = rows.length ? rows.map((r,i)=>{
         const badge2 = '<div class="badge" style="padding:6px 8px; font-size:11px">УР. '+r.lvl+'</div>';
         const whoNorm = String(r.who||'').trim().toUpperCase();
@@ -6323,7 +6327,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const kickBtn = showKick ? ('<button class="btn btnMini" data-clan-kick="'+encodeURIComponent(String(r.who))+'">ИЗГНАТЬ</button>') : '';
         const gClanWho = isMe ? state.gender : getGenderFromName(r.who);
         return '<div class="row">'
-          + '<div style="min-width:0; font-size:12px; opacity:.9; display:flex; align-items:center; gap:6px">#'+(i+1)+' '+genderBadgeHtml(gClanWho)+' '+String(r.who)+'</div>'
+          + '<div style="min-width:0; font-size:12px; opacity:.9; display:flex; align-items:center; gap:6px">#'+(i+1)+' '+clanAva+genderBadgeHtml(gClanWho)+' '+String(r.who)+'</div>'
           + '<div style="display:flex; gap:6px; align-items:center">'+badge2+kickBtn+'</div>'
           + '</div>';
       }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
@@ -13236,7 +13240,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const total = parseInt(c.totalBossDmg||0,10)||0;
         const lvl2 = clanLevelFromDmg(total);
         const members = Array.isArray(c.members) ? c.members.length : 0;
-        return { id, name:String(c.name||'—'), lvl:lvl2, dmg:total, members:members };
+        const photo = c.photo ? String(c.photo||'').trim() : '';
+        return { id, name:String(c.name||'—'), lvl:lvl2, dmg:total, members:members, photo: photo };
       }).filter(Boolean);
 
       const sorted2 = rows2.slice().sort((a,b)=>{
@@ -13247,9 +13252,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       box.innerHTML = sorted2.map((r,idx)=>{
         const rowClass = idx===0 ? ' topRow topRowGold' : (idx===1 ? ' topRow topRowSilver' : (idx===2 ? ' topRow topRowBronze' : ''));
         const val = 'ЛВЛ '+r.lvl+' · '+fmt4(r.dmg)+' · '+r.members+'/100';
+        const ava = r.photo
+          ? ('<img src="'+String(r.photo).replace(/"/g,'&quot;')+'" style="width:34px;height:34px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.45);flex-shrink:0;" />')
+          : '<div style="width:34px;height:34px;border-radius:999px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.2);flex-shrink:0;"></div>';
         return '<div class="row'+rowClass+'">'
           + '<div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1">'
-          + '<div style="min-width:0; font-size:12px; opacity:.9">#'+(idx+1)+' '+r.name+'</div>'
+          + ava
+          + '<div style="min-width:0; font-size:12px; opacity:.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">#'+(idx+1)+' '+r.name+'</div>'
           + '</div>'
           + '<div class="badge" style="padding:6px 8px; font-size:11px">'+val+'</div>'
           + '</div>';
@@ -13258,6 +13267,36 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
 
     box.innerHTML = '<div style="opacity:.75; font-size:12px">Загрузка...</div>';
+    // Build member->clan photo index from local clan cache (no extra server calls).
+    let __clanPhotoByMemberUpper = null;
+    try {
+      const db = state && state.clansDb && state.clansDb.clans ? state.clansDb.clans : null;
+      if (db && typeof db === 'object') {
+        __clanPhotoByMemberUpper = {};
+        for (const cid in db) {
+          const c = db[cid];
+          if (!c || typeof c !== 'object') continue;
+          const photo = c.photo ? String(c.photo||'').trim() : '';
+          if (!photo) continue;
+          const names = [];
+          try { if (c.leader) names.push(c.leader); } catch (e0) {}
+          try { if (c.deputy) names.push(c.deputy); } catch (e1) {}
+          try { if (Array.isArray(c.members)) names.push.apply(names, c.members); } catch (e2) {}
+          names.forEach(n=>{
+            const u = String(n||'').trim().toUpperCase();
+            if (!u) return;
+            if (!__clanPhotoByMemberUpper[u]) __clanPhotoByMemberUpper[u] = photo;
+          });
+        }
+      }
+    } catch (e0) { __clanPhotoByMemberUpper = null; }
+    function clanPhotoForTopName(displayName){
+      try {
+        if (!__clanPhotoByMemberUpper) return '';
+        const u = String(displayName||'').trim().toUpperCase();
+        return u && __clanPhotoByMemberUpper[u] ? String(__clanPhotoByMemberUpper[u]||'') : '';
+      } catch (e) { return ''; }
+    }
     function localEffStatsSum(){
       try {
         if (typeof GYM_STATS !== 'undefined' && Array.isArray(GYM_STATS) && typeof gfEffStat === 'function') {
@@ -13312,11 +13351,15 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const photo = row.photo;
         const v = row.vLabel;
         const g = (nm.trim().toUpperCase() === myName) ? state.gender : getGenderFromName(nm);
+        const clanPhoto = clanPhotoForTopName(nm);
+        const clanAva = clanPhoto
+          ? ('<img src="'+clanPhoto.replace(/"/g,'&quot;')+'" style="width:18px;height:18px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.45);flex-shrink:0;" />')
+          : '';
         const ava = photo ? ('<img src="'+photo.replace(/"/g,'&quot;')+'" style="width:28px;height:28px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.45);" />') : '<div style="width:28px;height:28px;border-radius:999px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.20);"></div>';
         return '<div class="row'+rowClass+'">'
           + '<div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1">'
           + '<div style="min-width:0; display:flex; flex-direction:column; gap:6px;">'
-          + '<div style="min-width:0; font-size:12px; opacity:.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:6px;">#'+(idx+1)+' '+genderBadgeHtml(g)+' '+nm+(row.raw && row.raw.vip ? ' <span style="color:var(--gold); font-weight:800; letter-spacing:1px;">VIP</span>' : '')+'</div>'
+          + '<div style="min-width:0; font-size:12px; opacity:.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:6px;">#'+(idx+1)+' '+clanAva+genderBadgeHtml(g)+' '+nm+(row.raw && row.raw.vip ? ' <span style="color:var(--gold); font-weight:800; letter-spacing:1px;">VIP</span>' : '')+'</div>'
           + '<div style="display:flex; justify-content:flex-start;">'+ava+'</div>'
           + '</div>'
           + '</div>'
