@@ -113,6 +113,41 @@ async function postgrestGetPlayerState(projectUrl: string, serviceKey: string, t
   return row && typeof row === "object" ? (row as any).state : null
 }
 
+async function postgrestGetPlayerSession(projectUrl: string, serviceKey: string, tgId: string): Promise<string> {
+  try {
+    const url = projectUrl.replace(/\/$/, "") +
+      `/rest/v1/players?tg_id=eq.${encodeURIComponent(tgId)}&select=active_session_id&limit=1`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp.ok) return ""
+    const rows = await resp.json().catch(() => [])
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null
+    const sid = row && typeof row === "object" ? String((row as any).active_session_id || "").trim() : ""
+    return sid
+  } catch (_e) {
+    return ""
+  }
+}
+
+async function postgrestSetPlayerSession(projectUrl: string, serviceKey: string, tgId: string, sessionId: string): Promise<void> {
+  try {
+    if (!sessionId) return
+    const url = projectUrl.replace(/\/$/, "") + `/rest/v1/players?tg_id=eq.${encodeURIComponent(tgId)}`
+    await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({ active_session_id: sessionId, active_session_updated_at: new Date().toISOString(), updated_at: new Date().toISOString() }),
+    }).catch(() => {})
+  } catch (_e) {}
+}
+
 async function postgrestGetPlayerName(projectUrl: string, serviceKey: string, tgId: string): Promise<string> {
   try {
     const url = projectUrl.replace(/\/$/, "") +
@@ -531,6 +566,18 @@ Deno.serve(async (req: Request) => {
   } catch (_) {
     state = null
   }
+
+  // Сессия: если пришёл другой session_id — считаем вход с нового устройства и перезаписываем активную сессию.
+  // Так можно зайти с телефона после игры на ПК (ПК закрыт). Старая вкладка при следующем запросе получит conflict.
+  try {
+    const incomingSid = String(body?.session_id ?? (body as any)?.sessionId ?? "").trim()
+    const currentSid = await postgrestGetPlayerSession(projectUrl, serviceKey, tgId).catch(() => "")
+    if (incomingSid && incomingSid !== currentSid) {
+      await postgrestSetPlayerSession(projectUrl, serviceKey, tgId, incomingSid)
+    } else if (!currentSid && incomingSid) {
+      await postgrestSetPlayerSession(projectUrl, serviceKey, tgId, incomingSid)
+    }
+  } catch (_e) {}
 
   // invite bonus: 10 gold to referrer when invitee reaches level 5 (once per invitee)
   // also ensure both sides have each other in братки: referrer already has invitee (addFriendToReferrer);
