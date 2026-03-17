@@ -4556,6 +4556,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   const __cloudMinGapMs = 0;
   let __cloudLastReqTs = 0;
   let __cloudGatePromise = Promise.resolve();
+  let __sessionEstablished = false;
   async function sbFnCall(fnName, payload){
     const supaBase = String(SUPABASE_URL||'').replace(/\/$/,'');
     if (!supaBase) throw new Error('no_supabase_url');
@@ -4612,7 +4613,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const j = (()=>{ try { return text ? JSON.parse(text) : null; } catch (e) { return null; } })();
       if (!resp.ok || !j || j.ok===false) {
         if (j && typeof j === 'object' && String(j.error||'').trim() === 'session_conflict') {
-          try { lockoutBecauseNewLogin(); } catch (eLock) {}
+          if (!__sessionEstablished) {
+            try { state._sessionId = ''; save(); } catch (eClear) {}
+            try { toast('Сессия обновлена, продолжайте','win'); } catch (eT) {}
+          } else {
+            try { lockoutBecauseNewLogin(); } catch (eLock) {}
+          }
+          throw new Error('session_conflict');
         }
         let err = 'http_'+resp.status;
         try {
@@ -4663,6 +4670,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         throw new Error(String(err));
       }
       try { if (IS_DEV) dbgUpdate(); } catch (e3) {}
+      if (j && j.ok && (fnName === 'session_start' || fnName === 'upsert_player')) try { __sessionEstablished = true; } catch (e4) {}
       return j;
     });
   }
