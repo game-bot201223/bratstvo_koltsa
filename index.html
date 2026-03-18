@@ -653,6 +653,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   0%{ box-shadow:inset 0 1px 0 rgba(255,255,255,.2), 0 0 6px rgba(255,200,90,.4), 0 0 14px rgba(255,170,50,.2); }
   100%{ box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 0 14px rgba(255,230,160,.9), 0 0 26px rgba(255,190,70,.55); }
 }
+@keyframes arenaToothPulseReady{
+  0%,100%{ transform:scale(0.78); filter:drop-shadow(0 0 5px rgba(255,190,80,.55)) brightness(1.02); }
+  50%{ transform:scale(1.14); filter:drop-shadow(0 0 20px rgba(255,240,200,1)) drop-shadow(0 0 8px rgba(255,200,100,.95)) brightness(1.18); }
+}
 .hero::after{ content:''; position:absolute; top:8px; right:12px; width:6px; height:6px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #fff, rgba(255,248,235,.6)); pointer-events:none; z-index:2; animation: sparkle 3.5s var(--ease-in-out) infinite; will-change: opacity, transform; }
 .heroTop{padding:14px 14px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .heroTitle{font-weight:900;letter-spacing:4px;font-size:12px;opacity:.94;}
@@ -1379,7 +1383,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 /* Arena: отступы от «стен» фона; порядок как раньше — клуб → ряд ГБ+стат → характеристики */
 /* Шапка и кнопки — как боковая полоса; текст на кнопках серый, не белый */
 #mArena .sheetHead{
-  padding:5px 10px;
+  padding:7px 10px;
   background:#434343 !important;
   background-image:linear-gradient(90deg,#484848 0%,#484848 48%,#3c3c3c 100%) !important;
   border-top:1px solid #2a2a2a;
@@ -1388,13 +1392,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 }
 #mArena .sheetHead .title{color:#9a9a9a !important;}
 #mArena .sheetHead .iconBtn{
-  width:34px !important;height:31px !important;font-size:17px !important;
+  width:48px !important;height:44px !important;font-size:20px !important;
   background:linear-gradient(180deg,#505050,#3a3a3a) !important;
   border:1px solid #252525 !important;
   color:#8f8f8f !important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
 }
-#mArena .sheetHead > div[style*="display:flex"]{gap:6px !important;}
+#mArena .sheetHead > div[style*="display:flex"]{gap:3px !important;align-items:center !important;}
 #mArena #arenaSearch,
 #mArena #gf1010Open{
   background:linear-gradient(180deg,#4a4a4a,#353535) !important;
@@ -1406,16 +1410,39 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 #mArena #gf1010Open:active{
   filter:brightness(.9);
 }
-#mArena .sheetHead .arenaInventoryBtn{
+#mArena .sheetHead .arenaInventoryBtn,
+#mArena #arenaInventoryBtn{
+  position:relative !important;
+  width:48px !important;height:48px !important;min-width:48px !important;
+  margin:3px 0 !important;
+  border-radius:14px !important;
+  overflow:hidden !important;
   background:linear-gradient(180deg,#505050,#3a3a3a) !important;
   border:1px solid #252525 !important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
+  flex-shrink:0;
 }
-/* Зубы на арене: круг, зуб целиком (contain); гаснет на таймере, светится когда +100 */
+#mArena #arenaInventoryBtn img{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:130% !important;
+  height:130% !important;
+  max-width:none !important;
+  max-height:none !important;
+  object-fit:contain !important;
+  padding:0;
+  box-sizing:border-box;
+  pointer-events:none;
+}
+/* Зубы на арене: таймер — белый по центру; награда доступна — только зуб, целиком, сильный пульс */
 #mArena #bossToothBtn{
-  width:40px !important;height:40px !important;min-width:40px !important;
+  width:52px !important;height:52px !important;min-width:52px !important;
+  margin:0 !important;
   border-radius:50% !important;
-  padding:2px 4px 1px !important;
+  padding:2px 3px 1px !important;
+  flex-shrink:0;
   display:flex !important;flex-direction:column !important;
   align-items:center !important;justify-content:center !important;
   overflow:hidden !important;
@@ -1428,32 +1455,46 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 #mArena #bossToothBtn.ready{
   opacity:1 !important;filter:none !important;
   border-color:rgba(255,215,140,.9) !important;
+  padding:3px !important;
   animation:arenaToothGlow 1.85s ease-in-out infinite alternate;
 }
 #mArena #bossToothBtn .ico{
   flex:1 1 auto;min-height:0;min-width:0;width:100%;
   display:flex !important;align-items:center;justify-content:center;
 }
-#mArena #bossToothBtn .ico .toothIcon{
+#mArena #bossToothBtn:not(.ready) .ico .toothIcon{
   width:auto !important;height:auto !important;
   max-width:100% !important;max-height:26px !important;
   object-fit:contain !important;object-position:center !important;
   display:block !important;vertical-align:middle !important;
 }
+#mArena #bossToothBtn.ready .ico{
+  flex:1 1 100% !important;min-height:0;width:100%;height:100%;
+  align-items:center !important;justify-content:center !important;
+}
 #mArena #bossToothBtn.ready .ico .toothIcon{
-  filter:drop-shadow(0 0 8px rgba(255,220,140,.85));
+  max-width:100% !important;max-height:46px !important;width:auto !important;height:auto !important;
+  object-fit:contain !important;object-position:center !important;
+  display:block !important;
+  transform-origin:center center;
+  animation:arenaToothPulseReady 1s ease-in-out infinite;
+  will-change:transform,filter;
 }
 #mArena #bossToothBtn .tm{
-  font-size:7px !important;margin:0 !important;line-height:1 !important;letter-spacing:0 !important;
-  color:#4a4a4a !important;font-weight:800;flex-shrink:0;white-space:nowrap;
+  font-size:9px !important;margin:0 !important;padding:0 1px !important;line-height:1.1 !important;letter-spacing:0 !important;
+  color:#fff !important;font-weight:800;flex-shrink:0;white-space:nowrap;
+  width:100% !important;text-align:center !important;
+  text-shadow:0 1px 3px rgba(0,0,0,.9);
 }
 #mArena #bossToothBtn.ready .tm{
-  color:#f0d060 !important;
-  text-shadow:0 0 10px rgba(255,200,90,.95),0 0 4px rgba(255,230,180,.8);
+  display:none !important;position:absolute !important;width:0 !important;height:0 !important;overflow:hidden !important;
+  clip:rect(0,0,0,0) !important;
 }
 @media (prefers-reduced-motion:reduce){
   #mArena #bossToothBtn.ready{animation:none !important;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 0 14px rgba(255,220,140,.65),0 0 22px rgba(255,180,60,.4) !important;}
+  #mArena #bossToothBtn.ready .ico .toothIcon{animation:none !important;
+    transform:scale(1);filter:drop-shadow(0 0 12px rgba(255,220,160,.85));}
 }
 /* 10% от ширины экрана слева/справа + safe-area под вырез */
 #mArena #arenaSheetBody{
@@ -1533,8 +1574,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 #mArena .gymStatsColumnCard .k{margin-bottom:2px !important;}
 #mArena #arenaStatsColumnCard .k{margin-bottom:4px !important;font-size:10px !important;}
 #mArena #arenaStatsColumnCard [style*="gap:8px"]{gap:5px !important;}
-#mArena .sheetHead .title{font-size:11px;}
-#mArena .sheetHead .arenaInventoryBtn{width:31px !important;height:31px !important;min-width:31px !important;}
+#mArena .sheetHead .title{font-size:12px;}
 #mArena #arenaClubCard .k{line-height:1.15;}
 #mArena #arenaSectionGroup .k,#mArena #arenaSectionGroup .row .k{line-height:1.15;}
 #mArena #gfEnter{padding:4px 6px !important;}
@@ -10383,7 +10423,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         const left = Math.max(0, nextTs - now());
         const mm = String(Math.floor(left/60000)).padStart(2,'0');
         const ss = String(Math.floor((left%60000)/1000)).padStart(2,'0');
-        tm.textContent = ready ? '+100' : (mm+':'+ss);
+        tm.textContent = ready ? '' : (mm+':'+ss);
       }
     } catch (e) {}
   }
