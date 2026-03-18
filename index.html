@@ -1335,18 +1335,117 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   background: var(--caramel);
 }
 
-/* Arena compact — на 20% компактнее по вертикали */
-#mArena .sheetHead{padding:7px 10px;}
-#mArena .sheetBody{padding:0;}
-#mArena .card{padding:7px 8px; margin-top:4px !important; border-radius:14px;}
+/* Arena — фон страницы */
+/* Картинка целиком по ширине; снизу — вторая, третья… впритык */
+#mArena .sheet.sheetOpaque{
+  background-color: var(--caramel);
+  background-image: url("фон.png");
+  background-position: top center;
+  background-size: 100% auto;
+  background-repeat: repeat-y;
+  position:relative;
+  overflow-x:hidden;
+}
+/* Боковые полосы: тёмно-серые + узор волн */
+#mArena .arenaEdge{
+  position:absolute;
+  top:0;
+  bottom:0;
+  width:8px;
+  pointer-events:none;
+  z-index:2;
+  background-color:#434343;
+  background-image:
+    linear-gradient(90deg,#484848 0%,#484848 48%,#3c3c3c 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 96'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='0'%3E%3Cstop stop-color='%23222222'/%3E%3Cstop offset='1' stop-color='%23383838'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23g)' width='40' height='96'/%3E%3Cg fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='%235a5a5a' stroke-width='2.4' d='M22 0Q36 16 22 32Q8 48 22 64Q36 80 22 96'/%3E%3Cpath stroke='%23282828' stroke-width='1.5' d='M10 0Q-2 16 10 32Q22 48 10 64Q-2 80 10 96'/%3E%3Cpath stroke='%23787878' stroke-width='1' opacity='.45' d='M32 8Q24 24 32 40Q40 56 32 72Q24 88 32 96'/%3E%3Cpath stroke='%23181818' stroke-width='1.6' d='M28 0Q20 24 28 48Q36 72 28 96'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:100% 100%,8px 96px;
+  background-repeat:no-repeat,repeat-y;
+  background-position:center,center top;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.26);
+}
+#mArena .arenaEdgeL{left:0;}
+#mArena .arenaEdgeR{
+  right:0;
+  transform:scaleX(-1);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.26);
+}
+#mArena .sheet.sheetOpaque .sheetHead,
+#mArena .sheet.sheetOpaque .sheetBody{position:relative;z-index:3;}
+
+/* Arena: отступы от «стен» фона; порядок как раньше — клуб → ряд ГБ+стат → характеристики */
+/* Шапка и кнопки — как боковая полоса; текст на кнопках серый, не белый */
+#mArena .sheetHead{
+  padding:7px 10px;
+  background:#434343 !important;
+  background-image:linear-gradient(90deg,#484848 0%,#484848 48%,#3c3c3c 100%) !important;
+  border-top:1px solid #2a2a2a;
+  border-bottom:1px solid rgba(0,0,0,.35);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.22);
+}
+#mArena .sheetHead .title{color:#9a9a9a !important;}
+#mArena .sheetHead .iconBtn{
+  background:linear-gradient(180deg,#505050,#3a3a3a) !important;
+  border:1px solid #252525 !important;
+  color:#8f8f8f !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+}
+#mArena #arenaSearch,
+#mArena #gf1010Open{
+  background:linear-gradient(180deg,#4a4a4a,#353535) !important;
+  border:1px solid #2c2c2c !important;
+  color:#9a9a9a !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.25) !important;
+}
+#mArena #arenaSearch:active,
+#mArena #gf1010Open:active{
+  filter:brightness(.9);
+}
+#mArena .sheetHead .arenaInventoryBtn{
+  background:linear-gradient(180deg,#505050,#3a3a3a) !important;
+  border:1px solid #252525 !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
+}
+/* Зубы: тот же серый стиль что шапка; таймер чуть темнее */
+#mArena #bossToothBtn{
+  background:linear-gradient(180deg,#505050,#383838) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.22) !important;
+  color:#888 !important;
+}
+#mArena #bossToothBtn.ready{border-color:rgba(255,255,255,.4) !important;}
+#mArena #bossToothBtn .tm{color:#7a7a7a !important;opacity:1 !important;}
+#mArena #arenaSheetBody{
+  padding-left:clamp(15px,6.05vw,44px);
+  padding-right:clamp(15px,6.05vw,44px);
+  padding-bottom:11px;
+  box-sizing:border-box;
+}
+/* Кантик 1px как у боковых полос: градиент + SVG-волны */
+#mArena .card{
+  padding:7px 8px;margin-top:4px !important;border-radius:14px;
+  border:1px solid transparent;
+  box-sizing:border-box;
+  background-color:var(--caramel);
+  background-image:
+    url("кф.png"),
+    linear-gradient(var(--caramel),var(--caramel)),
+    linear-gradient(90deg,#484848 0%,#484848 48%,#3c3c3c 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 96'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='0'%3E%3Cstop stop-color='%23222222'/%3E%3Cstop offset='1' stop-color='%23383838'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23g)' width='40' height='96'/%3E%3Cg fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='%235a5a5a' stroke-width='2.4' d='M22 0Q36 16 22 32Q8 48 22 64Q36 80 22 96'/%3E%3Cpath stroke='%23282828' stroke-width='1.5' d='M10 0Q-2 16 10 32Q22 48 10 64Q-2 80 10 96'/%3E%3Cpath stroke='%23787878' stroke-width='1' opacity='.45' d='M32 8Q24 24 32 40Q40 56 32 72Q24 88 32 96'/%3E%3Cpath stroke='%23181818' stroke-width='1.6' d='M28 0Q20 24 28 48Q36 72 28 96'/%3E%3C/g%3E%3C/svg%3E");
+  background-position:center center,center,center,center top;
+  background-size:cover,auto,auto,8px 96px;
+  background-repeat:no-repeat,no-repeat,no-repeat,repeat;
+  background-clip:padding-box,padding-box,border-box,border-box;
+  background-origin:border-box;
+  box-shadow:var(--shadowKey),var(--shadowInsetTop),var(--shadowInsetAO),inset 0 0 0 1px rgba(0,0,0,.24);
+}
 #mArena .btn{padding:7px 8px;}
 #mArena .btnSmall{padding:5px 6px;}
-#mArena .badge{padding:4px 6px; font-size:11px;}
+#mArena .badge{padding:4px 6px;font-size:11px;}
 #mArena #arenaSectionGroup .row{align-items:center;}
-#mArena #arenaGroupHint{margin-top:4px !important; font-size:11px; line-height:1.28;}
+#mArena #arenaGroupHint{margin-top:4px !important;font-size:11px;line-height:1.28;}
 #mArena .grid3{gap:6px;}
 #mArena .arenaTopImg{display:block;width:100%;margin:0;padding:0;max-height:21vh;object-fit:cover;}
-#mArena .sheetBody > div[style*="margin-top:9px"]{margin-top:7px !important; gap:6px !important;}
+#mArena .sheetBody > div[style*="margin-top:9px"]{margin-top:7px !important;gap:6px !important;}
 #mArena .sheetBody > .card:first-of-type{padding:5px 8px;margin-top:4px !important;}
 #mArena .sheetBody > .card:first-of-type .row + div{margin-top:4px;}
 #mArena .sheetBody > .card:first-of-type .row + div{gap:6px !important;}
@@ -1886,6 +1985,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 <!-- Arena -->
 <div class="modal modalPage" id="mArena" role="dialog" aria-modal="true">
   <div class="sheet sheetOpaque sheetScreen">
+    <div class="arenaEdge arenaEdgeL" aria-hidden="true"></div>
+    <div class="arenaEdge arenaEdgeR" aria-hidden="true"></div>
     <div class="sheetHead">
       <button class="iconBtn" data-close="mArena">‹</button>
       <div class="title">АРЕНА</div>
