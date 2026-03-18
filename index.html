@@ -1414,9 +1414,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 }
 #mArena #bossToothBtn.ready{border-color:rgba(255,255,255,.4) !important;}
 #mArena #bossToothBtn .tm{color:#7a7a7a !important;opacity:1 !important;}
+/* 10% от ширины экрана слева/справа + safe-area под вырез */
 #mArena #arenaSheetBody{
-  padding-left:clamp(15px,6.05vw,44px);
-  padding-right:clamp(15px,6.05vw,44px);
+  padding-left:calc(10% + env(safe-area-inset-left,0px));
+  padding-right:calc(10% + env(safe-area-inset-right,0px));
   padding-bottom:11px;
   box-sizing:border-box;
 }
@@ -4488,27 +4489,33 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       let v = '';
       try { v = String(localStorage.getItem(k) || '').trim(); } catch (e0) { v = ''; }
       if (!v) {
-        // В Telegram WebApp localStorage иногда очищается/не сохраняется между запусками.
-        // Делаем стабильный фоллбек-идентификатор по отпечатку устройства,
-        // чтобы один и тот же телефон не считался "другим устройством" при следующем входе.
         try {
           const tid = myTgUserId();
+          // Без размеров экрана — иначе смена ориентации = новый device_id = ложный «другой девайс».
           const ua = (typeof navigator !== 'undefined' && navigator.userAgent) ? String(navigator.userAgent) : '';
-          const scr = (typeof screen !== 'undefined') ? (String(screen.width||'') + 'x' + String(screen.height||'')) : '';
           let tz = '';
           try { tz = (Intl && Intl.DateTimeFormat) ? String(Intl.DateTimeFormat().resolvedOptions().timeZone||'') : ''; } catch (e2) { tz = ''; }
-          const fp = [tid, ua, scr, tz].join('|');
-          let h = 5381;
-          for (let i = 0; i < fp.length; i++) h = ((h << 5) + h) ^ fp.charCodeAt(i);
-          v = 'dev_' + (h >>> 0).toString(16);
+          if (tid) {
+            const fp = [tid, ua, tz].join('|');
+            let h = 5381;
+            for (let i = 0; i < fp.length; i++) h = ((h << 5) + h) ^ fp.charCodeAt(i);
+            v = 'dev_' + (h >>> 0).toString(16);
+          } else {
+            v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (String(Date.now()) + '-' + Math.random().toString(16).slice(2));
+          }
         } catch (e3) {
           v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (String(Date.now()) + '-' + Math.random().toString(16).slice(2));
         }
         try { localStorage.setItem(k, v); } catch (e1) {}
       }
-      return v;
+      try {
+        const tid = myTgUserId();
+        if (tid && (!v || v.length < 3)) return 'dev_tg_' + tid;
+      } catch (e4) {}
+      return v || 'dev_unknown';
     } catch (e) {
-      return '';
+      try { const t = myTgUserId(); if (t) return 'dev_tg_' + t; } catch (e2) {}
+      return 'dev_unknown';
     }
   }
   function isAdmin(){
@@ -4752,12 +4759,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const j = (()=>{ try { return text ? JSON.parse(text) : null; } catch (e) { return null; } })();
       if (!resp.ok || !j || j.ok===false) {
         if (j && typeof j === 'object' && String(j.error||'').trim() === 'session_conflict') {
-          if (!__sessionEstablished) {
-            try { state._sessionId = ''; save(); } catch (eClear) {}
-            try { toast('Сессия обновлена, продолжайте','win'); } catch (eT) {}
-          } else {
-            try { lockoutBecauseNewLogin(); } catch (eLock) {}
-          }
+          try { state._sessionId = ''; save(); } catch (eClear) {}
+          try { __sessionEstablished = false; } catch (eSe) {}
+          try {
+            await sessionStartAndPull(false);
+            try { toast('Сессия обновлена','win'); } catch (eT) {}
+          } catch (eSs) {}
+          try { __sessionEstablished = true; } catch (eSe2) {}
           throw new Error('session_conflict');
         }
         let err = 'http_'+resp.status;
@@ -5240,34 +5248,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const r = await sbFnCall('get_player', { initData: tgInitData() });
           const srv = r && r.ok && r.player ? String(r.player.active_session_id||'').trim() : '';
           const srvDev = r && r.ok && r.player ? String(r.player.active_device_id||'').trim() : '';
-          const srvAt = r && r.ok && r.player ? String(r.player.active_session_updated_at||'').trim() : '';
-          let srvAgeMs = 0;
-          try {
-            const t = Date.parse(srvAt);
-            if (!isNaN(t)) srvAgeMs = Math.max(0, now() - t);
-          } catch (eT) { srvAgeMs = 0; }
           if (srv && sid && srv !== sid) {
-            // Если серверная активная сессия с того же устройства — НЕ закрываем.
             const myDev = myDeviceId();
             if (srvDev && myDev && srvDev === myDev) return;
-            // Если сервер ещё не знает device_id (старые данные) — не кикаем, а просто обновляем device_id через session_start.
-            if (!srvDev) {
-              try { await sessionStartAndPull(false); } catch (eNoDev) {}
-              return;
-            }
-            // Кикаем только если другая сессия "живая" (обновлялась совсем недавно).
-            // Если серверная сессия старая (ПК закрыт/вышел), спокойно забираем её на этом устройстве.
-            const OTHER_SESSION_ALIVE_MS = 12000; // 12с: считаем параллельным входом только "прямо сейчас"
-            // ВАЖНО: уведомление/кик должен прилетать ТОЛЬКО "старой" вкладке.
-            // Новая вкладка на новом устройстве в момент старта может иметь устаревший sid из localStorage,
-            // поэтому до первого успешного upsert_player мы НИКОГДА не кикаем — просто забираем сессию.
-            if (__sessionEstablished && srvAgeMs > 0 && srvAgeMs <= OTHER_SESSION_ALIVE_MS) {
-              clearInterval(__sessionWatchT);
-              __sessionWatchT = 0;
-              try { lockoutBecauseNewLogin(); } catch (e1) {}
-              return;
-            }
-            // Считаем, что второй девайс уже не активен: забираем сессию.
+            // Не выкидываем из игры: подтягиваем сессию с сервера (ложные «другой девайс» от рассинхрона).
             try { state._sessionId = ''; save(); } catch (eClr) {}
             try { await sessionStartAndPull(false); } catch (eTake) {}
           }
