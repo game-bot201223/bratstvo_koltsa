@@ -4387,7 +4387,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       let v = '';
       try { v = String(localStorage.getItem(k) || '').trim(); } catch (e0) { v = ''; }
       if (!v) {
-        v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (String(Date.now()) + '-' + Math.random().toString(16).slice(2));
+        // В Telegram WebApp localStorage иногда очищается/не сохраняется между запусками.
+        // Делаем стабильный фоллбек-идентификатор по отпечатку устройства,
+        // чтобы один и тот же телефон не считался "другим устройством" при следующем входе.
+        try {
+          const tid = myTgUserId();
+          const ua = (typeof navigator !== 'undefined' && navigator.userAgent) ? String(navigator.userAgent) : '';
+          const scr = (typeof screen !== 'undefined') ? (String(screen.width||'') + 'x' + String(screen.height||'')) : '';
+          let tz = '';
+          try { tz = (Intl && Intl.DateTimeFormat) ? String(Intl.DateTimeFormat().resolvedOptions().timeZone||'') : ''; } catch (e2) { tz = ''; }
+          const fp = [tid, ua, scr, tz].join('|');
+          let h = 5381;
+          for (let i = 0; i < fp.length; i++) h = ((h << 5) + h) ^ fp.charCodeAt(i);
+          v = 'dev_' + (h >>> 0).toString(16);
+        } catch (e3) {
+          v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (String(Date.now()) + '-' + Math.random().toString(16).slice(2));
+        }
         try { localStorage.setItem(k, v); } catch (e1) {}
       }
       return v;
@@ -5134,6 +5149,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             // Если серверная активная сессия с того же устройства — НЕ закрываем.
             const myDev = myDeviceId();
             if (srvDev && myDev && srvDev === myDev) return;
+            // Если сервер ещё не знает device_id (старые данные) — не кикаем, а просто обновляем device_id через session_start.
+            if (!srvDev) {
+              try { await sessionStartAndPull(false); } catch (eNoDev) {}
+              return;
+            }
             // Кикаем только если другая сессия "живая" (обновлялась совсем недавно).
             // Если серверная сессия старая (ПК закрыт/вышел), спокойно забираем её на этом устройстве.
             const OTHER_SESSION_ALIVE_MS = 30000; // 30с: достаточно, чтобы поймать реально параллельный вход
