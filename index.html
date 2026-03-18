@@ -5109,7 +5109,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             // Кикаем только если другая сессия "живая" (обновлялась совсем недавно).
             // Если серверная сессия старая (ПК закрыт/вышел), спокойно забираем её на этом устройстве.
             const OTHER_SESSION_ALIVE_MS = 30000; // 30с: достаточно, чтобы поймать реально параллельный вход
-            if (srvAgeMs > 0 && srvAgeMs <= OTHER_SESSION_ALIVE_MS) {
+            // ВАЖНО: уведомление/кик должен прилетать ТОЛЬКО "старой" вкладке.
+            // Новая вкладка на новом устройстве в момент старта может иметь устаревший sid из localStorage,
+            // поэтому до первого успешного upsert_player мы НИКОГДА не кикаем — просто забираем сессию.
+            if (__sessionEstablished && srvAgeMs > 0 && srvAgeMs <= OTHER_SESSION_ALIVE_MS) {
               clearInterval(__sessionWatchT);
               __sessionWatchT = 0;
               try { lockoutBecauseNewLogin(); } catch (e1) {}
