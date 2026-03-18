@@ -5100,10 +5100,28 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           if (!sid) return;
           const r = await sbFnCall('get_player', { initData: tgInitData() });
           const srv = r && r.ok && r.player ? String(r.player.active_session_id||'').trim() : '';
+          const srvAt = r && r.ok && r.player ? String(r.player.active_session_updated_at||'').trim() : '';
+          let srvAgeMs = 0;
+          try {
+            const t = Date.parse(srvAt);
+            if (!isNaN(t)) srvAgeMs = Math.max(0, now() - t);
+          } catch (eT) { srvAgeMs = 0; }
           if (srv && sid && srv !== sid) {
-            clearInterval(__sessionWatchT);
-            __sessionWatchT = 0;
-            try { lockoutBecauseNewLogin(); } catch (e1) {}
+            // Кикаем только если другая сессия "живая" (обновлялась совсем недавно).
+            // Если серверная сессия старая (ПК закрыт/вышел), спокойно забираем её на этом устройстве.
+            const OTHER_SESSION_ALIVE_MS = 30000; // 30с: достаточно, чтобы поймать реально параллельный вход
+            // ВАЖНО: уведомление/кик должен прилетать ТОЛЬКО "старой" вкладке.
+            // Новая вкладка на новом устройстве в момент старта может иметь устаревший sid из localStorage,
+            // поэтому до первого успешного upsert_player мы НИКОГДА не кикаем — просто забираем сессию.
+            if (__sessionEstablished && srvAgeMs > 0 && srvAgeMs <= OTHER_SESSION_ALIVE_MS) {
+              clearInterval(__sessionWatchT);
+              __sessionWatchT = 0;
+              try { lockoutBecauseNewLogin(); } catch (e1) {}
+              return;
+            }
+            // Считаем, что второй девайс уже не активен: забираем сессию.
+            try { state._sessionId = ''; save(); } catch (eClr) {}
+            try { await sessionStartAndPull(false); } catch (eTake) {}
           }
         } catch (e0) {}
       }, 2000);
