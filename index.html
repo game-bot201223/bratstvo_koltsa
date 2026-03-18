@@ -649,6 +649,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .hero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:rgba(255,255,255,.5);pointer-events:none;z-index:1;}
 /* Лёгкий particle-эффект: искра/блеск (п.29, 66) — одна точка, низкая нагрузка */
 @keyframes sparkle{ 0%, 100%{ opacity:.12; transform:scale(0.9); } 50%{ opacity:.35; transform:scale(1.1); } }
+@keyframes arenaToothGlow{
+  0%{ box-shadow:inset 0 1px 0 rgba(255,255,255,.2), 0 0 6px rgba(255,200,90,.4), 0 0 14px rgba(255,170,50,.2); }
+  100%{ box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 0 14px rgba(255,230,160,.9), 0 0 26px rgba(255,190,70,.55); }
+}
 .hero::after{ content:''; position:absolute; top:8px; right:12px; width:6px; height:6px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #fff, rgba(255,248,235,.6)); pointer-events:none; z-index:2; animation: sparkle 3.5s var(--ease-in-out) infinite; will-change: opacity, transform; }
 .heroTop{padding:14px 14px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .heroTitle{font-weight:900;letter-spacing:4px;font-size:12px;opacity:.94;}
@@ -1407,15 +1411,50 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   border:1px solid #252525 !important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
 }
-/* Зубы: тот же серый стиль что шапка; таймер чуть темнее */
+/* Зубы на арене: круг, зуб целиком (contain); гаснет на таймере, светится когда +100 */
 #mArena #bossToothBtn{
-  background:linear-gradient(180deg,#505050,#383838) !important;
-  border:1px solid rgba(255,255,255,.22) !important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.22) !important;
-  color:#888 !important;
+  width:40px !important;height:40px !important;min-width:40px !important;
+  border-radius:50% !important;
+  padding:2px 4px 1px !important;
+  display:flex !important;flex-direction:column !important;
+  align-items:center !important;justify-content:center !important;
+  overflow:hidden !important;
+  background:radial-gradient(circle at 50% 28%,#5a5a5a,#333 52%,#1c1c1c 100%) !important;
+  border:1px solid rgba(70,70,70,.75) !important;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.4),0 1px 4px rgba(0,0,0,.35) !important;
+  opacity:.5;filter:saturate(.55) brightness(.68);
+  transition:opacity .45s ease,filter .45s ease,border-color .45s ease;
 }
-#mArena #bossToothBtn.ready{border-color:rgba(255,255,255,.4) !important;}
-#mArena #bossToothBtn .tm{color:#7a7a7a !important;opacity:1 !important;}
+#mArena #bossToothBtn.ready{
+  opacity:1 !important;filter:none !important;
+  border-color:rgba(255,215,140,.9) !important;
+  animation:arenaToothGlow 1.85s ease-in-out infinite alternate;
+}
+#mArena #bossToothBtn .ico{
+  flex:1 1 auto;min-height:0;min-width:0;width:100%;
+  display:flex !important;align-items:center;justify-content:center;
+}
+#mArena #bossToothBtn .ico .toothIcon{
+  width:auto !important;height:auto !important;
+  max-width:100% !important;max-height:26px !important;
+  object-fit:contain !important;object-position:center !important;
+  display:block !important;vertical-align:middle !important;
+}
+#mArena #bossToothBtn.ready .ico .toothIcon{
+  filter:drop-shadow(0 0 8px rgba(255,220,140,.85));
+}
+#mArena #bossToothBtn .tm{
+  font-size:7px !important;margin:0 !important;line-height:1 !important;letter-spacing:0 !important;
+  color:#4a4a4a !important;font-weight:800;flex-shrink:0;white-space:nowrap;
+}
+#mArena #bossToothBtn.ready .tm{
+  color:#f0d060 !important;
+  text-shadow:0 0 10px rgba(255,200,90,.95),0 0 4px rgba(255,230,180,.8);
+}
+@media (prefers-reduced-motion:reduce){
+  #mArena #bossToothBtn.ready{animation:none !important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 0 14px rgba(255,220,140,.65),0 0 22px rgba(255,180,60,.4) !important;}
+}
 /* 10% от ширины экрана слева/справа + safe-area под вырез */
 #mArena #arenaSheetBody{
   padding-left:calc(10% + env(safe-area-inset-left,0px));
@@ -1495,9 +1534,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 #mArena #arenaStatsColumnCard .k{margin-bottom:4px !important;font-size:10px !important;}
 #mArena #arenaStatsColumnCard [style*="gap:8px"]{gap:5px !important;}
 #mArena .sheetHead .title{font-size:11px;}
-#mArena #bossToothBtn{width:31px !important;height:28px !important;border-radius:10px !important;padding:0 !important;}
-#mArena #bossToothBtn .ico .toothIcon{max-height:14px !important;width:auto !important;}
-#mArena #bossToothBtn .tm{font-size:8px !important;margin-top:1px !important;}
 #mArena .sheetHead .arenaInventoryBtn{width:31px !important;height:31px !important;min-width:31px !important;}
 #mArena #arenaClubCard .k{line-height:1.15;}
 #mArena #arenaSectionGroup .k,#mArena #arenaSectionGroup .row .k{line-height:1.15;}
