@@ -113,21 +113,22 @@ async function postgrestGetPlayerState(projectUrl: string, serviceKey: string, t
   return row && typeof row === "object" ? (row as any).state : null
 }
 
-async function postgrestGetPlayerSession(projectUrl: string, serviceKey: string, tgId: string): Promise<string> {
+async function postgrestGetPlayerSession(projectUrl: string, serviceKey: string, tgId: string): Promise<{ sid: string; updatedAt: string }> {
   try {
     const url = projectUrl.replace(/\/$/, "") +
-      `/rest/v1/players?tg_id=eq.${encodeURIComponent(tgId)}&select=active_session_id&limit=1`
+      `/rest/v1/players?tg_id=eq.${encodeURIComponent(tgId)}&select=active_session_id,active_session_updated_at&limit=1`
     const resp = await fetch(url, {
       method: "GET",
       headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
     })
-    if (!resp.ok) return ""
+    if (!resp.ok) return { sid: "", updatedAt: "" }
     const rows = await resp.json().catch(() => [])
     const row = Array.isArray(rows) && rows.length ? rows[0] : null
     const sid = row && typeof row === "object" ? String((row as any).active_session_id || "").trim() : ""
-    return sid
+    const updatedAt = row && typeof row === "object" ? String((row as any).active_session_updated_at || "").trim() : ""
+    return { sid, updatedAt }
   } catch (_e) {
-    return ""
+    return { sid: "", updatedAt: "" }
   }
 }
 
@@ -567,12 +568,21 @@ Deno.serve(async (req: Request) => {
     state = null
   }
 
-  // Сессия: если пришёл другой session_id — считаем вход с нового устройства и перезаписываем активную сессию.
-  // Так можно зайти с телефона после игры на ПК (ПК закрыт). Старая вкладка при следующем запросе получит conflict.
+  // Single-device: NEW login always wins.
+  // The client must call session_start on boot, which overwrites active_session_id.
+  // Any write from a non-active session_id is rejected with session_conflict (old device closes immediately).
   try {
     const incomingSid = String(body?.session_id ?? (body as any)?.sessionId ?? "").trim()
-    const currentSid = await postgrestGetPlayerSession(projectUrl, serviceKey, tgId).catch(() => "")
-    if (incomingSid && incomingSid !== currentSid) {
+    const cur = await postgrestGetPlayerSession(projectUrl, serviceKey, tgId).catch(() => ({ sid: "", updatedAt: "" }))
+    const currentSid = String(cur.sid || "").trim()
+    if (currentSid && incomingSid && incomingSid !== currentSid) {
+      return new Response(JSON.stringify({ ok: false, error: "session_conflict" }), {
+        status: 409,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+    // Optional heartbeat for active session
+    if (incomingSid && incomingSid === currentSid) {
       await postgrestSetPlayerSession(projectUrl, serviceKey, tgId, incomingSid)
     } else if (!currentSid && incomingSid) {
       await postgrestSetPlayerSession(projectUrl, serviceKey, tgId, incomingSid)

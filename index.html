@@ -5069,6 +5069,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       if (!r || !r.ok || !r.session_id) return;
       const sid = String(r.session_id||'').trim();
       if (sid) state._sessionId = sid;
+      try { __sessionEstablished = true; } catch (e0) {}
       // If server already has state/name, prefer it for cross-device continuity.
       try {
         const p = r.player;
@@ -5105,7 +5106,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             try { lockoutBecauseNewLogin(); } catch (e1) {}
           }
         } catch (e0) {}
-      }, 5000);
+      }, 2000);
     } catch (e) {}
   }
   async function serverDoUpsertAsync(){
