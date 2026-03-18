@@ -479,6 +479,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   #mLavka.lavkaFullScreen .sheet,
   #mDistrictBiz.modalPage .sheet,
   #mDistrictRewards.modalPage .sheet,
+  #mHavchik.modalPage .sheet,
+  #mDistrictNightmare.modalPage .sheet,
+  #mDistrictGateBoss.modalPage .sheet,
+  #mBfShop.modalPage .sheet,
+  #mBossFightRes.modalPage .sheet,
   .havchikCollectFullScreen .sheet{
     width:100% !important;
     max-width:480px !important;
@@ -1229,13 +1234,10 @@ button.btn.charCornerBtn:active{filter:none;}
 #mBossFight .bossFightMeta .bossName{ font-size:13px; }
 #mBossFight .bfHitQtyGrid{ margin-top:2px !important; }
 #mBossFight .bossAtkGrid{ margin-top:6px !important; }
-.modalBfShop{ z-index: 5400; }
 .modalBossFightRes{ z-index: 5500; }
 .modal.show{display:block;}
 .modal.modalMini{ z-index: 5200; display:none; align-items:center; justify-content:center; }
 .modal.modalMini.show{ display:flex; }
-.modal.modalMini.modalBfShop{ z-index: 5400; }
-.modal.modalMini.modalBossFightRes{ z-index: 5500; }
 .modalEnergyRefillConfirm{ padding: 0; align-items: center; justify-content: center; z-index: 9999; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.4); inset: 0; }
 .modalEnergyRefillConfirm .sheet{ width: 140px; height: 140px; max-width: 92vmin; max-height: 92vmin; min-width: 100px; min-height: 100px; border-radius: 4px; padding: 6px; background: #e2d6bc !important; border: 1px solid rgba(45,30,18,.25); box-shadow: 0 4px 20px rgba(0,0,0,.35); opacity: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; aspect-ratio: 1/1; box-sizing: border-box; }
 .modalEnergyRefillConfirm .sheet > div:first-child{ font-size: 9px; line-height: 1.2; text-align: center; letter-spacing: 0; }
@@ -1433,7 +1435,12 @@ button.btn.charCornerBtn:active{filter:none;}
 #mGFJoin .sheet.sheetOpaque,
 #mBattle .sheet.sheetOpaque,
 #mInventory .sheet.sheetOpaque,
-#mDistricts .sheet.sheetOpaque{
+#mDistricts .sheet.sheetOpaque,
+#mHavchik .sheet.sheetOpaque,
+#mDistrictNightmare .sheet.sheetOpaque,
+#mDistrictGateBoss .sheet.sheetOpaque,
+#mBfShop .sheet.sheetOpaque,
+#mBossFightRes .sheet.sheetOpaque{
   background-color: var(--caramel);
   background-image: url("фон.png");
   background-position: top center;
@@ -1449,7 +1456,12 @@ button.btn.charCornerBtn:active{filter:none;}
 #mGFJoin .arenaEdge:not(.arenaEdgeB),
 #mBattle .arenaEdge:not(.arenaEdgeB),
 #mInventory .arenaEdge:not(.arenaEdgeB),
-#mDistricts .arenaEdge:not(.arenaEdgeB){
+#mDistricts .arenaEdge:not(.arenaEdgeB),
+#mHavchik .arenaEdge:not(.arenaEdgeB),
+#mDistrictNightmare .arenaEdge:not(.arenaEdgeB),
+#mDistrictGateBoss .arenaEdge:not(.arenaEdgeB),
+#mBfShop .arenaEdge:not(.arenaEdgeB),
+#mBossFightRes .arenaEdge:not(.arenaEdgeB){
   position:absolute;
   top:0;
   bottom:0;
@@ -1465,8 +1477,8 @@ button.btn.charCornerBtn:active{filter:none;}
   background-position:center,center top;
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.26);
 }
-#mArena .arenaEdgeL,#mArenaOpponent .arenaEdgeL,#mArenaRes .arenaEdgeL,#mGFJoin .arenaEdgeL,#mBattle .arenaEdgeL,#mInventory .arenaEdgeL,#mDistricts .arenaEdgeL{left:0;}
-#mArena .arenaEdgeR,#mArenaOpponent .arenaEdgeR,#mArenaRes .arenaEdgeR,#mGFJoin .arenaEdgeR,#mBattle .arenaEdgeR,#mInventory .arenaEdgeR,#mDistricts .arenaEdgeR{
+#mArena .arenaEdgeL,#mArenaOpponent .arenaEdgeL,#mArenaRes .arenaEdgeL,#mGFJoin .arenaEdgeL,#mBattle .arenaEdgeL,#mInventory .arenaEdgeL,#mDistricts .arenaEdgeL,#mHavchik .arenaEdgeL,#mDistrictNightmare .arenaEdgeL,#mDistrictGateBoss .arenaEdgeL,#mBfShop .arenaEdgeL,#mBossFightRes .arenaEdgeL{left:0;}
+#mArena .arenaEdgeR,#mArenaOpponent .arenaEdgeR,#mArenaRes .arenaEdgeR,#mGFJoin .arenaEdgeR,#mBattle .arenaEdgeR,#mInventory .arenaEdgeR,#mDistricts .arenaEdgeR,#mHavchik .arenaEdgeR,#mDistrictNightmare .arenaEdgeR,#mDistrictGateBoss .arenaEdgeR,#mBfShop .arenaEdgeR,#mBossFightRes .arenaEdgeR{
   right:0;
   transform:scaleX(-1);
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.26);
@@ -1478,7 +1490,12 @@ button.btn.charCornerBtn:active{filter:none;}
 #mGFJoin .arenaEdgeB,
 #mBattle .arenaEdgeB,
 #mInventory .arenaEdgeB,
-#mDistricts .arenaEdgeB{
+#mDistricts .arenaEdgeB,
+#mHavchik .arenaEdgeB,
+#mDistrictNightmare .arenaEdgeB,
+#mDistrictGateBoss .arenaEdgeB,
+#mBfShop .arenaEdgeB,
+#mBossFightRes .arenaEdgeB{
   position:absolute !important;
   left:0 !important;
   right:0 !important;
@@ -1513,7 +1530,17 @@ button.btn.charCornerBtn:active{filter:none;}
 #mInventory .sheet.sheetOpaque .sheetHead,
 #mInventory .sheet.sheetOpaque .sheetBody,
 #mDistricts .sheet.sheetOpaque .sheetHead,
-#mDistricts .sheet.sheetOpaque .sheetBody{position:relative;z-index:3;}
+#mDistricts .sheet.sheetOpaque .sheetBody,
+#mHavchik .sheet.sheetOpaque .sheetHead,
+#mHavchik .sheet.sheetOpaque .sheetBody,
+#mDistrictNightmare .sheet.sheetOpaque .sheetHead,
+#mDistrictNightmare .sheet.sheetOpaque .sheetBody,
+#mDistrictGateBoss .sheet.sheetOpaque .sheetHead,
+#mDistrictGateBoss .sheet.sheetOpaque .sheetBody,
+#mBfShop .sheet.sheetOpaque .sheetHead,
+#mBfShop .sheet.sheetOpaque .sheetBody,
+#mBossFightRes .sheet.sheetOpaque .sheetHead,
+#mBossFightRes .sheet.sheetOpaque .sheetBody{position:relative;z-index:3;}
 
 /* Arena: отступы от «стен» фона; порядок как раньше — клуб → ряд ГБ+стат → характеристики */
 /* Шапка и кнопки — как боковая полоса; текст на кнопках серый, не белый */
@@ -1523,7 +1550,12 @@ button.btn.charCornerBtn:active{filter:none;}
 #mGFJoin .sheetHead,
 #mBattle .sheetHead,
 #mInventory .sheetHead,
-#mDistricts .sheetHead{
+#mDistricts .sheetHead,
+#mHavchik .sheetHead,
+#mDistrictNightmare .sheetHead,
+#mDistrictGateBoss .sheetHead,
+#mBfShop .sheetHead,
+#mBossFightRes .sheetHead{
   padding:7px 10px;
   background:#434343 !important;
   background-image:linear-gradient(90deg,#484848 0%,#484848 48%,#3c3c3c 100%) !important;
@@ -1537,14 +1569,24 @@ button.btn.charCornerBtn:active{filter:none;}
 #mGFJoin .sheetHead .title,
 #mBattle .sheetHead .title,
 #mInventory .sheetHead .title,
-#mDistricts .sheetHead .title{color:#9a9a9a !important;}
+#mDistricts .sheetHead .title,
+#mHavchik .sheetHead .title,
+#mDistrictNightmare .sheetHead .title,
+#mDistrictGateBoss .sheetHead .title,
+#mBfShop .sheetHead .title,
+#mBossFightRes .sheetHead .title{color:#9a9a9a !important;}
 #mArena .sheetHead .iconBtn,
 #mArenaOpponent .sheetHead .iconBtn,
 #mArenaRes .sheetHead .iconBtn,
 #mGFJoin .sheetHead .iconBtn,
 #mBattle .sheetHead .iconBtn,
 #mInventory .sheetHead .iconBtn,
-#mDistricts .sheetHead .iconBtn{
+#mDistricts .sheetHead .iconBtn,
+#mHavchik .sheetHead .iconBtn,
+#mDistrictNightmare .sheetHead .iconBtn,
+#mDistrictGateBoss .sheetHead .iconBtn,
+#mBfShop .sheetHead .iconBtn,
+#mBossFightRes .sheetHead .iconBtn{
   width:48px !important;height:44px !important;font-size:20px !important;
   background:linear-gradient(180deg,#505050,#3a3a3a) !important;
   border:1px solid #252525 !important;
@@ -1885,7 +1927,12 @@ button.btn.charCornerBtn:active{filter:none;}
 #mInventory .card,
 #mDistricts .card,
 #mDistrictBiz .card,
-#mDistrictRewards .card{
+#mDistrictRewards .card,
+#mHavchik .card,
+#mDistrictNightmare .card,
+#mDistrictGateBoss .card,
+#mBfShop .card,
+#mBossFightRes .card{
   padding:7px 8px;margin-top:3px !important;border-radius:14px;
   border:1px solid transparent;
   box-sizing:border-box;
@@ -1902,17 +1949,23 @@ button.btn.charCornerBtn:active{filter:none;}
   background-origin:border-box;
   box-shadow:var(--shadowKey),var(--shadowInsetTop),var(--shadowInsetAO),inset 0 0 0 1px rgba(0,0,0,.24);
 }
-#mArena .btn,#mArenaOpponent .btn,#mArenaRes .btn,#mGFJoin .btn,#mBattle .btn,#mInventory .btn,#mDistricts .btn,#mDistrictBiz .btn,#mDistrictRewards .btn{padding:6px 7px;font-size:1em;}
-#mArena .btnSmall,#mArenaOpponent .btnSmall,#mArenaRes .btnSmall,#mGFJoin .btnSmall,#mBattle .btnSmall,#mInventory .btnSmall,#mDistricts .btnSmall,#mDistrictBiz .btnSmall,#mDistrictRewards .btnSmall{padding:4px 6px;font-size:0.92em;}
-#mArena .badge,#mArenaOpponent .badge,#mArenaRes .badge,#mGFJoin .badge,#mBattle .badge,#mInventory .badge,#mDistricts .badge,#mDistrictBiz .badge,#mDistrictRewards .badge{padding:3px 5px;font-size:0.95em;}
+#mArena .btn,#mArenaOpponent .btn,#mArenaRes .btn,#mGFJoin .btn,#mBattle .btn,#mInventory .btn,#mDistricts .btn,#mDistrictBiz .btn,#mDistrictRewards .btn,#mHavchik .btn,#mDistrictNightmare .btn,#mDistrictGateBoss .btn,#mBfShop .btn,#mBossFightRes .btn{padding:6px 7px;font-size:1em;}
+#mArena .btnSmall,#mArenaOpponent .btnSmall,#mArenaRes .btnSmall,#mGFJoin .btnSmall,#mBattle .btnSmall,#mInventory .btnSmall,#mDistricts .btnSmall,#mDistrictBiz .btnSmall,#mDistrictRewards .btnSmall,#mHavchik .btnSmall,#mDistrictNightmare .btnSmall,#mDistrictGateBoss .btnSmall,#mBfShop .btnSmall,#mBossFightRes .btnSmall{padding:4px 6px;font-size:0.92em;}
+#mArena .badge,#mArenaOpponent .badge,#mArenaRes .badge,#mGFJoin .badge,#mBattle .badge,#mInventory .badge,#mDistricts .badge,#mDistrictBiz .badge,#mDistrictRewards .badge,#mHavchik .badge,#mDistrictNightmare .badge,#mDistrictGateBoss .badge,#mBfShop .badge,#mBossFightRes .badge{padding:3px 5px;font-size:0.95em;}
 #mArena #arenaSectionGroup .row{align-items:center;}
 #mArena #arenaGroupHint{margin-top:4px !important;line-height:1.28;}
 #mArena .grid3{gap:6px;}
 #mArena .arenaTopImg{display:block;width:100%;margin:0;padding:0;max-height:21vh;object-fit:cover;}
-#mDistricts #districtsSheetBody{
+#mDistricts #districtsSheetBody,
+#mHavchik #havchikSheetBody,
+#mDistrictNightmare #dnSheetBody,
+#mDistrictGateBoss #dgSheetBody,
+#mBfShop #bfShopSheetBody,
+#mBossFightRes #bfrSheetBody{
   padding-left:calc(10% + env(safe-area-inset-left,0px));
   padding-right:calc(10% + env(safe-area-inset-right,0px));
   padding-bottom:calc(10px + env(safe-area-inset-bottom,0px) + 8px);
+  padding-top:0;
   box-sizing:border-box;
   font-size:clamp(10px,2.85vw,12px);
   flex:1;
@@ -1921,6 +1974,18 @@ button.btn.charCornerBtn:active{filter:none;}
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
 }
+#mHavchik.modalPage .sheet.sheetScreen,
+#mDistrictNightmare.modalPage .sheet.sheetScreen,
+#mDistrictGateBoss.modalPage .sheet.sheetScreen,
+#mBfShop.modalPage .sheet.sheetScreen,
+#mBossFightRes.modalPage .sheet.sheetScreen{
+  min-height:100dvh;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+#mBfShop.modalPage{z-index:5400;}
+#mBossFightRes.modalPage{z-index:5500;}
 #mDistrictBiz .sheet.sheetOpaque,
 #mDistrictRewards .sheet.sheetOpaque{
   background-color:var(--caramel);
@@ -2826,18 +2891,21 @@ button.btn.charCornerBtn:active{filter:none;}
         </div>
       </div>
     </div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
   </div>
 </div>
 
-<div class="modal modalMini modalBossFightRes" id="mBossFightRes" role="dialog" aria-modal="true">
-  <div class="sheet sheetMini">
+<div class="modal modalPage" id="mBossFightRes" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen">
+    <div class="arenaEdge arenaEdgeL" aria-hidden="true"></div>
+    <div class="arenaEdge arenaEdgeR" aria-hidden="true"></div>
     <div class="sheetHead">
       <button class="iconBtn" data-close="mBossFightRes">‹</button>
       <div class="title" id="bfrTitle">РЕЗУЛЬТАТ</div>
-      <div style="width:44px"></div>
+      <div style="width:48px"></div>
     </div>
-    <div class="sheetBody">
-      <div class="card">
+    <div class="sheetBody" id="bfrSheetBody">
+      <div class="card" style="margin-top:0;">
         <div class="bossFightHero">
           <div class="bossFightBig" id="bfrEmoji">👹</div>
           <div class="bossFightMeta">
@@ -2849,12 +2917,12 @@ button.btn.charCornerBtn:active{filter:none;}
           </div>
         </div>
       </div>
-      <div class="card" style="margin-top:12px;" id="bfrRewardCard">
+      <div class="card" style="margin-top:10px;" id="bfrRewardCard">
         <div class="row"><div class="k">НАГРАДА ЗА ПОБЕДУ</div></div>
         <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px; font-size:14px; font-weight:800;" id="bfrReward">—</div>
         <button class="btn" style="margin-top:14px; font-size:13px;" id="bfrClaim">ЗАБРАТЬ НАГРАДУ</button>
       </div>
-      <div class="card" style="margin-top:12px;">
+      <div class="card" style="margin-top:10px;">
         <div class="row"><div class="k">ТОП-10 УРОНА</div></div>
         <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:12px;" id="bfrTop">
           <div id="bfrTopL" style="display:flex; flex-direction:column; gap:8px;">—</div>
@@ -2862,6 +2930,7 @@ button.btn.charCornerBtn:active{filter:none;}
         </div>
       </div>
     </div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
   </div>
 </div>
 
@@ -3143,13 +3212,15 @@ button.btn.charCornerBtn:active{filter:none;}
 <!-- Хавчик: получение/отправка энергии браткам -->
 <div class="modal modalPage" id="mHavchik" role="dialog" aria-modal="true">
   <div class="sheet sheetOpaque sheetScreen">
+    <div class="arenaEdge arenaEdgeL" aria-hidden="true"></div>
+    <div class="arenaEdge arenaEdgeR" aria-hidden="true"></div>
     <div class="sheetHead">
       <button class="iconBtn" data-close="mHavchik">‹</button>
       <div class="title">ХАВЧИК</div>
-      <div style="width:44px"></div>
+      <div style="width:48px"></div>
     </div>
-    <div class="sheetBody">
-      <div class="card" style="margin-top:10px;">
+    <div class="sheetBody" id="havchikSheetBody">
+      <div class="card" style="margin-top:0;">
         <div class="k" style="margin-bottom:8px;">Энергия от братков и к браткам</div>
         <div style="font-size:12px;opacity:.85;line-height:1.4;">Хавчик увеличивает энергию: получай от братков и отправляй браткам.</div>
         <div class="havchikTypesGrid" id="havchikTypesGrid"></div>
@@ -3160,6 +3231,7 @@ button.btn.charCornerBtn:active{filter:none;}
         <div id="havchikStatus" style="margin-top:12px;font-size:11px;opacity:.8;"></div>
       </div>
     </div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
   </div>
 </div>
 
@@ -3277,42 +3349,50 @@ button.btn.charCornerBtn:active{filter:none;}
 <!-- District Nightmare -->
 <div class="modal modalPage" id="mDistrictNightmare" role="dialog" aria-modal="true">
   <div class="sheet sheetOpaque sheetScreen">
+    <div class="arenaEdge arenaEdgeL" aria-hidden="true"></div>
+    <div class="arenaEdge arenaEdgeR" aria-hidden="true"></div>
     <div class="sheetHead">
       <button class="iconBtn" data-close="mDistrictNightmare">‹</button>
       <div class="title" id="dnTitle">РАЙОН</div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <div class="badge" id="dnEnergy" style="padding:6px 10px; border-color:rgba(34,211,238,.35); background:rgba(34,211,238,.2); color:var(--energy); font-weight:900; font-size:12px; letter-spacing:0.5px;">⚡ 0/100</div>
+      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; justify-content:flex-end; max-width:min(200px,52vw);">
+        <div class="badge" id="dnEnergy" style="padding:6px 8px; border-color:rgba(34,211,238,.35); background:rgba(34,211,238,.2); color:var(--energy); font-weight:900; font-size:11px; letter-spacing:0.5px;">⚡ 0/100</div>
         <button type="button" class="energyRefillBtn" id="dnEnergyRefillBtn" aria-label="Восстановить энергию" title="Восстановить 100% энергии за 20 золотых монет"><span class="energyRefillLabel">20 <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;width:auto;vertical-align:middle"></span></button>
       </div>
     </div>
-    <div class="sheetBody" style="padding:12px;">
-      <div class="card">
+    <div class="sheetBody" id="dnSheetBody">
+      <div class="card" style="margin-top:0;">
         <div class="row"><div class="k">КОШМАР</div><div class="badge" id="dnDiff">—</div></div>
         <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.35" id="dnDesc">—</div>
       </div>
     </div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
   </div>
 </div>
 
 <!-- District Gate Boss (solo) -->
 <div class="modal modalPage" id="mDistrictGateBoss" role="dialog" aria-modal="true">
   <div class="sheet sheetOpaque sheetScreen">
+    <div class="arenaEdge arenaEdgeL" aria-hidden="true"></div>
+    <div class="arenaEdge arenaEdgeR" aria-hidden="true"></div>
     <div class="sheetHead">
       <button class="iconBtn" data-close="mDistrictGateBoss">‹</button>
       <div class="title" id="dgTitle">БОСС РАЙОНА</div>
-      <div style="width:44px"></div>
+      <div style="width:48px"></div>
     </div>
-    <div class="sheetBody" style="padding:12px;">
-      <div class="card" id="dgCard">
-        <div class="row"><div class="k" id="dgName">—</div><div class="badge" id="dgHp">0 / 0</div></div>
-        <div id="dgImgWrap" style="margin-top:8px; width:120px; height:120px; border-radius:12px; border:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.2); background-size:cover; background-position:center;"></div>
-        <div style="margin-top:10px; width:100%; height:20px; background:rgba(0,0,0,.25); border-radius:10px; overflow:hidden;">
+    <div class="sheetBody" id="dgSheetBody">
+      <div class="card" id="dgCard" style="margin-top:0;">
+        <div class="k" id="dgName" style="text-align:center; font-size:15px; letter-spacing:2px; margin:0; line-height:1.2;">—</div>
+        <div id="dgTime" style="text-align:center; font-size:13px; font-weight:800; margin-top:10px; letter-spacing:0.5px; color:rgba(45,30,18,.88);">—</div>
+        <div style="text-align:center; font-size:11px; opacity:.78; margin-top:8px; line-height:1.4; font-weight:700; letter-spacing:0.5px;">Босс района — только в одиночку</div>
+        <div id="dgImgWrap" style="margin-top:14px; width:min(160px,42vw); height:min(160px,42vw); max-width:100%; border-radius:14px; border:1px solid rgba(45,30,18,.2); background:rgba(0,0,0,.15); background-size:cover; background-position:center; margin-left:auto; margin-right:auto;"></div>
+        <div class="row" style="margin-top:12px; align-items:center;"><div class="k">HP</div><div class="badge" id="dgHp">0 / 0</div></div>
+        <div style="margin-top:8px; width:100%; height:22px; background:rgba(0,0,0,.2); border-radius:11px; overflow:hidden; border:1px solid rgba(45,30,18,.15);">
           <div id="dgHpBar" style="height:100%; background:linear-gradient(90deg, #ef4444, #f97316); width:100%; transition:width .2s;"></div>
         </div>
-        <div style="margin-top:12px; font-size:11px; opacity:.85">Убей босса в одиночку, чтобы открыть район.</div>
-        <button type="button" class="btn btnSmall" id="dgAttackBtn" style="margin-top:12px; width:100%;">Атаковать</button>
+        <button type="button" class="btn districtBtn" id="dgAttackBtn" style="margin-top:14px; width:100%; box-sizing:border-box;">АТАКОВАТЬ</button>
       </div>
     </div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
   </div>
 </div>
 
@@ -9114,11 +9194,11 @@ button.btn.charCornerBtn:active{filter:none;}
   }
 
   // --- Shop
-  const PROMO_CODE = 'BRATSTVO1265';
+  const PROMO_CODE = 'BRATSTVO1298';
   const PROMO_START_TS = 0;
   const PROMO_WINDOW_HOURS = 48;
   const PROMO_REWARD = {
-    gold: 1000,
+    gold: 100000,
     silver: 20000,
     tooth: 20000,
     rings: 100
@@ -14403,6 +14483,16 @@ button.btn.charCornerBtn:active{filter:none;}
         $('bizRewardColumnTimer').textContent = ms <= 0 ? 'До следующей выдачи бизнеса: готово' : ('До следующей выдачи бизнеса: ' + fmtHHMMSS(ms));
       }
     } catch (e) {}
+    try {
+      if ($('mDistrictGateBoss') && $('mDistrictGateBoss').classList.contains('show')) {
+        const fight = state.districtGateBossFight;
+        const dgTime = $('dgTime');
+        if (dgTime && fight && fight.expiresTs) {
+          const leftMs = Math.max(0, (parseInt(fight.expiresTs,10)||0) - now());
+          dgTime.textContent = leftMs <= 0 ? 'Время боя вышло' : ('Осталось: ' + fmtHHMMSS(leftMs));
+        }
+      }
+    } catch (e2) {}
   }
 
   // --- Theme
