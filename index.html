@@ -689,6 +689,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .tile.tooth{ box-shadow: var(--shadowKey), var(--shadowInsetTop), var(--shadowInsetAO), 0 0 10px rgba(192,38,211,.18); }
 /* Иконки валют — один размер по всей игре (на 20% меньше: 19px) */
 .goldIcon,.silverIcon,.toothIcon,.fearIcon{height:19px !important;max-height:19px !important;width:auto !important;vertical-align:middle;object-fit:contain;}
+/* Текст сумм валют везде чёрный (иконки без изменений) */
+.tile.gold .v,.tile.gold .v *,.tile.silver .v,.tile.silver .v *,.tile.tooth .v,.tile.tooth .v *,
+#gold,#tooth,#silver,
+.badge:has(.goldIcon),.badge:has(.toothIcon),.badge:has(.silverIcon),
+.badge:has(.goldIcon) *,.badge:has(.toothIcon) *,.badge:has(.silverIcon) *{color:#000 !important;}
+.btn:has(.goldIcon),.btn:has(.toothIcon),.btn:has(.silverIcon){color:#000 !important;}
+.energyRefillLabel,.lavkaPrice,.dicePrice,#dicePriceVal,#starsRewardAmount{color:#000 !important;}
 .tile.shop{padding:6px;background:var(--caramel);}
 .tile.shop .k{margin-bottom:2px;}
 .tile.shop .k{font-size:8px;letter-spacing:2px;}
@@ -1148,7 +1155,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   color:#000 !important;
  }
 
- #mDistricts .sheetBody{overflow-x:hidden;}
+ #mDistricts #districtsSheetBody{overflow-x:hidden;}
  #districtList{max-width:100%;}
  #districtList .card{max-width:100%; box-sizing:border-box; overflow:hidden;}
  .districtCardGrid{display:grid; grid-template-columns:140px 1fr; gap:10px; align-items:start;}
@@ -1226,7 +1233,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 #mStarsReward .sheet{ width: 150px; height: 150px; min-width: 150px; min-height: 150px; max-width: 150px; max-height: 150px; border-radius: 16px; padding: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
 #mStarsReward #starsRewardAmount{ font-size: 14px; margin-bottom: 0; }
 #mStarsReward #starsRewardClaim{ width: 100%; font-size: 11px; padding: 8px 10px; }
-.halturkiTaskRewardPop{ position: fixed; left: 50%; transform: translateX(-50%) translateY(10px); bottom: calc(78px + env(safe-area-inset-bottom)); z-index: 9000; padding: 10px 16px; border-radius: 14px; border: 1px solid rgba(217,70,239,.5); background: var(--caramel); box-shadow: var(--shadowDramatic), 0 0 20px rgba(192,38,211,.2); display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 900; letter-spacing: 0.5px; color: var(--tooth); opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; }
+.halturkiTaskRewardPop{ position: fixed; left: 50%; transform: translateX(-50%) translateY(10px); bottom: calc(78px + env(safe-area-inset-bottom)); z-index: 9000; padding: 10px 16px; border-radius: 14px; border: 1px solid rgba(217,70,239,.5); background: var(--caramel); box-shadow: var(--shadowDramatic), 0 0 20px rgba(192,38,211,.2); display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 900; letter-spacing: 0.5px; color: #000; opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; }
 .halturkiTaskRewardPop.show{ opacity: 1; transform: translateX(-50%) translateY(0); }
 .sheet{
   height:100%;
@@ -1345,7 +1352,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
 /* Arena — фон страницы */
 /* Картинка целиком по ширине; снизу — вторая, третья… впритык */
-#mArena .sheet.sheetOpaque{
+#mArena .sheet.sheetOpaque,
+#mArenaOpponent .sheet.sheetOpaque,
+#mArenaRes .sheet.sheetOpaque,
+#mGFJoin .sheet.sheetOpaque,
+#mBattle .sheet.sheetOpaque,
+#mInventory .sheet.sheetOpaque,
+#mDistricts .sheet.sheetOpaque{
   background-color: var(--caramel);
   background-image: url("фон.png");
   background-position: top center;
@@ -1354,8 +1367,14 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   position:relative;
   overflow-x:hidden;
 }
-/* Боковые полосы: тёмно-серые + узор волн */
-#mArena .arenaEdge{
+/* Боковые полосы (не .arenaEdgeB — у неё отдельные стили) */
+#mArena .arenaEdge:not(.arenaEdgeB),
+#mArenaOpponent .arenaEdge:not(.arenaEdgeB),
+#mArenaRes .arenaEdge:not(.arenaEdgeB),
+#mGFJoin .arenaEdge:not(.arenaEdgeB),
+#mBattle .arenaEdge:not(.arenaEdgeB),
+#mInventory .arenaEdge:not(.arenaEdgeB),
+#mDistricts .arenaEdge:not(.arenaEdgeB){
   position:absolute;
   top:0;
   bottom:0;
@@ -1371,18 +1390,65 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   background-position:center,center top;
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.26);
 }
-#mArena .arenaEdgeL{left:0;}
-#mArena .arenaEdgeR{
+#mArena .arenaEdgeL,#mArenaOpponent .arenaEdgeL,#mArenaRes .arenaEdgeL,#mGFJoin .arenaEdgeL,#mBattle .arenaEdgeL,#mInventory .arenaEdgeL,#mDistricts .arenaEdgeL{left:0;}
+#mArena .arenaEdgeR,#mArenaOpponent .arenaEdgeR,#mArenaRes .arenaEdgeR,#mGFJoin .arenaEdgeR,#mBattle .arenaEdgeR,#mInventory .arenaEdgeR,#mDistricts .arenaEdgeR{
   right:0;
   transform:scaleX(-1);
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.26);
 }
+/* Нижняя полоса — как боковые: тот же SVG, повтор по горизонтали (8px по высоте) */
+#mArena .arenaEdgeB,
+#mArenaOpponent .arenaEdgeB,
+#mArenaRes .arenaEdgeB,
+#mGFJoin .arenaEdgeB,
+#mBattle .arenaEdgeB,
+#mInventory .arenaEdgeB,
+#mDistricts .arenaEdgeB{
+  position:absolute !important;
+  left:0 !important;
+  right:0 !important;
+  bottom:env(safe-area-inset-bottom,0px) !important;
+  top:auto !important;
+  width:100% !important;
+  max-width:none !important;
+  height:8px !important;
+  min-height:8px !important;
+  pointer-events:none;
+  z-index:6;
+  flex:none !important;
+  background-color:#434343;
+  background-image:
+    linear-gradient(180deg,#484848 0%,#484848 48%,#3c3c3c 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 96' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='gb' x1='0' x2='1' y1='0' y2='0'%3E%3Cstop stop-color='%23222222'/%3E%3Cstop offset='1' stop-color='%23383838'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23gb)' width='40' height='96'/%3E%3Cg fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='%235a5a5a' stroke-width='2.4' d='M22 0Q36 16 22 32Q8 48 22 64Q36 80 22 96'/%3E%3Cpath stroke='%23282828' stroke-width='1.5' d='M10 0Q-2 16 10 32Q22 48 10 64Q-2 80 10 96'/%3E%3Cpath stroke='%23787878' stroke-width='1' opacity='.45' d='M32 8Q24 24 32 40Q40 56 32 72Q24 88 32 96'/%3E%3Cpath stroke='%23181818' stroke-width='1.6' d='M28 0Q20 24 28 48Q36 72 28 96'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:100% 100%,8px 8px;
+  background-repeat:no-repeat,repeat-x;
+  background-position:center,left top;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),inset 0 -1px 0 rgba(0,0,0,.4);
+}
 #mArena .sheet.sheetOpaque .sheetHead,
-#mArena .sheet.sheetOpaque .sheetBody{position:relative;z-index:3;}
+#mArena .sheet.sheetOpaque .sheetBody,
+#mArenaOpponent .sheet.sheetOpaque .sheetHead,
+#mArenaOpponent .sheet.sheetOpaque .sheetBody,
+#mArenaRes .sheet.sheetOpaque .sheetHead,
+#mArenaRes .sheet.sheetOpaque .sheetBody,
+#mGFJoin .sheet.sheetOpaque .sheetHead,
+#mGFJoin .sheet.sheetOpaque .sheetBody,
+#mBattle .sheet.sheetOpaque .sheetHead,
+#mBattle .sheet.sheetOpaque .sheetBody,
+#mInventory .sheet.sheetOpaque .sheetHead,
+#mInventory .sheet.sheetOpaque .sheetBody,
+#mDistricts .sheet.sheetOpaque .sheetHead,
+#mDistricts .sheet.sheetOpaque .sheetBody{position:relative;z-index:3;}
 
 /* Arena: отступы от «стен» фона; порядок как раньше — клуб → ряд ГБ+стат → характеристики */
 /* Шапка и кнопки — как боковая полоса; текст на кнопках серый, не белый */
-#mArena .sheetHead{
+#mArena .sheetHead,
+#mArenaOpponent .sheetHead,
+#mArenaRes .sheetHead,
+#mGFJoin .sheetHead,
+#mBattle .sheetHead,
+#mInventory .sheetHead,
+#mDistricts .sheetHead{
   padding:7px 10px;
   background:#434343 !important;
   background-image:linear-gradient(90deg,#484848 0%,#484848 48%,#3c3c3c 100%) !important;
@@ -1390,18 +1456,45 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   border-bottom:1px solid rgba(0,0,0,.35);
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.22);
 }
-#mArena .sheetHead .title{color:#9a9a9a !important;}
-#mArena .sheetHead .iconBtn{
+#mArena .sheetHead .title,
+#mArenaOpponent .sheetHead .title,
+#mArenaRes .sheetHead .title,
+#mGFJoin .sheetHead .title,
+#mBattle .sheetHead .title,
+#mInventory .sheetHead .title,
+#mDistricts .sheetHead .title{color:#9a9a9a !important;}
+#mArena .sheetHead .iconBtn,
+#mArenaOpponent .sheetHead .iconBtn,
+#mArenaRes .sheetHead .iconBtn,
+#mGFJoin .sheetHead .iconBtn,
+#mBattle .sheetHead .iconBtn,
+#mInventory .sheetHead .iconBtn,
+#mDistricts .sheetHead .iconBtn{
   width:48px !important;height:44px !important;font-size:20px !important;
   background:linear-gradient(180deg,#505050,#3a3a3a) !important;
   border:1px solid #252525 !important;
   color:#8f8f8f !important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
 }
+#mDistricts .sheetHead .havchikBtn,
+#mDistricts #havchikBtn{
+  width:48px !important;height:48px !important;min-width:48px !important;
+  border-radius:14px !important;border:1px solid #252525 !important;
+  background:linear-gradient(180deg,#505050,#3a3a3a) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
+  overflow:hidden;padding:0 !important;margin:0 !important;
+}
+#mDistricts .sheetHead .havchikBtn:active,
+#mDistricts #havchikBtn:active{filter:brightness(.92);transform:scale(0.98);}
+#mDistricts .sheetHead .havchikBtn img,
+#mDistricts #havchikBtn img{width:100%;height:100%;object-fit:cover;display:block;}
 #mArena .sheetHead > div[style*="display:flex"]{gap:3px !important;align-items:center !important;}
 #mArena #arenaSearch,
 #mArena #gf1010Open,
-#mArena #arenaCdResetBtn{
+#mArena #arenaCdResetBtn,
+#mGFJoin #gfJoinBtn,
+#mArenaOpponent #arenaOppAttackBtn,
+#mArenaOpponent #arenaOppAnotherBtn{
   background:linear-gradient(180deg,#4a4a4a,#353535) !important;
   border:1px solid #2c2c2c !important;
   color:#9a9a9a !important;
@@ -1409,7 +1502,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 }
 #mArena #arenaSearch:active,
 #mArena #gf1010Open:active,
-#mArena #arenaCdResetBtn:active{
+#mArena #arenaCdResetBtn:active,
+#mGFJoin #gfJoinBtn:active,
+#mArenaOpponent #arenaOppAttackBtn:active,
+#mArenaOpponent #arenaOppAnotherBtn:active{
   filter:brightness(.9);
 }
 #mArena #arenaCdResetBtn .goldIcon{
@@ -1417,7 +1513,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   vertical-align:middle;
 }
 #mArena .sheetHead .arenaInventoryBtn,
-#mArena #arenaInventoryBtn{
+#mArena #arenaInventoryBtn.arenaInventoryBtn{
   position:relative !important;
   width:48px !important;height:48px !important;min-width:48px !important;
   margin:3px 0 !important;
@@ -1427,7 +1523,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   border:1px solid #252525 !important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
   flex-shrink:0;
+  padding:0 !important;
+  cursor:pointer;
 }
+#mArena #arenaInventoryBtn.arenaInventoryBtn:active{filter:brightness(.92);transform:scale(0.98);}
 #mArena #arenaInventoryBtn img{
   position:absolute;
   left:50%;
@@ -1438,8 +1537,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   max-width:none !important;
   max-height:none !important;
   object-fit:contain !important;
-  padding:0;
-  box-sizing:border-box;
   pointer-events:none;
 }
 /* Зубы на арене: таймер — белый по центру; награда доступна — только зуб, целиком, сильный пульс */
@@ -1530,16 +1627,189 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 #mArena #arenaSheetBody{
   padding-left:calc(10% + env(safe-area-inset-left,0px));
   padding-right:calc(10% + env(safe-area-inset-right,0px));
-  padding-bottom:8px;
+  padding-bottom:calc(10px + env(safe-area-inset-bottom,0px) + 8px);
   box-sizing:border-box;
   font-size:clamp(10px,2.85vw,12px); /* чуть мельче — сетка как раньше */
 }
-#mArena #arenaSearch{font-size:1em !important;}
+/* Противник: top задаётся JS по нижнему краю бк (arenaTopImg); здесь запасной вариант */
+#mArenaOpponent{
+  --arenaOppHeadH:62px;
+  --arenaOppSheetTop:calc(env(safe-area-inset-top,0px) + var(--arenaOppHeadH) + 21vh);
+}
+#mArenaOpponent.modalPage{
+  padding:0 !important;
+  align-items:flex-start !important;
+  justify-content:flex-start !important;
+  z-index:5040;
+}
+#mArenaRes.modalPage{z-index:5050;}
+#mArenaRes.modalPage{
+  padding:0 !important;
+  align-items:stretch !important;
+  justify-content:stretch !important;
+}
+#mArenaRes.modalPage .sheet{
+  width:100vw !important;
+  max-width:none !important;
+  min-height:100vh !important;
+  min-height:100dvh !important;
+  border-radius:0 !important;
+  border:none !important;
+  box-shadow:none !important;
+}
+#mArenaRes .sheetBody{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+#mArenaRes #arenaResSheetBody{
+  padding-left:calc(10% + env(safe-area-inset-left,0px));
+  padding-right:calc(10% + env(safe-area-inset-right,0px));
+  padding-bottom:calc(14px + env(safe-area-inset-bottom,0px) + 8px);
+  padding-top:8px;
+  box-sizing:border-box;
+  font-size:clamp(10px,2.85vw,12px);
+}
+#mArenaOpponent.modalPage .sheet{
+  position:fixed !important;
+  left:0 !important;
+  right:0 !important;
+  top:var(--arenaOppJsTop,var(--arenaOppSheetTop)) !important;
+  bottom:auto !important;
+  width:100vw !important;
+  max-width:none !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:var(--arenaOppJsMaxH,calc(100dvh - var(--arenaOppSheetTop) - env(safe-area-inset-bottom,0px))) !important;
+  margin:0 !important;
+  margin-top:0 !important;
+  border-radius:0 !important;
+  border:none !important;
+  box-shadow:none !important;
+  align-self:flex-start !important;
+}
+#mArenaOpponent .sheetBody{
+  flex:0 1 auto !important;
+  min-height:0 !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch;
+}
+#mArenaOpponent #arenaOpponentSheetBody{
+  padding-left:calc(10% + env(safe-area-inset-left,0px));
+  padding-right:calc(10% + env(safe-area-inset-right,0px));
+  padding-bottom:calc(10px + env(safe-area-inset-bottom,0px) + 8px);
+  padding-top:4px;
+  box-sizing:border-box;
+  font-size:clamp(10px,2.85vw,12px);
+}
+/* Групповой бой (заявка): как противник — лист под баннером бк.png */
+#mGFJoin{
+  --gfJoinHeadH:62px;
+  --gfJoinSheetTop:calc(env(safe-area-inset-top,0px) + var(--gfJoinHeadH) + 21vh);
+}
+#mGFJoin.modalPage{
+  padding:0 !important;
+  align-items:flex-start !important;
+  justify-content:flex-start !important;
+  z-index:5038;
+}
+#mGFJoin.modalPage .sheet{
+  position:fixed !important;
+  left:0 !important;
+  right:0 !important;
+  top:var(--gfJoinJsTop,var(--gfJoinSheetTop)) !important;
+  bottom:auto !important;
+  width:100vw !important;
+  max-width:none !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:var(--gfJoinJsMaxH,calc(100dvh - var(--gfJoinSheetTop) - env(safe-area-inset-bottom,0px))) !important;
+  margin:0 !important;
+  margin-top:0 !important;
+  border-radius:0 !important;
+  border:none !important;
+  box-shadow:none !important;
+  align-self:flex-start !important;
+}
+#mGFJoin .sheetBody{
+  flex:0 1 auto !important;
+  min-height:0 !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch;
+}
+#mGFJoin #gfJoinSheetBody{
+  padding-left:calc(10% + env(safe-area-inset-left,0px));
+  padding-right:calc(10% + env(safe-area-inset-right,0px));
+  padding-bottom:calc(10px + env(safe-area-inset-bottom,0px) + 8px);
+  padding-top:4px;
+  box-sizing:border-box;
+  font-size:clamp(10px,2.85vw,12px);
+}
+#mInventory.inventoryFullScreen.modalPage{
+  padding:0 !important;
+  align-items:stretch !important;
+  justify-content:stretch !important;
+  z-index:5037;
+}
+#mInventory.inventoryFullScreen .sheet{
+  width:100vw !important;
+  max-width:none !important;
+  min-height:100vh !important;
+  min-height:100dvh !important;
+  height:100% !important;
+  max-height:none !important;
+  margin:0 !important;
+  border-radius:0 !important;
+  border:none !important;
+  box-shadow:none !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+#mInventory.inventoryFullScreen .sheetBody,
+#mInventory #inventorySheetBody{
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch;
+  padding-left:calc(10% + env(safe-area-inset-left,0px));
+  padding-right:calc(10% + env(safe-area-inset-right,0px));
+  padding-bottom:calc(14px + env(safe-area-inset-bottom,0px) + 8px);
+  padding-top:8px;
+  box-sizing:border-box;
+  font-size:clamp(10px,2.85vw,12px);
+}
+#mBattle #gfBattleArenaImg{display:block;width:100%;margin:0;padding:0;max-height:21vh;object-fit:cover;}
+#mBattle #battleSheetBody{
+  padding-left:calc(10% + env(safe-area-inset-left,0px));
+  padding-right:calc(10% + env(safe-area-inset-right,0px));
+  padding-bottom:calc(10px + env(safe-area-inset-bottom,0px) + 8px);
+  padding-top:0;
+  box-sizing:border-box;
+  font-size:clamp(10px,2.85vw,12px);
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+#mArena #arenaSearch,
+#mGFJoin #gfJoinBtn{font-size:1em !important;}
 #mArena #arenaSearchHint,#mArena #arenaGroupHint,#mArena #gfStatus{font-size:0.95em !important;line-height:1.3;}
 #mArena #arenaSheetBody [style*="font-size:12px"]{font-size:0.95em !important;}
 #mArena #arenaStatsColumnCard [style*="font-size:11px"]{font-size:0.92em !important;}
 /* Кантик 1px как у боковых полос: градиент + SVG-волны */
-#mArena .card{
+#mArena .card,
+#mArenaOpponent .card,
+#mArenaRes .card,
+#mGFJoin .card,
+#mBattle .card,
+#mInventory .card,
+#mDistricts .card{
   padding:7px 8px;margin-top:3px !important;border-radius:14px;
   border:1px solid transparent;
   box-sizing:border-box;
@@ -1556,13 +1826,26 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   background-origin:border-box;
   box-shadow:var(--shadowKey),var(--shadowInsetTop),var(--shadowInsetAO),inset 0 0 0 1px rgba(0,0,0,.24);
 }
-#mArena .btn{padding:6px 7px;font-size:1em;}
-#mArena .btnSmall{padding:4px 6px;font-size:0.92em;}
-#mArena .badge{padding:3px 5px;font-size:0.95em;}
+#mArena .btn,#mArenaOpponent .btn,#mArenaRes .btn,#mGFJoin .btn,#mBattle .btn,#mInventory .btn,#mDistricts .btn{padding:6px 7px;font-size:1em;}
+#mArena .btnSmall,#mArenaOpponent .btnSmall,#mArenaRes .btnSmall,#mGFJoin .btnSmall,#mBattle .btnSmall,#mInventory .btnSmall,#mDistricts .btnSmall{padding:4px 6px;font-size:0.92em;}
+#mArena .badge,#mArenaOpponent .badge,#mArenaRes .badge,#mGFJoin .badge,#mBattle .badge,#mInventory .badge,#mDistricts .badge{padding:3px 5px;font-size:0.95em;}
 #mArena #arenaSectionGroup .row{align-items:center;}
 #mArena #arenaGroupHint{margin-top:4px !important;line-height:1.28;}
 #mArena .grid3{gap:6px;}
-#mArena .arenaTopImg{display:block;width:100%;margin:0;padding:0;max-height:21vh;object-fit:cover;}
+#mArena .arenaTopImg,
+#mDistricts #districtsTopImg{display:block;width:100%;margin:0;padding:0;max-height:21vh;object-fit:cover;}
+#mDistricts #districtsSheetBody{
+  padding-left:calc(10% + env(safe-area-inset-left,0px));
+  padding-right:calc(10% + env(safe-area-inset-right,0px));
+  padding-bottom:calc(10px + env(safe-area-inset-bottom,0px) + 8px);
+  box-sizing:border-box;
+  font-size:clamp(10px,2.85vw,12px);
+  flex:1;
+  min-height:0;
+  overflow-x:hidden;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
 #mArena #arenaGbStatsRow{margin-top:6px !important;gap:6px !important;}
 #mArena #arenaClubCard{padding:4px 8px !important;margin-top:7px !important;}
 #mArena #arenaClubCard .row + div{margin-top:4px !important;gap:4px !important;}
@@ -1605,7 +1888,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 #mArena .gymStatsColumnCard .k{margin-bottom:2px !important;}
 #mArena #arenaStatsColumnCard .k{margin-bottom:4px !important;font-size:10px !important;}
 #mArena #arenaStatsColumnCard [style*="gap:8px"]{gap:5px !important;}
-#mArena .sheetHead .title{font-size:12px;}
+#mArena .sheetHead .title,
+#mArenaOpponent .sheetHead .title,
+#mArenaRes .sheetHead .title{font-size:12px;}
 #mArena #arenaClubCard .k{line-height:1.15;}
 #mArena #arenaSectionGroup .k,#mArena #arenaSectionGroup .row .k{line-height:1.15;}
 #mArena #gfEnter{padding:4px 6px !important;}
@@ -1645,7 +1930,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .havchikBtn:active{transform:scale(0.94);}
 .havchikBtnImg{padding:0;}
 .havchikBtnImg img{width:100%;height:100%;object-fit:cover;}
-#mInventory.inventoryFullScreen .sheet{width:100vw;max-width:none;height:100vh;max-height:none;border-radius:0;border:none;}
 #mLavka.lavkaFullScreen .sheet{width:100vw;max-width:none;height:100vh;max-height:none;border-radius:0;border:none;}
 .havchikCollectFullScreen .sheet{width:100vw;max-width:none;height:100vh;max-height:none;border-radius:0;border:none;}
 .havchikCollectBody{overflow-x:auto;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch;}
@@ -1790,6 +2074,35 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   *{scroll-behavior:auto !important;transition:none !important;animation:none !important;}
 }
 
+/* Правило проекта: на широком экране весь UI — в колонке 480px (как #app), ничего не уезжает в серые поля */
+@media (min-width: 520px){
+  #mArenaOpponent.modalPage .sheet,
+  #mGFJoin.modalPage .sheet{
+    left:calc(max(env(safe-area-inset-left,0px),(100vw - 480px)/2)) !important;
+    right:auto !important;
+    width:480px !important;
+    max-width:480px !important;
+  }
+  #mArenaRes.modalPage .sheet{
+    left:calc(max(env(safe-area-inset-left,0px),(100vw - 480px)/2)) !important;
+    right:auto !important;
+    width:480px !important;
+    max-width:480px !important;
+  }
+  #mPloshchad.modalPage .sheet{
+    width:480px !important;
+    max-width:480px !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+  }
+  #mConsumables.consFull .sheet{
+    width:480px !important;
+    max-width:480px !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+  }
+}
+
 /* Debug overlay — поверх всего, подсвечивает ошибки */
 #dbgOverlay{
   position:fixed;top:0;left:0;right:0;
@@ -1894,21 +2207,23 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   </div>
 </div>
 
-<div class="modal modalMini" id="mGFJoin" role="dialog" aria-modal="true">
-  <div class="sheet sheetMini">
+<div class="modal modalPage" id="mGFJoin" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen">
+    <div class="arenaEdge arenaEdgeL" aria-hidden="true"></div>
+    <div class="arenaEdge arenaEdgeR" aria-hidden="true"></div>
     <div class="sheetHead">
       <button class="iconBtn" data-close="mGFJoin">‹</button>
       <div class="title">ГРУППОВОЙ БОЙ</div>
-      <div style="width:44px"></div>
+      <div style="width:48px"></div>
     </div>
-    <div class="sheetBody">
-      <div class="card">
+    <div class="sheetBody" id="gfJoinSheetBody">
+      <div class="card" style="margin-top:0;">
         <div class="row"><div><div class="k">СТАРТ (UTC)</div><div style="font-size:12px;opacity:.75">Сбор 1 минута</div></div><div class="badge" id="gfJoinStart">--:--</div></div>
-        <div class="row" style="margin-top:10px;"><div><div class="k">ЦЕНА ВХОДА</div><div style="font-size:12px;opacity:.75">Зависит от часа</div></div><div class="badge" style="color:var(--gold)" id="gfJoinCost">0 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div></div>
+        <div class="row" style="margin-top:10px;"><div><div class="k">ЦЕНА ВХОДА</div><div style="font-size:12px;opacity:.75">Зависит от часа</div></div><div class="badge" id="gfJoinCost">0 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div></div>
         <div class="row" style="margin-top:10px;"><div class="k">ДО СТАРТА</div><div class="badge" id="gfJoinLeft">--:--</div></div>
-        <div style="margin-top:12px; display:flex; gap:10px; align-items:center;">
-          <button class="btn" style="flex:1" id="gfJoinBtn">ПОДАТЬ ЗАЯВКУ</button>
-          <div class="badge" id="gfJoinBtnTimer">--:--</div>
+        <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px; align-items:stretch;">
+          <button type="button" class="btn" id="gfJoinBtn" style="width:100%;box-sizing:border-box;">ПОДАТЬ ЗАЯВКУ</button>
+          <div style="display:flex; justify-content:center;"><div class="badge" id="gfJoinBtnTimer">--:--</div></div>
         </div>
 
         <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;" id="gfJoinPeopleCard">
@@ -1917,6 +2232,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         </div>
       </div>
     </div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
   </div>
 </div>
 
@@ -1930,7 +2246,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody">
       <div class="card">
         <div class="row"><div><div class="k">СТАРТ (UTC)</div><div style="font-size:12px;opacity:.75">Сбор 1 минута</div></div><div class="badge" id="gf10Start">--:--</div></div>
-        <div class="row" style="margin-top:10px;"><div><div class="k">ЦЕНА ВХОДА</div><div style="font-size:12px;opacity:.75">Чередование по часу</div></div><div class="badge" style="color:var(--gold)" id="gf10Cost">0 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div></div>
+        <div class="row" style="margin-top:10px;"><div><div class="k">ЦЕНА ВХОДА</div><div style="font-size:12px;opacity:.75">Чередование по часу</div></div><div class="badge" id="gf10Cost">0 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div></div>
         <div class="row" style="margin-top:10px;"><div class="k">СОБРАНО</div><div class="badge" id="gf10Count">0</div></div>
         <div style="margin-top:10px; font-size:12px; opacity:.85; line-height:1.35" id="gf10Status">—</div>
         <div style="margin-top:10px; display:flex; gap:10px;">
@@ -1975,7 +2291,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 <div class="modal modalMini" id="mStarsReward" role="dialog" aria-modal="true">
   <div class="sheet">
     <div style="text-align:center; font-size:14px; font-weight:900; letter-spacing:1px; margin-bottom:12px;">Оплата прошла</div>
-    <div id="starsRewardAmount" style="text-align:center; font-size:18px; color:var(--gold); margin-bottom:16px;">+0 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div>
+    <div id="starsRewardAmount" style="text-align:center; font-size:18px; margin-bottom:16px;">+0 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div>
     <button type="button" class="btn" id="starsRewardClaim" style="width:100%">ЗАБРАТЬ НАГРАДУ</button>
   </div>
 </div>
@@ -2000,7 +2316,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div style="font-size:12px; opacity:.85; margin-bottom:12px; line-height:1.35;">Задания обновляются в 18:00 UTC. Каждое — 1 раз в сутки. Награду можно забрать только выполнив все 6 заданий (раз в сутки).</div>
         <div id="halturkiTaskList" style="display:flex; flex-direction:column; gap:8px;"></div>
         <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--paperLine);">
-          <div class="row"><div class="k">НАГРАДА ЗА ВСЕ 6</div><div class="badge" style="color:var(--gold)">10 <img src="голд.png" alt="Золотые монеты" class="goldIcon"> + 1000 <img src="зуб.png" alt="Золотые зубы" class="toothIcon"></div></div>
+          <div class="row"><div class="k">НАГРАДА ЗА ВСЕ 6</div><div class="badge">10 <img src="голд.png" alt="Золотые монеты" class="goldIcon"> + 1000 <img src="зуб.png" alt="Золотые зубы" class="toothIcon"></div></div>
           <button type="button" class="btn" id="halturkiClaimAll" style="margin-top:10px; width:100%;" disabled>ЗАБРАТЬ НАГРАДУ</button>
         </div>
       </div>
@@ -2197,33 +2513,39 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div class="gymStatsSum" id="gymStatsSum">Сумма: 0</div>
       </div>
     </div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
   </div>
 </div>
 
 <div class="modal modalPage inventoryFullScreen" id="mInventory" role="dialog" aria-modal="true">
   <div class="sheet sheetOpaque sheetScreen inventoryFullScreen">
+    <div class="arenaEdge arenaEdgeL" aria-hidden="true"></div>
+    <div class="arenaEdge arenaEdgeR" aria-hidden="true"></div>
     <div class="sheetHead">
       <button class="iconBtn" data-close="mInventory">‹</button>
       <div class="title">ИНВЕНТАРЬ</div>
-      <div style="width:44px"></div>
+      <div style="width:48px"></div>
     </div>
-    <div class="sheetBody">
-      <div class="card">
+    <div class="sheetBody" id="inventorySheetBody">
+      <div class="card" style="margin-top:0;">
         <div class="k" style="margin-bottom:10px;">РАСХОДНИКИ</div>
         <div class="inventoryList" id="inventoryList">—</div>
       </div>
     </div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
   </div>
 </div>
 
 <div class="modal modalPage" id="mArenaRes" role="dialog" aria-modal="true">
   <div class="sheet sheetOpaque sheetScreen">
+    <div class="arenaEdge arenaEdgeL" aria-hidden="true"></div>
+    <div class="arenaEdge arenaEdgeR" aria-hidden="true"></div>
     <div class="sheetHead">
       <button class="iconBtn" data-close="mArenaRes">‹</button>
       <div class="title">РЕЗУЛЬТАТ БОЯ</div>
-      <div style="width:44px"></div>
+      <div style="width:48px"></div>
     </div>
-    <div class="sheetBody">
+    <div class="sheetBody" id="arenaResSheetBody">
       <div class="card">
         <div class="row"><div class="k">ПРОТИВНИК</div><div class="badge" id="arOpponent">—</div></div>
         <div class="row" style="margin-top:10px;"><div class="k">ТВОЙ УРОН</div><div class="badge" id="arYouDmg">0</div></div>
@@ -2236,18 +2558,21 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div id="arenaCombatLog" style="margin-top:10px; display:flex; flex-direction:column; gap:8px;"></div>
       </div>
     </div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
   </div>
 </div>
 
-<div class="modal modalMini" id="mArenaOpponent" role="dialog" aria-modal="true">
-  <div class="sheet sheetMini">
+<div class="modal modalPage" id="mArenaOpponent" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen">
+    <div class="arenaEdge arenaEdgeL" aria-hidden="true"></div>
+    <div class="arenaEdge arenaEdgeR" aria-hidden="true"></div>
     <div class="sheetHead">
       <button class="iconBtn" data-close="mArenaOpponent">‹</button>
       <div class="title">ПРОТИВНИК</div>
-      <div style="width:44px"></div>
+      <div style="width:48px"></div>
     </div>
-    <div class="sheetBody">
-      <div class="card">
+    <div class="sheetBody" id="arenaOpponentSheetBody">
+      <div class="card" style="margin-top:0;">
         <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">
           <div id="arenaOppAvatar" style="width:52px;height:52px;border-radius:999px;background:rgba(0,0,0,.12);border:1px solid rgba(255,255,255,.35);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:26px;">👤</div>
           <div style="min-width:0;display:flex;flex-direction:column;gap:2px;">
@@ -2264,6 +2589,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         </div>
       </div>
     </div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
   </div>
 </div>
 
@@ -2355,7 +2681,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     </div>
     <div class="sheetBody">
       <div class="card">
-        <div class="row"><div class="k">ТВОИ ЗОЛОТЫЕ МОНЕТЫ</div><div class="badge" style="color:var(--gold)" id="bfShopGold">0 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div></div>
+        <div class="row"><div class="k">ТВОИ ЗОЛОТЫЕ МОНЕТЫ</div><div class="badge" id="bfShopGold">0 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div></div>
         <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end" id="bfShopQty"></div>
         <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
           <button class="btn" id="bfShopBuyKick">ПИНОК: +1 за 5 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></button>
@@ -2406,13 +2732,19 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 <!-- Group Fight Battle -->
 <div class="modal modalPage" id="mBattle" role="dialog" aria-modal="true">
   <div class="sheet sheetOpaque sheetScreen">
+    <div class="arenaEdge arenaEdgeL" aria-hidden="true"></div>
+    <div class="arenaEdge arenaEdgeR" aria-hidden="true"></div>
     <div class="sheetHead">
       <button class="iconBtn" data-close="mBattle">‹</button>
       <div class="title" id="bHeadInfo">РАУНД 1 · 30</div>
-      <button class="btn btnMini" id="bLeave" type="button">ПОКИНУТЬ</button>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+        <button class="btn btnMini" id="gfBattleJoinOpen" type="button" style="font-size:0.78em;letter-spacing:0;padding:4px 5px;max-width:42vw;white-space:normal;line-height:1.1;text-align:center;">ПОДАТЬ ЗАЯВКУ</button>
+        <button class="btn btnMini" id="bLeave" type="button">ПОКИНУТЬ</button>
+      </div>
     </div>
-    <div class="sheetBody">
-      <div class="card">
+    <div class="sheetBody" id="battleSheetBody">
+      <img src="бк.png" alt="" class="arenaTopImg" id="gfBattleArenaImg">
+      <div class="card" style="margin-top:10px;">
         <div class="row" style="margin-top:3px;"><div class="k">ТЫ АТАКУЕШЬ</div><div class="badge" id="bTarget">Авто</div></div>
         <div class="row" style="margin-top:3px;"><div class="k">АТАКА ЗА ХОД</div><div class="badge" id="bAct">—</div></div>
       </div>
@@ -2449,6 +2781,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         </div>
       </div>
     </div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
   </div>
 </div>
 
@@ -2482,7 +2815,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;" id="consList">—</div>
       </div>
       <div class="card" style="margin-top:12px;" id="consShopCard">
-        <div class="row"><div class="k">МАГАЗИН (АРЕНА)</div><div class="badge" style="color:var(--gold)" id="consGold">0 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div></div>
+        <div class="row"><div class="k">МАГАЗИН (АРЕНА)</div><div class="badge" id="consGold">0 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div></div>
         <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;" id="consShop">—</div>
       </div>
     </div>
@@ -2542,7 +2875,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="clanList">—</div>
       </div>
       <div class="card" style="margin-top:12px;" id="clanBankCard">
-        <div class="row"><div class="k">БАНК КЛАНА</div><div class="badge" style="color:var(--gold)" id="clanBankGold">0 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div></div>
+        <div class="row"><div class="k">БАНК КЛАНА</div><div class="badge" id="clanBankGold">0 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div></div>
         <button class="btn" style="margin-top:12px;" id="clanBankAdd">ВНЕСТИ <img src="голд.png" alt="Золотые монеты" class="goldIcon"></button>
       </div>
     </div>
@@ -2654,15 +2987,21 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 <!-- Districts -->
 <div class="modal modalPage" id="mDistricts" role="dialog" aria-modal="true">
   <div class="sheet sheetOpaque sheetScreen">
+    <div class="arenaEdge arenaEdgeL" aria-hidden="true"></div>
+    <div class="arenaEdge arenaEdgeR" aria-hidden="true"></div>
     <div class="sheetHead">
       <button class="iconBtn" data-close="mDistricts">‹</button>
       <div class="title">РАЙОНЫ</div>
-      <button type="button" class="havchikBtn" id="havchikBtn" aria-label="Хавчик" title="Хавчик — энергия от братков и к браткам"><img src="хав.jpeg" alt="Хавчик"></button>
+      <div style="width:48px;display:flex;justify-content:flex-end;align-items:center;">
+        <button type="button" class="havchikBtn" id="havchikBtn" aria-label="Хавчик" title="Хавчик — энергия от братков и к браткам"><img src="хав.jpeg" alt="Хавчик"></button>
+      </div>
     </div>
-    <div class="sheetBody">
-      <div id="districtBizRewardColumn" style="display:none; margin:10px 10px 0 10px;"></div>
-      <div style="margin:10px; display:flex; flex-direction:column; gap:10px;" id="districtList"></div>
+    <div class="sheetBody" id="districtsSheetBody">
+      <img src="бк.png" alt="" class="arenaTopImg" id="districtsTopImg">
+      <div id="districtBizRewardColumn" style="display:none; margin-top:10px;"></div>
+      <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;" id="districtList"></div>
     </div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
   </div>
 </div>
 
@@ -2911,7 +3250,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="sheetBody">
       <div class="card">
         <div class="diceTitle"><span class="ico">🎲</span><span>БРАТСТВО КОЛЬЦА</span></div>
-        <div class="dicePrice">Цена: <span id="dicePriceVal" style="color:var(--gold); font-weight:900">1 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></span></div>
+        <div class="dicePrice">Цена: <span id="dicePriceVal" style="font-weight:900">1 <img src="голд.png" alt="Золотые монеты" class="goldIcon"></span></div>
         <div class="diceMultWrap">
           <div class="diceMultLabel">Множитель</div>
           <div class="diceMultBtns">
@@ -2950,7 +3289,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     </div>
     <div class="sheetBody">
       <div class="card">
-        <div class="row"><div class="k">ПОЛУЧЕНО</div><div class="badge" style="color:var(--gold)" id="diceRewardVal">50 <img src="зуб.png" alt="Золотые зубы" class="toothIcon"></div></div>
+        <div class="row"><div class="k">ПОЛУЧЕНО</div><div class="badge" id="diceRewardVal">50 <img src="зуб.png" alt="Золотые зубы" class="toothIcon"></div></div>
         <button class="btn" style="margin-top:12px" id="diceRewardOk">ОК</button>
       </div>
     </div>
@@ -6432,6 +6771,54 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     }
     if (!stack.includes(id)) stack.push(id);
     m.classList.add('show');
+    function __posModalBelowArenaBanner(modalEl, topProp, maxHProp){
+      try {
+        if (!modalEl || !modalEl.classList.contains('show')) return;
+        var ids = ['arenaTopImg', 'gfBattleArenaImg'];
+        var vh = window.innerHeight || document.documentElement.clientHeight || 568;
+        try {
+          if (window.visualViewport){
+            var vv = window.visualViewport;
+            vh = Math.min(vh, vv.height + (vv.offsetTop || 0));
+          }
+        } catch(e0){}
+        for (var ii = 0; ii < ids.length; ii++){
+          var im = document.getElementById(ids[ii]);
+          if (!im) continue;
+          var r = im.getBoundingClientRect();
+          if (r.height < 6 || r.width < 20) continue;
+          var bot = Math.max(0, Math.round(r.bottom));
+          var mx = Math.max(120, vh - bot - 8);
+          modalEl.style.setProperty(topProp, bot + 'px');
+          modalEl.style.setProperty(maxHProp, mx + 'px');
+          return;
+        }
+        modalEl.style.removeProperty(topProp);
+        modalEl.style.removeProperty(maxHProp);
+      } catch(e1){}
+    }
+    function __schedulePosBelowBanner(modalEl, topProp, maxHProp){
+      function run(){ __posModalBelowArenaBanner(modalEl, topProp, maxHProp); }
+      run();
+      try {
+        requestAnimationFrame(run);
+        setTimeout(run, 50);
+        setTimeout(run, 200);
+        setTimeout(run, 500);
+      } catch(e2){}
+    }
+    if (id==='mArenaOpponent'){
+      try {
+        var mo = document.getElementById('mArenaOpponent');
+        __schedulePosBelowBanner(mo, '--arenaOppJsTop', '--arenaOppJsMaxH');
+      } catch(e3){}
+    }
+    if (id==='mGFJoin'){
+      try {
+        var gj = document.getElementById('mGFJoin');
+        __schedulePosBelowBanner(gj, '--gfJoinJsTop', '--gfJoinJsMaxH');
+      } catch(e4){}
+    }
     setOverlay();
     updateBackButton();
   }
@@ -6444,6 +6831,26 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   function hideModal(id){
     const m = $(id);
     if (!m) return;
+    if (id==='mBattle'){
+      try {
+        var gj0 = $('mGFJoin');
+        if (gj0 && gj0.classList.contains('show')) hideModal('mGFJoin');
+        var inv0 = $('mInventory');
+        if (inv0 && inv0.classList.contains('show')) hideModal('mInventory');
+      } catch(eGj0){}
+    }
+    if (id==='mArenaOpponent'){
+      try {
+        m.style.removeProperty('--arenaOppJsTop');
+        m.style.removeProperty('--arenaOppJsMaxH');
+      } catch(e0){}
+    }
+    if (id==='mGFJoin'){
+      try {
+        m.style.removeProperty('--gfJoinJsTop');
+        m.style.removeProperty('--gfJoinJsMaxH');
+      } catch(e0b){}
+    }
     m.classList.remove('show');
     const idx = stack.lastIndexOf(id);
     if (idx>=0) stack.splice(idx,1);
@@ -6882,7 +7289,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         }
         if (parts.length) {
           rew.innerHTML = parts.join(' ');
-          rew.style.color = 'var(--gold)';
+          rew.style.color = '#000';
         } else {
           rew.innerHTML = '—';
           rew.style.color = '';
@@ -8713,7 +9120,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       html += '<div class="card">'
         + '<div class="row"><div style="min-width:0"><div class="k">'+it.name.toUpperCase()+'</div><div style="font-size:12px;opacity:.75;margin-top:4px">'+it.desc+'</div></div>'
         + '<div style="display:flex; align-items:center; gap:8px;">'
-        + (showX2 ? '<div class="badge" style="padding:6px 8px; font-size:11px; color:var(--gold)">x2</div>' : '')
+        + (showX2 ? '<div class="badge" style="padding:6px 8px; font-size:11px; color:#000">x2</div>' : '')
         + '<button class="btn btnSmall" data-buy="'+it.key+'">'+costLabel+costSuffix+'</button>'
         + '</div>'
         + '</div>'
@@ -9734,11 +10141,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       try {
         const bp = pr ? (parseFloat(pr.clanBonusPct||0) || 0) : 0;
         if (bp > 0) {
-          html += '<div class="row"><div style="min-width:0">Бонус клана</div><div class="badge" style="padding:8px 10px; font-size:13px; color:var(--gold)">+'+Math.round(bp*100)+'%</div></div>';
+          html += '<div class="row"><div style="min-width:0">Бонус клана</div><div class="badge" style="padding:8px 10px; font-size:13px; color:#000">+'+Math.round(bp*100)+'%</div></div>';
         }
       } catch (e) {}
-      if (rm>0) html += '<div class="row"><div style="min-width:0; font-size:14px">+'+rm+' золотых зубов</div><div class="badge" style="padding:8px 10px; font-size:14px; color:var(--tooth)">+'+rm+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon"></div></div>';
-      if (rg>0) html += '<div class="row"><div style="min-width:0; font-size:14px">+'+rg+' золотых монет</div><div class="badge" style="padding:8px 10px; font-size:14px; color:var(--gold)">+'+rg+' <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div></div>';
+      if (rm>0) html += '<div class="row"><div style="min-width:0; font-size:14px">+'+rm+' золотых зубов</div><div class="badge" style="padding:8px 10px; font-size:14px; color:#000">+'+rm+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon"></div></div>';
+      if (rg>0) html += '<div class="row"><div style="min-width:0; font-size:14px">+'+rg+' золотых монет</div><div class="badge" style="padding:8px 10px; font-size:14px; color:#000">+'+rg+' <img src="голд.png" alt="Золотые монеты" class="goldIcon"></div></div>';
       if (rxp>0) html += '<div class="row"><div style="min-width:0; font-size:14px">+'+rxp+' XP</div><div class="badge" style="padding:8px 10px; font-size:14px">+'+rxp+' XP</div></div>';
       reward.innerHTML = html || '<div style="opacity:.75; font-size:12px">—</div>';
     }
@@ -10158,7 +10565,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       html += '<div class="row" style="align-items:flex-start">'
         + '<div style="min-width:0">'
         + '<div class="k">БОСС '+(bb.name || ('#'+bb.id))+'</div>'
-        + '<div style="margin-top:4px; font-size:12px; opacity:.8; line-height:1.25">'+r.emoji+' '+r.itemName+': <b style="letter-spacing:1px">'+have+'</b> / '+r.need+'<br>Цена за 1: <span style="color:var(--gold); font-weight:900">'+price+' <img src="голд.png" alt="Золотые монеты" class="goldIcon"></span></div>'
+        + '<div style="margin-top:4px; font-size:12px; opacity:.8; line-height:1.25">'+r.emoji+' '+r.itemName+': <b style="letter-spacing:1px">'+have+'</b> / '+r.need+'<br>Цена за 1: <span style="color:#000; font-weight:900">'+price+' <img src="голд.png" alt="Золотые монеты" class="goldIcon"></span></div>'
         + '</div>'
         + '<button class="btn btnSmall" data-key-buy="'+r.itemKey+'" data-key-price="'+price+'">КУПИТЬ</button>'
         + '</div>';
@@ -10604,7 +11011,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         + '<div class="bossSub">'+(dead ? ('ПОВЕРЖЕН · HP 0') : ('HP '+fmtBossHpShort(hp)))+lockText+'</div>'
         + '<div class="bossReward">'
         + (rm>0 ? ('<span class="badge" style="color:rgba(0,0,0,.92); padding:6px 8px; font-size:11px">+'+rm+'<img src="зуб.png" alt="Золотые зубы" class="toothIcon"></span>') : '')
-        + (rg>0 ? ('<span class="badge" style="color:var(--gold); padding:6px 8px; font-size:11px">+'+rg+'<img src="голд.png" alt="Золотые монеты" class="goldIcon"></span>') : '')
+        + (rg>0 ? ('<span class="badge" style="color:#000; padding:6px 8px; font-size:11px">+'+rg+'<img src="голд.png" alt="Золотые монеты" class="goldIcon"></span>') : '')
         + (rxp>0 ? ('<span class="badge" style="padding:6px 8px; font-size:11px">+'+rxp+' XP</span>') : '')
         + '</div>'
         + '<div class="bossActionsWrap">'
@@ -12873,6 +13280,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       const arenaClose = document.querySelector('[data-close="mArena"]');
       if (arenaClose) {
         arenaClose.onclick = ()=>{
+          try { hideModal('mInventory'); } catch (e1) {}
+          try { hideModal('mGFJoin'); } catch (e2) {}
+          try { hideModal('mArenaOpponent'); } catch (e3) {}
           hideModal('mArena');
           openScreen('mPloshchad');
           haptic('light');
@@ -13259,6 +13669,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       haptic('light');
     };
     $('gfJoinBtn').onclick = ()=>{ gfJoin(); renderGroupFightUI(); renderGFJoinMini(); };
+    try {
+      const gbj = $('gfBattleJoinOpen');
+      if (gbj) gbj.onclick = ()=>{ showModal('mGFJoin'); renderGFJoinMini(); haptic('light'); };
+    } catch (e) {}
     $('gf10Join').onclick = ()=>{ gf1010Join(); };
     $('gf10Leave').onclick = ()=>{ gf1010Leave(); };
 
