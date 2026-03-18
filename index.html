@@ -1152,9 +1152,36 @@ button.btn.charCornerBtn:active{filter:none;}
  .districtFear{font-size:12px;font-weight:900;opacity:.92;white-space:nowrap;}
  .districtTag{font-size:10px;letter-spacing:2px;font-weight:900;opacity:.75;text-align:right;white-space:nowrap;}
 
- .districtLeftCol{width:140px;flex:0 0 auto;display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
- .districtActions{display:flex;flex-direction:column;gap:6px;flex-wrap:nowrap;justify-content:flex-start;width:100%;}
- .districtBtn{font-size:10px;padding:7px 9px;letter-spacing:1px;width:100%;}
+ .districtLeftCol{
+   display:flex;
+   flex-direction:column;
+   gap:8px;
+   align-items:stretch;
+   min-width:0;
+   max-width:min(140px,100%);
+   width:100%;
+   box-sizing:border-box;
+ }
+ .districtCardThumb{
+   width:100%;
+   max-width:140px;
+   aspect-ratio:1;
+   border-radius:14px;
+   border:1px solid rgba(255,255,255,.12);
+   background-size:cover !important;
+   background-position:center !important;
+   background-repeat:no-repeat !important;
+   display:flex;
+   align-items:center;
+   justify-content:center;
+   font-weight:900;
+   letter-spacing:2px;
+   opacity:.88;
+   flex-shrink:0;
+   box-sizing:border-box;
+ }
+ .districtActions{display:flex;flex-direction:column;gap:6px;flex-wrap:nowrap;justify-content:flex-start;width:100%;min-width:0;}
+ .districtBtn{font-size:10px;padding:7px 9px;letter-spacing:1px;width:100%;box-sizing:border-box;}
 
  .districtBtn,
 #dgAttackBtn,
@@ -1191,7 +1218,8 @@ button.btn.charCornerBtn:active{filter:none;}
 #bfShopBuyKick,
 #bfShopBuyKnuckle,
 #bfShopBuyEnema,
-#bfrClaim{
+#bfrClaim,
+#dgrClaimBtn{
   background:linear-gradient(180deg,#4a4a4a,#353535) !important;
   border:1px solid #2c2c2c !important;
   color:#9a9a9a !important;
@@ -1201,10 +1229,34 @@ button.btn.charCornerBtn:active{filter:none;}
  #mDistricts #districtsSheetBody{overflow-x:hidden;}
  #districtList{max-width:100%;}
  #districtList .card{max-width:100%; box-sizing:border-box; overflow:hidden;}
- .districtCardGrid{display:grid; grid-template-columns:minmax(86px,30%) minmax(0,1fr); gap:8px; align-items:start;}
- .districtCardRight{min-width:0;}
- .districtCardTop{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
+ .districtArenaCard{overflow:hidden;contain:layout;}
+ .districtCardGrid{
+   display:grid;
+   grid-template-columns:minmax(0,min(140px,34%)) minmax(0,1fr);
+   gap:10px 12px;
+   align-items:start;
+   width:100%;
+   max-width:100%;
+   box-sizing:border-box;
+ }
+ @media (max-width:380px){
+   .districtCardGrid{grid-template-columns:minmax(0,min(120px,38%)) minmax(0,1fr);gap:8px 10px;}
+ }
+ .districtCardRight{
+   min-width:0;
+   max-width:100%;
+   display:flex;
+   flex-direction:column;
+   gap:8px;
+   box-sizing:border-box;
+ }
+ .districtCardTop{display:flex; align-items:flex-start; justify-content:space-between; gap:8px; min-width:0; width:100%;}
+ .districtCardTop > .districtCardBadge{flex-shrink:0;}
  .districtCardBadge{flex:0 0 auto;}
+ .districtStack{width:100%;min-width:0;display:flex;flex-direction:column;gap:12px;}
+ .districtStack > div{min-width:0;width:100%;box-sizing:border-box;}
+ .districtStatBox{width:100%;max-width:100%;box-sizing:border-box;padding:10px 12px;}
+ .districtNick{flex-wrap:wrap;}
 
  .bossFightHero{display:flex;align-items:flex-start;justify-content:flex-start;gap:14px;flex-wrap:wrap;}
 .bossFightBig{width:220px;height:220px;max-width:min(220px,48vw);max-height:min(220px,48vw);border-radius:16px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:110% auto;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:64px;flex:0 0 auto;}
@@ -1426,6 +1478,63 @@ button.btn.charCornerBtn:active{filter:none;}
   z-index: 5;
 }
 #mBfShop .bfShopSheetWide .sheetBody{ padding: 12px calc(10% + env(safe-area-inset-left)) 16px; box-sizing: border-box; max-height: calc(88vh - 120px); overflow-y: auto; }
+/* Награда босса района — как остальные модалки (пергамент, серая шапка, стальная кнопка) */
+#mDistrictGateReward.modalMini{
+  padding: 14px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.45);
+  box-sizing: border-box;
+}
+#mDistrictGateReward .dgrRewardSheet{
+  width: min(100%, var(--appCol));
+  max-width: var(--appCol);
+  max-height: min(88vh, 640px);
+  height: auto !important;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  border: 2px solid #2f2f2f;
+  box-shadow:
+    inset 0 0 0 1px rgba(90,90,90,.35),
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 8px 28px rgba(0,0,0,.4);
+  position: relative;
+  overflow: hidden;
+}
+#mDistrictGateReward .dgrRewardSheet .sheetHead{
+  padding: 7px 10px;
+  flex-shrink: 0;
+  background: #434343 !important;
+  background-image: linear-gradient(90deg,#484848 0%,#484848 48%,#3c3c3c 100%) !important;
+  border-top: 1px solid #2a2a2a;
+  border-bottom: 1px solid rgba(0,0,0,.35);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.22);
+}
+#mDistrictGateReward .dgrRewardSheet .sheetHead .title{ color: #9a9a9a !important; }
+#mDistrictGateReward .dgrRewardSheet .sheetHead .iconBtn{
+  width: 48px !important;
+  height: 44px !important;
+  font-size: 20px !important;
+  background: linear-gradient(180deg,#505050,#3a3a3a) !important;
+  border: 1px solid #252525 !important;
+  color: #8f8f8f !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+}
+#mDistrictGateReward .dgrRewardSheet .sheetBody{
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px calc(10% + env(safe-area-inset-left,0px)) 18px calc(10% + env(safe-area-inset-right,0px));
+  box-sizing: border-box;
+}
+#mDistrictGateReward .dgrRewardSheet .arenaEdgeL,
+#mDistrictGateReward .dgrRewardSheet .arenaEdgeR{ z-index: 5; opacity: 1; }
+#mDistrictGateReward .dgrRewardSheet .arenaEdgeB{ z-index: 5; }
+#mDistrictGateReward .sheet.sheetOpaque .sheetHead,
+#mDistrictGateReward .sheet.sheetOpaque .sheetBody{ position: relative; z-index: 3; }
+#mDistrictGateReward #dgrClaimBtn:active{ filter: brightness(0.92); }
 /* Ворота босса — как экран боя: слева портрет+HP, справа урон и кнопка */
 .dgBossGrid{ display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
 .dgBossLeft{ display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; max-width: 100%; }
@@ -1748,6 +1857,7 @@ button.btn.charCornerBtn:active{filter:none;}
 #mDistrictGateBoss .arenaEdge:not(.arenaEdgeB),
 #mBossFight .arenaEdge:not(.arenaEdgeB),
 #mBfShop .arenaEdge:not(.arenaEdgeB),
+#mDistrictGateReward .arenaEdge:not(.arenaEdgeB),
 #mBossFightRes .arenaEdge:not(.arenaEdgeB){
   position:absolute;
   top:0;
@@ -1764,8 +1874,8 @@ button.btn.charCornerBtn:active{filter:none;}
   background-position:center,center top;
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.26);
 }
-#mArena .arenaEdgeL,#mArenaOpponent .arenaEdgeL,#mArenaRes .arenaEdgeL,#mGFJoin .arenaEdgeL,#mBattle .arenaEdgeL,#mInventory .arenaEdgeL,#mDistricts .arenaEdgeL,#mHavchik .arenaEdgeL,#mDistrictNightmare .arenaEdgeL,#mDistrictGateBoss .arenaEdgeL,#mBossFight .arenaEdgeL,#mBfShop .arenaEdgeL,#mBossFightRes .arenaEdgeL{left:0;}
-#mArena .arenaEdgeR,#mArenaOpponent .arenaEdgeR,#mArenaRes .arenaEdgeR,#mGFJoin .arenaEdgeR,#mBattle .arenaEdgeR,#mInventory .arenaEdgeR,#mDistricts .arenaEdgeR,#mHavchik .arenaEdgeR,#mDistrictNightmare .arenaEdgeR,#mDistrictGateBoss .arenaEdgeR,#mBossFight .arenaEdgeR,#mBfShop .arenaEdgeR,#mBossFightRes .arenaEdgeR{
+#mArena .arenaEdgeL,#mArenaOpponent .arenaEdgeL,#mArenaRes .arenaEdgeL,#mGFJoin .arenaEdgeL,#mBattle .arenaEdgeL,#mInventory .arenaEdgeL,#mDistricts .arenaEdgeL,#mHavchik .arenaEdgeL,#mDistrictNightmare .arenaEdgeL,#mDistrictGateBoss .arenaEdgeL,#mBossFight .arenaEdgeL,#mBfShop .arenaEdgeL,#mDistrictGateReward .arenaEdgeL,#mBossFightRes .arenaEdgeL{left:0;}
+#mArena .arenaEdgeR,#mArenaOpponent .arenaEdgeR,#mArenaRes .arenaEdgeR,#mGFJoin .arenaEdgeR,#mBattle .arenaEdgeR,#mInventory .arenaEdgeR,#mDistricts .arenaEdgeR,#mHavchik .arenaEdgeR,#mDistrictNightmare .arenaEdgeR,#mDistrictGateBoss .arenaEdgeR,#mBossFight .arenaEdgeR,#mBfShop .arenaEdgeR,#mDistrictGateReward .arenaEdgeR,#mBossFightRes .arenaEdgeR{
   right:0;
   transform:scaleX(-1);
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.26);
@@ -1783,6 +1893,7 @@ button.btn.charCornerBtn:active{filter:none;}
 #mDistrictGateBoss .arenaEdgeB,
 #mBossFight .arenaEdgeB,
 #mBfShop .arenaEdgeB,
+#mDistrictGateReward .arenaEdgeB,
 #mBossFightRes .arenaEdgeB{
   position:absolute !important;
   left:0 !important;
@@ -1829,6 +1940,8 @@ button.btn.charCornerBtn:active{filter:none;}
 #mBossFight .sheet.sheetOpaque .sheetBody,
 #mBfShop .sheet.sheetOpaque .sheetHead,
 #mBfShop .sheet.sheetOpaque .sheetBody,
+#mDistrictGateReward .sheet.sheetOpaque .sheetHead,
+#mDistrictGateReward .sheet.sheetOpaque .sheetBody,
 #mBossFightRes .sheet.sheetOpaque .sheetHead,
 #mBossFightRes .sheet.sheetOpaque .sheetBody{position:relative;z-index:3;}
 
@@ -2337,8 +2450,26 @@ button.btn.charCornerBtn:active{filter:none;}
   box-shadow:var(--shadowKey),var(--shadowInsetTop),var(--shadowInsetAO),inset 0 0 0 1px rgba(0,0,0,.28),0 2px 14px rgba(0,0,0,.08);
 }
 #mDistricts .districtRewardsStripCard{margin-top:0 !important;margin-bottom:2px !important;}
-#mArena #arenaGbStatsRow{margin-top:6px !important;gap:6px !important;flex-wrap:wrap;}
-#mArena #arenaGbStatsRow > .card{flex:1 1 min(100%,200px);min-width:0;max-width:100%;box-sizing:border-box;}
+/* Групповой бой + статистика — всегда в одну линию (две колонки) */
+#mArena #arenaGbStatsRow{
+  display:grid !important;
+  grid-template-columns:minmax(0,1.45fr) minmax(0,0.95fr);
+  gap:8px !important;
+  margin-top:6px !important;
+  align-items:stretch;
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
+}
+#mArena #arenaGbStatsRow > .card{
+  min-width:0;
+  max-width:100%;
+  width:100%;
+  box-sizing:border-box;
+}
+@media (max-width:300px){
+  #mArena #arenaGbStatsRow{grid-template-columns:1fr;gap:6px !important;}
+}
 #mArena #arenaClubCard{padding:4px 8px !important;margin-top:7px !important;}
 #mArena #arenaClubCard .row + div{margin-top:4px !important;gap:4px !important;}
 #mArena #arenaClubCard .btnSmall{padding:3px 5px !important;}
@@ -2447,11 +2578,12 @@ button.btn.charCornerBtn:active{filter:none;}
 .havchikCollectBody{overflow-x:auto;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch;}
 #havchikCollectScroll{display:flex;flex-direction:column;gap:10px;}
 .havchikInboxCard{border:1px solid var(--paperLine);border-radius:14px;padding:12px;background:rgba(255,255,255,.35);}
-.havchikCollectCard{border:1px solid var(--paperLine);border-radius:16px;background:rgba(255,255,255,.4);padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px;}
-.havchikCollectCard img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;}
-.havchikCollectCard .havchikName{font-size:11px;font-weight:900;text-align:center;line-height:1.2;}
-.havchikTypesGrid{display:grid;grid-template-columns:repeat(3,minmax(28vw,1fr));grid-template-rows:repeat(2,auto);gap:10px;margin-top:12px;}
-.havchikTypesGrid .havchikCollectCard{margin:0;}
+.havchikCollectCard{border:1px solid var(--paperLine);border-radius:14px;background:rgba(255,255,255,.4);padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;max-width:100%;box-sizing:border-box;}
+.havchikCollectCard img{width:100%;max-width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;}
+.havchikCollectCard .havchikName{font-size:clamp(9px,2.5vw,11px);font-weight:900;text-align:center;line-height:1.2;word-break:break-word;hyphens:auto;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4em;}
+.havchikTypesGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,auto);gap:8px 6px;margin-top:12px;width:100%;max-width:100%;box-sizing:border-box;}
+.havchikTypesGrid .havchikCollectCard{margin:0;width:100%;}
+#mHavchik #havchikSheetBody .card{overflow:hidden;min-width:0;}
 
 .havchikCardSelected{border-color:var(--gold) !important; box-shadow:0 0 0 2px rgba(200,160,80,.4);}
 .havchikCardLocked{opacity:.6;pointer-events:auto;}
@@ -2978,8 +3110,8 @@ button.btn.charCornerBtn:active{filter:none;}
         </div>
       </div>
 
-      <div id="arenaGbStatsRow" style="margin-top:9px; display:flex; flex-wrap:wrap; gap:8px; align-items:stretch;">
-        <div class="card" style="margin-top:0; flex:1 1 min(240px,100%); min-width:0; max-width:100%;" id="arenaSectionGroup">
+      <div id="arenaGbStatsRow" style="margin-top:9px;">
+        <div class="card" style="margin-top:0; min-width:0;" id="arenaSectionGroup">
         <div class="row"><div class="k">ГРУППОВОЙ БОЙ</div><button class="btn btnMini" id="gf1010Open">ВХОД</button></div>
         <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.35" id="arenaGroupHint"></div>
         <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
@@ -2992,7 +3124,7 @@ button.btn.charCornerBtn:active{filter:none;}
           <button class="btn" id="gfEnter" style="display:none;">ВОЙТИ В БОЙ</button>
         </div>
       </div>
-      <div class="card" style="margin-top:0; flex:1 1 min(200px,100%); min-width:0; max-width:100%;" id="arenaStatsColumnCard">
+      <div class="card" style="margin-top:0; min-width:0;" id="arenaStatsColumnCard">
         <div class="k" style="margin-bottom:8px;">СТАТИСТИКА</div>
         <div style="display:flex; flex-direction:column; gap:8px;">
           <div><div class="k" style="font-size:11px;">АРЕНА</div><div class="badge" id="arenaWinsLosses">0 / 0</div></div>
@@ -3715,22 +3847,25 @@ button.btn.charCornerBtn:active{filter:none;}
 
 <!-- Награда за босса района -->
 <div class="modal modalMini" id="mDistrictGateReward" role="dialog" aria-modal="true">
-  <div class="sheet sheetMini">
+  <div class="sheet sheetMini sheetOpaque dgrRewardSheet">
+    <div class="arenaEdge arenaEdgeL" aria-hidden="true"></div>
+    <div class="arenaEdge arenaEdgeR" aria-hidden="true"></div>
     <div class="sheetHead">
       <button class="iconBtn" data-close="mDistrictGateReward">‹</button>
       <div class="title">БОСС РАЙОНА ПОВЕРЖЕН</div>
       <div style="width:44px"></div>
     </div>
-    <div class="sheetBody">
-      <div class="card">
+    <div class="sheetBody" id="dgrSheetBody">
+      <div class="card" style="margin-top:0;">
         <div class="row"><div class="k">РАЙОН ОТКРЫТ НАВСЕГДА</div></div>
-        <div class="card" style="margin-top:12px;">
+        <div class="card" style="margin-top:10px;">
           <div class="row"><div class="k">НАГРАДА</div></div>
           <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="dgrRewardList"></div>
-          <button type="button" class="btn" id="dgrClaimBtn" style="margin-top:14px; width:100%;">ЗАБРАТЬ</button>
+          <button type="button" class="btn" id="dgrClaimBtn" style="margin-top:14px; width:100%; box-sizing:border-box;">ЗАБРАТЬ</button>
         </div>
       </div>
     </div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
   </div>
 </div>
 
@@ -13172,7 +13307,7 @@ button.btn.charCornerBtn:active{filter:none;}
       html += '<div class="card districtArenaCard">'
         + '<div class="districtCardGrid">'
         + '<div class="districtLeftCol" style="'+(unlocked?'':'opacity:.55; filter:grayscale(1);')+'">'
-        + '<div style="width:140px; height:140px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:'+(img?('url(\''+encodeURI(img)+'\') center/cover no-repeat'):'linear-gradient(145deg, rgba(255,255,255,.14), rgba(0,0,0,.10))')+'; display:flex; align-items:center; justify-content:center; font-weight:900; letter-spacing:2px; opacity:.88">'+(img?'':'IMG')+'</div>'
+        + '<div class="districtCardThumb" style="background:'+(img?('url(\''+encodeURI(img)+'\')'):'linear-gradient(145deg, rgba(255,255,255,.14), rgba(0,0,0,.10))')+'">'+(img?'':'IMG')+'</div>'
         + '<div class="districtActions">'
         + (showGateBossBtn && !showBossFullColumn ? ('<button class="btn btnSmall districtBtn" data-dg="'+idx+'" style="border-color:rgba(239,68,68,.5); background:rgba(239,68,68,.2);">СРАЗИТЬСЯ С БОССОМ</button>') : '')
         + '<button class="btn btnSmall districtBtn" data-dn="'+(i-1)+'" '+(unlocked?'':'disabled')+'>'+ (unlocked ? 'КОШМАРИТЬ' : 'ЗАКРЫТО') +'</button>'
