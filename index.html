@@ -172,11 +172,11 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .globalChatBtn{width:44px;height:44px;min-width:44px;min-height:44px;border-radius:50%;flex-shrink:0;border:1px solid var(--btnBorder);background:var(--caramel);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;padding:0;box-shadow: var(--shadowKey), var(--shadowInsetTop);transition: transform var(--transition-fast), box-shadow var(--transition-fast);}
 .globalChatBtn:active{transform:scale(0.94);box-shadow:none;}
 .genderToggleBtn{flex-shrink:0;width:32px;height:32px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;font-weight:900;transition:transform var(--transition-fast), box-shadow var(--transition-fast);}
-.genderToggleBtn--m{background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98));color:#000;box-shadow: 0 1px 4px rgba(37,99,235,.35), inset 0 1px 0 rgba(255,255,255,.3);}
+.genderToggleBtn--m{background:linear-gradient(180deg,#4a4a4a,#353535);border:1px solid #2c2c2c;color:#9a9a9a;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.25);}
 .genderToggleBtn--f{background:linear-gradient(180deg, rgba(251,207,232,.98), rgba(236,72,153,.98));color:#000;box-shadow: 0 1px 4px rgba(236,72,153,.35), inset 0 1px 0 rgba(255,255,255,.35);}
 .genderToggleBtn:active{transform:scale(0.92);}
 .genderBadge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:12px;line-height:1;font-weight:900;flex-shrink:0;border:1px solid rgba(255,255,255,.5);}
-.genderBadge--m{background:linear-gradient(180deg, rgba(96,165,250,.95), rgba(37,99,235,.95));color:#000;}
+.genderBadge--m{background:linear-gradient(180deg,#4a4a4a,#353535);border:1px solid #2c2c2c;color:#9a9a9a;}
 .genderBadge--f{background:linear-gradient(180deg, rgba(251,207,232,.95), rgba(236,72,153,.95));color:#000;}
 .hud .name{gap:5px;}
 .hud .nameCol{gap:1px;}
@@ -209,10 +209,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .energyPill .eTimer{font-size:9px;letter-spacing:1.5px;opacity:.70;margin-left:16px;}
 /* Лёгкий screen glow для блока энергии (п.32) */
 .energyPill{ box-shadow: 0 0 8px rgba(14,165,233,.12); border-radius:999px; }
-.energyRefillBtn{flex-shrink:0;min-width:auto;height:26px;padding:0 8px;border-radius:13px;border:1px solid rgba(14,165,233,.5);background:rgba(14,165,233,.22);color:var(--energy);font-size:11px;line-height:1;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:3px;transition:transform .15s, background .15s, box-shadow .15s;box-shadow: 0 1px 4px rgba(14,165,233,.2), inset 0 1px 0 rgba(255,255,255,.25), var(--glowEnergy);}
+.energyRefillBtn{flex-shrink:0;min-width:auto;height:26px;padding:0 8px;border-radius:13px;border:1px solid #2c2c2c;background:linear-gradient(180deg,#4a4a4a,#353535);color:#9a9a9a;font-size:11px;line-height:1;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:3px;transition:transform .15s, filter .15s;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.25);}
 .energyRefillBtn .energyRefillLabel{display:inline-flex;align-items:center;gap:2px;}
-.energyRefillBtn:hover{background:rgba(14,165,233,.35);}
-.energyRefillBtn:active{transform:scale(0.9);box-shadow:none;}
+.energyRefillBtn:hover{filter:brightness(1.06);}
+.energyRefillBtn:active{transform:scale(0.94);filter:brightness(.9);}
 .resetProgressBtn{flex-shrink:0;width:18px;height:18px;padding:0;border-radius:50%;border:1px solid rgba(120,120,120,.5);background:rgba(80,80,80,.2);color:rgba(100,100,100,.95);font-size:11px;line-height:1;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s, background .15s;}
 .resetProgressBtn:hover{background:rgba(100,100,100,.35);}
 .resetProgressBtn:active{transform:scale(0.9);}
@@ -556,9 +556,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   line-height:1.2;
   min-height:0;
   border-radius:8px;
-  border:1px solid rgba(255,255,255,.5);
-  background:linear-gradient(180deg, rgba(147,197,253,.95), rgba(59,130,246,.95));
-  color:rgba(255,255,255,.98);
+  border:1px solid #2c2c2c;
+  background:linear-gradient(180deg,#4a4a4a,#353535);
+  color:#9a9a9a;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.25);
   cursor:pointer;
   white-space:nowrap;
   -webkit-tap-highlight-color:transparent;
@@ -624,9 +625,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   letter-spacing:0.5px;
   line-height:1.15;
   border-radius:6px;
-  border:1px solid rgba(255,255,255,.5);
-  background:linear-gradient(180deg, rgba(147,197,253,.95), rgba(59,130,246,.95));
-  color:rgba(255,255,255,.98);
+  border:1px solid #2c2c2c;
+  background:linear-gradient(180deg,#4a4a4a,#353535);
+  color:#9a9a9a;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.25);
   cursor:pointer;
   white-space:nowrap;
   -webkit-tap-highlight-color:transparent;
@@ -756,24 +758,20 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   padding:3px 6px;
   min-height:auto;
   line-height:1.2;
-  background:linear-gradient(180deg, rgba(191,219,254,.98), rgba(147,197,253,.98));
-  border:1px solid rgba(255,255,255,.55);
-  color:#000;
+  background:linear-gradient(180deg,#3a3a3a,#2a2a2a);
+  border:1px solid #2c2c2c;
+  color:#7a7a7a;
   flex:1 0 calc(25% - 4px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 2px rgba(0,0,0,.2);
 }
 .gymMultBtns .btnMult.active{
-  background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98));
-  border:1px solid rgba(30,64,175,.85);
-  color:#000;
+  background:linear-gradient(180deg,#4a4a4a,#353535);
+  border:1px solid #2c2c2c;
+  color:#9a9a9a;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.25);
 }
 
-/* Светло-синие кнопки улучшений и питомцев в спортзале (фон как у КОШМАРИТЬ, текст чёрный) */
-#arenaSectionGym .statTile .stBtn,
-#arenaSectionGym .petCard .pBtn{
-  background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98));
-  border:1px solid rgba(255,255,255,.55);
-  color:#000;
-}
+/* Кнопки прокачки/питомцев — тот же стиль, что у .btn */
 
 .gymStatsColumnCard{margin-top:10px;}
 .gymStatsColumnLegend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;font-size:10px;opacity:.88;letter-spacing:1px;}
@@ -889,7 +887,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
 /* Bottom dock — божественный карамельный док */
 .bottomStack{margin-top:0;display:flex;flex-direction:column;width:100%;}
-.bottomStack .btnHalturki{ width:100%; padding:12px 14px; font-size:13px; font-weight:900; letter-spacing:2px; border-radius:12px; background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98)); border:1px solid rgba(255,255,255,.55); color:#000; box-shadow: 0 2px 8px rgba(0,0,0,.15); margin:6px 0 calc(14px + env(safe-area-inset-bottom)); box-sizing:border-box; }
+.bottomStack .btnHalturki{ width:100%; padding:12px 14px; font-size:13px; font-weight:900; letter-spacing:2px; border-radius:12px; background:linear-gradient(180deg,#4a4a4a,#353535); border:1px solid #2c2c2c; color:#9a9a9a; box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.25); margin:6px 0 calc(14px + env(safe-area-inset-bottom)); box-sizing:border-box; }
 .bottomStack .btnHalturki:active{ opacity:.9; transform:scale(0.98); }
 .dock{
   padding:0 0 calc(14px + env(safe-area-inset-bottom));
@@ -937,14 +935,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 }
 
 .btn{
-  border:none;
   border-radius:999px;
   padding:9px 13px;
   min-height: var(--touch-min);
   min-width: var(--touch-min);
-  background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98));
-  border:1px solid rgba(255,255,255,.55);
-  color:#000;
+  background:linear-gradient(180deg,#4a4a4a,#353535);
+  border:1px solid #2c2c2c;
+  color:#9a9a9a;
   cursor:pointer;
   display:flex;
   align-items:center;
@@ -953,12 +950,21 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   font-weight:900;
   letter-spacing:1.1px;
   font-size:11px;
-  transition: transform var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: transform var(--transition-fast), filter var(--transition-fast);
   touch-action:manipulation;
   user-select:none;
-  box-shadow: 0 4px 14px rgba(37,99,235,.28), 0 2px 6px rgba(28,22,16,.1), inset 0 1px 0 rgba(255,255,255,.4);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.25);
 }
-.btn:active{transform:scale(0.97);box-shadow: 0 2px 8px rgba(37,99,235,.2), 0 1px 4px rgba(28,22,16,.08), inset 0 1px 0 rgba(255,255,255,.25);}
+.btn:active{transform:scale(0.97);filter:brightness(.9);}
+.dockRow .dockBtn.btn,
+button.btn.charCornerBtn{
+  background:var(--caramel) !important;
+  border:2px solid var(--paperLine) !important;
+  color:transparent !important;
+  box-shadow:var(--shadowInsetTop),var(--shadowInsetAO) !important;
+}
+.dockRow .dockBtn.btn:active,
+button.btn.charCornerBtn:active{filter:none;}
 .btnSmall{font-size:11px;padding:9px 13px;}
 
  .diceTitle{display:flex; align-items:center; justify-content:center; gap:10px; letter-spacing:4px; font-weight:900; font-size:14px; opacity:.92; margin-top:2px;}
@@ -1062,9 +1068,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   margin-left:auto;
   margin-right:auto;
   display:block;
-  background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98));
-  border:1px solid rgba(255,255,255,.55);
-  color:#000;
+  background:linear-gradient(180deg,#4a4a4a,#353535);
+  border:1px solid #2c2c2c;
+  color:#9a9a9a;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.25);
 }
 
   #diceRoll{ touch-action: manipulation; }
@@ -1150,9 +1157,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 #bfShopBuyKnuckle,
 #bfShopBuyEnema,
 #bfrClaim{
-  background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98)) !important;
-  border:1px solid rgba(255,255,255,.55) !important;
-  color:#000 !important;
+  background:linear-gradient(180deg,#4a4a4a,#353535) !important;
+  border:1px solid #2c2c2c !important;
+  color:#9a9a9a !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.25) !important;
  }
 
  #mDistricts #districtsSheetBody{overflow-x:hidden;}
@@ -1192,9 +1200,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .bossAtkBtn[data-boss-attack],
 .bossAtkBtn[data-boss-continue],
 .bossAtkBtn[data-boss-claim]{
-  background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98)) !important;
-  border:1px solid rgba(255,255,255,.55) !important;
-  color:#000 !important;
+  background:linear-gradient(180deg,#4a4a4a,#353535) !important;
+  border:1px solid #2c2c2c !important;
+  color:#9a9a9a !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.25) !important;
 }
 
 /* Modals — божественные карамельные слои */
@@ -1288,13 +1297,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   #mBattle .bAva{width:36px;height:36px;border-radius:999px;object-fit:cover;flex:0 0 auto;border:1px solid rgba(45,30,18,.22);background:rgba(255,255,255,.22);}
   #mBattle .bNmRow{display:flex;align-items:center;gap:8px;min-width:0;}
   #mBattle .bNmTxt{min-width:0;overflow:hidden;text-overflow:ellipsis;}
- #mBattle .battleTeamsGrid{max-width:100%; gap:2px !important;}
+ #mBattle .battleTeamsGrid{max-width:100%; gap:10px !important;}
+ #mBattle .battleMyTeamWrap{background:rgba(45,30,18,.09) !important; border:1px solid rgba(45,30,18,.16) !important;}
  #mBattle .battleCol{background:rgba(45,30,18,.09) !important; border:1px solid rgba(45,30,18,.16) !important; border-radius:16px !important; padding:6px !important;}
  #mBattle .battleAtkCol{background:rgba(45,30,18,.12) !important;}
- #mBattle .battleCol:not(:first-child){border-left:none !important;}
- #mBattle .battleCol:not(:last-child){border-right:none !important;}
- #mBattle .battleCol:first-child{border-top-right-radius:0 !important; border-bottom-right-radius:0 !important;}
- #mBattle .battleCol:last-child{border-top-left-radius:0 !important; border-bottom-left-radius:0 !important;}
   #mBattle .battleAtkCol{display:flex; flex-direction:column; align-items:center;}
   #mBattle #bAtkList{width:100%;}
   #mBattle #bAtkList .btn{justify-content:center;}
@@ -1315,6 +1321,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
  @media (max-width: 380px){
    #mBattle .battleTeamsGrid{grid-template-columns:1fr !important;}
+   #mBattle .battleAtkCol{align-items:stretch !important;}
+   #mBattle .battleAtkCol > div:first-child{text-align:left !important;}
    #mBattle .battleEnemyCol > div:first-child{ text-align:left !important; }
  }
 
@@ -1783,7 +1791,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   box-sizing:border-box;
   font-size:clamp(10px,2.85vw,12px);
 }
-#mBattle #gfBattleArenaImg{display:block;width:100%;margin:0;padding:0;max-height:21vh;object-fit:cover;}
 #mBattle #battleSheetBody{
   padding-left:calc(10% + env(safe-area-inset-left,0px));
   padding-right:calc(10% + env(safe-area-inset-right,0px));
@@ -1832,8 +1839,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 #mArena #arenaSectionGroup .row{align-items:center;}
 #mArena #arenaGroupHint{margin-top:4px !important;line-height:1.28;}
 #mArena .grid3{gap:6px;}
-#mArena .arenaTopImg,
-#mDistricts #districtsTopImg{display:block;width:100%;margin:0;padding:0;max-height:21vh;object-fit:cover;}
+#mArena .arenaTopImg{display:block;width:100%;margin:0;padding:0;max-height:21vh;object-fit:cover;}
 #mDistricts #districtsSheetBody{
   padding-left:calc(10% + env(safe-area-inset-left,0px));
   padding-right:calc(10% + env(safe-area-inset-right,0px));
@@ -2738,24 +2744,22 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <button class="iconBtn" data-close="mBattle">‹</button>
       <div class="title" id="bHeadInfo">РАУНД 1 · 30</div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
-        <button class="btn btnMini" id="gfBattleJoinOpen" type="button" style="font-size:0.78em;letter-spacing:0;padding:4px 5px;max-width:42vw;white-space:normal;line-height:1.1;text-align:center;">ПОДАТЬ ЗАЯВКУ</button>
         <button class="btn btnMini" id="bLeave" type="button">ПОКИНУТЬ</button>
       </div>
     </div>
     <div class="sheetBody" id="battleSheetBody">
-      <img src="бк.png" alt="" class="arenaTopImg" id="gfBattleArenaImg">
-      <div class="card" style="margin-top:10px;">
+      <div class="card" style="margin-top:0;">
         <div class="row" style="margin-top:3px;"><div class="k">ТЫ АТАКУЕШЬ</div><div class="badge" id="bTarget">Авто</div></div>
         <div class="row" style="margin-top:3px;"><div class="k">АТАКА ЗА ХОД</div><div class="badge" id="bAct">—</div></div>
       </div>
 
       <div class="card" style="margin-top:10px;">
         <div class="row"><div class="k">КОМАНДЫ</div><button class="btn btnMini" id="battleConsOpen" type="button">🎒</button></div>
-        <div class="battleTeamsGrid" style="margin-top:10px; display:grid; grid-template-columns:1fr 56px 1fr; gap:10px;">
-          <div class="battleCol" style="padding:10px; border-radius:16px; border:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.10);">
-            <div style="font-size:7px;opacity:.55; margin-bottom:6px;">ТВОЯ КОМАНДА</div>
-            <div id="bMyTeam" style="display:flex; flex-direction:column; gap:4px;"></div>
-          </div>
+        <div class="battleMyTeamWrap" style="margin-top:10px; width:100%; box-sizing:border-box; padding:10px; border-radius:16px; border:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.10);">
+          <div style="font-size:7px;opacity:.55; margin-bottom:6px;">ТВОЯ КОМАНДА</div>
+          <div id="bMyTeam" style="display:flex; flex-direction:column; gap:4px; width:100%;"></div>
+        </div>
+        <div class="battleTeamsGrid" style="margin-top:10px; display:grid; grid-template-columns:minmax(56px,18vw) 1fr; gap:10px; width:100%; box-sizing:border-box;">
           <div class="battleCol battleAtkCol" style="padding:10px; border-radius:16px; border:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.10);">
             <div style="font-size:7px;opacity:.55; margin-bottom:6px; text-align:center;">АТАКА</div>
             <div id="bAtkList" style="display:flex; flex-direction:column; gap:4px;"></div>
@@ -2997,8 +3001,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       </div>
     </div>
     <div class="sheetBody" id="districtsSheetBody">
-      <img src="бк.png" alt="" class="arenaTopImg" id="districtsTopImg">
-      <div id="districtBizRewardColumn" style="display:none; margin-top:10px;"></div>
+      <div id="districtBizRewardColumn" style="display:none; margin-top:0;"></div>
       <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;" id="districtList"></div>
     </div>
     <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
@@ -6774,7 +6777,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     function __posModalBelowArenaBanner(modalEl, topProp, maxHProp){
       try {
         if (!modalEl || !modalEl.classList.contains('show')) return;
-        var ids = ['arenaTopImg', 'gfBattleArenaImg'];
+        var ids = ['arenaTopImg'];
         var vh = window.innerHeight || document.documentElement.clientHeight || 568;
         try {
           if (window.visualViewport){
@@ -9796,8 +9799,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         box.innerHTML = opts.map(n=>{
           const isActive = (n===q);
           const extra = isActive
-            ? 'background:linear-gradient(180deg, rgba(59,130,246,.98), rgba(37,99,235,.98)); color:#000;'
-            : 'opacity:.7;';
+            ? 'background:linear-gradient(180deg,#4a4a4a,#353535); border:1px solid #2c2c2c; color:#9a9a9a; box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.25);'
+            : 'opacity:.65; border:1px solid #2c2c2c; color:#7a7a7a;';
           return '<button class="btn btnMini" data-bf-hitqty="'+n+'" style="'+extra+'">x'+n+'</button>';
         }).join('');
         box.querySelectorAll('[data-bf-hitqty]').forEach(bb=>{
@@ -12893,10 +12896,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
           const locked = districtTaskLocked(i, k, tasks.length);
           const can = (!locked) && (!done) && (energy >= meta.cost);
           const btnTxt = locked ? 'НЕДОСТУПНО' : (done ? 'ГОТОВО' : 'ВЫПОЛНИТЬ');
-          const btnStyle = 'height:34px; padding:0 12px; border-radius:999px; font-weight:900; letter-spacing:1px; border:1px solid rgba(255,255,255,.55);'
+          const btnStyle = 'height:34px; padding:0 12px; border-radius:999px; font-weight:900; letter-spacing:1px;'
             + (can
-              ? ' background:linear-gradient(180deg, rgba(96,165,250,.98), rgba(37,99,235,.98)); color:#000;'
-              : ' background:rgba(209,213,219,.9); color:rgba(55,65,81,.9); opacity:.75;');
+              ? ' border:1px solid #2c2c2c; background:linear-gradient(180deg,#4a4a4a,#353535); color:#9a9a9a; box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.25);'
+              : ' border:1px solid #2c2c2c; background:rgba(55,55,55,.85); color:#6a6a6a; opacity:.85;');
           const pct = max>0 ? clamp((cnt/max)*100, 0, 100) : 0;
           h += '<div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(45,30,18,.18)"></div>';
           h += '<div style="display:grid; grid-template-columns: minmax(0,1fr) 92px 62px 112px; gap:8px; align-items:center; '+(locked ? 'opacity:.45; filter:grayscale(1);' : '')+'">';
@@ -13669,10 +13672,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       haptic('light');
     };
     $('gfJoinBtn').onclick = ()=>{ gfJoin(); renderGroupFightUI(); renderGFJoinMini(); };
-    try {
-      const gbj = $('gfBattleJoinOpen');
-      if (gbj) gbj.onclick = ()=>{ showModal('mGFJoin'); renderGFJoinMini(); haptic('light'); };
-    } catch (e) {}
     $('gf10Join').onclick = ()=>{ gf1010Join(); };
     $('gf10Leave').onclick = ()=>{ gf1010Leave(); };
 
