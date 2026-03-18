@@ -1375,7 +1375,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 /* Arena: отступы от «стен» фона; порядок как раньше — клуб → ряд ГБ+стат → характеристики */
 /* Шапка и кнопки — как боковая полоса; текст на кнопках серый, не белый */
 #mArena .sheetHead{
-  padding:7px 10px;
+  padding:5px 10px;
   background:#434343 !important;
   background-image:linear-gradient(90deg,#484848 0%,#484848 48%,#3c3c3c 100%) !important;
   border-top:1px solid #2a2a2a;
@@ -1384,11 +1384,13 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 }
 #mArena .sheetHead .title{color:#9a9a9a !important;}
 #mArena .sheetHead .iconBtn{
+  width:34px !important;height:31px !important;font-size:17px !important;
   background:linear-gradient(180deg,#505050,#3a3a3a) !important;
   border:1px solid #252525 !important;
   color:#8f8f8f !important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
 }
+#mArena .sheetHead > div[style*="display:flex"]{gap:6px !important;}
 #mArena #arenaSearch,
 #mArena #gf1010Open{
   background:linear-gradient(180deg,#4a4a4a,#353535) !important;
@@ -1418,7 +1420,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 #mArena #arenaSheetBody{
   padding-left:calc(10% + env(safe-area-inset-left,0px));
   padding-right:calc(10% + env(safe-area-inset-right,0px));
-  padding-bottom:11px;
+  padding-bottom:8px;
   box-sizing:border-box;
   font-size:clamp(10px,2.85vw,12px); /* чуть мельче — сетка как раньше */
 }
@@ -1428,7 +1430,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 #mArena #arenaStatsColumnCard [style*="font-size:11px"]{font-size:0.92em !important;}
 /* Кантик 1px как у боковых полос: градиент + SVG-волны */
 #mArena .card{
-  padding:7px 8px;margin-top:4px !important;border-radius:14px;
+  padding:7px 8px;margin-top:3px !important;border-radius:14px;
   border:1px solid transparent;
   box-sizing:border-box;
   background-color:var(--caramel);
@@ -1450,28 +1452,28 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 #mArena #arenaSectionGroup .row{align-items:center;}
 #mArena #arenaGroupHint{margin-top:4px !important;line-height:1.28;}
 #mArena .grid3{gap:6px;}
-#mArena .arenaTopImg{display:block;width:100%;margin:0;padding:0;max-height:21vh;object-fit:cover;}
-#mArena .sheetBody > div[style*="margin-top:9px"]{margin-top:7px !important;gap:6px !important;}
-#mArena .sheetBody > .card:first-of-type{padding:5px 8px;margin-top:4px !important;}
-#mArena .sheetBody > .card:first-of-type .row + div{margin-top:4px;}
-#mArena .sheetBody > .card:first-of-type .row + div{gap:6px !important;}
-#mArena .sheetBody > .card:first-of-type .btnSmall{padding:4px 6px;}
-#mArena #arenaSectionGroup [style*="margin-top:10px"]{margin-top:8px !important;}
-#mArena #arenaSectionGroup [style*="margin-top:12px"]{margin-top:9px !important;}
-#mArena #arenaSectionGroup [style*="margin-top:9px"]{margin-top:7px !important;}
-#mArena #arenaSectionGroup [style*="gap:10px"]{gap:8px !important;}
-#mArena #arenaSectionGroup [style*="gap:8px"]{gap:6px !important;}
-#mArena .gymStatsColumnCard{margin-top:7px !important;}
-#mArena .gymStatsColumnCard .k{margin-bottom:3px !important;}
-#mArena .gymStatsColumnCard div[style*="margin-bottom:10px"]{margin-bottom:7px !important;}
+#mArena .arenaTopImg{display:block;width:100%;margin:0;padding:0;max-height:14.7vh;object-fit:cover;}
+#mArena #arenaGbStatsRow{margin-top:6px !important;gap:6px !important;}
+#mArena #arenaClubCard{padding:4px 8px !important;margin-top:7px !important;}
+#mArena #arenaClubCard .row + div{margin-top:4px !important;gap:4px !important;}
+#mArena #arenaClubCard .btnSmall{padding:3px 5px !important;}
+#mArena #arenaSearch{padding:4px 6px !important;}
+#mArena #arenaSectionGroup [style*="margin-top:10px"]{margin-top:7px !important;}
+#mArena #arenaSectionGroup [style*="margin-top:12px"]{margin-top:8px !important;}
+#mArena #arenaSectionGroup [style*="margin-top:9px"]{margin-top:5px !important;}
+#mArena #arenaSectionGroup [style*="gap:10px"]{gap:7px !important;}
+#mArena #arenaSectionGroup [style*="gap:8px"]{gap:5px !important;}
+#mArena #arenaSectionGroup,#mArena #arenaStatsColumnCard{padding:5px 8px !important;}
+#mArena .gymStatsColumnCard{margin-top:6px !important;}
+#mArena .gymStatsColumnCard div[style*="margin-bottom:10px"]{margin-bottom:5px !important;}
 /* Легенда — строго один ряд; шрифт мельче на узких экранах */
 #mArena #gymStatsColumnCard{container-type:inline-size;}
 #mArena .gymStatsColumnCard .gymStatsColumnLegend{
   flex-wrap:nowrap !important;
-  margin-bottom:7px;
+  margin-bottom:5px;
   gap:2px 3px;
   letter-spacing:0;
-  line-height:1.15;
+  line-height:1.1;
   font-size:clamp(4.5px,1.5vw,6px);
 }
 @supports (width:1cqw){
@@ -1484,14 +1486,26 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 #mArena .gymStatsColumnCard .gymStatsColumnLegend .gymStatLeg::before{
   width:0.85em;height:0.85em;margin-right:2px;vertical-align:middle;
 }
-#mArena .gymStatsColumnCard .gymStatRow{margin-bottom:5px;}
-#mArena .gymStatsColumnCard .gymStatBarWrap{height:12px;}
+#mArena .gymStatsColumnCard .gymStatRow{margin-bottom:3px;}
+#mArena .gymStatsColumnCard .gymStatBarWrap{height:8px;}
 #mArena .gymStatsColumnCard .gymStatName{font-size:0.95em;}
 #mArena .gymStatsColumnCard .gymStatVal{font-size:1em;}
-#mArena .gymStatsColumnCard .gymStatsSum{margin-top:7px;padding-top:6px;font-size:1em;}
-#mArena #arenaStatsColumnCard .k{margin-bottom:6px !important;}
-#mArena #arenaStatsColumnCard [style*="gap:8px"]{gap:6px !important;}
-#mArena .sheetHead .title{font-size:12px;}
+#mArena .gymStatsColumnCard .gymStatsSum{margin-top:5px;padding-top:4px;font-size:1em;}
+#mArena .gymStatsColumnCard .k{margin-bottom:2px !important;}
+#mArena #arenaStatsColumnCard .k{margin-bottom:4px !important;font-size:10px !important;}
+#mArena #arenaStatsColumnCard [style*="gap:8px"]{gap:5px !important;}
+#mArena .sheetHead .title{font-size:11px;}
+#mArena #bossToothBtn{width:31px !important;height:28px !important;border-radius:10px !important;padding:0 !important;}
+#mArena #bossToothBtn .ico .toothIcon{max-height:14px !important;width:auto !important;}
+#mArena #bossToothBtn .tm{font-size:8px !important;margin-top:1px !important;}
+#mArena .sheetHead .arenaInventoryBtn{width:31px !important;height:31px !important;min-width:31px !important;}
+#mArena #arenaClubCard .k{line-height:1.15;}
+#mArena #arenaSectionGroup .k,#mArena #arenaSectionGroup .row .k{line-height:1.15;}
+#mArena #gfEnter{padding:4px 6px !important;}
+#mArena #gymStatsColumnCard{padding:5px 8px !important;}
+#mArena #arenaSectionGroup .costRow{gap:7px !important;}
+#mArena #gf1010Open{padding:3px 6px !important;font-size:0.88em !important;}
+#mArena #arenaClubCard .badge#arenaCdCard{padding:5px 7px !important;font-size:10px !important;}
 .arenaInventoryBtn{width:44px;height:44px;border-radius:var(--r2);border:1px solid var(--paperLine);background:var(--caramel);cursor:pointer;padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
 .arenaInventoryBtn img{width:100%;height:100%;object-fit:cover;}
 .arenaInventoryBtn:active{transform:scale(0.94);}
@@ -2024,7 +2038,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     </div>
     <div class="sheetBody" id="arenaSheetBody">
       <img src="бк.png" alt="" class="arenaTopImg" id="arenaTopImg">
-      <div class="card" style="margin-top:10px;">
+      <div class="card" id="arenaClubCard" style="margin-top:10px;">
         <div class="row">
           <div><div class="k">БОЙЦОВСКИЙ КЛУБ</div></div>
           <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
@@ -2039,7 +2053,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         </div>
       </div>
 
-      <div style="margin-top:9px; display:flex; gap:8px; align-items:stretch;">
+      <div id="arenaGbStatsRow" style="margin-top:9px; display:flex; gap:8px; align-items:stretch;">
         <div class="card" style="margin-top:0; flex:0 0 65%; min-width:0;" id="arenaSectionGroup">
         <div class="row"><div class="k">ГРУППОВОЙ БОЙ</div><button class="btn btnMini" id="gf1010Open">ВХОД</button></div>
         <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.35" id="arenaGroupHint"></div>
