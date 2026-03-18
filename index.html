@@ -112,6 +112,42 @@ body::after{
 /* Кнопка «Собрать все» в районах — потухшая, пока награда недоступна */
 #bizRewardColumnCollect:disabled, .btn:disabled{ opacity:.45; cursor:not-allowed; pointer-events:none; filter:grayscale(.4); }
 
+/* ========== Вмещение: колонка/модалки без вылезания и налезания ========== */
+#app{overflow-x:hidden;min-width:0;}
+.modal{overflow-x:hidden;min-width:0;box-sizing:border-box;}
+.modal > .sheet{min-width:0;max-width:100%;}
+.sheetHead{min-width:0;gap:6px;}
+.sheetHead .title{
+  flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:clamp(9px,2.35vw,12px);letter-spacing:clamp(0.4px,0.35vw,2px);
+}
+.card{
+  min-width:0;max-width:100%;overflow-x:hidden;
+  word-break:break-word;overflow-wrap:anywhere;
+}
+.modalPage .card,.modalBossFight .card{padding:10px 9px;}
+.row{
+  min-width:0;flex-wrap:wrap;align-items:center;gap:8px 10px;
+}
+.row > *{min-width:0;}
+.row .k{flex:1 1 120px;max-width:100%;}
+.row .badge,.row .v{flex:0 1 auto;max-width:100%;}
+.badge{
+  max-width:100%;flex-wrap:wrap;justify-content:center;box-sizing:border-box;
+}
+.btn,.btnSmall,.btnMini{
+  max-width:100%;box-sizing:border-box;word-break:break-word;
+  overflow-wrap:anywhere;
+}
+input,textarea,select{max-width:100%;box-sizing:border-box;}
+.sheetBody .card img,.badge img:not(.goldIcon):not(.toothIcon):not(.silverIcon):not(.fearIcon){
+  max-width:100%;height:auto;object-fit:contain;
+}
+.feedItem,.friendMeta{word-break:break-word;overflow-wrap:anywhere;max-width:100%;}
+.grid3{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}
+.toast{max-width:min(100%,var(--appCol),92vw);}
+.halturkiTaskRewardPop{max-width:min(calc(100vw - 24px),var(--appCol));font-size:clamp(10px,2.8vw,13px);padding:8px 12px;}
+
  #mClans .card{background:var(--caramel);border:1px solid var(--paperLine);box-shadow: var(--shadowKey), var(--shadowInsetTop), var(--shadowInsetAO);}
  #mClans .row .k{letter-spacing:2.5px}
  #mClans .badge{border:1px solid var(--paperLine);}
@@ -821,7 +857,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
  .petCard .petPct{position:absolute;left:0;right:0;bottom:0;padding:4px 6px;font-size:10px;letter-spacing:1px;text-align:center;background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%);color:#fff;}
  .petCard .pBtn{margin-top:auto;}
 
-.costRow{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;}
+.costRow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;max-width:100%;}
 .ctaMini{padding:9px 12px;border-radius:999px;font-size:11px;letter-spacing:1px;white-space:nowrap;justify-self:center;}
 
  .feed{
@@ -1165,7 +1201,7 @@ button.btn.charCornerBtn:active{filter:none;}
  #mDistricts #districtsSheetBody{overflow-x:hidden;}
  #districtList{max-width:100%;}
  #districtList .card{max-width:100%; box-sizing:border-box; overflow:hidden;}
- .districtCardGrid{display:grid; grid-template-columns:140px 1fr; gap:10px; align-items:start;}
+ .districtCardGrid{display:grid; grid-template-columns:minmax(86px,30%) minmax(0,1fr); gap:8px; align-items:start;}
  .districtCardRight{min-width:0;}
  .districtCardTop{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
  .districtCardBadge{flex:0 0 auto;}
@@ -1177,10 +1213,10 @@ button.btn.charCornerBtn:active{filter:none;}
  .bfHpBar{height:20px;border-radius:10px;border:1px solid rgba(45,30,18,.2);background:rgba(0,0,0,.2);overflow:hidden;position:relative;}
  .bfHpBarFill{height:100%;background:linear-gradient(90deg, #22c55e, #16a34a);transition:width .2s ease;box-shadow: var(--glowWin);}
  .bfHpBarIn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);pointer-events:none;}
- .bfHitQtyGrid{display:grid;grid-template-columns:1fr 1fr;gap:2px;max-width:100%;}
- .bfHitQtyGrid .btn{width:100%;min-width:0;padding:3px 6px;font-size:10px;}
- .bossAtkGrid{display:grid;grid-template-columns:1fr 1fr;gap:1px;}
- .bossAtkCell{display:flex;flex-direction:column;align-items:center;gap:2px;}
+ .bfHitQtyGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;max-width:100%;}
+ .bfHitQtyGrid .btn{width:100%;min-width:0;padding:2px 4px;font-size:clamp(7px,2.1vw,10px);letter-spacing:0;}
+ .bossAtkGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;width:100%;max-width:100%;}
+ .bossAtkCell{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;max-width:100%;}
  .bossAtkBtn50{width:40px;height:40px;padding:0 !important;min-height:40px !important;border-radius:10px !important;display:flex !important;align-items:center;justify-content:center;overflow:hidden;}
  .bossAtkBtn50 .bfHitImg{width:100%;height:100%;object-fit:contain;transform:scale(1.15);}
  .bossAtkCell .bfHitDmg{font-size:9px;font-weight:900;line-height:1.1;}
@@ -1228,19 +1264,21 @@ button.btn.charCornerBtn:active{filter:none;}
 }
 #mBossFight #bfSheetBody{
   overflow-y: auto; overflow-x: hidden; min-height: 0; -webkit-overflow-scrolling: touch;
-  padding-left: calc(10% + env(safe-area-inset-left,0px));
-  padding-right: calc(10% + env(safe-area-inset-right,0px));
+  padding-left: clamp(6px, 4vw, 40px);
+  padding-right: clamp(6px, 4vw, 40px);
   padding-bottom: calc(10px + env(safe-area-inset-bottom,0px) + 8px);
   padding-top: 0; box-sizing: border-box; flex: 1;
-  font-size: clamp(10px, 2.85vw, 12px);
+  font-size: clamp(9px, 2.5vw, 12px);
 }
 #mBossFight .card{ min-width: 0; max-width: 100%; box-sizing: border-box; }
 /* Всегда 2 колонки: слева босс, справа множители и удары (не схлопывать на телефонах) */
 #mBossFight .bfFightGrid{
   display: grid;
-  grid-template-columns: minmax(118px, 40%) minmax(0, 1fr);
-  gap: 10px;
+  grid-template-columns: minmax(100px, 38%) minmax(0, 1fr);
+  gap: 6px;
   align-items: start;
+  width: 100%;
+  max-width: 100%;
 }
 #mBossFight .bfFightColLeft{ display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
 #mBossFight .bfFightColLeft .bossName{ margin-top: 0; }
@@ -1250,10 +1288,16 @@ button.btn.charCornerBtn:active{filter:none;}
 #mBossFight .bfFightColRight .k{ font-size: 10px; margin-bottom: 4px; }
 #mBossFight .bfFightColRight{ min-width: 0; }
 #mBossFight .bossFightBig{
-  width: min(180px, 44vw); height: min(180px, 44vw); max-width: min(180px, 44vw); max-height: min(180px, 44vw);
+  width: min(150px, 36vw); height: min(150px, 36vw); max-width: 100%;
+  box-sizing: border-box;
 }
+#mBossFight .bfHpBarWrap{max-width:100%;}
 #mBossFight .bfHitQtyGrid{ margin-top: 4px !important; }
-#mBossFight .bossAtkGrid{ margin-top: 8px !important; }
+#mBossFight .bossAtkGrid{ margin-top: 6px !important; }
+#mBossFight .bossAtkCell .bfHitDmg,#mBossFight .bossAtkCell .bfHitQty{
+  font-size: clamp(6px, 1.9vw, 9px); text-align: center; max-width: 100%; overflow: hidden;
+}
+#mBossFight .bfFightColRight .k{font-size: clamp(8px, 2.2vw, 10px);}
 /* Магазин ударов поверх боя (5200 ниже 5300 у боя — иначе окно не видно) */
 #mBfShop.modalMini.show{ z-index: 5600; }
 #mBfShop.modalMini{
@@ -1268,7 +1312,7 @@ button.btn.charCornerBtn:active{filter:none;}
 #mBfShop .bfShopSheetWide .sheetBody{ padding: 12px calc(10% + env(safe-area-inset-left)) 16px; box-sizing: border-box; max-height: calc(88vh - 120px); overflow-y: auto; }
 /* Ворота босса: слева имя/время/текст/фото, справа HP и кнопка */
 .dgBossGrid{ display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
-.dgBossLeft{ display: flex; flex-direction: column; align-items: center; text-align: center; }
+.dgBossLeft{ display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; max-width: 100%; }
 .dgBossRight{ min-width: 0; display: flex; flex-direction: column; justify-content: center; }
 .modalBossFightRes{ z-index: 5500; }
 .modal.show{display:block;}
@@ -1424,7 +1468,7 @@ button.btn.charCornerBtn:active{filter:none;}
     align-self:stretch; min-width:92px;
   }
   #mBattle .gfGbAtkBtn{
-    width:100%; min-height:40px; padding:8px 6px !important; font-size:9px !important;
+    width:100%; min-height:36px; padding:6px 4px !important; font-size:clamp(7px,2vw,9px) !important;
     font-weight:900 !important; letter-spacing:0.3px !important; line-height:1.1 !important;
     white-space:normal !important; text-align:center !important;
   }
@@ -2107,7 +2151,8 @@ button.btn.charCornerBtn:active{filter:none;}
   box-shadow:var(--shadowKey),var(--shadowInsetTop),var(--shadowInsetAO),inset 0 0 0 1px rgba(0,0,0,.28),0 2px 14px rgba(0,0,0,.08);
 }
 #mDistricts .districtRewardsStripCard{margin-top:0 !important;margin-bottom:2px !important;}
-#mArena #arenaGbStatsRow{margin-top:6px !important;gap:6px !important;}
+#mArena #arenaGbStatsRow{margin-top:6px !important;gap:6px !important;flex-wrap:wrap;}
+#mArena #arenaGbStatsRow > .card{flex:1 1 min(100%,200px);min-width:0;max-width:100%;box-sizing:border-box;}
 #mArena #arenaClubCard{padding:4px 8px !important;margin-top:7px !important;}
 #mArena #arenaClubCard .row + div{margin-top:4px !important;gap:4px !important;}
 #mArena #arenaClubCard .btnSmall{padding:3px 5px !important;}
@@ -2254,7 +2299,7 @@ button.btn.charCornerBtn:active{filter:none;}
 
 .card{border-radius:var(--r);border:1px solid var(--paperLine);background: var(--caramel);padding:14px;transition: border-color var(--transition-fast), background-color var(--transition-fast);box-shadow: var(--shadowKey), var(--shadowInsetTop), var(--shadowInsetAO);}
 .row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
-.k{font-size:11px;opacity:.84;letter-spacing:2.5px}
+.k{font-size:clamp(9px,2.4vw,11px);opacity:.84;letter-spacing:clamp(0.6px,0.35vw,2.2px);max-width:100%;}
 .v{font-weight:900;letter-spacing:1px;}
 
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
@@ -2735,8 +2780,8 @@ button.btn.charCornerBtn:active{filter:none;}
         </div>
       </div>
 
-      <div id="arenaGbStatsRow" style="margin-top:9px; display:flex; gap:8px; align-items:stretch;">
-        <div class="card" style="margin-top:0; flex:0 0 65%; min-width:0;" id="arenaSectionGroup">
+      <div id="arenaGbStatsRow" style="margin-top:9px; display:flex; flex-wrap:wrap; gap:8px; align-items:stretch;">
+        <div class="card" style="margin-top:0; flex:1 1 min(240px,100%); min-width:0; max-width:100%;" id="arenaSectionGroup">
         <div class="row"><div class="k">ГРУППОВОЙ БОЙ</div><button class="btn btnMini" id="gf1010Open">ВХОД</button></div>
         <div style="margin-top:10px; font-size:12px; opacity:.8; line-height:1.35" id="arenaGroupHint"></div>
         <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
@@ -2749,7 +2794,7 @@ button.btn.charCornerBtn:active{filter:none;}
           <button class="btn" id="gfEnter" style="display:none;">ВОЙТИ В БОЙ</button>
         </div>
       </div>
-      <div class="card" style="margin-top:0; flex:1; min-width:0;" id="arenaStatsColumnCard">
+      <div class="card" style="margin-top:0; flex:1 1 min(200px,100%); min-width:0; max-width:100%;" id="arenaStatsColumnCard">
         <div class="k" style="margin-bottom:8px;">СТАТИСТИКА</div>
         <div style="display:flex; flex-direction:column; gap:8px;">
           <div><div class="k" style="font-size:11px;">АРЕНА</div><div class="badge" id="arenaWinsLosses">0 / 0</div></div>
