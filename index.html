@@ -5090,8 +5090,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     try { __srvEnabled = false; } catch (e0) {}
     try { if (IS_DEV) dbgUpdate(); } catch (e1) {}
     try {
-      const msg = 'Вход выполнен с другого устройства.\n\nОткрой игру заново на новом устройстве.';
-      toast('Вход с другого устройства','lose');
+      const msg = 'Выполнен вход на другом устройстве.\n\nЭта сессия закрыта.';
+      toast('Выполнен вход на другом устройстве','lose');
       alert(msg);
     } catch (e2) {}
     try { if (tg && typeof tg.close === 'function') { tg.close(); return; } } catch (e3) {}
@@ -5156,7 +5156,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
             }
             // Кикаем только если другая сессия "живая" (обновлялась совсем недавно).
             // Если серверная сессия старая (ПК закрыт/вышел), спокойно забираем её на этом устройстве.
-            const OTHER_SESSION_ALIVE_MS = 30000; // 30с: достаточно, чтобы поймать реально параллельный вход
+            const OTHER_SESSION_ALIVE_MS = 12000; // 12с: считаем параллельным входом только "прямо сейчас"
             // ВАЖНО: уведомление/кик должен прилетать ТОЛЬКО "старой" вкладке.
             // Новая вкладка на новом устройстве в момент старта может иметь устаревший sid из localStorage,
             // поэтому до первого успешного upsert_player мы НИКОГДА не кикаем — просто забираем сессию.
