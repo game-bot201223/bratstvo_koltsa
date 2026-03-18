@@ -1162,6 +1162,7 @@ button.btn.charCornerBtn:active{filter:none;}
    width:100%;
    box-sizing:border-box;
  }
+ .districtCardRegionName{margin-bottom:6px;}
  .districtCardThumb{
    width:100%;
    max-width:140px;
@@ -13307,6 +13308,7 @@ button.btn.charCornerBtn:active{filter:none;}
       html += '<div class="card districtArenaCard">'
         + '<div class="districtCardGrid">'
         + '<div class="districtLeftCol" style="'+(unlocked?'':'opacity:.55; filter:grayscale(1);')+'">'
+        + '<div class="districtCardRegionName" style="font-weight:900; letter-spacing:1.2px; font-size:clamp(10px,2.8vw,13px); line-height:1.15; text-align:left; width:100%; color:#000; box-sizing:border-box;">'+name.toUpperCase()+'</div>'
         + '<div class="districtCardThumb" style="background:'+(img?('url(\''+encodeURI(img)+'\')'):'linear-gradient(145deg, rgba(255,255,255,.14), rgba(0,0,0,.10))')+'">'+(img?'':'IMG')+'</div>'
         + '<div class="districtActions">'
         + (showGateBossBtn && !showBossFullColumn ? ('<button class="btn btnSmall districtBtn" data-dg="'+idx+'" style="border-color:rgba(239,68,68,.5); background:rgba(239,68,68,.2);">СРАЗИТЬСЯ С БОССОМ</button>') : '')
@@ -13316,10 +13318,9 @@ button.btn.charCornerBtn:active{filter:none;}
         + '</div>'
         + '<div class="districtCardRight" style="'+(showBossFullColumn?'min-width:0; display:flex; flex-direction:column;':'')+'">'
         + '<div class="districtCardTop">'
-        + '<div style="min-width:0">'
-        + '<div class="k">'+name.toUpperCase()+'</div>'
-        + (!showBossFullColumn && lockTxt ? ('<div style="margin-top:6px; font-size:12px; line-height:1.35; font-weight:900; color:rgba(248,113,113,.95)">'+lockTxt+'</div>') : '')
-        + (showBossFullColumn ? ('<div style="margin-top:4px; font-size:11px; opacity:.9">Убей босса в одиночку — откроется район. На бой 8 часов.</div>') : '')
+        + '<div style="min-width:0; flex:1">'
+        + (!showBossFullColumn && lockTxt ? ('<div style="font-size:11px; line-height:1.35; font-weight:900; color:rgba(248,113,113,.95)">'+lockTxt+'</div>') : '')
+        + (showBossFullColumn ? ('<div style="font-size:11px; opacity:.9; line-height:1.35">Убей босса в одиночку — откроется район. На бой 8 часов.</div>') : '')
         + '</div>'
         + '<div class="districtCardBadge">'
         + '<div class="badge" style="padding:5px 7px; font-size:11px; min-width:0"><img src="страх.png" alt="Страх" class="fearIcon" style="height:14px;vertical-align:middle;margin-right:4px"> '+fmt4(totalFear)+'</div>'
