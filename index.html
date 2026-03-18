@@ -1832,6 +1832,7 @@ button.btn.charCornerBtn:active{filter:none;}
 #mInventory .sheet.sheetOpaque,
 #mDistricts .sheet.sheetOpaque,
 #mHavchik .sheet.sheetOpaque,
+#mHavchikCollect .sheet.sheetOpaque,
 #mDistrictNightmare .sheet.sheetOpaque,
 #mDistrictGateBoss .sheet.sheetOpaque,
 #mBossFight .sheet.sheetOpaque,
@@ -1854,6 +1855,7 @@ button.btn.charCornerBtn:active{filter:none;}
 #mInventory .arenaEdge:not(.arenaEdgeB),
 #mDistricts .arenaEdge:not(.arenaEdgeB),
 #mHavchik .arenaEdge:not(.arenaEdgeB),
+#mHavchikCollect .arenaEdge:not(.arenaEdgeB),
 #mDistrictNightmare .arenaEdge:not(.arenaEdgeB),
 #mDistrictGateBoss .arenaEdge:not(.arenaEdgeB),
 #mBossFight .arenaEdge:not(.arenaEdgeB),
@@ -1875,8 +1877,8 @@ button.btn.charCornerBtn:active{filter:none;}
   background-position:center,center top;
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.26);
 }
-#mArena .arenaEdgeL,#mArenaOpponent .arenaEdgeL,#mArenaRes .arenaEdgeL,#mGFJoin .arenaEdgeL,#mBattle .arenaEdgeL,#mInventory .arenaEdgeL,#mDistricts .arenaEdgeL,#mHavchik .arenaEdgeL,#mDistrictNightmare .arenaEdgeL,#mDistrictGateBoss .arenaEdgeL,#mBossFight .arenaEdgeL,#mBfShop .arenaEdgeL,#mDistrictGateReward .arenaEdgeL,#mBossFightRes .arenaEdgeL{left:0;}
-#mArena .arenaEdgeR,#mArenaOpponent .arenaEdgeR,#mArenaRes .arenaEdgeR,#mGFJoin .arenaEdgeR,#mBattle .arenaEdgeR,#mInventory .arenaEdgeR,#mDistricts .arenaEdgeR,#mHavchik .arenaEdgeR,#mDistrictNightmare .arenaEdgeR,#mDistrictGateBoss .arenaEdgeR,#mBossFight .arenaEdgeR,#mBfShop .arenaEdgeR,#mDistrictGateReward .arenaEdgeR,#mBossFightRes .arenaEdgeR{
+#mArena .arenaEdgeL,#mArenaOpponent .arenaEdgeL,#mArenaRes .arenaEdgeL,#mGFJoin .arenaEdgeL,#mBattle .arenaEdgeL,#mInventory .arenaEdgeL,#mDistricts .arenaEdgeL,#mHavchik .arenaEdgeL,#mHavchikCollect .arenaEdgeL,#mDistrictNightmare .arenaEdgeL,#mDistrictGateBoss .arenaEdgeL,#mBossFight .arenaEdgeL,#mBfShop .arenaEdgeL,#mDistrictGateReward .arenaEdgeL,#mBossFightRes .arenaEdgeL{left:0;}
+#mArena .arenaEdgeR,#mArenaOpponent .arenaEdgeR,#mArenaRes .arenaEdgeR,#mGFJoin .arenaEdgeR,#mBattle .arenaEdgeR,#mInventory .arenaEdgeR,#mDistricts .arenaEdgeR,#mHavchik .arenaEdgeR,#mHavchikCollect .arenaEdgeR,#mDistrictNightmare .arenaEdgeR,#mDistrictGateBoss .arenaEdgeR,#mBossFight .arenaEdgeR,#mBfShop .arenaEdgeR,#mDistrictGateReward .arenaEdgeR,#mBossFightRes .arenaEdgeR{
   right:0;
   transform:scaleX(-1);
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.26);
@@ -1890,6 +1892,7 @@ button.btn.charCornerBtn:active{filter:none;}
 #mInventory .arenaEdgeB,
 #mDistricts .arenaEdgeB,
 #mHavchik .arenaEdgeB,
+#mHavchikCollect .arenaEdgeB,
 #mDistrictNightmare .arenaEdgeB,
 #mDistrictGateBoss .arenaEdgeB,
 #mBossFight .arenaEdgeB,
@@ -1933,6 +1936,8 @@ button.btn.charCornerBtn:active{filter:none;}
 #mDistricts .sheet.sheetOpaque .sheetBody,
 #mHavchik .sheet.sheetOpaque .sheetHead,
 #mHavchik .sheet.sheetOpaque .sheetBody,
+#mHavchikCollect .sheet.sheetOpaque .sheetHead,
+#mHavchikCollect .sheet.sheetOpaque .sheetBody,
 #mDistrictNightmare .sheet.sheetOpaque .sheetHead,
 #mDistrictNightmare .sheet.sheetOpaque .sheetBody,
 #mDistrictGateBoss .sheet.sheetOpaque .sheetHead,
@@ -1956,6 +1961,7 @@ button.btn.charCornerBtn:active{filter:none;}
 #mInventory .sheetHead,
 #mDistricts .sheetHead,
 #mHavchik .sheetHead,
+#mHavchikCollect .sheetHead,
 #mDistrictNightmare .sheetHead,
 #mDistrictGateBoss .sheetHead,
 #mBossFight .sheetHead,
@@ -1976,6 +1982,7 @@ button.btn.charCornerBtn:active{filter:none;}
 #mInventory .sheetHead .title,
 #mDistricts .sheetHead .title,
 #mHavchik .sheetHead .title,
+#mHavchikCollect .sheetHead .title,
 #mDistrictNightmare .sheetHead .title,
 #mDistrictGateBoss .sheetHead .title,
 #mBossFight .sheetHead .title,
@@ -1989,6 +1996,7 @@ button.btn.charCornerBtn:active{filter:none;}
 #mInventory .sheetHead .iconBtn,
 #mDistricts .sheetHead .iconBtn,
 #mHavchik .sheetHead .iconBtn,
+#mHavchikCollect .sheetHead .iconBtn,
 #mDistrictNightmare .sheetHead .iconBtn,
 #mDistrictGateBoss .sheetHead .iconBtn,
 #mBossFight .sheetHead .iconBtn,
@@ -2362,6 +2370,7 @@ button.btn.charCornerBtn:active{filter:none;}
 #mArena .arenaTopImg{display:block;width:100%;margin:0;padding:0;max-height:21vh;object-fit:cover;}
 #mDistricts #districtsSheetBody,
 #mHavchik #havchikSheetBody,
+#mHavchikCollect .havchikCollectBody,
 #mDistrictNightmare #dnSheetBody,
 #mDistrictGateBoss #dgSheetBody,
 #mBfShop #bfShopSheetBody,
@@ -2575,6 +2584,7 @@ button.btn.charCornerBtn:active{filter:none;}
   position:fixed;left:50%;transform:translateX(-50%);top:0;bottom:0;
   width:min(100vw,var(--appCol));max-width:var(--appCol);margin:0;
   min-height:100dvh;min-height:100vh;height:auto;max-height:none;border-radius:0;border:none;
+  display:flex;flex-direction:column;
 }
 .havchikCollectBody{overflow-x:auto;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch;}
 #havchikCollectScroll{display:flex;flex-direction:column;gap:10px;}
@@ -3676,14 +3686,17 @@ button.btn.charCornerBtn:active{filter:none;}
 <!-- Забрать хавчик — хавчик, который отправили братки (входящие) -->
 <div class="modal modalPage havchikCollectFullScreen" id="mHavchikCollect" role="dialog" aria-modal="true">
   <div class="sheet sheetOpaque sheetScreen">
+    <div class="arenaEdge arenaEdgeL" aria-hidden="true"></div>
+    <div class="arenaEdge arenaEdgeR" aria-hidden="true"></div>
     <div class="sheetHead">
       <button class="iconBtn" data-close="mHavchikCollect">‹</button>
       <div class="title">ЗАБРАТЬ ХАВЧИК</div>
-      <div style="width:44px"></div>
+      <div style="width:48px"></div>
     </div>
     <div class="sheetBody havchikCollectBody">
       <div class="havchikCollectScroll" id="havchikCollectScroll"></div>
     </div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
   </div>
 </div>
 
