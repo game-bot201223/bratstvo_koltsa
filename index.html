@@ -477,6 +477,8 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   #mPloshchad.modalPage .sheet,
   #mInventory.inventoryFullScreen .sheet,
   #mLavka.lavkaFullScreen .sheet,
+  #mDistrictBiz.modalPage .sheet,
+  #mDistrictRewards.modalPage .sheet,
   .havchikCollectFullScreen .sheet{
     width:100% !important;
     max-width:480px !important;
@@ -1287,6 +1289,20 @@ button.btn.charCornerBtn:active{filter:none;}
  #mBattle .hpTxt{font-size:11px;letter-spacing:1px;white-space:nowrap;}
  #mBattle #bLogDmg .feedItem,
  #mBattle #bLogItems .feedItem{padding:5px 7px;border-radius:12px;font-size:10px;line-height:1.2;}
+ #mBattle .battleGbInventoryBtn{
+   position:relative !important;width:48px !important;height:48px !important;min-width:48px !important;
+   margin:0 !important;border-radius:14px !important;overflow:hidden !important;
+   background:linear-gradient(180deg,#505050,#3a3a3a) !important;border:1px solid #252525 !important;
+   box-shadow:inset 0 1px 0 rgba(255,255,255,.1);flex-shrink:0;padding:0 !important;cursor:pointer;
+ }
+ #mBattle .battleGbInventoryBtn:active{filter:brightness(.92);transform:scale(0.98);}
+ #mBattle .battleGbInventoryBtn img{
+   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+   width:130% !important;height:130% !important;max-width:none !important;max-height:none !important;
+   object-fit:contain !important;pointer-events:none;
+ }
+ #mBattle #bLogItems .feedItem.gfLogHeal{color:rgba(52,211,153,.95) !important;}
+ #mBattle #bLogItems .feedItem.gfLogItemDmg{color:rgba(251,191,36,.95) !important;}
   #mBattle #bMyTeam .badge,
   #mBattle #bEnemyTeam .badge{width:100%;}
   #mBattle #bMyTeam .hpBar,
@@ -1297,33 +1313,84 @@ button.btn.charCornerBtn:active{filter:none;}
   #mBattle .bAva{width:36px;height:36px;border-radius:999px;object-fit:cover;flex:0 0 auto;border:1px solid rgba(45,30,18,.22);background:rgba(255,255,255,.22);}
   #mBattle .bNmRow{display:flex;align-items:center;gap:8px;min-width:0;}
   #mBattle .bNmTxt{min-width:0;overflow:hidden;text-overflow:ellipsis;}
- #mBattle .battleTeamsGrid{max-width:100%; gap:10px !important;}
- #mBattle .battleMyTeamWrap{background:rgba(45,30,18,.09) !important; border:1px solid rgba(45,30,18,.16) !important;}
- #mBattle .battleCol{background:rgba(45,30,18,.09) !important; border:1px solid rgba(45,30,18,.16) !important; border-radius:16px !important; padding:6px !important;}
- #mBattle .battleAtkCol{background:rgba(45,30,18,.12) !important;}
-  #mBattle .battleAtkCol{display:flex; flex-direction:column; align-items:center;}
-  #mBattle #bAtkList{width:100%;}
+ #mBattle .battleTeamsArenaWrap{
+   margin-top:8px;
+   margin-left:calc(-1 * (10% + env(safe-area-inset-left, 0px)));
+   margin-right:calc(-1 * (10% + env(safe-area-inset-right, 0px)));
+   width:calc(100% + (10% + env(safe-area-inset-left, 0px)) + (10% + env(safe-area-inset-right, 0px)));
+   max-width:none;
+   box-sizing:border-box;
+   padding:10px calc(8px + env(safe-area-inset-right, 0px)) 12px calc(8px + env(safe-area-inset-left, 0px));
+   background-color:var(--caramel);
+   background-image:url("фон.png");
+   background-position:top center;
+   background-size:100% auto;
+   background-repeat:repeat-y;
+   border-top:1px solid rgba(45,30,18,.22);
+   border-bottom:1px solid rgba(45,30,18,.18);
+   box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+ }
+ #mBattle .battleTeamsHorizontal{
+   display:grid;
+   grid-template-columns:minmax(0,1fr) minmax(56px,22vw) minmax(0,1fr);
+   gap:6px;
+   align-items:stretch;
+   width:100%;
+   min-height:120px;
+ }
+ #mBattle .battleTeamsHorizontal .battleCol{
+   min-width:0;
+   display:flex;
+   flex-direction:column;
+   padding:8px 6px;
+   border-radius:12px;
+   border:1px solid rgba(45,30,18,.18);
+   background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(45,30,18,.08));
+   box-sizing:border-box;
+ }
+ #mBattle .battleAtkCol--center{
+   align-items:center;
+   background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(45,30,18,.1));
+ }
+ #mBattle .battleColLabel{
+   font-size:7px;
+   opacity:.6;
+   letter-spacing:0.5px;
+   margin-bottom:6px;
+   font-weight:800;
+ }
+ #mBattle .battleColLabel--left{text-align:left;}
+ #mBattle .battleColLabel--center{text-align:center;width:100%;}
+ #mBattle .battleColLabel--right{text-align:right;}
+ #mBattle .battleColInner{
+   display:flex;
+   flex-direction:column;
+   gap:4px;
+   flex:1;
+   min-height:0;
+   width:100%;
+   overflow-x:hidden;
+   overflow-y:auto;
+   -webkit-overflow-scrolling:touch;
+ }
+ #mBattle .battleColInner--atk{align-items:center;}
   #mBattle #bAtkList .btn{justify-content:center;}
-  #mBattle #bAtkList .btnSmall{width:100%;}
-  #mBattle .gfAtkBtn{width:44px !important; height:44px !important; min-height:44px !important; padding:0 !important; border-radius:999px !important; display:flex !important; align-items:center !important; justify-content:center !important; margin:0 auto !important; font-size:18px !important; letter-spacing:0 !important; line-height:1 !important;}
+  #mBattle #bAtkList .btnSmall{width:100%;max-width:100%;}
+  #mBattle .gfAtkBtn{width:40px !important; height:40px !important; min-height:40px !important; padding:0 !important; border-radius:999px !important; display:flex !important; align-items:center !important; justify-content:center !important; margin:0 auto !important; font-size:16px !important; letter-spacing:0 !important; line-height:1 !important;}
   #mBattle #bMyTeam .badge,
-  #mBattle #bEnemyTeam .badge{min-height:48px;}
-  #mBattle .gfAtkSlot{min-height:48px; display:flex; align-items:center; justify-content:center; width:100%;}
+  #mBattle #bEnemyTeam .badge{min-height:44px;}
+  #mBattle .gfAtkSlot{min-height:44px; display:flex; align-items:center; justify-content:center; width:100%;}
  #mBattle #bMyTeam .badge,
  #mBattle #bEnemyTeam .badge{display:flex; flex-direction:column; align-items:stretch; gap:2px; justify-content:flex-start;}
  #mBattle #bMyTeam .badge > div:first-child,
  #mBattle #bEnemyTeam .badge > div:first-child{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
- #mBattle .battleEnemyCol{min-width:0;}
- #mBattle .battleEnemyCol{min-width:0;}
- #mBattle .gfEnemyRow{display:flex; flex-direction:column; gap:8px; width:100%; padding:8px; border-radius:16px; border:1px solid rgba(45,30,18,.14); background:rgba(255,255,255,.16); box-sizing:border-box;}
+ #mBattle .gfEnemyRow{display:flex; flex-direction:column; gap:8px; width:100%; padding:8px; border-radius:12px; border:1px solid rgba(45,30,18,.14); background:rgba(255,255,255,.14); box-sizing:border-box;}
  #mBattle .gfEnemyRowTop{display:flex; align-items:center; justify-content:space-between; gap:8px;}
- #mBattle .gfEnemyBtn{width:100%; min-height:36px;}
+ #mBattle .gfEnemyBtn{width:100%; min-height:34px;font-size:10px !important;}
 
- @media (max-width: 380px){
-   #mBattle .battleTeamsGrid{grid-template-columns:1fr !important;}
-   #mBattle .battleAtkCol{align-items:stretch !important;}
-   #mBattle .battleAtkCol > div:first-child{text-align:left !important;}
-   #mBattle .battleEnemyCol > div:first-child{ text-align:left !important; }
+ @media (max-width: 360px){
+   #mBattle .battleTeamsHorizontal{grid-template-columns:minmax(0,1fr) minmax(48px,26vw) minmax(0,1fr);gap:4px;}
+   #mBattle .battleTeamsHorizontal .battleCol{padding:6px 4px;}
  }
 
  #mConsumables.consFull{padding:0;}
@@ -1816,7 +1883,9 @@ button.btn.charCornerBtn:active{filter:none;}
 #mGFJoin .card,
 #mBattle .card,
 #mInventory .card,
-#mDistricts .card{
+#mDistricts .card,
+#mDistrictBiz .card,
+#mDistrictRewards .card{
   padding:7px 8px;margin-top:3px !important;border-radius:14px;
   border:1px solid transparent;
   box-sizing:border-box;
@@ -1833,9 +1902,9 @@ button.btn.charCornerBtn:active{filter:none;}
   background-origin:border-box;
   box-shadow:var(--shadowKey),var(--shadowInsetTop),var(--shadowInsetAO),inset 0 0 0 1px rgba(0,0,0,.24);
 }
-#mArena .btn,#mArenaOpponent .btn,#mArenaRes .btn,#mGFJoin .btn,#mBattle .btn,#mInventory .btn,#mDistricts .btn{padding:6px 7px;font-size:1em;}
-#mArena .btnSmall,#mArenaOpponent .btnSmall,#mArenaRes .btnSmall,#mGFJoin .btnSmall,#mBattle .btnSmall,#mInventory .btnSmall,#mDistricts .btnSmall{padding:4px 6px;font-size:0.92em;}
-#mArena .badge,#mArenaOpponent .badge,#mArenaRes .badge,#mGFJoin .badge,#mBattle .badge,#mInventory .badge,#mDistricts .badge{padding:3px 5px;font-size:0.95em;}
+#mArena .btn,#mArenaOpponent .btn,#mArenaRes .btn,#mGFJoin .btn,#mBattle .btn,#mInventory .btn,#mDistricts .btn,#mDistrictBiz .btn,#mDistrictRewards .btn{padding:6px 7px;font-size:1em;}
+#mArena .btnSmall,#mArenaOpponent .btnSmall,#mArenaRes .btnSmall,#mGFJoin .btnSmall,#mBattle .btnSmall,#mInventory .btnSmall,#mDistricts .btnSmall,#mDistrictBiz .btnSmall,#mDistrictRewards .btnSmall{padding:4px 6px;font-size:0.92em;}
+#mArena .badge,#mArenaOpponent .badge,#mArenaRes .badge,#mGFJoin .badge,#mBattle .badge,#mInventory .badge,#mDistricts .badge,#mDistrictBiz .badge,#mDistrictRewards .badge{padding:3px 5px;font-size:0.95em;}
 #mArena #arenaSectionGroup .row{align-items:center;}
 #mArena #arenaGroupHint{margin-top:4px !important;line-height:1.28;}
 #mArena .grid3{gap:6px;}
@@ -1852,6 +1921,67 @@ button.btn.charCornerBtn:active{filter:none;}
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
 }
+#mDistrictBiz .sheet.sheetOpaque,
+#mDistrictRewards .sheet.sheetOpaque{
+  background-color:var(--caramel);
+  background-image:url("фон.png");
+  background-position:top center;
+  background-size:100% auto;
+  background-repeat:repeat-y;
+  position:relative;
+  overflow-x:hidden;
+}
+#mDistrictBiz .arenaEdge:not(.arenaEdgeB),
+#mDistrictRewards .arenaEdge:not(.arenaEdgeB){
+  position:absolute;top:0;bottom:0;width:8px;pointer-events:none;z-index:2;
+  background-color:#434343;
+  background-image:linear-gradient(90deg,#484848 0%,#484848 48%,#3c3c3c 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 96'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='0'%3E%3Cstop stop-color='%23222222'/%3E%3Cstop offset='1' stop-color='%23383838'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23g)' width='40' height='96'/%3E%3Cg fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='%235a5a5a' stroke-width='2.4' d='M22 0Q36 16 22 32Q8 48 22 64Q36 80 22 96'/%3E%3Cpath stroke='%23282828' stroke-width='1.5' d='M10 0Q-2 16 10 32Q22 48 10 64Q-2 80 10 96'/%3E%3Cpath stroke='%23787878' stroke-width='1' opacity='.45' d='M32 8Q24 24 32 40Q40 56 32 72Q24 88 32 96'/%3E%3Cpath stroke='%23181818' stroke-width='1.6' d='M28 0Q20 24 28 48Q36 72 28 96'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:100% 100%,8px 96px;background-repeat:no-repeat,repeat-y;background-position:center,center top;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.26);
+}
+#mDistrictBiz .arenaEdgeL,#mDistrictRewards .arenaEdgeL{left:0;}
+#mDistrictBiz .arenaEdgeR,#mDistrictRewards .arenaEdgeR{right:0;transform:scaleX(-1);box-shadow:inset 0 0 0 1px rgba(0,0,0,.26);}
+#mDistrictBiz .arenaEdgeB,#mDistrictRewards .arenaEdgeB{
+  position:absolute !important;left:0 !important;right:0 !important;bottom:env(safe-area-inset-bottom,0px) !important;top:auto !important;
+  width:100% !important;height:8px !important;min-height:8px !important;pointer-events:none;z-index:6;flex:none !important;
+  background-color:#434343;
+  background-image:linear-gradient(180deg,#484848 0%,#484848 48%,#3c3c3c 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 96' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='gb' x1='0' x2='1' y1='0' y2='0'%3E%3Cstop stop-color='%23222222'/%3E%3Cstop offset='1' stop-color='%23383838'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23gb)' width='40' height='96'/%3E%3Cg fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='%235a5a5a' stroke-width='2.4' d='M22 0Q36 16 22 32Q8 48 22 64Q36 80 22 96'/%3E%3Cpath stroke='%23282828' stroke-width='1.5' d='M10 0Q-2 16 10 32Q22 48 10 64Q-2 80 10 96'/%3E%3Cpath stroke='%23787878' stroke-width='1' opacity='.45' d='M32 8Q24 24 32 40Q40 56 32 72Q24 88 32 96'/%3E%3Cpath stroke='%23181818' stroke-width='1.6' d='M28 0Q20 24 28 48Q36 72 28 96'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:100% 100%,8px 8px;background-repeat:no-repeat,repeat-x;background-position:center,left top;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),inset 0 -1px 0 rgba(0,0,0,.4);
+}
+#mDistrictBiz .sheet.sheetOpaque .sheetHead,#mDistrictBiz .sheet.sheetOpaque .sheetBody,
+#mDistrictRewards .sheet.sheetOpaque .sheetHead,#mDistrictRewards .sheet.sheetOpaque .sheetBody{position:relative;z-index:3;}
+#mDistrictBiz .sheetHead,#mDistrictRewards .sheetHead{
+  padding:7px 10px;background:#434343 !important;
+  background-image:linear-gradient(90deg,#484848 0%,#484848 48%,#3c3c3c 100%) !important;
+  border-top:1px solid #2a2a2a;border-bottom:1px solid rgba(0,0,0,.35);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.22);
+}
+#mDistrictBiz .sheetHead .title,#mDistrictRewards .sheetHead .title{color:#9a9a9a !important;}
+#mDistrictBiz .sheetHead .iconBtn,#mDistrictRewards .sheetHead .iconBtn{
+  width:48px !important;height:44px !important;font-size:20px !important;
+  background:linear-gradient(180deg,#505050,#3a3a3a) !important;border:1px solid #252525 !important;
+  color:#8f8f8f !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+}
+#mDistrictBiz #districtBizSheetBody,#mDistrictRewards #districtRewardsSheetBody{
+  padding-left:calc(10% + env(safe-area-inset-left,0px));
+  padding-right:calc(10% + env(safe-area-inset-right,0px));
+  padding-bottom:calc(10px + env(safe-area-inset-bottom,0px) + 8px);
+  box-sizing:border-box;font-size:clamp(10px,2.85vw,12px);
+  flex:1;min-height:0;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+#mDistrictBiz.modalPage .sheet.sheetScreen,
+#mDistrictRewards.modalPage .sheet.sheetScreen{
+  min-height:100dvh;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+#mDistricts .districtArenaCard{
+  margin-top:10px !important;border-radius:16px !important;
+  box-shadow:var(--shadowKey),var(--shadowInsetTop),var(--shadowInsetAO),inset 0 0 0 1px rgba(0,0,0,.28),0 2px 14px rgba(0,0,0,.08);
+}
+#mDistricts .districtRewardsStripCard{margin-top:0 !important;margin-bottom:2px !important;}
 #mArena #arenaGbStatsRow{margin-top:6px !important;gap:6px !important;}
 #mArena #arenaClubCard{padding:4px 8px !important;margin-top:7px !important;}
 #mArena #arenaClubCard .row + div{margin-top:4px !important;gap:4px !important;}
@@ -2754,19 +2884,21 @@ button.btn.charCornerBtn:active{filter:none;}
       </div>
 
       <div class="card" style="margin-top:10px;">
-        <div class="row"><div class="k">КОМАНДЫ</div><button class="btn btnMini" id="battleConsOpen" type="button">🎒</button></div>
-        <div class="battleMyTeamWrap" style="margin-top:10px; width:100%; box-sizing:border-box; padding:10px; border-radius:16px; border:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.10);">
-          <div style="font-size:7px;opacity:.55; margin-bottom:6px;">ТВОЯ КОМАНДА</div>
-          <div id="bMyTeam" style="display:flex; flex-direction:column; gap:4px; width:100%;"></div>
-        </div>
-        <div class="battleTeamsGrid" style="margin-top:10px; display:grid; grid-template-columns:minmax(56px,18vw) 1fr; gap:10px; width:100%; box-sizing:border-box;">
-          <div class="battleCol battleAtkCol" style="padding:10px; border-radius:16px; border:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.10);">
-            <div style="font-size:7px;opacity:.55; margin-bottom:6px; text-align:center;">АТАКА</div>
-            <div id="bAtkList" style="display:flex; flex-direction:column; gap:4px;"></div>
+        <div class="row" style="align-items:center;"><div class="k">КОМАНДЫ</div><button type="button" class="arenaInventoryBtn battleGbInventoryBtn" id="battleConsOpen" aria-label="Инвентарь" title="Инвентарь"><img src="инвентарь.jpg" alt="Инвентарь"></button></div>
+      </div>
+      <div class="battleTeamsArenaWrap">
+        <div class="battleTeamsHorizontal">
+          <div class="battleCol battleMyCol">
+            <div class="battleColLabel battleColLabel--left">ТВОЯ КОМАНДА</div>
+            <div id="bMyTeam" class="battleColInner"></div>
           </div>
-          <div class="battleCol battleEnemyCol" style="padding:10px; border-radius:16px; border:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.10);">
-            <div style="font-size:7px;opacity:.55; margin-bottom:6px; text-align:right;">ПРОТИВНИК</div>
-            <div id="bEnemyTeam" style="display:flex; flex-direction:column; gap:4px;"></div>
+          <div class="battleCol battleAtkCol battleAtkCol--center">
+            <div class="battleColLabel battleColLabel--center">АТАКА</div>
+            <div id="bAtkList" class="battleColInner battleColInner--atk"></div>
+          </div>
+          <div class="battleCol battleEnemyCol">
+            <div class="battleColLabel battleColLabel--right">ПРОТИВНИК</div>
+            <div id="bEnemyTeam" class="battleColInner"></div>
           </div>
         </div>
       </div>
@@ -2775,11 +2907,11 @@ button.btn.charCornerBtn:active{filter:none;}
         <div class="row"><div class="k">ЛОГ БОЯ</div></div>
         <div style="margin-top:8px; display:flex; gap:8px; align-items:flex-start;">
           <div style="flex:1; min-width:0;">
-            <div class="k" style="font-size:10px; margin-bottom:4px;">УРОН</div>
+            <div class="k" style="font-size:10px; margin-bottom:4px; line-height:1.25;">УДАРЫ · ОБЫЧНЫЙ УРОН И КРИТЫ</div>
             <div style="display:flex; flex-direction:column; gap:4px;" id="bLogDmg"></div>
           </div>
           <div style="flex:1; min-width:0;">
-            <div class="k" style="font-size:10px; margin-bottom:4px;">РАСХОДНИКИ</div>
+            <div class="k" style="font-size:10px; margin-bottom:4px; line-height:1.25;">РАСХОДНИКИ · УРОН И ХИЛЛ</div>
             <div style="display:flex; flex-direction:column; gap:4px;" id="bLogItems"></div>
           </div>
         </div>
@@ -3001,7 +3133,7 @@ button.btn.charCornerBtn:active{filter:none;}
       </div>
     </div>
     <div class="sheetBody" id="districtsSheetBody">
-      <div id="districtBizRewardColumn" style="display:none; margin-top:0;"></div>
+      <div id="districtBizRewardColumn" style="margin-top:0;"></div>
       <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;" id="districtList"></div>
     </div>
     <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
@@ -3109,19 +3241,36 @@ button.btn.charCornerBtn:active{filter:none;}
   </div>
 </div>
 
-<div class="modal modalMini" id="mDistrictBiz" role="dialog" aria-modal="true">
-  <div class="sheet sheetMini">
+<div class="modal modalPage" id="mDistrictBiz" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen">
+    <div class="arenaEdge arenaEdgeL" aria-hidden="true"></div>
+    <div class="arenaEdge arenaEdgeR" aria-hidden="true"></div>
     <div class="sheetHead">
       <button class="iconBtn" data-close="mDistrictBiz">‹</button>
       <div class="title" id="dbTitle">БИЗНЕС</div>
-      <div style="width:44px"></div>
+      <div style="width:48px"></div>
     </div>
-    <div class="sheetBody">
-      <div class="card">
+    <div class="sheetBody" id="districtBizSheetBody">
+      <div class="card" style="margin-top:0;">
         <div class="row"><div class="k">РАЙОН</div><div class="badge" id="dbDistrict">—</div></div>
         <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;" id="dbList">—</div>
       </div>
     </div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
+  </div>
+</div>
+
+<div class="modal modalPage" id="mDistrictRewards" role="dialog" aria-modal="true">
+  <div class="sheet sheetOpaque sheetScreen">
+    <div class="arenaEdge arenaEdgeL" aria-hidden="true"></div>
+    <div class="arenaEdge arenaEdgeR" aria-hidden="true"></div>
+    <div class="sheetHead">
+      <button class="iconBtn" data-close="mDistrictRewards">‹</button>
+      <div class="title">НАГРАДЫ</div>
+      <div style="width:48px"></div>
+    </div>
+    <div class="sheetBody" id="districtRewardsSheetBody"></div>
+    <div class="arenaEdge arenaEdgeB" aria-hidden="true"></div>
   </div>
 </div>
 
@@ -8432,6 +8581,36 @@ button.btn.charCornerBtn:active{filter:none;}
     return null;
   }
 
+  function gfLogIsConsumableEv(ev){
+    if (!ev) return false;
+    const tx = String(ev.text||'');
+    if (/гранат/i.test(tx)) return true;
+    if (/аптечк/i.test(tx)) return true;
+    if (/бомб/i.test(tx) || /динамит/i.test(tx) || /бинт/i.test(tx)) return true;
+    if (/восстанов/i.test(tx) && /\d+\s*HP/i.test(tx)) return true;
+    if (ev.kind==='SYS' && /использовал/i.test(tx) && /E\d+\s*-\d+/.test(tx)) return true;
+    return false;
+  }
+  function gfLogIsMeleeCombatEv(ev){
+    if (!ev) return false;
+    if (gfLogIsConsumableEv(ev)) return false;
+    const k = ev.kind;
+    if (k==='HIT' || k==='CRIT' || k==='MISS') return true;
+    if (k==='SYS'){
+      const tx = String(ev.text||'');
+      if (/Победа команды|Поражение команды|^Новый ход/i.test(tx)) return true;
+    }
+    return false;
+  }
+  function gfLogIsHealConsumable(ev){
+    if (!gfLogIsConsumableEv(ev)) return false;
+    const tx = String(ev.text||'');
+    if (/гранат/i.test(tx)) return false;
+    if (/бомб/i.test(tx) || /динамит/i.test(tx)) return false;
+    if (/E\d+\s*-\d+/.test(tx)) return false;
+    return /восстанов/i.test(tx) || /аптечк/i.test(tx) || /бинт/i.test(tx);
+  }
+
   function renderBattle(){
     const b = state.groupFight.battle;
     if (!b) return;
@@ -8539,39 +8718,27 @@ button.btn.charCornerBtn:active{filter:none;}
     const logItems = $('bLogItems');
     if (logDmg) logDmg.innerHTML = '';
     if (logItems) logItems.innerHTML = '';
-    const playerName = String(state.playerName||'ТЫ').trim();
-    const all = (b.log||[]).filter(ev=>{
-      if (!ev) return false;
-      const tx = (ev.text) ? String(ev.text) : '';
-      if (!tx) return false;
-      return true;
-    });
-    const dmgEvents = all.filter(ev=>{
-      const tx = String(ev.text||'');
-      if (tx.indexOf('Ты ') === 0) return true;
-      if (tx.indexOf('Противник') >= 0) return true;
-      return false;
-    });
-    const consumableEvents = all.filter(ev=>{
-      const tx = String(ev.text||'');
-      return tx.indexOf('аптечк') >= 0 || tx.indexOf('гранат') >= 0 || tx.indexOf('бомб') >= 0 || tx.indexOf('динамит') >= 0;
-    });
+    const all = (b.log||[]).filter(ev=>ev && String(ev.text||'').trim());
+    const meleeEvents = all.filter(gfLogIsMeleeCombatEv);
+    const consumableEvents = all.filter(gfLogIsConsumableEv);
 
     if (logDmg){
-      dmgEvents.slice(0, 11).forEach(ev=>{
+      meleeEvents.slice(0, 14).forEach(ev=>{
         const d = document.createElement('div');
         d.className = 'feedItem';
-        if (ev && ev.kind==='MISS') d.style.color = 'rgba(52,211,153,.95)';
-        if (ev && ev.kind==='CRIT') d.style.color = 'rgba(251,113,133,.95)';
-        d.textContent = (ev && ev.text) ? ev.text : String(ev||'');
+        if (ev.kind==='MISS') d.style.color = 'rgba(148,163,184,.95)';
+        else if (ev.kind==='CRIT') d.style.color = 'rgba(251,113,133,.95)';
+        else if (ev.kind==='HIT') d.style.color = 'rgba(254,240,138,.92)';
+        else if (ev.kind==='SYS') d.style.color = 'rgba(196,181,253,.9)';
+        d.textContent = String(ev.text||'');
         logDmg.appendChild(d);
       });
     }
     if (logItems){
-      consumableEvents.slice(0, 11).forEach(ev=>{
+      consumableEvents.slice(0, 14).forEach(ev=>{
         const d = document.createElement('div');
-        d.className = 'feedItem';
-        d.textContent = (ev && ev.text) ? ev.text : String(ev||'');
+        d.className = 'feedItem' + (gfLogIsHealConsumable(ev) ? ' gfLogHeal' : ' gfLogItemDmg');
+        d.textContent = String(ev.text||'');
         logItems.appendChild(d);
       });
     }
@@ -12443,6 +12610,91 @@ button.btn.charCornerBtn:active{filter:none;}
     haptic('medium');
   }
 
+  function renderDistrictRewardsModal(){
+    const body = $('districtRewardsSheetBody');
+    if (!body) return;
+    var rewardDay = previousUtcDayKey();
+    if (rewardDay && (!state.districtDailyFearCloudPrev || state.districtDailyFearCloudPrev.day !== rewardDay)) {
+      try { districtDailyLeadersCloudPullForDay(rewardDay).then(function(){ renderDistrictRewardsModal(); }).catch(function(){}); } catch (e0) {}
+    }
+    var fearClaimed = (state.dailyRewardsFearDay === rewardDay);
+    var holderClaimed = (state.dailyRewardsHolderDay === rewardDay);
+    var isStrasila = amIStrasilaDnyaForReward();
+    var isHolder = amIDistrictHolder();
+    let inner = '<div class="card" style="margin-top:0;">'
+      + '<div class="k" style="margin-bottom:8px;">Награды в 18:00 UTC</div>'
+      + '<div style="font-size:11px; opacity:.85; margin-bottom:4px;">Награда за предыдущие сутки. Забрать можно с 18:00 UTC до следующих 18:00 UTC (до назначения новых страшил и держателя).</div>'
+      + '<div style="font-size:11px; opacity:.75; margin-bottom:10px;">Один игрок может получить только одну награду страшилы, одну награду держателя и одну награду за бизнесы за эти сутки.</div>'
+      + '<div style="display:flex; flex-direction:column; gap:10px;">'
+      + '<div class="row" style="align-items:center; flex-wrap:wrap; gap:8px;">'
+      + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Страшила дня</span><div style="font-size:11px; opacity:.9; margin-top:2px;">15 <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;vertical-align:middle"> золотых монет + 5 ударов ногой, 5 костетом, 5 клизм</div></div>'
+      + ((state.districtDailyFearCloudPrev && state.districtDailyFearCloudPrev.day === rewardDay) ? (isStrasila ? (fearClaimed ? '<div class="badge" style="background:rgba(34,197,94,.25); color:#166534;">Получено</div>' : '<button type="button" class="btn btnSmall" id="claimFearDailyBtnModal">ЗАБРАТЬ</button>') : '<div style="font-size:11px; opacity:.7;">Ты не '+genderPast()+' страшилой в те сутки</div>') : '<div style="font-size:11px; opacity:.7;">Загрузка…</div>')
+      + '</div>'
+      + '<div class="row" style="align-items:center; flex-wrap:wrap; gap:8px;">'
+      + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Держатель района</span><div style="font-size:11px; opacity:.9; margin-top:2px;">30 <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;vertical-align:middle"> золотых монет + 10 ударов ногой, 10 костетом, 10 клизм</div></div>'
+      + (isHolder ? (holderClaimed ? '<div class="badge" style="background:rgba(34,197,94,.25); color:#166534;">Получено</div>' : '<button type="button" class="btn btnSmall" id="claimHolderDailyBtnModal">ЗАБРАТЬ</button>') : '<div style="font-size:11px; opacity:.7;">Ты не держишь район</div>')
+      + '</div>';
+    if (hasAnyBusiness()) {
+      const bizClaimed = (state.dailyRewardsBizDay||'') === utcDayKey();
+      const sums = typeof bizRewardFearGoldSum === 'function' ? bizRewardFearGoldSum() : { fearSum: 0, goldSum: 0 };
+      inner += '<div class="row" style="align-items:center; flex-wrap:wrap; gap:8px;">'
+        + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Награда за бизнесы</span><div style="font-size:11px; opacity:.9; margin-top:2px;">Сумма со всех районов: '
+        + '<img src="страх.png" alt="Страх" class="fearIcon" style="height:12px;vertical-align:middle"> '+fmt4(sums.fearSum||0)+' страх · '
+        + '<img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;vertical-align:middle"> '+fmt4(sums.goldSum||0)+' золотых монет</div></div>'
+        + (bizClaimed ? '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;text-align:right;"><div class="badge" style="background:rgba(34,197,94,.25); color:#166534;">Получено</div><div style="font-size:10px;opacity:.75;max-width:220px;line-height:1.25;" id="bizRewardColumnTimer">—</div></div>' : '<button type="button" class="btn btnSmall" id="claimBizDailyBtnModal">ЗАБРАТЬ</button>')
+        + '</div>';
+    }
+    inner += '</div></div>';
+    body.innerHTML = inner;
+    try {
+      const claimFear = $('claimFearDailyBtnModal');
+      if (claimFear) claimFear.onclick = ()=>{
+        var dk = previousUtcDayKey();
+        if (!dk) { toast('Награда ещё недоступна','lose'); return; }
+        if (state.dailyRewardsFearDay === dk) { toast('Уже получено за те сутки','lose'); return; }
+        if (!amIStrasilaDnyaForReward()) { toast('Ты не '+genderPast()+' страшилой дня в те сутки','lose'); return; }
+        state.dailyRewardsFearDay = dk;
+        state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + 15);
+        try { logCurrency('gold', 15, 'Страшила дня'); } catch (e0) {}
+        if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
+        state.bosses.hitStocks.kick = Math.min(999999, (parseInt(state.bosses.hitStocks.kick||0,10)||0) + 5);
+        state.bosses.hitStocks.knuckle = Math.min(999999, (parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + 5);
+        state.bosses.hitStocks.enema = Math.min(999999, (parseInt(state.bosses.hitStocks.enema||0,10)||0) + 5);
+        save();
+        renderDistricts();
+        renderDistrictRewardsModal();
+        renderHUD();
+        toast('Награда страшилы дня: +15 '+TOAST_GOLD_IMG+' золотых монет, +5 ударов каждого типа','win');
+        haptic('light');
+      };
+    } catch (e0) {}
+    try {
+      const claimHolder = $('claimHolderDailyBtnModal');
+      if (claimHolder) claimHolder.onclick = ()=>{
+        var dk = previousUtcDayKey();
+        if (!dk) { toast('Награда ещё недоступна','lose'); return; }
+        if (state.dailyRewardsHolderDay === dk) { toast('Уже получено за те сутки','lose'); return; }
+        if (!amIDistrictHolder()) { toast('Ты не держишь район','lose'); return; }
+        state.dailyRewardsHolderDay = dk;
+        state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + 30);
+        try { logCurrency('gold', 30, 'Держатель района'); } catch (e0) {}
+        if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
+        state.bosses.hitStocks.kick = Math.min(999999, (parseInt(state.bosses.hitStocks.kick||0,10)||0) + 10);
+        state.bosses.hitStocks.knuckle = Math.min(999999, (parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + 10);
+        state.bosses.hitStocks.enema = Math.min(999999, (parseInt(state.bosses.hitStocks.enema||0,10)||0) + 10);
+        save();
+        renderDistricts();
+        renderHUD();
+        toast('Награда держателя района: +30 '+TOAST_GOLD_IMG+' золотых монет, +10 ударов каждого типа','win');
+        haptic('light');
+      };
+    } catch (e1) {}
+    try {
+      const claimBiz = $('claimBizDailyBtnModal');
+      if (claimBiz) claimBiz.onclick = ()=>{ try { bizDailyClaimAll(); renderDistricts(); renderDistrictRewardsModal(); } catch (e2) {} };
+    } catch (e2) {}
+  }
+
   function renderDistricts(){
     const box = $('districtList');
     if (!box) return;
@@ -12459,40 +12711,25 @@ button.btn.charCornerBtn:active{filter:none;}
     const dayBox = (state.districtDailyFearCloud && state.districtDailyFearCloud.byDistrict) ? state.districtDailyFearCloud.byDistrict : ((state.districtDailyFear && state.districtDailyFear.byDistrict) ? state.districtDailyFear.byDistrict : null);
 
     const bizCol = $('districtBizRewardColumn');
-    if (bizCol) { bizCol.style.display = 'none'; bizCol.innerHTML = ''; }
+    if (bizCol) {
+      bizCol.innerHTML = '<div class="card districtRewardsStripCard">'
+        + '<div class="row" style="align-items:center; flex-wrap:wrap; gap:10px;">'
+        + '<div style="flex:1; min-width:0;">'
+        + '<div class="k">Награды в 18:00 UTC</div>'
+        + '<div style="font-size:11px; opacity:.82; line-height:1.35; margin-top:4px;">Выдача за прошлые сутки. Подробности — в модалке.</div>'
+        + '</div>'
+        + '<button type="button" class="btn btnSmall districtBtn" id="districtRewardsOpenBtn">НАГРАДЫ</button>'
+        + '</div></div>';
+      try {
+        const openR = $('districtRewardsOpenBtn');
+        if (openR) openR.onclick = ()=>{ renderDistrictRewardsModal(); showModal('mDistrictRewards'); haptic('light'); };
+      } catch (eR) {}
+    }
 
     var rewardDay = previousUtcDayKey();
     if (rewardDay && (!state.districtDailyFearCloudPrev || state.districtDailyFearCloudPrev.day !== rewardDay)) {
       try { districtDailyLeadersCloudPullForDay(rewardDay).then(function(){ renderDistricts(); }).catch(function(){}); } catch (e0) {}
     }
-    var fearClaimed = (state.dailyRewardsFearDay === rewardDay);
-    var holderClaimed = (state.dailyRewardsHolderDay === rewardDay);
-    var isStrasila = amIStrasilaDnyaForReward();
-    var isHolder = amIDistrictHolder();
-    html += '<div class="card" style="padding:12px;">'
-      + '<div class="k" style="margin-bottom:8px;">Награды в 18:00 UTC</div>'
-      + '<div style="font-size:11px; opacity:.85; margin-bottom:4px;">Награда за предыдущие сутки. Забрать можно с 18:00 UTC до следующих 18:00 UTC (до назначения новых страшил и держателя).</div>'
-      + '<div style="font-size:11px; opacity:.75; margin-bottom:10px;">Один игрок может получить только одну награду страшилы, одну награду держателя и одну награду за бизнесы за эти сутки.</div>'
-      + '<div style="display:flex; flex-direction:column; gap:10px;">'
-      + '<div class="row" style="align-items:center; flex-wrap:wrap; gap:8px;">'
-      + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Страшила дня</span><div style="font-size:11px; opacity:.9; margin-top:2px;">15 <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;vertical-align:middle"> золотых монет + 5 ударов ногой, 5 костетом, 5 клизм</div></div>'
-      + ((state.districtDailyFearCloudPrev && state.districtDailyFearCloudPrev.day === rewardDay) ? (isStrasila ? (fearClaimed ? '<div class="badge" style="background:rgba(34,197,94,.25); color:#166534;">Получено</div>' : '<button type="button" class="btn btnSmall" id="claimFearDailyBtn">ЗАБРАТЬ</button>') : '<div style="font-size:11px; opacity:.7;">Ты не '+genderPast()+' страшилой в те сутки</div>') : '<div style="font-size:11px; opacity:.7;">Загрузка…</div>')
-      + '</div>'
-      + '<div class="row" style="align-items:center; flex-wrap:wrap; gap:8px;">'
-      + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Держатель района</span><div style="font-size:11px; opacity:.9; margin-top:2px;">30 <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;vertical-align:middle"> золотых монет + 10 ударов ногой, 10 костетом, 10 клизм</div></div>'
-      + (isHolder ? (holderClaimed ? '<div class="badge" style="background:rgba(34,197,94,.25); color:#166534;">Получено</div>' : '<button type="button" class="btn btnSmall" id="claimHolderDailyBtn">ЗАБРАТЬ</button>') : '<div style="font-size:11px; opacity:.7;">Ты не держишь район</div>')
-      + '</div>';
-    if (hasAnyBusiness()) {
-      const bizClaimed = (state.dailyRewardsBizDay||'') === utcDayKey();
-      const sums = typeof bizRewardFearGoldSum === 'function' ? bizRewardFearGoldSum() : { fearSum: 0, goldSum: 0 };
-      html += '<div class="row" style="align-items:center; flex-wrap:wrap; gap:8px;">'
-        + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Награда за бизнесы</span><div style="font-size:11px; opacity:.9; margin-top:2px;">Сумма со всех районов: '
-        + '<img src="страх.png" alt="Страх" class="fearIcon" style="height:12px;vertical-align:middle"> '+fmt4(sums.fearSum||0)+' страх · '
-        + '<img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;vertical-align:middle"> '+fmt4(sums.goldSum||0)+' золотых монет</div></div>'
-        + (bizClaimed ? '<div class="badge" style="background:rgba(34,197,94,.25); color:#166534;">Получено</div>' : '<button type="button" class="btn btnSmall" id="claimBizDailyBtn">ЗАБРАТЬ</button>')
-        + '</div>';
-    }
-    html += '</div></div>';
 
     for (let i=1;i<=data.length;i++){
       const name = data[i-1].name;
@@ -12532,7 +12769,7 @@ button.btn.charCornerBtn:active{filter:none;}
       const showGateBossBtn = idx >= 1 && !gateKilled && !!districtGateBoss(idx);
       const gateBoss = idx >= 1 ? districtGateBoss(idx) : null;
       const showBossFullColumn = idx >= 1 && !gateKilled && gateBoss;
-      html += '<div class="card">'
+      html += '<div class="card districtArenaCard">'
         + '<div class="districtCardGrid">'
         + '<div class="districtLeftCol" style="'+(unlocked?'':'opacity:.55; filter:grayscale(1);')+'">'
         + '<div style="width:140px; height:140px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:'+(img?('url(\''+encodeURI(img)+'\') center/cover no-repeat'):'linear-gradient(145deg, rgba(255,255,255,.14), rgba(0,0,0,.10))')+'; display:flex; align-items:center; justify-content:center; font-weight:900; letter-spacing:2px; opacity:.88">'+(img?'':'IMG')+'</div>'
@@ -12632,51 +12869,8 @@ button.btn.charCornerBtn:active{filter:none;}
     } catch (e) {}
 
     try {
-      const claimFear = $('claimFearDailyBtn');
-      if (claimFear) claimFear.onclick = ()=>{
-        var dk = previousUtcDayKey();
-        if (!dk) { toast('Награда ещё недоступна','lose'); return; }
-        if (state.dailyRewardsFearDay === dk) { toast('Уже получено за те сутки','lose'); return; }
-        if (!amIStrasilaDnyaForReward()) { toast('Ты не '+genderPast()+' страшилой дня в те сутки','lose'); return; }
-        state.dailyRewardsFearDay = dk;
-        state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + 15);
-        try { logCurrency('gold', 15, 'Страшила дня'); } catch (e0) {}
-        if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
-        state.bosses.hitStocks.kick = Math.min(999999, (parseInt(state.bosses.hitStocks.kick||0,10)||0) + 5);
-        state.bosses.hitStocks.knuckle = Math.min(999999, (parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + 5);
-        state.bosses.hitStocks.enema = Math.min(999999, (parseInt(state.bosses.hitStocks.enema||0,10)||0) + 5);
-        save();
-        renderDistricts();
-        renderHUD();
-        toast('Награда страшилы дня: +15 '+TOAST_GOLD_IMG+' золотых монет, +5 ударов каждого типа','win');
-        haptic('light');
-      };
-    } catch (e0) {}
-    try {
-      const claimHolder = $('claimHolderDailyBtn');
-      if (claimHolder) claimHolder.onclick = ()=>{
-        var dk = previousUtcDayKey();
-        if (!dk) { toast('Награда ещё недоступна','lose'); return; }
-        if (state.dailyRewardsHolderDay === dk) { toast('Уже получено за те сутки','lose'); return; }
-        if (!amIDistrictHolder()) { toast('Ты не держишь район','lose'); return; }
-        state.dailyRewardsHolderDay = dk;
-        state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + 30);
-        try { logCurrency('gold', 30, 'Держатель района'); } catch (e0) {}
-        if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
-        state.bosses.hitStocks.kick = Math.min(999999, (parseInt(state.bosses.hitStocks.kick||0,10)||0) + 10);
-        state.bosses.hitStocks.knuckle = Math.min(999999, (parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + 10);
-        state.bosses.hitStocks.enema = Math.min(999999, (parseInt(state.bosses.hitStocks.enema||0,10)||0) + 10);
-        save();
-        renderDistricts();
-        renderHUD();
-        toast('Награда держателя района: +30 '+TOAST_GOLD_IMG+' золотых монет, +10 ударов каждого типа','win');
-        haptic('light');
-      };
-    } catch (e1) {}
-    try {
-      const claimBiz = $('claimBizDailyBtn');
-      if (claimBiz) claimBiz.onclick = ()=>{ try { bizDailyClaimAll(); renderDistricts(); } catch (e2) {} };
-    } catch (e2) {}
+      if ($('mDistrictRewards') && $('mDistrictRewards').classList.contains('show')) renderDistrictRewardsModal();
+    } catch (eSync) {}
   }
 
   function districtNightmareOpen(idx){
@@ -14204,11 +14398,9 @@ button.btn.charCornerBtn:active{filter:none;}
     const d = new Date();
     $('utc').textContent = 'UTC: ' + pad2(d.getUTCHours()) + ':' + pad2(d.getUTCMinutes()) + ':' + pad2(d.getUTCSeconds());
     try {
-      if ($('mDistricts') && $('mDistricts').classList.contains('show') && $('bizRewardColumnTimer')) {
+      if (($('mDistrictRewards') && $('mDistrictRewards').classList.contains('show')) && $('bizRewardColumnTimer')) {
         const ms = bizRewardNextClaimMs();
-        $('bizRewardColumnTimer').textContent = ms <= 0 ? 'Готово' : fmtHHMMSS(ms);
-        const btn = $('bizRewardColumnCollect');
-        if (btn) btn.disabled = ms > 0;
+        $('bizRewardColumnTimer').textContent = ms <= 0 ? 'До следующей выдачи бизнеса: готово' : ('До следующей выдачи бизнеса: ' + fmtHHMMSS(ms));
       }
     } catch (e) {}
   }
