@@ -1274,8 +1274,8 @@ button.btn.charCornerBtn:active{filter:none;}
 /* Всегда 2 колонки: слева босс, справа множители и удары (не схлопывать на телефонах) */
 #mBossFight .bfFightGrid{
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(72px, 24%);
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) minmax(108px, 31%);
+  gap: 10px 12px;
   align-items: start;
   width: 100%;
   max-width: 100%;
@@ -1288,9 +1288,9 @@ button.btn.charCornerBtn:active{filter:none;}
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  width: min(100%, 248px, 58vw);
+  width: min(100%, 168px, 44vw);
   max-width: 100%;
-  margin-top: 12px;
+  margin-top: 8px;
   margin-left: auto;
   margin-right: auto;
   box-sizing: border-box;
@@ -1306,44 +1306,97 @@ button.btn.charCornerBtn:active{filter:none;}
 #mBossFight .bfBossPortraitStack .bfHpBarWrap{
   width: 100%;
   max-width: none;
-  margin-top: 10px;
+  margin-top: 6px;
   margin-left: 0;
   margin-right: 0;
   box-sizing: border-box;
 }
-#mBossFight .bfFightColRight .k{ font-size: 10px; margin-bottom: 4px; }
-#mBossFight .bfFightColRight{ min-width: 0; max-width: 100%; }
+#mBossFight .bfBossPortraitStack .bfHpBar{
+  height: 14px;
+  border-radius: 8px;
+}
+#mBossFight .bfBossPortraitStack .bfHpBarIn{
+  font-size: 9px;
+}
+#mBossFight .bfFightColRight .k{ font-size: 10px; margin: 0; }
+#mBossFight .bfFightColRight{
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
 #mBossFight .bfHitQtyGrid{
-  margin-top: 6px !important;
+  margin-top: 0 !important;
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
-  gap: 8px !important;
+  gap: 6px 8px !important;
   max-width: 100% !important;
 }
 #mBossFight .bfHitQtyGrid .btn{
-  padding: 6px 4px !important;
-  font-size: clamp(8px, 2.2vw, 10px) !important;
-  min-height: 30px !important;
+  padding: 0 2px !important;
+  font-size: clamp(7px, 2.6vw, 9px) !important;
+  font-weight: 800 !important;
+  min-height: 0 !important;
+  height: 34px !important;
   letter-spacing: 0 !important;
-  line-height: 1.15 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  border-radius: 999px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
 }
 #mBossFight .bossAtkGrid{
-  margin-top: 8px !important;
+  margin-top: 0 !important;
   max-width: 100%;
-  gap: 10px 12px !important;
-  row-gap: 12px !important;
-  column-gap: 12px !important;
+  row-gap: 5px !important;
+  column-gap: 14px !important;
+  gap: 5px 14px !important;
 }
-#mBossFight .bfFightColRight .bossAtkBtn50{ max-width: 40px !important; height: 36px !important; min-height: 34px !important; }
+#mBossFight .bfFightColRight .bossAtkBtn50{
+  max-width: 38px !important;
+  width: 38px !important;
+  height: 34px !important;
+  min-height: 32px !important;
+}
 #mBossFight .bossAtkCell{
-  padding: 6px 4px !important;
-  gap: 5px !important;
+  padding: 2px 4px !important;
+  gap: 2px !important;
   box-sizing: border-box;
   min-height: 0;
+  justify-content: flex-start;
 }
-#mBossFight .bossAtkCell .bfHitDmg,#mBossFight .bossAtkCell .bfHitQty{
-  font-size: clamp(6px, 1.9vw, 9px); text-align: center; max-width: 100%; overflow: hidden;
-  margin-top: 2px;
+#mBossFight .bossAtkCell .bfHitDmgCol{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  max-width: 100%;
+  min-width: 0;
+}
+#mBossFight .bossAtkCell .bfHitDmgLbl{
+  font-size: clamp(6px, 1.65vw, 7px);
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  opacity: 0.88;
+  line-height: 1.1;
+}
+#mBossFight .bossAtkCell .bfHitDmgNum{
+  font-size: clamp(8px, 2.4vw, 11px);
+  font-weight: 900;
+  line-height: 1.1;
+  color: rgba(45,30,18,.95);
+}
+#mBossFight .bossAtkCell .bfHitQty{
+  font-size: clamp(6px, 1.85vw, 8px);
+  line-height: 1.18;
+  text-align: center;
+  max-width: 100%;
+  margin-top: 0;
+  word-break: break-word;
 }
 #mBossFight .bfFightColRight .k{font-size: clamp(8px, 2.2vw, 10px);}
 /* Магазин ударов поверх боя (5200 ниже 5300 у боя — иначе окно не видно) */
@@ -1373,10 +1426,79 @@ button.btn.charCornerBtn:active{filter:none;}
   z-index: 5;
 }
 #mBfShop .bfShopSheetWide .sheetBody{ padding: 12px calc(10% + env(safe-area-inset-left)) 16px; box-sizing: border-box; max-height: calc(88vh - 120px); overflow-y: auto; }
-/* Ворота босса: слева имя/время/текст/фото, справа HP и кнопка */
+/* Ворота босса — как экран боя: слева портрет+HP, справа урон и кнопка */
 .dgBossGrid{ display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
 .dgBossLeft{ display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; max-width: 100%; }
 .dgBossRight{ min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+#mDistrictGateBoss .dgBossGridFight{
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(108px, 31%);
+  gap: 10px 12px;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+#mDistrictGateBoss .dgPortraitStack{
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: min(100%, 168px, 44vw);
+  margin: 8px auto 0;
+  box-sizing: border-box;
+}
+#mDistrictGateBoss .dgGatePortrait{
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  border: 2px solid rgba(45,30,18,.18);
+  background: rgba(0,0,0,.12);
+  background-size: cover;
+  background-position: center;
+  box-sizing: border-box;
+}
+#mDistrictGateBoss .dgHpBarOuter{ margin-top: 6px; width: 100%; }
+#mDistrictGateBoss .dgGateHpBar{ height: 14px !important; border-radius: 8px; }
+#mDistrictGateBoss .dgBossRightFight{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+  min-width: 0;
+}
+#mDistrictGateBoss .dgDmgPreview{
+  font-size: clamp(13px, 3.8vw, 19px);
+  font-weight: 900;
+  text-align: center;
+  line-height: 1.1;
+  color: rgba(45,30,18,.95);
+}
+/* Лог/топ боя: твои строки — зелёный темнее */
+/* Твои строки в логе/топе боя и на экране результата — один тёмно-зелёный */
+#mBossFight #bfLog .bfBfPlayerLine,
+#mBossFight #bfTop .bfBfPlayerLine,
+#mBossFightRes #bfrTopL .bfBfPlayerLine,
+#mBossFightRes #bfrTopR .bfBfPlayerLine{
+  color: rgba(12, 92, 58, 0.98) !important;
+}
+#mBossFight #bfLog .bfBfPlayerBadge,
+#mBossFight #bfTop .bfBfPlayerBadge,
+#mBossFightRes #bfrTopL .bfBfPlayerBadge,
+#mBossFightRes #bfrTopR .bfBfPlayerBadge{
+  color: rgba(12, 92, 58, 0.98) !important;
+  border-color: rgba(12, 92, 58, 0.38) !important;
+}
+#mBossFightRes #bfrOutcome.bfrOutcomeWin{
+  color: rgba(12, 92, 58, 0.98) !important;
+}
+#mBossFight[data-bf-district="1"] #bfSoloNote{
+  font-size: clamp(9px, 2.4vw, 11px);
+  margin-top: 4px;
+  line-height: 1.25;
+  max-width: min(260px, 90vw);
+}
+#mBossFight[data-bf-district="1"] .bfBossPortraitStack{ margin-top: 6px; }
+#mBossFight[data-bf-district="1"] .bfHpBarIn{ font-size: clamp(7px, 2vw, 9px); letter-spacing: -0.02em; }
 .modalBossFightRes{ z-index: 5500; }
 .modal.show{display:block;}
 .modal.modalMini{ z-index: 5200; display:none; align-items:center; justify-content:center; }
@@ -3023,12 +3145,12 @@ button.btn.charCornerBtn:active{filter:none;}
           </div>
           <div class="bfFightColRight">
             <div class="k" style="margin:0;">Ударов за нажатие</div>
-            <div class="bfHitQtyGrid" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;" id="bfHitQty"></div>
-            <div class="bossAtkGrid" style="margin-top:10px">
-              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfFreeHit"><img src="пинок.png" alt="" class="bfHitImg"></button><span class="bfHitDmg" id="bfFreeHitDmg">—</span><span class="bfHitQty" id="bfFreeHitQty">—</span></div>
-              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfHit1"><img src="ногой.png" alt="" class="bfHitImg"></button><span class="bfHitDmg" id="bfHit1Dmg">—</span><span class="bfHitQty" id="bfHit1Qty">—</span></div>
-              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfHit2"><img src="костетом.jpg" alt="" class="bfHitImg"></button><span class="bfHitDmg" id="bfHit2Dmg">—</span><span class="bfHitQty" id="bfHit2Qty">—</span></div>
-              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfHit3"><img src="клизма.jpg" alt="" class="bfHitImg"></button><span class="bfHitDmg" id="bfHit3Dmg">—</span><span class="bfHitQty" id="bfHit3Qty">—</span></div>
+            <div class="bfHitQtyGrid" id="bfHitQty"></div>
+            <div class="bossAtkGrid">
+              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfFreeHit"><img src="пинок.png" alt="" class="bfHitImg"></button><div class="bfHitDmgCol"><span class="bfHitDmgLbl">УРОН</span><span class="bfHitDmgNum" id="bfFreeHitDmg">—</span></div><span class="bfHitQty" id="bfFreeHitQty">—</span></div>
+              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfHit1"><img src="ногой.png" alt="" class="bfHitImg"></button><div class="bfHitDmgCol"><span class="bfHitDmgLbl">УРОН</span><span class="bfHitDmgNum" id="bfHit1Dmg">—</span></div><span class="bfHitQty" id="bfHit1Qty">—</span></div>
+              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfHit2"><img src="костетом.jpg" alt="" class="bfHitImg"></button><div class="bfHitDmgCol"><span class="bfHitDmgLbl">УРОН</span><span class="bfHitDmgNum" id="bfHit2Dmg">—</span></div><span class="bfHitQty" id="bfHit2Qty">—</span></div>
+              <div class="bossAtkCell"><button type="button" class="btn bossAtkBtn50" id="bfHit3"><img src="клизма.jpg" alt="" class="bfHitImg"></button><div class="bfHitDmgCol"><span class="bfHitDmgLbl">УРОН</span><span class="bfHitDmgNum" id="bfHit3Dmg">—</span></div><span class="bfHitQty" id="bfHit3Qty">—</span></div>
             </div>
           </div>
         </div>
@@ -3564,19 +3686,25 @@ button.btn.charCornerBtn:active{filter:none;}
     </div>
     <div class="sheetBody" id="dgSheetBody">
       <div class="card" id="dgCard" style="margin-top:0;">
-        <div class="dgBossGrid">
+        <div class="dgBossGridFight">
           <div class="dgBossLeft">
-            <div class="k" id="dgName" style="text-align:center; font-size:15px; letter-spacing:2px; margin:0; line-height:1.2;">—</div>
-            <div id="dgTime" style="text-align:center; font-size:13px; font-weight:800; margin-top:10px; letter-spacing:0.5px; color:rgba(45,30,18,.88);">—</div>
-            <div style="text-align:center; font-size:11px; opacity:.78; margin-top:8px; line-height:1.4; font-weight:700; letter-spacing:0.5px;">Босс района — только в одиночку</div>
-            <div id="dgImgWrap" style="margin-top:14px; width:min(160px,42vw); height:min(160px,42vw); max-width:100%; border-radius:14px; border:1px solid rgba(45,30,18,.2); background:rgba(0,0,0,.15); background-size:cover; background-position:center;"></div>
-          </div>
-          <div class="dgBossRight">
-            <div class="row" style="align-items:center;"><div class="k">HP</div><div class="badge" id="dgHp">0 / 0</div></div>
-            <div style="margin-top:8px; width:100%; height:22px; background:rgba(0,0,0,.2); border-radius:11px; overflow:hidden; border:1px solid rgba(45,30,18,.15);">
-              <div id="dgHpBar" style="height:100%; background:linear-gradient(90deg, #ef4444, #f97316); width:100%; transition:width .2s;"></div>
+            <div class="k" id="dgName" style="text-align:center; font-size:clamp(12px,3.2vw,15px); letter-spacing:1.5px; margin:0; line-height:1.2;">—</div>
+            <div id="dgTime" style="text-align:center; font-size:12px; font-weight:800; margin-top:6px; letter-spacing:0.5px; color:rgba(45,30,18,.88);">—</div>
+            <div style="text-align:center; font-size:clamp(9px,2.4vw,11px); opacity:.82; margin-top:4px; line-height:1.25; font-weight:700;">Босс района — только в одиночку</div>
+            <div class="dgPortraitStack">
+              <div id="dgImgWrap" class="dgGatePortrait"></div>
+              <div class="dgHpBarOuter">
+                <div class="bfHpBar dgGateHpBar">
+                  <div id="dgHpBar" class="bfHpBarFill" style="width:100%; transition:width .2s;"></div>
+                  <div class="bfHpBarIn" id="dgHpIn">0 / 0</div>
+                </div>
+              </div>
             </div>
-            <button type="button" class="btn districtBtn" id="dgAttackBtn" style="margin-top:14px; width:100%; box-sizing:border-box;">АТАКОВАТЬ</button>
+          </div>
+          <div class="dgBossRight dgBossRightFight">
+            <div class="k" style="margin:0; font-size:clamp(8px,2.2vw,10px);">Урон за удар</div>
+            <div id="dgDmgPreview" class="dgDmgPreview">—</div>
+            <button type="button" class="btn districtBtn" id="dgAttackBtn" style="margin-top:2px; width:100%; box-sizing:border-box;">АТАКОВАТЬ</button>
           </div>
         </div>
       </div>
@@ -7279,6 +7407,7 @@ button.btn.charCornerBtn:active{filter:none;}
     updateBackButton();
 
     if (id==='mBossFight'){
+      try { const el = $('mBossFight'); if (el) el.removeAttribute('data-bf-district'); } catch (eD) {}
       while (stack.length) {
         const top = stack[stack.length-1];
         const mm = $(top);
@@ -10081,6 +10210,13 @@ button.btn.charCornerBtn:active{filter:none;}
     }
 
     const isDistrict = isDistrictBossId(bossId);
+    try {
+      const rootBf = $('mBossFight');
+      if (rootBf){
+        if (isDistrict) rootBf.setAttribute('data-bf-district', '1');
+        else rootBf.removeAttribute('data-bf-district');
+      }
+    } catch (eBfD) {}
     if (!isDistrict) {
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
@@ -10167,7 +10303,7 @@ button.btn.charCornerBtn:active{filter:none;}
     const bfHpBarFill = $('bfHpBarFill');
     const bfHpBarIn = $('bfHpBarIn');
     if (bfHpBarFill) bfHpBarFill.style.width = hpPct + '%';
-    if (bfHpBarIn) bfHpBarIn.textContent = curHp + ' / ' + maxHp;
+    if (bfHpBarIn) bfHpBarIn.textContent = isDistrict ? (fmt4(curHp) + ' / ' + fmt4(maxHp)) : (curHp + ' / ' + maxHp);
     const left = isDistrict ? Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now()) : Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now());
     $('bfTimer').textContent = left>0 ? ('ВРЕМЯ: ' + fmtHHMMSS(left)) : 'ВРЕМЯ: 00:00:00';
     try {
@@ -10181,8 +10317,8 @@ button.btn.charCornerBtn:active{filter:none;}
     try {
       const q2 = clamp(parseInt(state.bosses.hitUseQty||1,10)||1, 1, 1000);
       const prevHp = Math.max(0, parseInt(f.hp||0,10)||0);
-      const setDmgQty = (dmgEl, qtyEl, dmgVal, qtyTxt) => {
-        if (dmgEl) dmgEl.textContent = dmgVal;
+      const setDmgQty = (dmgEl, qtyEl, dmgNum, qtyTxt) => {
+        if (dmgEl) dmgEl.textContent = String(dmgNum);
         if (qtyEl) qtyEl.textContent = qtyTxt;
       };
       // Те же формулы, что при ударе: doFreeHit использует (14,50), doTokenHit — (10,70),(7,85),(4,100)
@@ -10208,30 +10344,10 @@ button.btn.charCornerBtn:active{filter:none;}
       const knuckleTotal = Math.min(prevHp, knuckleBase * knuckleHits);
       const enemaTotal = Math.min(prevHp, enemaBase * enemaHits);
 
-      setDmgQty(
-        $('bfFreeHitDmg'),
-        $('bfFreeHitQty'),
-        'УРОН ' + freePerPress,
-        freeHits + ' удар'
-      );
-      setDmgQty(
-        $('bfHit1Dmg'),
-        $('bfHit1Qty'),
-        'УРОН ' + kickPerPress,
-        kickHits + ' ударов'
-      );
-      setDmgQty(
-        $('bfHit2Dmg'),
-        $('bfHit2Qty'),
-        'УРОН ' + knucklePerPress,
-        knuckleHits + ' ударов'
-      );
-      setDmgQty(
-        $('bfHit3Dmg'),
-        $('bfHit3Qty'),
-        'УРОН ' + enemaPerPress,
-        enemaHits + ' ударов'
-      );
+      setDmgQty($('bfFreeHitDmg'), $('bfFreeHitQty'), freePerPress, freeHits + ' удар');
+      setDmgQty($('bfHit1Dmg'), $('bfHit1Qty'), kickPerPress, kickHits + ' ударов');
+      setDmgQty($('bfHit2Dmg'), $('bfHit2Qty'), knucklePerPress, knuckleHits + ' ударов');
+      setDmgQty($('bfHit3Dmg'), $('bfHit3Qty'), enemaPerPress, enemaHits + ' ударов');
     } catch (e) {}
 
     try {
@@ -10244,7 +10360,8 @@ button.btn.charCornerBtn:active{filter:none;}
           const extra = isActive
             ? 'background:linear-gradient(180deg,#4a4a4a,#353535); border:1px solid #2c2c2c; color:#9a9a9a; box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.25);'
             : 'opacity:.65; border:1px solid #2c2c2c; color:#7a7a7a;';
-          return '<button class="btn btnMini" data-bf-hitqty="'+n+'" style="'+extra+'">x'+n+'</button>';
+          const label = n === 1000 ? 'x1k' : ('x'+n);
+          return '<button class="btn btnMini" data-bf-hitqty="'+n+'" style="'+extra+'">'+label+'</button>';
         }).join('');
         box.querySelectorAll('[data-bf-hitqty]').forEach(bb=>{
           bb.onclick = ()=>{
@@ -10482,9 +10599,9 @@ button.btn.charCornerBtn:active{filter:none;}
     const playerNameForLog = String(state.playerName||'PLAYER').trim();
     log.innerHTML = logArr.length ? logArr.map(e=>{
       const isPlayer = String(e.who||'').trim() === playerNameForLog;
-      const rowStyle = isPlayer ? ' style="color:rgba(52,211,153,.95)"' : '';
-      const badgeStyle = isPlayer ? 'padding:6px 8px; font-size:11px; color:rgba(52,211,153,.95)' : 'padding:6px 8px; font-size:11px';
-      return '<div class="row"'+rowStyle+'><div style="min-width:0; font-size:12px; opacity:.9">'+String(e.who)+'</div><div class="badge" style="'+badgeStyle+'">'+String(e.dmg)+'</div></div>';
+      const rowC = isPlayer ? 'row bfBfPlayerLine' : 'row';
+      const badgeC = isPlayer ? 'badge bfBfPlayerBadge' : 'badge';
+      return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">'+String(e.who)+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+String(e.dmg)+'</div></div>';
     }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
 
     const top = $('bfTop');
@@ -10492,9 +10609,9 @@ button.btn.charCornerBtn:active{filter:none;}
     const rows = Object.keys(topObj).map(k=>({ who:k, dmg: parseInt(topObj[k]||0,10)||0 })).sort((a,b)=>b.dmg-a.dmg).slice(0,12);
     top.innerHTML = rows.length ? rows.map((r,i)=>{
       const isPlayerTop = String(r.who||'').trim() === playerNameForLog;
-      const rowStyle = isPlayerTop ? ' style="color:rgba(52,211,153,.95)"' : '';
-      const badgeStyle = isPlayerTop ? 'padding:6px 8px; font-size:11px; color:rgba(52,211,153,.95)' : 'padding:6px 8px; font-size:11px';
-      return '<div class="row"'+rowStyle+'><div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+r.who+'</div><div class="badge" style="'+badgeStyle+'">'+r.dmg+'</div></div>';
+      const rowC = isPlayerTop ? 'row bfBfPlayerLine' : 'row';
+      const badgeC = isPlayerTop ? 'badge bfBfPlayerBadge' : 'badge';
+      return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+r.who+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+r.dmg+'</div></div>';
     }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
   }
 
@@ -10565,8 +10682,12 @@ button.btn.charCornerBtn:active{filter:none;}
     } catch (e0) {}
     $('bfrName').textContent = b.name;
     $('bfrTitle').textContent = win ? 'БОСС ПОВЕРЖЕН' : ('Ты '+genderLost());
-    $('bfrOutcome').textContent = win ? ('Ты '+genderWon()) : ('Ты '+genderLost());
-    $('bfrOutcome').style.color = win ? 'rgba(52,211,153,.95)' : 'rgba(251,113,133,.95)';
+    const bfrOut = $('bfrOutcome');
+    if (bfrOut){
+      bfrOut.textContent = win ? ('Ты '+genderWon()) : ('Ты '+genderLost());
+      bfrOut.classList.toggle('bfrOutcomeWin', !!win);
+      bfrOut.style.color = win ? '' : 'rgba(251,113,133,.95)';
+    }
 
     const rewardCard = $('bfrRewardCard');
     const reward = $('bfrReward');
@@ -10602,15 +10723,18 @@ button.btn.charCornerBtn:active{filter:none;}
     const rows = Object.keys(topObj).map(k=>({ who:k, dmg: parseInt(topObj[k]||0,10)||0 })).sort((a,c)=>c.dmg-a.dmg).slice(0,10);
     const leftRows = rows.slice(0,5);
     const rightRows = rows.slice(5,10);
+    const bfrMe = String(state.playerName||'PLAYER').trim();
+    function bfrTopRowHtml(r, rank){
+      const isMe = String(r.who||'').trim() === bfrMe;
+      const rowC = isMe ? 'row bfBfPlayerLine' : 'row';
+      const badgeC = isMe ? 'badge bfBfPlayerBadge' : 'badge';
+      return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">#'+rank+' '+r.who+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+r.dmg+'</div></div>';
+    }
     if (topL){
-      topL.innerHTML = leftRows.length ? leftRows.map((r,i)=>{
-        return '<div class="row"><div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+r.who+'</div><div class="badge" style="padding:6px 8px; font-size:11px">'+r.dmg+'</div></div>';
-      }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+      topL.innerHTML = leftRows.length ? leftRows.map((r,i)=> bfrTopRowHtml(r, i+1)).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
     }
     if (topR){
-      topR.innerHTML = rightRows.length ? rightRows.map((r,i)=>{
-        return '<div class="row"><div style="min-width:0; font-size:12px; opacity:.9">#'+(i+6)+' '+r.who+'</div><div class="badge" style="padding:6px 8px; font-size:11px">'+r.dmg+'</div></div>';
-      }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+      topR.innerHTML = rightRows.length ? rightRows.map((r,i)=> bfrTopRowHtml(r, i+6)).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
     }
 
     // close fight UI so it doesn't remain stuck with 0 HP
@@ -13233,26 +13357,30 @@ button.btn.charCornerBtn:active{filter:none;}
       const fight = state.districtGateBossFight;
       const t = $('dgTitle');
       const n = $('dgName');
-      const hpEl = $('dgHp');
+      const hpIn = $('dgHpIn');
       const bar = $('dgHpBar');
       const imgWrap = $('dgImgWrap');
+      const dmgPv = $('dgDmgPreview');
       const btn = $('dgAttackBtn');
       if (!boss || !fight || fight.districtIdx !== id) {
         if (t) t.textContent = 'БОСС РАЙОНА';
         if (n) n.textContent = '—';
-        if (hpEl) hpEl.textContent = '0 / 0';
+        if (hpIn) hpIn.textContent = '0 / 0';
         if (bar) bar.style.width = '0%';
         if (imgWrap) imgWrap.style.backgroundImage = '';
+        if (dmgPv) dmgPv.textContent = '—';
         if (btn) btn.disabled = true;
         return;
       }
       const curHp = Math.max(0, parseInt(fight.hp||0,10)||0);
       const maxHp = parseInt(fight.maxHp||boss.hp||50000,10)||50000;
       const pct = maxHp > 0 ? Math.min(100, (curHp / maxHp) * 100) : 0;
+      const dmgHit = Math.max(500, Math.floor(maxHp * 0.02));
       if (t) t.textContent = 'БОСС РАЙОНА';
       if (n) n.textContent = (boss.name||'Босс').toUpperCase();
-      if (hpEl) hpEl.textContent = fmt4(curHp) + ' / ' + fmt4(maxHp);
+      if (hpIn) hpIn.textContent = fmt4(curHp) + ' / ' + fmt4(maxHp);
       if (bar) bar.style.width = pct + '%';
+      if (dmgPv) dmgPv.textContent = String(dmgHit);
       if (imgWrap) imgWrap.style.backgroundImage = boss.img ? ("url('"+encodeURI(boss.img)+"')") : 'none';
       if (btn) {
         btn.disabled = curHp <= 0;
