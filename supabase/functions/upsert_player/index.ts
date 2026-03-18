@@ -113,22 +113,23 @@ async function postgrestGetPlayerState(projectUrl: string, serviceKey: string, t
   return row && typeof row === "object" ? (row as any).state : null
 }
 
-async function postgrestGetPlayerSession(projectUrl: string, serviceKey: string, tgId: string): Promise<{ sid: string; updatedAt: string }> {
+async function postgrestGetPlayerSession(projectUrl: string, serviceKey: string, tgId: string): Promise<{ sid: string; updatedAt: string; deviceId: string }> {
   try {
     const url = projectUrl.replace(/\/$/, "") +
-      `/rest/v1/players?tg_id=eq.${encodeURIComponent(tgId)}&select=active_session_id,active_session_updated_at&limit=1`
+      `/rest/v1/players?tg_id=eq.${encodeURIComponent(tgId)}&select=active_session_id,active_session_updated_at,active_device_id&limit=1`
     const resp = await fetch(url, {
       method: "GET",
       headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
     })
-    if (!resp.ok) return { sid: "", updatedAt: "" }
+    if (!resp.ok) return { sid: "", updatedAt: "", deviceId: "" }
     const rows = await resp.json().catch(() => [])
     const row = Array.isArray(rows) && rows.length ? rows[0] : null
     const sid = row && typeof row === "object" ? String((row as any).active_session_id || "").trim() : ""
     const updatedAt = row && typeof row === "object" ? String((row as any).active_session_updated_at || "").trim() : ""
-    return { sid, updatedAt }
+    const deviceId = row && typeof row === "object" ? String((row as any).active_device_id || "").trim() : ""
+    return { sid, updatedAt, deviceId }
   } catch (_e) {
-    return { sid: "", updatedAt: "" }
+    return { sid: "", updatedAt: "", deviceId: "" }
   }
 }
 
@@ -568,18 +569,24 @@ Deno.serve(async (req: Request) => {
     state = null
   }
 
-  // Single-device: NEW login always wins.
-  // The client must call session_start on boot, which overwrites active_session_id.
-  // Any write from a non-active session_id is rejected with session_conflict (old device closes immediately).
+  // Single-device, but allow multiple sessions on SAME device.
+  // - If incoming session_id differs and device differs => session_conflict.
+  // - If device matches => allow and "take over" active_session_id to newest session.
   try {
     const incomingSid = String(body?.session_id ?? (body as any)?.sessionId ?? "").trim()
-    const cur = await postgrestGetPlayerSession(projectUrl, serviceKey, tgId).catch(() => ({ sid: "", updatedAt: "" }))
+    const incomingDeviceId = String(body?.device_id ?? (body as any)?.deviceId ?? "").trim()
+    const cur = await postgrestGetPlayerSession(projectUrl, serviceKey, tgId).catch(() => ({ sid: "", updatedAt: "", deviceId: "" }))
     const currentSid = String(cur.sid || "").trim()
+    const currentDeviceId = String(cur.deviceId || "").trim()
     if (currentSid && incomingSid && incomingSid !== currentSid) {
+      if (currentDeviceId && incomingDeviceId && incomingDeviceId === currentDeviceId) {
+        await postgrestSetPlayerSession(projectUrl, serviceKey, tgId, incomingSid)
+      } else {
       return new Response(JSON.stringify({ ok: false, error: "session_conflict" }), {
         status: 409,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       })
+      }
     }
     // Optional heartbeat for active session
     if (incomingSid && incomingSid === currentSid) {
