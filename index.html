@@ -73,6 +73,8 @@
   --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
   --transition-fast: 0.18s var(--ease-out);
   --transition-normal: 0.28s var(--ease-out);
+  /* Единая ширина колонки UI (главная + модалки) */
+  --appCol: 480px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;}
@@ -125,6 +127,10 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   flex-direction:column;
   padding-top:env(safe-area-inset-top);
   background:var(--caramel);
+  max-width:var(--appCol);
+  margin-left:auto;
+  margin-right:auto;
+  width:100%;
 }
 /* Volumetric light: мягкие световые столбы сверху (global illumination feel) */
 #app::before{
@@ -457,11 +463,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
 /* ПК и Telegram Web (широкий viewport): пустое место по бокам — контент по центру с max-width для всего проекта */
 @media (min-width: 520px){
-  #app{
-    max-width:480px;
-    margin-left:auto;
-    margin-right:auto;
-  }
   .modal{
     padding-left:24px;
     padding-right:24px;
@@ -491,22 +492,6 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     min-height:100dvh;
     border-radius:0;
     border:none;
-  }
-  #mBossFight.modalBossFight .sheet.sheetScreen{
-    left:0 !important;
-    right:0 !important;
-    transform:none !important;
-    width:100% !important;
-    max-width:none !important;
-    border-radius:0;
-    border:none;
-  }
-  /* Магазин ударов: на всю ширину окна, не 480px */
-  #mBfShop.modalMini .sheet.bfShopSheetWide{
-    max-width:none !important;
-    width:100% !important;
-    margin-left:0 !important;
-    margin-right:0 !important;
   }
 }
 .mainCharacter .charCornerBtn{
@@ -1235,9 +1220,11 @@ button.btn.charCornerBtn:active{filter:none;}
 #mBossFight.modalBossFight{ padding: 0; display: none; }
 #mBossFight.modalBossFight.show{ display: block; }
 #mBossFight .sheet.sheetScreen{
-  position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none;
-  min-height: 100dvh; min-height: 100vh; display: flex; flex-direction: column;
-  border-radius: 0; border: none;
+  position: fixed; left: 50%; right: auto; transform: translateX(-50%);
+  top: 0; bottom: 0; width: min(100vw, var(--appCol)); max-width: var(--appCol);
+  height: auto; min-height: 100dvh; min-height: 100vh; max-height: none;
+  display: flex; flex-direction: column;
+  border-radius: 0; border: none; margin: 0;
 }
 #mBossFight #bfSheetBody{
   overflow-y: auto; overflow-x: hidden; min-height: 0; -webkit-overflow-scrolling: touch;
@@ -1248,11 +1235,12 @@ button.btn.charCornerBtn:active{filter:none;}
   font-size: clamp(10px, 2.85vw, 12px);
 }
 #mBossFight .card{ min-width: 0; max-width: 100%; box-sizing: border-box; }
+/* Всегда 2 колонки: слева босс, справа множители и удары (не схлопывать на телефонах) */
 #mBossFight .bfFightGrid{
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start;
-}
-@media (max-width: 420px){
-  #mBossFight .bfFightGrid{ grid-template-columns: 1fr; }
+  display: grid;
+  grid-template-columns: minmax(118px, 40%) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
 }
 #mBossFight .bfFightColLeft{ display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
 #mBossFight .bfFightColLeft .bossName{ margin-top: 0; }
@@ -1273,14 +1261,13 @@ button.btn.charCornerBtn:active{filter:none;}
   background: rgba(0,0,0,.45);
 }
 #mBfShop .bfShopSheetWide{
-  width: 100%; max-width: none; border-radius: 20px 20px 0 0;
+  width: min(100%, var(--appCol)); max-width: var(--appCol); border-radius: 20px 20px 0 0;
   max-height: min(88vh, 640px);
-  box-sizing: border-box;
+  box-sizing: border-box; margin-left: auto; margin-right: auto;
 }
 #mBfShop .bfShopSheetWide .sheetBody{ padding: 12px calc(10% + env(safe-area-inset-left)) 16px; box-sizing: border-box; max-height: calc(88vh - 120px); overflow-y: auto; }
 /* Ворота босса: слева имя/время/текст/фото, справа HP и кнопка */
-.dgBossGrid{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
-@media (max-width: 420px){ .dgBossGrid{ grid-template-columns: 1fr; } }
+.dgBossGrid{ display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
 .dgBossLeft{ display: flex; flex-direction: column; align-items: center; text-align: center; }
 .dgBossRight{ min-width: 0; display: flex; flex-direction: column; justify-content: center; }
 .modalBossFightRes{ z-index: 5500; }
@@ -1355,11 +1342,11 @@ button.btn.charCornerBtn:active{filter:none;}
  #mBattle #bLogItems .feedItem.gfLogHeal{color:rgba(52,211,153,.95) !important;}
  #mBattle #bLogItems .feedItem.gfLogItemDmg{color:rgba(251,191,36,.95) !important;}
   #mBattle #bMyTeam .badge,
-  #mBattle #bEnemyTeam .badge{width:100%;}
+  #mBattle #bEnemyTeam .gfGbEnemyInfo .badge{width:100%;}
   #mBattle #bMyTeam .hpBar,
-  #mBattle #bEnemyTeam .hpBar{width:100% !important; max-width:none !important; border-color:rgba(45,30,18,.20) !important; background:rgba(255,255,255,.22) !important;}
+  #mBattle #bEnemyTeam .gfGbEnemyInfo .hpBar{width:100% !important; max-width:none !important; border-color:rgba(45,30,18,.20) !important; background:rgba(255,255,255,.22) !important;}
   #mBattle #bMyTeam .hpIn,
-  #mBattle #bEnemyTeam .hpIn{color:rgba(45,30,18,.92) !important;}
+  #mBattle #bEnemyTeam .gfGbEnemyInfo .hpIn{color:rgba(45,30,18,.92) !important;}
   .bAva{width:36px;height:36px;border-radius:999px;object-fit:cover;flex:0 0 auto;border:1px solid rgba(45,30,18,.22);background:rgba(255,255,255,.22);}
   #mBattle .bAva{width:36px;height:36px;border-radius:999px;object-fit:cover;flex:0 0 auto;border:1px solid rgba(45,30,18,.22);background:rgba(255,255,255,.22);}
   #mBattle .bNmRow{display:flex;align-items:center;gap:8px;min-width:0;}
@@ -1383,8 +1370,8 @@ button.btn.charCornerBtn:active{filter:none;}
  }
  #mBattle .battleTeamsHorizontal{
    display:grid;
-   grid-template-columns:minmax(0,1fr) minmax(56px,22vw) minmax(0,1fr);
-   gap:6px;
+   grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);
+   gap:10px;
    align-items:stretch;
    width:100%;
    min-height:120px;
@@ -1395,13 +1382,13 @@ button.btn.charCornerBtn:active{filter:none;}
    flex-direction:column;
    padding:8px 6px;
    border-radius:12px;
-   border:1px solid rgba(45,30,18,.18);
-   background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(45,30,18,.08));
+   border:1px solid var(--paperLine);
    box-sizing:border-box;
- }
- #mBattle .battleAtkCol--center{
-   align-items:center;
-   background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(45,30,18,.1));
+   background-color:var(--caramel) !important;
+   background-image:var(--uiOverlay) !important;
+   background-size:100% 100%;
+   background-repeat:no-repeat;
+   box-shadow:var(--shadowDramatic),var(--shadowInsetTop),var(--shadowInsetAO);
  }
  #mBattle .battleColLabel{
    font-size:7px;
@@ -1424,29 +1411,45 @@ button.btn.charCornerBtn:active{filter:none;}
    overflow-y:auto;
    -webkit-overflow-scrolling:touch;
  }
- #mBattle .battleColInner--atk{align-items:center;}
-  #mBattle #bAtkList .btn{justify-content:center;}
-  #mBattle #bAtkList .btnSmall{width:100%;max-width:100%;}
-  #mBattle .gfAtkBtn{width:40px !important; height:40px !important; min-height:40px !important; padding:0 !important; border-radius:999px !important; display:flex !important; align-items:center !important; justify-content:center !important; margin:0 auto !important; font-size:16px !important; letter-spacing:0 !important; line-height:1 !important;}
   #mBattle #bMyTeam .badge,
-  #mBattle #bEnemyTeam .badge{min-height:44px;}
-  #mBattle .gfAtkSlot{min-height:44px; display:flex; align-items:center; justify-content:center; width:100%;}
+  #mBattle #bEnemyTeam .gfGbEnemyInfo .badge{min-height:44px;}
+  #mBattle .gfGbEnemyRow{
+    display:flex; flex-direction:row; align-items:stretch; gap:8px; width:100%;
+    margin-bottom:8px; box-sizing:border-box;
+  }
+  #mBattle .gfGbEnemyRow:last-child{margin-bottom:0;}
+  #mBattle .gfGbEnemyInfo{flex:1;min-width:0;display:flex;align-items:stretch;}
+  #mBattle .gfGbEnemyAtk{
+    flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    align-self:stretch; min-width:92px;
+  }
+  #mBattle .gfGbAtkBtn{
+    width:100%; min-height:40px; padding:8px 6px !important; font-size:9px !important;
+    font-weight:900 !important; letter-spacing:0.3px !important; line-height:1.1 !important;
+    white-space:normal !important; text-align:center !important;
+  }
  #mBattle #bMyTeam .badge,
- #mBattle #bEnemyTeam .badge{display:flex; flex-direction:column; align-items:stretch; gap:2px; justify-content:flex-start;}
+ #mBattle #bEnemyTeam .gfGbEnemyInfo .badge{display:flex; flex-direction:column; align-items:stretch; gap:2px; justify-content:flex-start;}
  #mBattle #bMyTeam .badge > div:first-child,
- #mBattle #bEnemyTeam .badge > div:first-child{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+ #mBattle #bEnemyTeam .gfGbEnemyInfo .badge > div:first-child{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
  #mBattle .gfEnemyRow{display:flex; flex-direction:column; gap:8px; width:100%; padding:8px; border-radius:12px; border:1px solid rgba(45,30,18,.14); background:rgba(255,255,255,.14); box-sizing:border-box;}
  #mBattle .gfEnemyRowTop{display:flex; align-items:center; justify-content:space-between; gap:8px;}
  #mBattle .gfEnemyBtn{width:100%; min-height:34px;font-size:10px !important;}
 
  @media (max-width: 360px){
-   #mBattle .battleTeamsHorizontal{grid-template-columns:minmax(0,1fr) minmax(48px,26vw) minmax(0,1fr);gap:4px;}
+   #mBattle .battleTeamsHorizontal{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:6px;}
    #mBattle .battleTeamsHorizontal .battleCol{padding:6px 4px;}
+   #mBattle .gfGbEnemyAtk{min-width:80px;}
+   #mBattle .gfGbAtkBtn{font-size:8px !important; padding:6px 4px !important;}
  }
 
  #mConsumables.consFull{padding:0;}
  #mConsumables.consFull.modalMini{align-items:stretch;justify-content:stretch;}
- #mConsumables.consFull .sheet{width:100vw;max-width:none;height:100vh;max-height:none;border-radius:0;border:none;}
+ #mConsumables.consFull .sheet{
+   position:fixed;left:50%;transform:translateX(-50%);top:0;bottom:0;
+   width:min(100vw,var(--appCol));max-width:var(--appCol);margin:0;
+   min-height:100dvh;min-height:100vh;height:auto;max-height:none;border-radius:0;border:none;
+ }
  #mConsumables.consFull .sheetBody{padding:12px;overflow:auto;}
 
  .modalPage{
@@ -1454,7 +1457,11 @@ button.btn.charCornerBtn:active{filter:none;}
  }
 /* Площадь: картинка на весь экран, кнопка назад как у всех */
 #mPloshchad.modalPage{padding:0;align-items:stretch;justify-content:stretch;}
-#mPloshchad.modalPage .sheet{width:100vw;max-width:none;height:100vh;max-height:none;min-height:100vh;border-radius:0;border:none;}
+#mPloshchad.modalPage .sheet{
+  position:fixed;left:50%;transform:translateX(-50%);top:0;bottom:0;
+  width:min(100vw,var(--appCol));max-width:var(--appCol);margin:0;
+  min-height:100dvh;min-height:100vh;height:auto;max-height:none;border-radius:0;border:none;
+}
 #mPloshchad .sheetBody{padding:0;margin:0;display:flex;flex-direction:column;min-height:0;overflow:hidden;position:relative;flex:1;}
 #mPloshchad .sheetBody > .iconBtn[data-close="mPloshchad"]{position:absolute;top:calc(12px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));z-index:25;}
 #mPloshchad .ploshchadMap{flex:1;min-height:0;width:100%;height:100%;display:block;position:relative;z-index:15;}
@@ -1823,13 +1830,12 @@ button.btn.charCornerBtn:active{filter:none;}
   justify-content:stretch !important;
 }
 #mArenaRes.modalPage .sheet{
-  width:100vw !important;
-  max-width:none !important;
-  min-height:100vh !important;
-  min-height:100dvh !important;
-  border-radius:0 !important;
-  border:none !important;
-  box-shadow:none !important;
+  position:fixed !important;left:50% !important;right:auto !important;
+  transform:translateX(-50%) !important;
+  width:min(100vw,var(--appCol)) !important;max-width:var(--appCol) !important;
+  top:0 !important;bottom:0 !important;margin:0 !important;
+  min-height:100vh !important;min-height:100dvh !important;height:auto !important;
+  border-radius:0 !important;border:none !important;box-shadow:none !important;
 }
 #mArenaRes .sheetBody{
   flex:1;
@@ -1892,12 +1898,13 @@ button.btn.charCornerBtn:active{filter:none;}
 }
 #mGFJoin.modalPage .sheet{
   position:fixed !important;
-  left:0 !important;
-  right:0 !important;
+  left:50% !important;
+  right:auto !important;
+  transform:translateX(-50%) !important;
   top:var(--gfJoinJsTop,var(--gfJoinSheetTop)) !important;
   bottom:auto !important;
-  width:100vw !important;
-  max-width:none !important;
+  width:min(100vw,var(--appCol)) !important;
+  max-width:var(--appCol) !important;
   height:auto !important;
   min-height:0 !important;
   max-height:var(--gfJoinJsMaxH,calc(100dvh - var(--gfJoinSheetTop) - env(safe-area-inset-bottom,0px))) !important;
@@ -1930,18 +1937,13 @@ button.btn.charCornerBtn:active{filter:none;}
   z-index:5037;
 }
 #mInventory.inventoryFullScreen .sheet{
-  width:100vw !important;
-  max-width:none !important;
-  min-height:100vh !important;
-  min-height:100dvh !important;
-  height:100% !important;
-  max-height:none !important;
-  margin:0 !important;
-  border-radius:0 !important;
-  border:none !important;
-  box-shadow:none !important;
-  display:flex !important;
-  flex-direction:column !important;
+  position:fixed !important;left:50% !important;right:auto !important;
+  transform:translateX(-50%) !important;top:0 !important;bottom:0 !important;
+  width:min(100vw,var(--appCol)) !important;max-width:var(--appCol) !important;
+  min-height:100vh !important;min-height:100dvh !important;height:auto !important;
+  max-height:none !important;margin:0 !important;
+  border-radius:0 !important;border:none !important;box-shadow:none !important;
+  display:flex !important;flex-direction:column !important;
 }
 #mInventory.inventoryFullScreen .sheetBody,
 #mInventory #inventorySheetBody{
@@ -2189,8 +2191,16 @@ button.btn.charCornerBtn:active{filter:none;}
 .havchikBtn:active{transform:scale(0.94);}
 .havchikBtnImg{padding:0;}
 .havchikBtnImg img{width:100%;height:100%;object-fit:cover;}
-#mLavka.lavkaFullScreen .sheet{width:100vw;max-width:none;height:100vh;max-height:none;border-radius:0;border:none;}
-.havchikCollectFullScreen .sheet{width:100vw;max-width:none;height:100vh;max-height:none;border-radius:0;border:none;}
+#mLavka.lavkaFullScreen .sheet{
+  position:fixed;left:50%;transform:translateX(-50%);top:0;bottom:0;
+  width:min(100vw,var(--appCol));max-width:var(--appCol);margin:0;
+  min-height:100dvh;min-height:100vh;height:auto;max-height:none;border-radius:0;border:none;
+}
+.havchikCollectFullScreen .sheet,#mHavchikCollect .sheet.sheetScreen{
+  position:fixed;left:50%;transform:translateX(-50%);top:0;bottom:0;
+  width:min(100vw,var(--appCol));max-width:var(--appCol);margin:0;
+  min-height:100dvh;min-height:100vh;height:auto;max-height:none;border-radius:0;border:none;
+}
 .havchikCollectBody{overflow-x:auto;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch;}
 #havchikCollectScroll{display:flex;flex-direction:column;gap:10px;}
 .havchikInboxCard{border:1px solid var(--paperLine);border-radius:14px;padding:12px;background:rgba(255,255,255,.35);}
@@ -2333,33 +2343,23 @@ button.btn.charCornerBtn:active{filter:none;}
   *{scroll-behavior:auto !important;transition:none !important;animation:none !important;}
 }
 
-/* Правило проекта: на широком экране весь UI — в колонке 480px (как #app), ничего не уезжает в серые поля */
-@media (min-width: 520px){
-  #mArenaOpponent.modalPage .sheet,
-  #mGFJoin.modalPage .sheet{
-    left:calc(max(env(safe-area-inset-left,0px),(100vw - 480px)/2)) !important;
-    right:auto !important;
-    width:480px !important;
-    max-width:480px !important;
-  }
-  #mArenaRes.modalPage .sheet{
-    left:calc(max(env(safe-area-inset-left,0px),(100vw - 480px)/2)) !important;
-    right:auto !important;
-    width:480px !important;
-    max-width:480px !important;
-  }
-  #mPloshchad.modalPage .sheet{
-    width:480px !important;
-    max-width:480px !important;
-    margin-left:auto !important;
-    margin-right:auto !important;
-  }
-  #mConsumables.consFull .sheet{
-    width:480px !important;
-    max-width:480px !important;
-    margin-left:auto !important;
-    margin-right:auto !important;
-  }
+/* Все полноэкранные модалки — та же ширина, что #app (--appCol), по центру экрана */
+.modal.modalPage.show > .sheet.sheetScreen,
+.modal.modalPage.show > .sheet.sheetOpaque.sheetScreen,
+.modal.modalPage.inventoryFullScreen.show > .sheet.sheetScreen,
+#mConsumables.consFull.show > .sheet,
+#mLavka.lavkaFullScreen.show > .sheet{
+  position:fixed !important;
+  left:50% !important;
+  right:auto !important;
+  transform:translateX(-50%) !important;
+  width:min(100vw,var(--appCol)) !important;
+  max-width:var(--appCol) !important;
+  margin:0 !important;
+  top:0 !important;
+  bottom:0 !important;
+  min-height:100dvh !important;
+  min-height:100vh !important;
 }
 
 /* Debug overlay — поверх всего, подсвечивает ошибки */
@@ -3024,10 +3024,6 @@ button.btn.charCornerBtn:active{filter:none;}
           <div class="battleCol battleMyCol">
             <div class="battleColLabel battleColLabel--left">ТВОЯ КОМАНДА</div>
             <div id="bMyTeam" class="battleColInner"></div>
-          </div>
-          <div class="battleCol battleAtkCol battleAtkCol--center">
-            <div class="battleColLabel battleColLabel--center">АТАКА</div>
-            <div id="bAtkList" class="battleColInner battleColInner--atk"></div>
           </div>
           <div class="battleCol battleEnemyCol">
             <div class="battleColLabel battleColLabel--right">ПРОТИВНИК</div>
@@ -8818,15 +8814,16 @@ button.btn.charCornerBtn:active{filter:none;}
       });
     } catch (e) {}
 
-    const atk = $('bAtkList');
-    if (atk) atk.innerHTML = '';
-
     (b.targets||[]).forEach(t=>{
       const hp = parseInt(t.hp||0,10)||0;
       const mxRaw = parseInt(t.maxHp||0,10)||0;
       const mx = mxRaw>0 ? mxRaw : Math.max(1, hp);
       const dead = hp<=0;
       const ph = String(t.photo||'');
+      const row = document.createElement('div');
+      row.className = 'gfGbEnemyRow';
+      const info = document.createElement('div');
+      info.className = 'gfGbEnemyInfo';
       const el = document.createElement('div');
       el.className = 'badge';
       el.style.padding = '8px 10px';
@@ -8841,27 +8838,29 @@ button.btn.charCornerBtn:active{filter:none;}
         + '<div class="bNmTxt" style="font-weight:900; letter-spacing:1px; font-size:11px; line-height:1.1">'+tName+'</div>'
         + '</div>'
         + '<div style="font-size:11px; font-weight:900; opacity:.92; letter-spacing:1px; width:100%; text-align:center;">'+(dead?'DEAD':(hp+'/'+mx))+'</div>';
-      enemyTeam.appendChild(el);
-
-      if (atk){
-        const slot = document.createElement('div');
-        slot.className = 'gfAtkSlot';
-        if (!dead){
-          const btn = document.createElement('button');
-          btn.className = 'btn btnSmall gfAtkBtn';
-          const locked = (parseInt(b.turnLeft||0,10)||0) <= 0;
-          const spectator = (myHp<=0);
-          btn.disabled = locked || !!b.acted || spectator;
-          btn.style.opacity = btn.disabled ? '0.55' : (b.myTarget===t.id ? '1' : '.9');
-          btn.textContent = '⚔️';
-          btn.onclick = ()=>{
-            battlePickTarget(t.id);
-            battleHit(t.id);
-          };
-          slot.appendChild(btn);
-        }
-        atk.appendChild(slot);
+      info.appendChild(el);
+      const atkWrap = document.createElement('div');
+      atkWrap.className = 'gfGbEnemyAtk';
+      if (!dead){
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btnSmall gfGbAtkBtn';
+        const locked = (parseInt(b.turnLeft||0,10)||0) <= 0;
+        const spectator = (myHp<=0);
+        btn.disabled = locked || !!b.acted || spectator;
+        btn.style.opacity = btn.disabled ? '0.55' : (b.myTarget===t.id ? '1' : '.92');
+        btn.textContent = 'АТАКОВАТЬ';
+        btn.onclick = ()=>{
+          battlePickTarget(t.id);
+          battleHit(t.id);
+        };
+        atkWrap.appendChild(btn);
+      } else {
+        atkWrap.innerHTML = '<span style="opacity:.35;font-size:10px;font-weight:800;letter-spacing:1px;">—</span>';
       }
+      row.appendChild(info);
+      row.appendChild(atkWrap);
+      enemyTeam.appendChild(row);
     });
 
     const logDmg = $('bLogDmg');
