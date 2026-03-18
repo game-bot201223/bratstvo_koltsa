@@ -13593,9 +13593,17 @@ button.btn.charCornerBtn:active{filter:none;}
       if (d){
         const energy = Math.floor(state.energy||0);
         let h = '';
+        const distImg = (data[i] && data[i].img) ? String(data[i].img) : '';
         h += '<div style="background:rgba(210,190,156,.96); color:rgba(45,30,18,.98); border:1px solid rgba(45,30,18,.35); border-radius:16px; padding:12px; max-width:100%; overflow-x:hidden; box-sizing:border-box;">';
-        h += '<div style="font-weight:900; letter-spacing:2px; font-size:12px; opacity:.95">'+nm.toUpperCase()+'</div>';
-        h += '<div style="margin-top:6px; font-size:12px; opacity:.85; line-height:1.35">Ты кошмаришь район. Выбирай задание и выполняй за ⚡ энергию.</div>';
+        h += '<div style="display:flex; flex-direction:column; align-items:flex-start; gap:8px; max-width:100%;">';
+        h += '<div style="font-weight:900; letter-spacing:1.5px; font-size:clamp(11px,3.2vw,14px); opacity:.95; text-align:left; line-height:1.15; width:100%;">'+nm.toUpperCase()+'</div>';
+        if (distImg) {
+          h += '<div style="width:min(120px,36vw); max-width:100%; aspect-ratio:1; border-radius:12px; border:1px solid rgba(45,30,18,.28); background:url(\''+encodeURI(distImg)+'\') center/cover no-repeat; box-sizing:border-box;"></div>';
+        } else {
+          h += '<div style="width:min(120px,36vw); aspect-ratio:1; border-radius:12px; border:1px dashed rgba(45,30,18,.2); background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:800; opacity:.5; box-sizing:border-box;">—</div>';
+        }
+        h += '<div style="margin-top:4px; font-size:12px; opacity:.85; line-height:1.35; width:100%;">Ты кошмаришь район. Выбирай задание и выполняй за ⚡ энергию.</div>';
+        h += '</div>';
 
         const rewardTable = [300,400,600,900,1200,1500,1800,2000,2200,2500,2800,3000];
         const mult = rewardTable[i] ?? 300;
@@ -13648,13 +13656,14 @@ button.btn.charCornerBtn:active{filter:none;}
             + '</div>';
           h += '<div style="text-align:center; font-size:7px; font-weight:800; opacity:.95; line-height:1.1; overflow:hidden">'
             + (meta.fear ? ('<img src="страх.png" alt="" class="fearIcon" style="height:9px;vertical-align:middle">'+fmt4(meta.fear)) : ('<img src="голд.png" alt="" class="goldIcon" style="height:9px;vertical-align:middle">'+fmt4(meta.gold)))
-            + '<div style="font-size:6px; opacity:.75; margin-top:1px">+'+meta.xp+'</div></div>';
+            + '<div style="font-size:6px; opacity:.8; margin-top:2px; font-weight:800; letter-spacing:0.2px">+'+meta.xp+' XP</div></div>';
           h += '<div style="text-align:center; font-size:8px; font-weight:900; opacity:.95">'+meta.cost+'</div>';
           h += '<div style="display:flex; justify-content:center; align-items:center;">'
             + '<button type="button" class="btn btnSmall" style="'+btnStyle+' width:100%; max-width:78px;" data-dtask="'+i+':'+k+'" '+(can ? '' : 'disabled')+'>'+btnTxt+'</button>'
             + '</div>';
           h += '</div>';
         }
+        h += '</div>';
         h += '</div>';
         d.innerHTML = h;
 
