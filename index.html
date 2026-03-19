@@ -3101,7 +3101,7 @@ button.btn.charCornerBtn:active{filter:none;}
       <div class="title">АРЕНА</div>
       <div style="display:flex; gap:8px; align-items:center;">
         <button class="toothBtn" id="bossToothBtn" type="button"><div class="ico"><img src="зуб.png" alt="Золотые зубы" class="toothIcon"></div><div class="tm" id="bossToothTimer">00:00</div></button>
-        <button type="button" class="arenaInventoryBtn" id="arenaInventoryBtn" aria-label="Инвентарь" title="Инвентарь"><img src="инвентарь.jpg" alt="Инвентарь"></button>
+      <button type="button" class="arenaInventoryBtn" id="arenaInventoryBtn" aria-label="Инвентарь" title="Инвентарь"><img src="инвентарь.jpg" alt="Инвентарь"></button>
       </div>
     </div>
     <div class="sheetBody" id="arenaSheetBody">
@@ -3280,11 +3280,11 @@ button.btn.charCornerBtn:active{filter:none;}
             <div id="bfTimer">—</div>
             <div id="bfSoloNote" style="display:none;">Босс района — только в одиночку</div>
             <div class="bfBossPortraitStack">
-              <div class="bossFightBig" id="bfEmoji">👹</div>
-              <div class="bfHpBarWrap">
-                <div class="bfHpBar"><div class="bfHpBarFill" id="bfHpBarFill" style="width:100%"></div><div class="bfHpBarIn" id="bfHpBarIn">—</div></div>
-              </div>
+            <div class="bossFightBig" id="bfEmoji">👹</div>
+            <div class="bfHpBarWrap">
+              <div class="bfHpBar"><div class="bfHpBarFill" id="bfHpBarFill" style="width:100%"></div><div class="bfHpBarIn" id="bfHpBarIn">—</div></div>
             </div>
+          </div>
           </div>
           <div class="bfFightColRight">
             <div class="k" style="margin:0;">Ударов за нажатие</div>
@@ -3395,8 +3395,8 @@ button.btn.charCornerBtn:active{filter:none;}
       <button class="iconBtn" data-close="mBattle">‹</button>
       <div class="title" id="bHeadInfo">РАУНД 1 · 30</div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
-        <button class="btn btnMini" id="bLeave" type="button">ПОКИНУТЬ</button>
-      </div>
+      <button class="btn btnMini" id="bLeave" type="button">ПОКИНУТЬ</button>
+    </div>
     </div>
     <div class="sheetBody" id="battleSheetBody">
       <div class="card" style="margin-top:0;">
@@ -3406,7 +3406,7 @@ button.btn.charCornerBtn:active{filter:none;}
 
       <div class="card" style="margin-top:10px;">
         <div class="row" style="align-items:center;"><div class="k">КОМАНДЫ</div><button type="button" class="arenaInventoryBtn battleGbInventoryBtn" id="battleConsOpen" aria-label="Инвентарь" title="Инвентарь"><img src="инвентарь.jpg" alt="Инвентарь"></button></div>
-      </div>
+          </div>
       <div class="battleTeamsArenaWrap">
         <div class="battleTeamsHorizontal">
           <div class="battleCol battleMyCol">
@@ -3646,8 +3646,8 @@ button.btn.charCornerBtn:active{filter:none;}
       <button class="iconBtn" data-close="mDistricts">‹</button>
       <div class="title">РАЙОНЫ</div>
       <div style="width:48px;display:flex;justify-content:flex-end;align-items:center;">
-        <button type="button" class="havchikBtn" id="havchikBtn" aria-label="Хавчик" title="Хавчик — энергия от братков и к браткам"><img src="хав.jpeg" alt="Хавчик"></button>
-      </div>
+      <button type="button" class="havchikBtn" id="havchikBtn" aria-label="Хавчик" title="Хавчик — энергия от братков и к браткам"><img src="хав.jpeg" alt="Хавчик"></button>
+    </div>
     </div>
     <div class="sheetBody" id="districtsSheetBody">
       <div id="districtBizRewardColumn" style="margin-top:0;"></div>
@@ -3843,9 +3843,9 @@ button.btn.charCornerBtn:active{filter:none;}
                 <div class="bfHpBar dgGateHpBar">
                   <div id="dgHpBar" class="bfHpBarFill" style="width:100%; transition:width .2s;"></div>
                   <div class="bfHpBarIn" id="dgHpIn">0 / 0</div>
-                </div>
-              </div>
-            </div>
+        </div>
+      </div>
+    </div>
           </div>
           <div class="dgBossRight dgBossRightFight">
             <div class="k" style="margin:0; font-size:clamp(8px,2.2vw,10px);">Урон за удар</div>
@@ -4068,8 +4068,8 @@ button.btn.charCornerBtn:active{filter:none;}
   function bossHelpCapPerUnit(b){
     if (!b) return 0;
     if (Number(b.id) === 1) return 500; // Фёдор: фикс 500 урона на братка
-    const lvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
-    const capPct = 0.10 + lvl*0.01;
+      const lvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
+      const capPct = 0.10 + lvl*0.01;
     return Math.floor((b.maxHP||0) * capPct);
   }
   function bossHelpCapRemainFriend(b, f, nm){
@@ -5543,8 +5543,8 @@ button.btn.charCornerBtn:active{filter:none;}
   const SAVE_KEY_BASE = 'mora_mobile_save_v6';
   const CURRENCY_CAP = 999999999999;
   const BUILD_ID = '2026-03-04_13-26_clanid_deputy';
-  const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://pjfjbrmclhudbhfdrnwp.supabase.co';
-  const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZmpicm1jbGh1ZGJoZmRybndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTIxNzQsImV4cCI6MjA4ODAyODE3NH0.5Of5IUktXIDhq4007rRfMnZTy-bpdGG6OMRV7g_hC0Q';
+  const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://wnyjiuxcsyfzcnkixnay.supabase.co';
+  const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndueWppdXhjc3lmemNua2l4bmF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4Njk0NjMsImV4cCI6MjA4OTQ0NTQ2M30.j18ImBEoV4MtNLpLesjuvzzePqi2cV7ugWsgk4_SSdQ';
   const TELEGRAM_GROUP_LINK = (function(){ var m=document.querySelector('meta[name="telegram-group-url"]'); if(m&&m.content&&String(m.content).trim()) return String(m.content).trim(); return (window && window.TELEGRAM_GROUP_URL) ? String(window.TELEGRAM_GROUP_URL||'').trim() : ''; })();
   const ADMIN_TG_ID = (function(){ var m=document.querySelector('meta[name="admin-tg-id"]'); if(m&&m.content&&String(m.content).trim()) return String(m.content).trim(); return (window && window.ADMIN_TG_ID) ? String(window.ADMIN_TG_ID||'').trim() : ''; })();
   let __srvDirty = false;
@@ -5879,10 +5879,30 @@ button.btn.charCornerBtn:active{filter:none;}
   let __cloudLastReqTs = 0;
   let __cloudGatePromise = Promise.resolve();
   let __sessionEstablished = false;
+  // Optional VPS proxy (recommended for hot polling endpoints).
+  // IMPORTANT: use HTTPS URL in production (Telegram WebApp blocks mixed content).
+  const EDGE_PROXY_BASE = 'https://bratstvokoltsa.duckdns.org';
+  function edgeProxyCanHandle(fnName){
+    const n = String(fnName||'').trim();
+    // Move high-frequency and read-only calls to VPS proxy.
+    return (
+      n === 'boss_help_pull' ||
+      n === 'boss_fights_list' ||
+      n === 'list_clans' ||
+      n === 'get_player' ||
+      n === 'top_players_list' ||
+      n === 'district_leaders_list' ||
+      n === 'district_daily_leaders_list' ||
+      n === 'havchik_inbox_pull' ||
+      n === 'boss_last_winners_list'
+    );
+  }
   async function sbFnCall(fnName, payload){
     const supaBase = String(SUPABASE_URL||'').replace(/\/$/,'');
     if (!supaBase) throw new Error('no_supabase_url');
-    const base = supaBase;
+    const proxyBase = String((state && state.edgeProxyBase) || EDGE_PROXY_BASE || '').replace(/\/$/,'');
+    const useProxy = !!(proxyBase && edgeProxyCanHandle(fnName));
+    const base = useProxy ? proxyBase : supaBase;
     const url = base + '/functions/v1/' + encodeURIComponent(fnName);
     const initData = tgInitData();
     let bodyObj = payload||{};
@@ -9242,23 +9262,23 @@ button.btn.charCornerBtn:active{filter:none;}
       info.appendChild(el);
       const atkWrap = document.createElement('div');
       atkWrap.className = 'gfGbEnemyAtk';
-      if (!dead){
-        const btn = document.createElement('button');
+        if (!dead){
+          const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'btn btnSmall gfGbAtkBtn';
-        const locked = (parseInt(b.turnLeft||0,10)||0) <= 0;
-        const spectator = (myHp<=0);
-        btn.disabled = locked || !!b.acted || spectator;
+          const locked = (parseInt(b.turnLeft||0,10)||0) <= 0;
+          const spectator = (myHp<=0);
+          btn.disabled = locked || !!b.acted || spectator;
         btn.style.opacity = btn.disabled ? '0.55' : (b.myTarget===t.id ? '1' : '.92');
         btn.textContent = 'АТАКОВАТЬ';
-        btn.onclick = ()=>{
-          battlePickTarget(t.id);
-          battleHit(t.id);
-        };
+          btn.onclick = ()=>{
+            battlePickTarget(t.id);
+            battleHit(t.id);
+          };
         atkWrap.appendChild(btn);
       } else {
         atkWrap.innerHTML = '<span style="opacity:.35;font-size:10px;font-weight:800;letter-spacing:1px;">—</span>';
-      }
+        }
       row.appendChild(info);
       row.appendChild(atkWrap);
       enemyTeam.appendChild(row);
@@ -10383,11 +10403,11 @@ button.btn.charCornerBtn:active{filter:none;}
             if (chp <= 0) {
               f.hp = chp;
               bfSetFight(bossId, f);
-            } else {
-              const localAlive = (parseInt(f.hp||0,10)||0) > 0 && (parseInt(f.expiresTs||0,10)||0) > now();
-              if (!localAlive) {
-                f.hp = chp;
-                bfSetFight(bossId, f);
+          } else {
+            const localAlive = (parseInt(f.hp||0,10)||0) > 0 && (parseInt(f.expiresTs||0,10)||0) > now();
+            if (!localAlive) {
+              f.hp = chp;
+              bfSetFight(bossId, f);
               }
             }
           }
@@ -11569,21 +11589,21 @@ button.btn.charCornerBtn:active{filter:none;}
   }
   let __bossPullLast = 0;
   const BOSS_PULL_INTERVAL_MS = 2000;
-  function updateBossToothTimerOnly(){
-    try {
-      const btn = $('bossToothBtn');
-      const tm = $('bossToothTimer');
-      if (btn && tm){
-        const nextTs = parseInt(state.bosses && state.bosses.toothNextTs || 0, 10) || 0;
-        const ready = now() >= nextTs;
-        btn.classList.toggle('ready', ready);
-        const left = Math.max(0, nextTs - now());
-        const mm = String(Math.floor(left/60000)).padStart(2,'0');
-        const ss = String(Math.floor((left%60000)/1000)).padStart(2,'0');
+    function updateBossToothTimerOnly(){
+      try {
+        const btn = $('bossToothBtn');
+        const tm = $('bossToothTimer');
+        if (btn && tm){
+          const nextTs = parseInt(state.bosses && state.bosses.toothNextTs || 0, 10) || 0;
+          const ready = now() >= nextTs;
+          btn.classList.toggle('ready', ready);
+          const left = Math.max(0, nextTs - now());
+          const mm = String(Math.floor(left/60000)).padStart(2,'0');
+          const ss = String(Math.floor((left%60000)/1000)).padStart(2,'0');
         tm.textContent = ready ? '' : (mm+':'+ss);
-      }
-    } catch (e) {}
-  }
+        }
+      } catch (e) {}
+    }
   function setupBossToothButton(){
     try {
       const rv = $('bossRingVal');
@@ -11898,9 +11918,9 @@ button.btn.charCornerBtn:active{filter:none;}
       };
     });
 
-    try {
-      const rv = $('bossRingVal');
-      if (rv) rv.textContent = String(parseInt(state.rings||0,10)||0);
+      try {
+        const rv = $('bossRingVal');
+        if (rv) rv.textContent = String(parseInt(state.rings||0,10)||0);
     } catch (e) {}
   }
 
@@ -13561,7 +13581,7 @@ button.btn.charCornerBtn:active{filter:none;}
           showModal('mDistrictGateReward');
           renderDistrictGateRewardModal();
         } else {
-          toast('Босс побеждён! Район открыт.','win');
+        toast('Босс побеждён! Район открыт.','win');
         }
         haptic('medium');
         renderAll();
@@ -14515,18 +14535,18 @@ button.btn.charCornerBtn:active{filter:none;}
               if (!mySessionId()) await sessionStartAndPull(false);
             } catch (e0) {}
             return await sbFnCall('upsert_player', {
-              initData: tgInitData(),
+            initData: tgInitData(),
               session_id: mySessionId(),
-              name: next,
-              photo_url: String(photo||'').trim(),
-              level: state.level,
-              arena_power: (state.arena && (state.arena.power||0)) || 0,
-              arena_wins: (state.arena && (state.arena.wins||0)) || 0,
-              arena_losses: (state.arena && (state.arena.losses||0)) || 0,
-              stats_sum: statsSum,
-              boss_wins: (state.bosses && state.bosses.wins) || 0,
-              referrer_tg_id: '',
-              state: cloudStateSnapshot(state)
+            name: next,
+            photo_url: String(photo||'').trim(),
+            level: state.level,
+            arena_power: (state.arena && (state.arena.power||0)) || 0,
+            arena_wins: (state.arena && (state.arena.wins||0)) || 0,
+            arena_losses: (state.arena && (state.arena.losses||0)) || 0,
+            stats_sum: statsSum,
+            boss_wins: (state.bosses && state.bosses.wins) || 0,
+            referrer_tg_id: '',
+            state: cloudStateSnapshot(state)
             });
           };
           doRename().then(()=>{
@@ -15120,31 +15140,31 @@ button.btn.charCornerBtn:active{filter:none;}
           if (!already) {
             try {
               // Однократный автосброс прогресса этого аккаунта при первом заходе после обновления.
-              state = JSON.parse(JSON.stringify(defaults));
+                  state = JSON.parse(JSON.stringify(defaults));
               try { state.playerName = tgSuggestedName(); } catch (eName) {}
               try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (eLoc) {}
-              try {
-                const initData = tgInitData();
-                const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
-                let photo = '';
-                try {
-                  const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
-                  photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
-                } catch (e0) { photo = ''; }
+                  try {
+                    const initData = tgInitData();
+                    const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
+                    let photo = '';
+                    try {
+                      const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+                      photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
+                    } catch (e0) { photo = ''; }
                 await sbFnCall('upsert_player', {
-                  initData,
-                  name: state.playerName,
-                  photo_url: String(photo||'').trim(),
-                  level: state.level,
-                  arena_power: (state.arena && (state.arena.power||0)) || 0,
-                  arena_wins: (state.arena && (state.arena.wins||0)) || 0,
-                  arena_losses: (state.arena && (state.arena.losses||0)) || 0,
-                  stats_sum: statsSum,
-                  boss_wins: (state.bosses && state.bosses.wins) || 0,
-                  referrer_tg_id: '',
-                  state: cloudStateSnapshot(state)
-                });
-                __srvLastSent = now();
+                      initData,
+                      name: state.playerName,
+                      photo_url: String(photo||'').trim(),
+                      level: state.level,
+                      arena_power: (state.arena && (state.arena.power||0)) || 0,
+                      arena_wins: (state.arena && (state.arena.wins||0)) || 0,
+                      arena_losses: (state.arena && (state.arena.losses||0)) || 0,
+                      stats_sum: statsSum,
+                      boss_wins: (state.bosses && state.bosses.wins) || 0,
+                      referrer_tg_id: '',
+                      state: cloudStateSnapshot(state)
+                    });
+                    __srvLastSent = now();
               } catch (eCloud) {}
               try { localStorage.setItem(rk, '1'); } catch (eMark) {}
               __skipCloudPull = true;
