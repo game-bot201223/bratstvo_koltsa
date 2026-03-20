@@ -8,8 +8,16 @@
 <meta name="admin-tg-id" content="8794843839" />
 <!-- Ссылка на группу в Telegram (например https://t.me/bratstvo_koltsa_group) -->
 <meta name="telegram-group-url" content="https://t.me/+fHMBRFCqk39lYjJi" />
+<!-- VPS proxy base for edge calls (used for all non-player features) -->
+<meta name="edge-proxy-base" content="https://bratstvokoltsa.duckdns.org" />
 <title>Братство Кольца — Mobile TG Edition</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+  // Supabase connection injected into the page globals.
+  // Client code reads these values from `window`.
+  window.SUPABASE_URL = 'https://mfteolyzqmqvyehqcpnh.supabase.co';
+  window.SUPABASE_ANON_KEY = 'sb_publishable_Axay8Agr6mHo3UlZl79QFw_RaMrb_Pp';
+</script>
  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&display=swap" rel="stylesheet">
  <style>
 :root{
@@ -75,6 +83,119 @@
   --transition-normal: 0.28s var(--ease-out);
   /* Единая ширина колонки UI (главная + модалки) */
   --appCol: 480px;
+}
+
+/* Экран загрузки */
+#loadingScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, var(--caramelLight) 0%, var(--caramel) 35%, var(--caramelDark) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  font-family: 'Cinzel', serif;
+  color: var(--ink);
+}
+
+.loadingLogo {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 24px;
+  background-image: url('фон.png');
+  background-size: cover;
+  background-position: center;
+  border-radius: 20px;
+  box-shadow: var(--shadowLg);
+  animation: logoFloat 3s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.loadingTitle {
+  font-size: 28px;
+  font-weight: 900;
+  margin-bottom: 12px;
+  text-align: center;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.loadingSubtitle {
+  font-size: 16px;
+  opacity: 0.8;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.loadingSpinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--paperLine);
+  border-top: 3px solid var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loadingStatus {
+  font-size: 14px;
+  opacity: 0.7;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.loadingError {
+  font-size: 14px;
+  color: var(--lose);
+  text-align: center;
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 8px;
+  margin-top: 16px;
+  display: none;
+}
+
+.loadingRetryBtn {
+  margin-top: 16px;
+  padding: 12px 24px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  cursor: pointer;
+  display: none;
+  transition: var(--transition-normal);
+}
+
+.loadingRetryBtn:hover {
+  background: var(--accent2);
+  transform: translateY(-1px);
+}
+
+.loadingRetryBtn:active {
+  transform: translateY(0px);
+}
+
+/* Основное приложение скрыто во время загрузки */
+#app.loading-hidden {
+  display: none;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;}
@@ -211,6 +332,9 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .hud{padding:6px 14px 5px;}
 .hudRow{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .hud .hudRow{gap:5px;}
+/* Кнопка группы + энергия — одна связка справа, без растягивания между ними */
+.hudTrailing{display:flex;align-items:center;flex-shrink:0;gap:2px;margin-left:auto;min-width:0;}
+.hud .hudTrailing{gap:2px;}
 .globalChatBtn{width:44px;height:44px;min-width:44px;min-height:44px;border-radius:50%;flex-shrink:0;border:1px solid var(--btnBorder);background:var(--caramel);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;padding:0;box-shadow: var(--shadowKey), var(--shadowInsetTop);transition: transform var(--transition-fast), box-shadow var(--transition-fast);}
 .globalChatBtn:active{transform:scale(0.94);box-shadow:none;}
 .genderToggleBtn{flex-shrink:0;width:32px;height:32px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;font-weight:900;transition:transform var(--transition-fast), box-shadow var(--transition-fast);}
@@ -226,8 +350,7 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .hud .lvl{font-size:9px;padding:3px 8px;}
 .hud .pills{gap:5px;}
 .hud .pill{padding:4px 8px;font-size:9px;}
-.hud .energyPill{gap:1px;}
-.hud .energyPill .eTimer{font-size:8px;margin-left:10px;}
+.hud .pill.energyGlowPill{padding:5px 8px;font-size:10px;column-gap:5px;row-gap:2px;letter-spacing:.04em;}
 .hud .xpRow{gap:6px;}
 .hud .xp{height:12px;margin-bottom:4px;}
 .hud .xp .xpText{font-size:9px;line-height:12px;}
@@ -246,18 +369,60 @@ body:before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .pills{display:flex;align-items:center;gap:8px;}
 .pill{display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;border:1px solid var(--paperLine);background:var(--caramel);font-size:11px;transition: transform var(--transition-fast);box-shadow: var(--shadowInsetTop), var(--shadowInsetAO);}
 .pill:active{transform:scale(0.97);}
-.energyPill{flex-direction:column;align-items:flex-start;gap:2px;line-height:1.05;}
-.energyPill .eRow{display:flex;align-items:center;gap:6px;}
-.energyPill .eTimer{font-size:9px;letter-spacing:1.5px;opacity:.70;margin-left:16px;}
-/* Лёгкий screen glow для блока энергии (п.32) */
-.energyPill{ box-shadow: 0 0 8px rgba(14,165,233,.12); border-radius:999px; }
+/* Энергия HUD: как бейдж #dnEnergy в районах — полупрозрачный циан, та же рамка и цвет текста */
+.pill.energyGlowPill{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  column-gap:5px;
+  row-gap:3px;
+  align-items:center;
+  line-height:1.05;
+  background:rgba(34,211,238,.2);
+  border:1px solid rgba(34,211,238,.35);
+  box-shadow:var(--shadowInsetTop), 0 0 10px rgba(34,211,238,.12);
+  border-radius:999px;
+  color:var(--energy) !important;
+}
+.pill.energyGlowPill:active{transform:scale(0.98);}
+.pill.energyGlowPill .energyGlowBolt{
+  grid-column:1;
+  grid-row:1;
+}
+.pill.energyGlowPill .energyGlowNums:not(.energyGlowNums--timer){
+  grid-column:2;
+  grid-row:1;
+}
+.pill.energyGlowPill .energyGlowNums--timer{
+  grid-column:2;
+  grid-row:2;
+}
+.energyGlowBolt{
+  flex-shrink:0;
+  font-size:13px;
+  line-height:1;
+  color:var(--energy) !important;
+  filter:none;
+  text-shadow:none;
+}
+.pill.energyGlowPill .energyGlowNums,
+.pill.energyGlowPill .energyGlowNums strong{
+  color:var(--energy) !important;
+  font-weight:900;
+  letter-spacing:.04em;
+  text-shadow:none;
+}
+.pill.energyGlowPill .energyGlowNums--timer{
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.5px;
+  font-size:.95em;
+  opacity:.9;
+  min-width:3.2em;
+  text-align:left;
+}
 .energyRefillBtn{flex-shrink:0;min-width:auto;height:26px;padding:0 8px;border-radius:13px;border:1px solid #2c2c2c;background:linear-gradient(180deg,#4a4a4a,#353535);color:#9a9a9a;font-size:11px;line-height:1;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:3px;transition:transform .15s, filter .15s;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.25);}
 .energyRefillBtn .energyRefillLabel{display:inline-flex;align-items:center;gap:2px;}
 .energyRefillBtn:hover{filter:brightness(1.06);}
 .energyRefillBtn:active{transform:scale(0.94);filter:brightness(.9);}
-.resetProgressBtn{flex-shrink:0;width:18px;height:18px;padding:0;border-radius:50%;border:1px solid rgba(120,120,120,.5);background:rgba(80,80,80,.2);color:rgba(100,100,100,.95);font-size:11px;line-height:1;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s, background .15s;}
-.resetProgressBtn:hover{background:rgba(100,100,100,.35);}
-.resetProgressBtn:active{transform:scale(0.9);}
 .pill strong{font-weight:900;letter-spacing:1px;}
 
 .xpRow{display:flex;align-items:center;gap:8px;}
@@ -2769,8 +2934,19 @@ button.btn.charCornerBtn:active{filter:none;}
 </style>
 </head>
 <body>
+<!-- Экран загрузки -->
+<div id="loadingScreen">
+  <div class="loadingLogo"></div>
+  <div class="loadingTitle">Братство Кольца</div>
+  <div class="loadingSubtitle">Mobile TG Edition</div>
+  <div class="loadingSpinner"></div>
+  <div class="loadingStatus" id="loadingStatus">Инициализация...</div>
+  <div class="loadingError" id="loadingError"></div>
+  <button class="loadingRetryBtn" id="loadingRetryBtn" onclick="retryLoading()">Попробовать снова</button>
+</div>
+
 <div id="dbgOverlay" aria-live="polite" style="display:none"></div>
-<div id="app">
+<div id="app" class="loading-hidden">
   <div class="hud">
     <div class="hudRow">
       <div class="name" id="nameBtn">
@@ -2780,17 +2956,15 @@ button.btn.charCornerBtn:active{filter:none;}
           <div class="utcRow"><span class="utcMini" id="utc">00:00</span><span class="utcTag">UTC</span></div>
         </div>
       </div>
-      <button type="button" class="globalChatBtn" id="tgGroupBtn" aria-label="Группа в Telegram" title="Группа в Telegram">👥</button>
-      <button type="button" class="globalChatBtn" id="settingsBtn" aria-label="Настройки" title="Настройки" style="display:none">⚙</button>
-      <div class="pills">
-        <div class="pill energyPill" style="border-color:rgba(34,211,238,.20)">
-          <div class="eRow">⚡ <strong id="energy">100</strong>/<span id="energyMax">100</span>
-            <button type="button" class="energyRefillBtn" id="energyRefillBtn" aria-label="Купить энергию" title="Восстановить 100% энергии за 20 золотых монет">
-              <span class="energyRefillLabel">20 <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;width:auto;vertical-align:middle"></span>
-            </button>
-            <button type="button" class="resetProgressBtn" id="resetProgressBtn" aria-label="Сброс прогресса" title="Сброс прогресса">↺</button>
+      <div class="hudTrailing">
+        <button type="button" class="globalChatBtn" id="settingsBtn" aria-label="Настройки" title="Настройки" style="display:none">⚙</button>
+        <button type="button" class="globalChatBtn" id="tgGroupBtn" aria-label="Группа в Telegram" title="Группа в Telegram">👥</button>
+        <div class="pills hudEnergyPills">
+          <div class="pill energyGlowPill" title="Энергия и таймер восстановления" aria-label="Энергия и таймер">
+            <span class="energyGlowBolt" aria-hidden="true">⚡</span>
+            <span class="energyGlowNums"><strong id="energy">100</strong>/<span id="energyMax">100</span></span>
+            <span class="energyGlowNums energyGlowNums--timer" id="energyTimer">02:00</span>
           </div>
-          <div class="eTimer" id="energyTimer">02:00</div>
         </div>
       </div>
     </div>
@@ -2991,6 +3165,7 @@ button.btn.charCornerBtn:active{filter:none;}
         <div class="row"><div class="k">АДМИН</div><button class="btn btnSmall" id="adminEditPlayerBtn">Редактировать игрока</button></div>
         <div class="row" style="margin-top:8px;"><div class="k">Кланы</div><button class="btn btnSmall" id="adminEditClanBtn">РЕДАКТИРОВАТЬ</button></div>
         <div class="row" style="margin-top:8px;"><div class="k">Начислить всем игрокам</div><button class="btn btnSmall" id="adminGrantAllBtn">ВАЛЮТА И УДАРЫ</button></div>
+        <div class="row" style="margin-top:8px;"><div class="k">Резервная копия</div><button class="btn btnSmall" id="adminBackupBtn" style="background:#059669; color:#fff;">СОЗДАТЬ БЭКАП</button></div>
         <div class="row" style="margin-top:8px;"><div class="k">Полный рестарт игры</div><button class="btn btnSmall" id="adminFullRestartBtn" style="background:#b91c1c; color:#fff;">ПОЛНЫЙ РЕСТАРТ</button></div>
       </div>
     </div>
@@ -3907,7 +4082,8 @@ button.btn.charCornerBtn:active{filter:none;}
     <div class="sheetBody">
       <div class="card">
         <div class="row"><div class="k">УРОВЕНЬ</div><div class="badge" id="fhLvl">0</div></div>
-        <div class="row" style="margin-top:10px;"><div class="k">ЛИМИТ НА БРАТКА</div><div class="badge" id="fhPct">Фёдор: 500</div></div>
+        <div style="font-size:12px;opacity:.78;line-height:1.4;margin-top:10px;">+0,5% за каждый уровень к лимиту урона от каждого братка (% от макс. HP босса). База 5%.</div>
+        <div style="font-size:11px;opacity:.72;line-height:1.35;margin-top:6px;" id="fhCapNow"></div>
         <button class="btn" style="margin-top:12px;" id="fhUp">ПРОКАЧАТЬ</button>
       </div>
     </div>
@@ -4024,6 +4200,52 @@ button.btn.charCornerBtn:active{filter:none;}
 
   let __bossHelpPollT = 0;
   let __bossHelpLast = 0;
+  const __bossHelpSeen = {};
+  function bossHelpEventKey(ev, bossId, fromName, dmg, clanId){
+    try {
+      const bid = Math.max(1, parseInt(bossId||0,10)||0);
+      const nm = String(fromName||'').trim().toUpperCase();
+      const dd = Math.max(0, parseInt(dmg||0,10)||0);
+      const cid = String(clanId||'').trim().toUpperCase();
+      let key = '';
+      if (ev && typeof ev === 'object') {
+        const eid = String(ev.id||ev.event_id||ev.help_id||'').trim();
+        if (eid) key = 'id:' + eid;
+        else {
+          const ca = String(ev.created_at||ev.ts||ev.updated_at||'').trim();
+          if (ca) key = 'ca:' + [bid, nm, dd, cid, ca].join('|');
+        }
+      }
+      // Fallback-ключ для событий без id/created_at.
+      // HP мы локально не уменьшаем, поэтому это безопасно для UI:
+      // нужно только чтобы лог/топ не были пустыми.
+      if (!key) key = 'f:' + [bid, nm, dd, cid].join('|');
+      return key;
+    } catch (_e) { return ''; }
+  }
+  function bossHelpSeenOnce(ev, bossId, fromName, dmg, clanId){
+    const key = bossHelpEventKey(ev, bossId, fromName, dmg, clanId);
+    if (!key) return true;
+    const t = now();
+    const last = parseInt(__bossHelpSeen[key]||0,10)||0;
+    // Для fallback-ключей используем антидубль-окно.
+    if (last) {
+      if (key.startsWith('f:')) {
+        if ((t - last) < 1200) return true;
+      } else {
+        return true;
+      }
+    }
+    __bossHelpSeen[key] = t;
+    // Cleanup old keys.
+    if (Math.random() < 0.02) {
+      Object.keys(__bossHelpSeen).forEach(k=>{
+        const ts = parseInt(__bossHelpSeen[k]||0,10)||0;
+        if (!ts || (t - ts) > 24*60*60*1000) delete __bossHelpSeen[k];
+      });
+    }
+    return false;
+  }
   function bossHelpShouldRun(){
     try {
       if (bossUiOpen()) return true;
@@ -4037,7 +4259,10 @@ button.btn.charCornerBtn:active{filter:none;}
     try {
       const bf = $('mBossFight');
       const bl = $('mBoss');
-      return !!((bf && bf.classList.contains('show')) || (bl && bl.classList.contains('show')));
+      const res = $('mBossFightRes');
+      const resOpen = !!(res && res.classList.contains('show'));
+      // Когда открыта модалка результата победы, не надо поллить boss_help_pull.
+      return !!((bf && bf.classList.contains('show') && !resOpen) || (bl && bl.classList.contains('show')));
     } catch (e) { return false; }
   }
   function bossHelpSend(bossId, dmg){
@@ -4046,9 +4271,16 @@ button.btn.charCornerBtn:active{filter:none;}
       dmg = Math.max(1, parseInt(dmg||0,10)||0);
       bossId = Math.max(1, parseInt(bossId||0,10)||0);
       if (!bossId || !dmg) return;
-      const cid = clanFindMyClanId();
+      const cid = (function(){
+        try {
+          const c0 = String(state && state.clan && state.clan.id || '').trim().toUpperCase();
+          if (/^CLN\d{1,20}$/.test(c0)) return c0;
+        } catch (e0) {}
+        try { return String(clanFindMyClanId()||'').trim().toUpperCase(); } catch (e1) { return ''; }
+      })();
       const me = clanMyName();
-      sbFnCall('boss_help_send', { initData: tgInitData(), boss_id: bossId, dmg: dmg, clan_id: cid, from_name: me })
+      const helperLvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
+      sbFnCall('boss_help_send', { initData: tgInitData(), boss_id: bossId, dmg: dmg, clan_id: cid, from_name: me, helper_lvl: helperLvl })
         .then((r)=>{
           try {
             if (r && typeof r === 'object' && IS_DEV) {
@@ -4069,7 +4301,7 @@ button.btn.charCornerBtn:active{filter:none;}
     if (!b) return 0;
     if (Number(b.id) === 1) return 500; // Фёдор: фикс 500 урона на братка
       const lvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
-      const capPct = 0.10 + lvl*0.01;
+      const capPct = 0.05 + lvl*0.005; // 5% base + 0.5% per help-skill level
     return Math.floor((b.maxHP||0) * capPct);
   }
   function bossHelpCapRemainFriend(b, f, nm){
@@ -4089,17 +4321,16 @@ button.btn.charCornerBtn:active{filter:none;}
     } catch (e) { return 0; }
   }
 
-  function bossHelpApplyEvent(bossId, fromName, dmg, clanId){
+  function bossHelpApplyEvent(bossId, fromName, dmg, clanId, ev){
     try {
       const bid = parseInt(bossId||0,10)||0;
       if (!bid) return;
       const b = BOSSES.find(x=>x.id===bid);
       if (!b) return;
       const nm = String(fromName||'BRAT').trim().substring(0,18) || 'BRAT';
-      const me = clanMyName();
-      if (String(nm) === String(me)) return;
       const want = Math.max(0, Math.floor(dmg||0));
       if (!want) return;
+      if (bossHelpSeenOnce(ev, bid, nm, want, clanId)) return;
 
       const isCloud = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
       if (!isCloud) {
@@ -4111,34 +4342,40 @@ button.btn.charCornerBtn:active{filter:none;}
       }
 
       if (isCloud) {
+        // Drop stale backlog events from previous fights after refresh/reopen.
+        try {
+          let f0 = bfGetFight(bid);
+          if (!f0) f0 = bfEnsureFight(bid);
+          const evTs = (ev && ev.created_at) ? (Date.parse(String(ev.created_at))||0) : 0;
+          const fightStart = f0 ? (parseInt(f0.startTs||0,10)||0) : 0;
+          // Keep only clearly old backlog, not near-start live events.
+          if (evTs && fightStart && evTs < (fightStart - 10*60*1000)) return;
+        } catch (eStale) {}
         const add = want;
         if (add<=0) return;
-        // Лог и топ
+        // 1) First show event instantly in log/top.
         bfLogPush(bid, nm, add);
         bfTopAdd(bid, nm, add);
-
-        // Пытаемся сразу уменьшить локальный HP, чтобы игрок видел эффект помощи.
-        try {
-          let f = bfGetFight(bid);
-          if (!f) {
-            try { f = bfEnsureFight(bid); } catch (e0) { f = null; }
-          }
-          if (f){
-            const hp0 = parseInt(f.hp||0,10)||0;
-            if (hp0 > 0){
-              const real = Math.min(add, hp0);
-              if (real > 0){
-                f.hp = Math.max(0, hp0 - real);
-                bfSetFight(bid, f);
-                try { bfCheckWin(bid); } catch (e1) {}
-              }
-            }
-          }
-        } catch (e3) {}
-
         save();
         try { bfRender(bid); } catch (e0) {}
-        // Далее подтягиваем фактическое состояние боя с сервера для выравнивания HP.
+        // 2) Then reduce HP on next frame.
+        try {
+          requestAnimationFrame(function(){
+            try {
+              let f1 = bfGetFight(bid);
+              if (!f1) f1 = bfEnsureFight(bid);
+              if (f1 && (parseInt(f1.hp||0,10)||0) > 0) {
+                const hp0 = Math.max(0, parseInt(f1.hp||0,10)||0);
+                f1.hp = Math.max(0, hp0 - Math.min(add, hp0));
+                bfSetFight(bid, f1);
+                bfCheckWin(bid);
+                save();
+                try { bfRender(bid); } catch (e1) {}
+              }
+            } catch (eHp2) {}
+          });
+        } catch (eHp) {}
+        // Keep periodic cloud pull for reconciliation only.
         try {
           requestAnimationFrame(function(){
             bossFightsCloudPullMaybe(true).then(function(){
@@ -4194,28 +4431,21 @@ button.btn.charCornerBtn:active{filter:none;}
         }
       } catch (e0) {}
       ev.forEach(e=>{
-        try { bossHelpApplyEvent(e && e.boss_id, e && e.from_name, e && e.dmg, e && e.clan_id); } catch (e2) {}
+        try { bossHelpApplyEvent(e && e.boss_id, e && e.from_name, e && e.dmg, e && e.clan_id, e); } catch (e2) {}
       });
       if (ev && ev.length) {
         try { __bossFightsPullTs = 0; } catch (e0) {}
-        try { bossFightsCloudPullMaybe(); } catch (e1) {}
+        // We got real help events; refresh boss fights immediately.
+        try { bossFightsCloudPullMaybe(true); } catch (e1) {}
       }
     } catch (e) {}
   }
   function bossHelpPollStart(){
     try {
-      if (__bossHelpPollT) return;
-      __bossHelpLast = 0;
-      bossHelpPullOnce().catch(()=>{});
-      __bossHelpPollT = setInterval(()=>{
-        try {
-          if (!bossHelpShouldRun()) return;
-          const t = now();
-          if (__bossHelpLast && (t - __bossHelpLast) < 1400) return;
-          __bossHelpLast = t;
-          bossHelpPullOnce().catch(()=>{});
-        } catch (e0) {}
-      }, 1500);
+      // Disabled polling: boss_help_pull should run ONLY after real actions.
+      // (e.g. after boss_help_send on an actual hit, or when user explicitly opens help UI.)
+      // Keeping this function as a no-op so existing boot calls won't start background traffic.
+      return;
     } catch (e) {}
   }
 
@@ -4226,14 +4456,6 @@ button.btn.charCornerBtn:active{filter:none;}
       const cc = $('mClanChat');
       if (cc && cc.classList.contains('show')) return true;
     } catch (e) {}
-    try {
-      const b = $('mBoss');
-      if (b && b.classList.contains('show')) return true;
-    } catch (e2) {}
-    try {
-      const bf = $('mBossFight');
-      if (bf && bf.classList.contains('show')) return true;
-    } catch (e3) {}
     return false;
   }
   function clanLiveStart(){
@@ -4930,7 +5152,13 @@ button.btn.charCornerBtn:active{filter:none;}
     try {
       const lvl = clamp(parseInt(state.friendHelpLvl||0,10)||0, 0, 10);
       $('fhLvl').textContent = String(lvl);
-      $('fhPct').textContent = 'Фёдор: ' + BOSS_HELP_CAP_FEDOR + ' · др.: ' + (10 + lvl) + '%';
+      try {
+        const capNow = $('fhCapNow');
+        if (capNow){
+          const pct = (5 + lvl * 0.5).toFixed(1).replace('.', ',');
+          capNow.textContent = 'Сейчас: до '+pct+'% от HP босса на одного братка (у Фёдора фикс 500).';
+        }
+      } catch (e1) {}
       const btn = $('fhUp');
       if (btn) {
         const PRICES = [0, 50000, 1000000, 5000000, 10000000, 20000000, 50000000, 100000000, 200000000, 500000000, 1000000000];
@@ -5450,9 +5678,23 @@ button.btn.charCornerBtn:active{filter:none;}
     feedAdd('Добро пожаловать в Братство Кольца!','SYS');
   }
 
-  function hardReset(){
-    try { localStorage.removeItem(saveKey()); } catch (e) {}
+  async function hardReset(){
+    // Осознанный сброс: сначала облако (отдельная функция), иначе upsert с дефолтами заблокируется анти-вайпом.
+    const hadCloud = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
+    if (hadCloud) {
+      try {
+        const r = await sbFnCall('player_progress_reset', { initData: tgInitData() });
+        if (!r || !r.ok) {
+          toast('Облако не сброшено — отмена (прогресс на сервере цел)','lose');
+          return;
+        }
+      } catch (e) {
+        toast('Облако не сброшено — отмена (прогресс на сервере цел)','lose');
+        return;
+      }
+    }
     state = JSON.parse(JSON.stringify(defaults));
+    try { __cloudSaveUnlocked = true; } catch (eHR) {}
     try {
       while (stack.length) {
         const id = stack.pop();
@@ -5539,12 +5781,18 @@ button.btn.charCornerBtn:active{filter:none;}
     } catch (e) {}
   }
 
-  // --- Storage
+  // --- Storage с улучшенной защитой прогресса
   const SAVE_KEY_BASE = 'mora_mobile_save_v6';
+  const BACKUP_KEY_BASE = 'mora_mobile_backup_v6';
   const CURRENCY_CAP = 999999999999;
   const BUILD_ID = '2026-03-04_13-26_clanid_deputy';
-  const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : 'https://wnyjiuxcsyfzcnkixnay.supabase.co';
-  const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndueWppdXhjc3lmemNua2l4bmF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4Njk0NjMsImV4cCI6MjA4OTQ0NTQ2M30.j18ImBEoV4MtNLpLesjuvzzePqi2cV7ugWsgk4_SSdQ';
+  const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : '';
+  const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : '';
+  // New setup: on Supabase there are ONLY DB tables (no Edge Functions).
+  // We keep gameplay working by talking directly to PostgREST (`/rest/v1/players`)
+  // for player save/load.
+  const CLOUD_PLAYERS_ONLY = true;
+  const PLAYERS_TABLE = 'players';
   const TELEGRAM_GROUP_LINK = (function(){ var m=document.querySelector('meta[name="telegram-group-url"]'); if(m&&m.content&&String(m.content).trim()) return String(m.content).trim(); return (window && window.TELEGRAM_GROUP_URL) ? String(window.TELEGRAM_GROUP_URL||'').trim() : ''; })();
   const ADMIN_TG_ID = (function(){ var m=document.querySelector('meta[name="admin-tg-id"]'); if(m&&m.content&&String(m.content).trim()) return String(m.content).trim(); return (window && window.ADMIN_TG_ID) ? String(window.ADMIN_TG_ID||'').trim() : ''; })();
   let __srvDirty = false;
@@ -5556,6 +5804,14 @@ button.btn.charCornerBtn:active{filter:none;}
   const SAVE_MARK_THROTTLE_MS = 800;
   let __dbgOn = false;
   let __dbgFreeze = false;
+  /** Состояние уже загружено в boot() через get_player — не дублировать session_start. */
+  let __hydratedFromGetPlayer = false;
+  /** Пока false — не слать upsert_player (иначе defaults затирают облако по tg_id). */
+  let __cloudSaveUnlocked = false;
+  // Итоговая защита от «обнуления»: (1) этот флаг + порядок init/session,
+  // (2) сервер upsert_player: state_regress_blocked / state_null_blocked,
+  // (3) осознанный сброс только через player_progress_reset + hardReset.
+  // Разработчик: полный вайп — admin_full_restart; точечный upsert в обход — ADMIN_TG_ID + admin_force_state_write в теле upsert_player.
   let __lastCloudErr = '';
   let __lastCloudFn = '';
   let __lastCloudTs = 0;
@@ -5668,35 +5924,12 @@ button.btn.charCornerBtn:active{filter:none;}
   }
 
   function myDeviceId(){
+    // Стабильный id по Telegram — без localStorage (прогресс только в облаке).
     try {
-      const k = 'bk_device_id';
-      let v = '';
-      try { v = String(localStorage.getItem(k) || '').trim(); } catch (e0) { v = ''; }
-      if (!v) {
-        try {
-          const tid = myTgUserId();
-          // Без размеров экрана — иначе смена ориентации = новый device_id = ложный «другой девайс».
-          const ua = (typeof navigator !== 'undefined' && navigator.userAgent) ? String(navigator.userAgent) : '';
-          let tz = '';
-          try { tz = (Intl && Intl.DateTimeFormat) ? String(Intl.DateTimeFormat().resolvedOptions().timeZone||'') : ''; } catch (e2) { tz = ''; }
-          if (tid) {
-            const fp = [tid, ua, tz].join('|');
-            let h = 5381;
-            for (let i = 0; i < fp.length; i++) h = ((h << 5) + h) ^ fp.charCodeAt(i);
-            v = 'dev_' + (h >>> 0).toString(16);
-          } else {
-            v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (String(Date.now()) + '-' + Math.random().toString(16).slice(2));
-          }
-        } catch (e3) {
-          v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (String(Date.now()) + '-' + Math.random().toString(16).slice(2));
-        }
-        try { localStorage.setItem(k, v); } catch (e1) {}
-      }
-      try {
-        const tid = myTgUserId();
-        if (tid && (!v || v.length < 3)) return 'dev_tg_' + tid;
-      } catch (e4) {}
-      return v || 'dev_unknown';
+      const tid = myTgUserId();
+      if (tid) return 'dev_tg_' + tid;
+      if (crypto && crypto.randomUUID) return 'dev_sess_' + crypto.randomUUID();
+      return 'dev_unknown';
     } catch (e) {
       try { const t = myTgUserId(); if (t) return 'dev_tg_' + t; } catch (e2) {}
       return 'dev_unknown';
@@ -5881,25 +6114,624 @@ button.btn.charCornerBtn:active{filter:none;}
   let __sessionEstablished = false;
   // Optional VPS proxy (recommended for hot polling endpoints).
   // IMPORTANT: use HTTPS URL in production (Telegram WebApp blocks mixed content).
-  const EDGE_PROXY_BASE = 'https://bratstvokoltsa.duckdns.org';
+  const EDGE_PROXY_BASE = (function(){
+    try {
+      var m = document.querySelector('meta[name="edge-proxy-base"]');
+      if (m && m.content && String(m.content).trim()) return String(m.content).trim();
+    } catch (e0) {}
+    try {
+      if (window && window.EDGE_PROXY_BASE) return String(window.EDGE_PROXY_BASE||'').trim();
+    } catch (e1) {}
+    return '';
+  })();
   function edgeProxyCanHandle(fnName){
     const n = String(fnName||'').trim();
+    // In "players-only DB" mode we moved Stars invoice creation to edge function
+    // on Supabase (not to the VPS proxy), because VPS currently serves only SPA.
+    if (CLOUD_PLAYERS_ONLY && n === 'stars_create_invoice') return false;
     // Move high-frequency and read-only calls to VPS proxy.
     return (
+      // boss_help_pull is non-idempotent.
+      // VPS does NOT cache it (ttl=0) but can still coalesce concurrent identical polls.
       n === 'boss_help_pull' ||
-      n === 'boss_fights_list' ||
+      n === 'session_start' ||
+      n === 'upsert_player' ||
+      // Ensure server writes (so progress persists after reload).
+      n === 'boss_help_send' ||
+      n === 'boss_fight_hit' ||
+      n === 'boss_fight_start' ||
+      n === 'boss_fight_claim' ||
+      n === 'upsert_clan' ||
+      // Stars и webhook через VPS, чтобы избежать проблем с CORS и сетью
+      // (stars_create_invoice disabled above in players-only mode)
+      n === 'telegram_bot' ||
       n === 'list_clans' ||
+      n === 'list_group_fight_entries' ||
+      n === 'join_group_fight' ||
       n === 'get_player' ||
       n === 'top_players_list' ||
       n === 'district_leaders_list' ||
       n === 'district_daily_leaders_list' ||
       n === 'havchik_inbox_pull' ||
-      n === 'boss_last_winners_list'
+      n === 'boss_last_winners_list' ||
+      n === 'referral_accept' ||
+      n === 'player_progress_reset' ||
+      n === 'boss_fights_list' ||
+      n === 'admin_get_player' ||
+      n === 'admin_update_player' ||
+      n === 'admin_grant_all'
     );
   }
+  // --- Серверная пакетная синхронизация ---
+  let batchSyncData = [];
+  let batchSyncTimer = null;
+  const BATCH_SYNC_INTERVAL = 30000; // 30 секунд
+  const BATCH_MAX_SIZE = 50; // Максимум 50 игроков в пакете
+  
+  // Добавить данные игрока в пакетную очередь
+  function addToBatchSync(tgId, playerData, action = 'update') {
+    try {
+      const syncItem = {
+        tg_id: tgId,
+        data: playerData,
+        action: action, // 'update', 'create', 'delete'
+        timestamp: Date.now(),
+        retry_count: 0
+      };
+      
+      batchSyncData.push(syncItem);
+      
+      // Если достигли лимита, отправляем немедленно
+      if (batchSyncData.length >= BATCH_MAX_SIZE) {
+        sendBatchSync();
+      } else if (!batchSyncTimer) {
+        // Запускаем таймер для пакетной отправки
+        batchSyncTimer = setTimeout(sendBatchSync, BATCH_SYNC_INTERVAL);
+      }
+      
+    } catch (e) {
+      console.warn('Failed to add to batch sync:', e);
+    }
+  }
+  
+  // Отправка пакета данных на сервер
+  async function sendBatchSync() {
+    if (batchSyncData.length === 0) return;
+    
+    try {
+      // Копируем и очищаем очередь
+      const currentBatch = [...batchSyncData];
+      batchSyncData = [];
+      
+      if (batchSyncTimer) {
+        clearTimeout(batchSyncTimer);
+        batchSyncTimer = null;
+      }
+      
+      console.log(`Sending batch sync: ${currentBatch.length} players`);
+      
+      // Отправляем на наш VPS эндпоинт
+      const response = await fetch('/api/batch-sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          players: currentBatch,
+          server_timestamp: Date.now()
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Batch sync successful:', result);
+        
+        // Обрабатываем ошибки для отдельных игроков
+        if (result.errors && result.errors.length > 0) {
+          result.errors.forEach(error => {
+            if (error.retry && error.tg_id) {
+              // Возвращаем в очередь с увеличенным счетчиком попыток
+              const failedItem = currentBatch.find(item => item.tg_id === error.tg_id);
+              if (failedItem && failedItem.retry_count < 3) {
+                failedItem.retry_count++;
+                batchSyncData.push(failedItem);
+              }
+            }
+          });
+        }
+      } else {
+        // Если сервер недоступен, возвращаем все в очередь
+        console.warn('Batch sync failed, retrying later...');
+        batchSyncData.unshift(...currentBatch);
+        
+        // Увеличиваем счетчик попыток
+        batchSyncData.forEach(item => item.retry_count++);
+        
+        // Удаляем элементы с слишком большим количеством попыток
+        batchSyncData = batchSyncData.filter(item => item.retry_count < 3);
+      }
+      
+    } catch (error) {
+      console.error('Batch sync error:', error);
+      
+      // Возвращаем в очередь при ошибке
+      batchSyncData.unshift(...currentBatch);
+    }
+  }
+  
+  // Принудительная отправка для важных данных
+  function forceBatchSync(tgId, playerData, action = 'update') {
+    // Добавляем в начало очереди с высоким приоритетом
+    const priorityItem = {
+      tg_id: tgId,
+      data: playerData,
+      action: action,
+      timestamp: Date.now(),
+      retry_count: 0,
+      priority: true
+    };
+    
+    batchSyncData.unshift(priorityItem);
+    sendBatchSync();
+  }
+  
+  // --- Умная синхронизация прогресса ---
+  let pendingSyncData = null;
+  let syncInProgress = false;
+  let lastSuccessfulSync = 0;
+  
+  // Очередь для сохранения прогресса
+  function queueProgressUpdate(newState) {
+    try {
+      // Сохраняем локально мгновенно
+      const cached = loadPlayerFromCache();
+      if (cached.data) {
+        const updatedPlayer = { ...cached.data, state: newState, updated_at: new Date().toISOString() };
+        savePlayerToCache(updatedPlayer);
+      }
+      
+      // Добавляем в очередь на синхронизацию
+      pendingSyncData = {
+        state: newState,
+        timestamp: Date.now(),
+        retries: 0
+      };
+      
+      // Пытаемся синхронизировать с задержкой (batching)
+      setTimeout(attemptSync, 1000);
+      
+    } catch (e) {
+      console.warn('Failed to queue progress update:', e);
+    }
+  }
+  
+  // Попытка синхронизации с retry механизмом
+  async function attemptSync() {
+    if (!pendingSyncData || syncInProgress || isOfflineMode()) return;
+    
+    syncInProgress = true;
+    
+    try {
+      const initData = tgInitData();
+      if (!initData) return;
+      
+      console.log('Syncing progress...');
+      const result = await upsertPlayerViaPostgREST(initData, pendingSyncData.state);
+      
+      if (result.ok) {
+        lastSuccessfulSync = Date.now();
+        pendingSyncData = null;
+        setOfflineMode(false);
+        console.log('Progress synced successfully');
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.warn('Sync failed, will retry:', error);
+      
+      // Retry логика
+      if (pendingSyncData) {
+        pendingSyncData.retries++;
+        pendingSyncData.timestamp = Date.now();
+        
+        // Экспоненциальный backoff: 1s, 2s, 4s, 8s, 16s, max 30s
+        const delay = Math.min(1000 * Math.pow(2, pendingSyncData.retries - 1), 30000);
+        setTimeout(attemptSync, delay);
+      }
+    } finally {
+      syncInProgress = false;
+    }
+  }
+  
+  // Принудительная синхронизация важных изменений
+  async function forceSyncProgress(newState) {
+    try {
+      const initData = tgInitData();
+      if (!initData) return false;
+      
+      // Мгновенное сохранение локально
+      const cached = loadPlayerFromCache();
+      if (cached.data) {
+        const updatedPlayer = { ...cached.data, state: newState, updated_at: new Date().toISOString() };
+        savePlayerToCache(updatedPlayer);
+      }
+      
+      // Немедленная синхронизация с Supabase
+      const result = await upsertPlayerViaPostgREST(initData, newState);
+      
+      if (result.ok) {
+        lastSuccessfulSync = Date.now();
+        pendingSyncData = null;
+        setOfflineMode(false);
+        return true;
+      }
+    } catch (error) {
+      console.warn('Force sync failed:', error);
+      // Добавляем в очередь для повторной попытки
+      queueProgressUpdate(newState);
+    }
+    return false;
+  }
+  
+  // Проверка целостности данных при загрузке
+  async function verifyDataIntegrity() {
+    try {
+      const cached = loadPlayerFromCache();
+      if (!cached.data) return;
+      
+      // Если есть несинхронизированные данные, пытаемся сохранить
+      if (pendingSyncData && pendingSyncData.retries < 5) {
+        await attemptSync();
+      }
+      
+      // Периодическая полная синхронизация
+      const timeSinceLastSync = Date.now() - lastSuccessfulSync;
+      if (timeSinceLastSync > 10 * 60 * 1000) { // 10 минут
+        const initData = tgInitData();
+        if (initData && cached.data.state) {
+          await forceSyncProgress(cached.data.state);
+        }
+      }
+    } catch (e) {
+      console.warn('Data integrity check failed:', e);
+    }
+  }
+  
+  // --- Периодическая синхронизация с минимальными запросами ---
+  let syncInterval = null;
+  let lastSyncAttempt = 0;
+  const SYNC_INTERVAL_MINUTES = 30; // Синхронизация каждые 30 минут
+  const SYNC_COOLDOWN_MS = 5 * 60 * 1000; // Минимум 5 минут между попытками
+
+  function startPeriodicSync() {
+    if (syncInterval) return;
+    
+    syncInterval = setInterval(async () => {
+      try {
+        const now = Date.now();
+        if (now - lastSyncAttempt < SYNC_COOLDOWN_MS) return;
+        
+        lastSyncAttempt = now;
+        const initData = tgInitData();
+        if (!initData || isOfflineMode()) return;
+        
+        // Проверяем, нужно ли синхронизироваться
+        const cached = loadPlayerFromCache();
+        if (cached.isFresh) return; // Если кэш свежий, не синхронизируемся
+        
+        console.log('Periodic sync attempt...');
+        const result = await getPlayerViaPostgREST(initData);
+        
+        if (result.ok && result.player) {
+          savePlayerToCache(result.player);
+          setOfflineMode(false);
+          console.log('Sync completed successfully');
+        }
+      } catch (error) {
+        console.warn('Sync failed:', error);
+      }
+    }, SYNC_INTERVAL_MINUTES * 60 * 1000);
+  }
+
+  function stopPeriodicSync() {
+    if (syncInterval) {
+      clearInterval(syncInterval);
+      syncInterval = null;
+    }
+  }
+
+  // Функция принудительной синхронизации (для важных действий)
+  async function forceSyncIfNeeded() {
+    try {
+      const cached = loadPlayerFromCache();
+      if (cached.isFresh) return cached.data;
+      
+      const initData = tgInitData();
+      if (!initData) return cached.data;
+      
+      const result = await getPlayerViaPostgREST(initData);
+      if (result.ok && result.player) {
+        savePlayerToCache(result.player);
+        setOfflineMode(false);
+        return result.player;
+      }
+    } catch (error) {
+      console.warn('Force sync failed:', error);
+    }
+    return null;
+  }
+
+  // --- Локальное кэширование для минимизации запросов к Supabase ---
+  const LOCAL_CACHE_KEYS = {
+    PLAYER_DATA: 'bratstvo_player_cache',
+    LAST_SYNC: 'bratstvo_last_sync',
+    OFFLINE_MODE: 'bratstvo_offline_mode'
+  };
+
+  // Функции локального кэширования
+  function savePlayerToCache(playerData) {
+    try {
+      const cacheData = {
+        player: playerData,
+        timestamp: Date.now(),
+        version: '1.0'
+      };
+      localStorage.setItem(LOCAL_CACHE_KEYS.PLAYER_DATA, JSON.stringify(cacheData));
+      localStorage.setItem(LOCAL_CACHE_KEYS.LAST_SYNC, Date.now().toString());
+    } catch (e) {
+      console.warn('Failed to save player cache:', e);
+    }
+  }
+
+  function loadPlayerFromCache() {
+    try {
+      const cached = localStorage.getItem(LOCAL_CACHE_KEYS.PLAYER_DATA);
+      if (cached) {
+        const cacheData = JSON.parse(cached);
+        // Проверяем актуальность кэша (24 часа)
+        const isFresh = Date.now() - cacheData.timestamp < 24 * 60 * 60 * 1000;
+        return { data: cacheData.player, isFresh: isFresh };
+      }
+    } catch (e) {
+      console.warn('Failed to load player cache:', e);
+    }
+    return { data: null, isFresh: false };
+  }
+
+  function getLastSyncTime() {
+    try {
+      const lastSync = localStorage.getItem(LOCAL_CACHE_KEYS.LAST_SYNC);
+      return lastSync ? parseInt(lastSync, 10) : 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  function setOfflineMode(enabled) {
+    try {
+      localStorage.setItem(LOCAL_CACHE_KEYS.OFFLINE_MODE, enabled ? 'true' : 'false');
+    } catch (e) {}
+  }
+
+  function isOfflineMode() {
+    try {
+      return localStorage.getItem(LOCAL_CACHE_KEYS.OFFLINE_MODE) === 'true';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Оптимизированные функции с кэшированием
+  async function getPlayerOptimized(initData) {
+    // Сначала пробуем из кэша
+    const cached = loadPlayerFromCache();
+    if (cached.isFresh) {
+      console.log('Using fresh cache data');
+      return { player: cached.data, ok: true, fromCache: true };
+    }
+
+    // Если кэш старый, пробуем онлайн
+    try {
+      const result = await getPlayerViaPostgREST(initData);
+      if (result.ok && result.player) {
+        savePlayerToCache(result.player);
+        setOfflineMode(false);
+      }
+      return { ...result, fromCache: false };
+    } catch (error) {
+      // Если онлайн недоступен, пробуем старый кэш
+      if (cached.data) {
+        console.log('Using old cache as fallback');
+        setOfflineMode(true);
+        return { player: cached.data, ok: true, fromCache: true, isOffline: true };
+      }
+      throw error;
+    }
+  }
+
+  async function upsertPlayerOptimized(initData, state) {
+    try {
+      const result = await upsertPlayerViaPostgREST(initData, state);
+      if (result.ok && result.player) {
+        savePlayerToCache(result.player);
+        setOfflineMode(false);
+      }
+      return result;
+    } catch (error) {
+      // Сохраняем локально даже если онлайн не работает
+      try {
+        const userData = parseInitData(initData);
+        if (userData) {
+          const localPlayer = {
+            tg_id: userData.id,
+            name: userData.first_name || 'Player',
+            state: state,
+            updated_at: new Date().toISOString(),
+            isLocal: true
+          };
+          savePlayerToCache(localPlayer);
+          setOfflineMode(true);
+          return { player: localPlayer, ok: true, isLocal: true };
+        }
+      } catch (e) {}
+      throw error;
+    }
+  }
+
+  // --- PostgREST функции для работы с таблицей players ---
+  async function getPlayerViaPostgREST(initData) {
+    const headers = {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Prefer': 'return=representation'
+    };
+    
+    try {
+      // Парсим initData для получения tg_id
+      const tgId = extractTgIdFromInitData(initData);
+      console.log('Debug: getPlayerViaPostgREST extracted tgId =', tgId);
+      if (!tgId) throw new Error('Invalid initData - no tg_id');
+      
+      const url = `${SUPABASE_URL}/rest/v1/players?tg_id=eq.${tgId}&select=*`;
+      console.log('Debug: getPlayerViaPostgREST URL =', url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers
+      });
+      
+      console.log('Debug: getPlayerViaPostgREST response status =', response.status);
+      console.log('Debug: getPlayerViaPostgREST response ok =', response.ok);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const players = await response.json();
+      console.log('Debug: getPlayerViaPostgREST players array =', players);
+      console.log('Debug: getPlayerViaPostgREST players length =', players.length);
+      
+      const player = players.length > 0 ? players[0] : null;
+      console.log('Debug: getPlayerViaPostgREST player =', player);
+      
+      if (player) {
+        console.log('Debug: getPlayerViaPostgREST player.tg_id =', player.tg_id);
+        console.log('Debug: getPlayerViaPostgREST player keys =', Object.keys(player));
+      }
+      
+      return {
+        player: player,
+        ok: true
+      };
+    } catch (error) {
+      console.error('Debug: getPlayerViaPostgREST error =', error);
+      return {
+        ok: false,
+        error: error.message
+      };
+    }
+  }
+
+  async function upsertPlayerViaPostgREST(initData, state) {
+    const headers = {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Prefer': 'return=representation'
+    };
+    
+    try {
+      // Парсим initData для получения данных пользователя
+      const userData = parseInitData(initData);
+      if (!userData || !userData.id) throw new Error('Invalid initData');
+      
+      const playerData = {
+        tg_id: userData.id,
+        name: userData.first_name || 'Player',
+        state: state,
+        updated_at: new Date().toISOString()
+      };
+      
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/players`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(playerData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      return {
+        player: result[0],
+        ok: true
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: error.message
+      };
+    }
+  }
+
+  function extractTgIdFromInitData(initData) {
+    try {
+      console.log('Debug: extractTgIdFromInitData input =', initData);
+      const params = new URLSearchParams(initData);
+      const userStr = params.get('user');
+      console.log('Debug: userStr =', userStr);
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        console.log('Debug: parsed user =', user);
+        const tgId = user.id;
+        console.log('Debug: extracted tgId =', tgId);
+        return tgId;
+      }
+    } catch (e) {
+      console.error('Debug: extractTgIdFromInitData error =', e);
+    }
+    console.log('Debug: extractTgIdFromInitData returning null');
+    return null;
+  }
+
+  function parseInitData(initData) {
+    try {
+      console.log('Debug: parseInitData input =', initData);
+      const params = new URLSearchParams(initData);
+      const userStr = params.get('user');
+      console.log('Debug: parseInitData userStr =', userStr);
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        console.log('Debug: parseInitData parsed user =', user);
+        return user;
+      }
+    } catch (e) {
+      console.error('Debug: parseInitData error =', e);
+    }
+    console.log('Debug: parseInitData returning null');
+    return null;
+  }
+
   async function sbFnCall(fnName, payload){
     const supaBase = String(SUPABASE_URL||'').replace(/\/$/,'');
     if (!supaBase) throw new Error('no_supabase_url');
+    const fn = String(fnName||'').trim();
+    const isPlayersDbFn =
+      fn === 'get_player' ||
+      fn === 'upsert_player' ||
+      fn === 'player_progress_reset' ||
+      fn === 'get_players_by_names' ||
+      fn === 'top_players_list';
+    const allowEdgeFnInPlayersOnly =
+      fn === 'stars_create_invoice';
+    // In players-only DB mode: we do not call edge functions at all.
+    // Player progress is handled via PostgREST (`/rest/v1/players`) below.
+    if (CLOUD_PLAYERS_ONLY && !isPlayersDbFn && !allowEdgeFnInPlayersOnly) {
+      // Keep callers stable: they either fall back to local state or show limited UI.
+      return { ok:false, skipped:true, error:'edge_functions_disabled_by_players_only', fn: fn };
+    }
     const proxyBase = String((state && state.edgeProxyBase) || EDGE_PROXY_BASE || '').replace(/\/$/,'');
     const useProxy = !!(proxyBase && edgeProxyCanHandle(fnName));
     const base = useProxy ? proxyBase : supaBase;
@@ -5914,14 +6746,6 @@ button.btn.charCornerBtn:active{filter:none;}
         }
       }
     } catch (e00) {}
-    try {
-      const did = myDeviceId();
-      if (did && bodyObj && typeof bodyObj === 'object' && !Array.isArray(bodyObj)) {
-        if (!Object.prototype.hasOwnProperty.call(bodyObj, 'device_id')) {
-          bodyObj = Object.assign({ device_id: did }, bodyObj);
-        }
-      }
-    } catch (e01) {}
     try {
       if (!__dbgFreeze) {
         let extra = '';
@@ -5947,6 +6771,159 @@ button.btn.charCornerBtn:active{filter:none;}
       });
       __cloudGatePromise = myTurn;
       await myTurn;
+      // Player-only DB mode: call PostgREST directly instead of Edge Functions.
+      if (CLOUD_PLAYERS_ONLY && isPlayersDbFn) {
+        const playersUrl = supaBase + '/rest/v1/' + encodeURIComponent(PLAYERS_TABLE);
+        const apikey = String(SUPABASE_ANON_KEY||'');
+        const authz = 'Bearer ' + apikey;
+        const tgId = String((bodyObj && typeof bodyObj === 'object' && bodyObj.tg_id != null) ? bodyObj.tg_id : myTgUserId() || '').trim();
+        const dbHeadersBase = {
+          'apikey': apikey,
+          'Authorization': authz,
+          'Accept': 'application/json'
+        };
+        const dbHeadersJson = Object.assign({ 'Content-Type': 'application/json' }, dbHeadersBase);
+
+        if (fn === 'get_player') {
+          if (!tgId) throw new Error('missing_tg_id');
+          const selectCols = 'tg_id,name,photo_url,level,arena_power,arena_wins,arena_losses,stats_sum,boss_wins,referrer_tg_id,vip,vip_until,state';
+          const urlGet = playersUrl + '?select=' + encodeURIComponent(selectCols) + '&tg_id=eq.' + encodeURIComponent(tgId);
+          const resp0 = await fetch(urlGet, { method:'GET', headers: dbHeadersBase, keepalive:true });
+          const arr0 = await resp0.json().catch(()=> null);
+          if (!resp0.ok) throw new Error('db_get_player_http_' + String(resp0.status||0));
+          const row0 = (Array.isArray(arr0) && arr0.length) ? arr0[0] : null;
+          if (row0 && row0.state && typeof row0.state === 'object') {
+            return { ok:true, player:{ tg_id: String(row0.tg_id||tgId), name: String(row0.name||''), photo_url: String(row0.photo_url||''), state: row0.state } };
+          }
+          // Auto-create the player row on first entry.
+          let photo = '';
+          try {
+            const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+            photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
+          } catch (e0) { photo = ''; }
+          const initName = tgSuggestedName();
+          const state0 = (typeof cloudStateSnapshot === 'function') ? cloudStateSnapshot(defaults) : defaults;
+          const vip0 = !!(state0 && state0.vip);
+          const vipUntil0 = parseInt(state0 && state0.vipUntil ? state0.vipUntil : 0, 10) || 0;
+          const upObj = {
+            tg_id: tgId,
+            name: String(initName||'PLAYER').trim().slice(0,18),
+            photo_url: String(photo||'').trim(),
+            level: parseInt(defaults.level||1,10)||1,
+            arena_power: 0,
+            arena_wins: 0,
+            arena_losses: 0,
+            stats_sum: 0,
+            boss_wins: 0,
+            referrer_tg_id: '',
+            vip: vip0,
+            vip_until: vipUntil0,
+            state: state0
+          };
+          const upResp = await fetch(playersUrl, {
+            method:'POST',
+            headers: Object.assign({}, dbHeadersJson, {
+              'Prefer': 'resolution=merge-duplicates,return=representation'
+            }),
+            body: JSON.stringify(upObj),
+            keepalive:true
+          });
+          const arr1 = await upResp.json().catch(()=> null);
+          if (!upResp.ok) throw new Error('db_upsert_player_http_' + String(upResp.status||0));
+          const row1 = (Array.isArray(arr1) && arr1.length) ? arr1[0] : upObj;
+          return { ok:true, player:{ tg_id: String(row1.tg_id||tgId), name: String(row1.name||initName||''), photo_url: String(row1.photo_url||photo||''), state: (row1.state && typeof row1.state === 'object') ? row1.state : {} } };
+        }
+
+        if (fn === 'upsert_player') {
+          if (!tgId) throw new Error('missing_tg_id');
+          const s0 = (bodyObj && bodyObj.state && typeof bodyObj.state === 'object') ? bodyObj.state : {};
+          const vip0 = !!s0.vip;
+          const vipUntil0 = parseInt(s0.vipUntil ? s0.vipUntil : 0, 10) || 0;
+          const upObj = {
+            tg_id: tgId,
+            name: String(bodyObj && bodyObj.name != null ? bodyObj.name : '').trim().slice(0,18),
+            photo_url: String(bodyObj && bodyObj.photo_url != null ? bodyObj.photo_url : '').trim(),
+            level: parseInt(bodyObj && bodyObj.level != null ? bodyObj.level : 0, 10) || 0,
+            arena_power: parseInt(bodyObj && bodyObj.arena_power != null ? bodyObj.arena_power : 0, 10) || 0,
+            arena_wins: parseInt(bodyObj && bodyObj.arena_wins != null ? bodyObj.arena_wins : 0, 10) || 0,
+            arena_losses: parseInt(bodyObj && bodyObj.arena_losses != null ? bodyObj.arena_losses : 0, 10) || 0,
+            stats_sum: parseInt(bodyObj && bodyObj.stats_sum != null ? bodyObj.stats_sum : 0, 10) || 0,
+            boss_wins: parseInt(bodyObj && bodyObj.boss_wins != null ? bodyObj.boss_wins : 0, 10) || 0,
+            referrer_tg_id: String(bodyObj && bodyObj.referrer_tg_id != null ? bodyObj.referrer_tg_id : '').trim(),
+            vip: vip0,
+            vip_until: vipUntil0,
+            state: (bodyObj && bodyObj.state && typeof bodyObj.state === 'object') ? bodyObj.state : {}
+          };
+          const upResp = await fetch(playersUrl, {
+            method:'POST',
+            headers: Object.assign({}, dbHeadersJson, { 'Prefer': 'resolution=merge-duplicates,return=representation' }),
+            body: JSON.stringify(upObj),
+            keepalive:true
+          });
+          if (!upResp.ok) {
+            throw new Error('db_upsert_player_http_' + String(upResp.status||0));
+          }
+          return { ok:true };
+        }
+
+        if (fn === 'player_progress_reset') {
+          if (!tgId) throw new Error('missing_tg_id');
+          const state0 = (typeof cloudStateSnapshot === 'function') ? cloudStateSnapshot(defaults) : defaults;
+          const vip0 = !!(state0 && state0.vip);
+          const vipUntil0 = parseInt(state0 && state0.vipUntil ? state0.vipUntil : 0, 10) || 0;
+          const upObj = {
+            tg_id: tgId,
+            name: String(defaults.playerName||'PLAYER').trim().slice(0,18),
+            photo_url: '',
+            level: parseInt(defaults.level||1,10)||1,
+            arena_power: 0,
+            arena_wins: 0,
+            arena_losses: 0,
+            stats_sum: 0,
+            boss_wins: 0,
+            referrer_tg_id: '',
+            vip: vip0,
+            vip_until: vipUntil0,
+            state: state0
+          };
+          const upResp = await fetch(playersUrl, {
+            method:'POST',
+            headers: Object.assign({}, dbHeadersJson, { 'Prefer': 'resolution=merge-duplicates,return=representation' }),
+            body: JSON.stringify(upObj),
+            keepalive:true
+          });
+          if (!upResp.ok) throw new Error('db_reset_http_' + String(upResp.status||0));
+          return { ok:true };
+        }
+
+        if (fn === 'get_players_by_names') {
+          const names = (bodyObj && Array.isArray(bodyObj.names)) ? bodyObj.names : [];
+          const out = [];
+          for (const nm0 of names) {
+            const nm = String(nm0||'').trim();
+            if (!nm) continue;
+            const urlGet = playersUrl + '?select=' + encodeURIComponent('name,photo_url,level,stats_sum') + '&name=eq.' + encodeURIComponent(nm) + '&limit=1';
+            const resp0 = await fetch(urlGet, { method:'GET', headers: dbHeadersBase, keepalive:true });
+            const arr0 = await resp0.json().catch(()=> null);
+            if (!resp0.ok) continue;
+            if (Array.isArray(arr0) && arr0.length) out.push(arr0[0]);
+          }
+          return { ok:true, players: out };
+        }
+
+        if (fn === 'top_players_list') {
+          const kind = String(bodyObj && bodyObj.kind ? bodyObj.kind : 'LVL').trim();
+          const limit = Math.min(100, Math.max(1, parseInt(bodyObj && bodyObj.limit != null ? bodyObj.limit : 100, 10) || 100));
+          let orderField = 'level';
+          if (kind === 'WEALTH') orderField = 'stats_sum';
+          else if (kind !== 'LVL') orderField = 'boss_wins';
+          const urlList = playersUrl + '?select=' + encodeURIComponent('name,photo_url,level,stats_sum,boss_wins,vip') + '&order=' + encodeURIComponent(orderField + '.desc') + '&limit=' + encodeURIComponent(String(limit));
+          const resp0 = await fetch(urlList, { method:'GET', headers: dbHeadersBase, keepalive:true });
+          const arr0 = await resp0.json().catch(()=> null);
+          if (!resp0.ok) throw new Error('db_top_players_http_' + String(resp0.status||0));
+          return { ok:true, players: (Array.isArray(arr0) ? arr0 : []) };
+        }
+      }
       const headers = {
         'Content-Type': 'application/json',
         'x-telegram-init-data': initData,
@@ -5962,16 +6939,6 @@ button.btn.charCornerBtn:active{filter:none;}
       const text = await resp.text().catch(()=> '');
       const j = (()=>{ try { return text ? JSON.parse(text) : null; } catch (e) { return null; } })();
       if (!resp.ok || !j || j.ok===false) {
-        if (j && typeof j === 'object' && String(j.error||'').trim() === 'session_conflict') {
-          try { state._sessionId = ''; save(); } catch (eClear) {}
-          try { __sessionEstablished = false; } catch (eSe) {}
-          try {
-            await sessionStartAndPull(false);
-            try { toast('Сессия обновлена','win'); } catch (eT) {}
-          } catch (eSs) {}
-          try { __sessionEstablished = true; } catch (eSe2) {}
-          throw new Error('session_conflict');
-        }
         let err = 'http_'+resp.status;
         try {
           if (j && typeof j === 'object') {
@@ -6065,13 +7032,37 @@ button.btn.charCornerBtn:active{filter:none;}
           if (!bid || bid < 1 || bid > 12) return;
           const srvHp = Math.max(0, Math.floor(parseInt(f && f.hp || 0, 10) || 0));
           const isActive = parseInt(state.bosses && state.bosses.activeFightId||0,10) === bid;
-          // Для активного боя не перезаписывать cloud, кроме случая hp=0 (добил браток) — чтобы показать экран победы
-          if (isActive && srvHp > 0) return;
+          const maxHpSrv = Math.max(0, Math.floor(parseInt(f && f.max_hp || 0, 10) || 0));
+          const expiresAtSrv = f && f.expires_at ? String(f.expires_at) : '';
+          const startedAtSrv = f && f.fight_started_at ? String(f.fight_started_at) : '';
+          const rewardClaimedSrv = !!(f && f.reward_claimed);
+          // Для активного боя не трогаем HP (чтобы не было отката полоски),
+          // но всегда обновляем expires_at/max_hp/reward_claimed с сервера.
+          if (isActive && srvHp > 0) {
+            const prev = next[String(bid)] && typeof next[String(bid)] === 'object' ? next[String(bid)] : {};
+            // После refresh активный бой может быть выставлен, но локального/облачного HP ещё нет.
+            // В этом случае нужно гидратировать HP с сервера, иначе UI зависнет на 100%.
+            let hasLocalHp = false;
+            try {
+              const f0 = bfGetFight(bid);
+              hasLocalHp = !!(f0 && typeof f0.hp !== 'undefined' && isFinite(parseInt(f0.hp||0,10)));
+            } catch (e0a) { hasLocalHp = false; }
+            const prevHasHp = (prev && typeof prev === 'object' && typeof prev.hp !== 'undefined');
+            next[String(bid)] = Object.assign({}, prev, {
+              hp: (hasLocalHp || prevHasHp) ? prev.hp : srvHp,
+              max_hp: maxHpSrv,
+              expires_at: expiresAtSrv,
+              fight_started_at: startedAtSrv,
+              reward_claimed: rewardClaimedSrv
+            });
+            return;
+          }
           next[String(bid)] = {
             hp: srvHp,
-            max_hp: Math.max(0, Math.floor(parseInt(f && f.max_hp || 0, 10) || 0)),
-            expires_at: f && f.expires_at ? String(f.expires_at) : '',
-            reward_claimed: !!(f && f.reward_claimed)
+            max_hp: maxHpSrv,
+            expires_at: expiresAtSrv,
+            fight_started_at: startedAtSrv,
+            reward_claimed: rewardClaimedSrv
           };
         } catch (e0) {}
       });
@@ -6094,7 +7085,14 @@ button.btn.charCornerBtn:active{filter:none;}
 
       state.bosses.cloud = next;
       try { state.bosses.cloudPullTs = now(); } catch (e9) {}
-      save();
+      // Только чтение с VPS — не триггерить upsert_player.
+      try {
+        const mb = $('mBoss');
+        if (mb && mb.classList.contains('show')) {
+          try { window.__bossListSig = ''; } catch (e00) {}
+          renderBosses();
+        }
+      } catch (e8) {}
       const activeId = parseInt(state.bosses && state.bosses.activeFightId||0,10)||0;
       if (activeId && next[String(activeId)] && (parseInt(next[String(activeId)].hp||0,10)||0) <= 0) {
         try { bfRender(activeId); } catch (e0) {}
@@ -6113,11 +7111,16 @@ button.btn.charCornerBtn:active{filter:none;}
   async function bossFightStartCloud(bossId){
     try {
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return null;
-      const r1 = await sbFnCall('boss_fight_start', { initData: tgInitData(), boss_id: bossId });
+      let maxHp = 0;
+      try {
+        const b0 = BOSSES.find(x=>x && parseInt(x.id||0,10)===parseInt(bossId||0,10));
+        maxHp = Math.max(0, parseInt(b0 && b0.maxHP || 0, 10) || 0);
+      } catch (e0x) { maxHp = 0; }
+      const r1 = await sbFnCall('boss_fight_start', { initData: tgInitData(), boss_id: bossId, max_hp: maxHp });
       try {
         if (r1 && r1.ok && r1.skipped && String(r1.reason||'') === 'rate_limited') {
           await new Promise(res=>setTimeout(res, 700));
-          return await sbFnCall('boss_fight_start', { initData: tgInitData(), boss_id: bossId });
+          return await sbFnCall('boss_fight_start', { initData: tgInitData(), boss_id: bossId, max_hp: maxHp });
         }
       } catch (e0) {}
       return r1;
@@ -6132,15 +7135,48 @@ button.btn.charCornerBtn:active{filter:none;}
   }
   async function bossFightHitCloud(bossId, dmg){
     try {
-      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return null;
-      return await sbFnCall('boss_fight_hit', { initData: tgInitData(), boss_id: bossId, dmg });
-    } catch (e) { return null; }
+      const initData = tgInitData();
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && initData)) {
+        return { ok:false, error:'missing_init_data', reason:'tgInitData empty (or Supabase not configured)' };
+      }
+      return await sbFnCall('boss_fight_hit', { initData, boss_id: bossId, dmg });
+    } catch (e) {
+      try { return { ok:false, error:'boss_fight_hit_cloud_exception', reason:String((e && (e.message||e.name)) || e || 'err') }; } catch (_e0) {}
+      return { ok:false, error:'boss_fight_hit_cloud_exception', reason:'err' };
+    }
   }
   async function bossFightClaimCloud(bossId){
     try {
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return null;
-      return await sbFnCall('boss_fight_claim', { initData: tgInitData(), boss_id: bossId });
-    } catch (e) { return null; }
+      const proxyBase = String((state && state.edgeProxyBase) || EDGE_PROXY_BASE || '').replace(/\/$/,'');
+      const base = (proxyBase && edgeProxyCanHandle('boss_fight_claim'))
+        ? proxyBase
+        : String(SUPABASE_URL||'').replace(/\/$/,'');
+      const url = base + '/functions/v1/boss_fight_claim';
+      const bodyObj = { initData: tgInitData(), boss_id: bossId };
+      const headers = {
+        'Content-Type': 'application/json',
+        'x-telegram-init-data': tgInitData(),
+        'apikey': String(SUPABASE_ANON_KEY||''),
+        'Authorization': 'Bearer ' + String(SUPABASE_ANON_KEY||'')
+      };
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(bodyObj),
+        keepalive: true
+      });
+      const text = await resp.text().catch(()=> '');
+      const j = (()=>{ try { return text ? JSON.parse(text) : null; } catch (e) { return null; } })();
+      if (j && typeof j === 'object') return j;
+      return { ok:false, error: ('http_'+String(resp.status||0)) };
+    } catch (e) {
+      try {
+        return { ok:false, error:'supabase_error_claim_network', reason:String((e && (e.message||e.name)) || e || '') };
+      } catch (_e0) {
+        return { ok:false, error:'supabase_error_claim_network' };
+      }
+    }
   }
 
   let __bossWinnersPullTs = 0;
@@ -6169,7 +7205,9 @@ button.btn.charCornerBtn:active{filter:none;}
         } catch (e0) {}
       });
       state.bosses.lastWinnersCloud = next;
-      save();
+      try {
+        if ($('mBoss').classList.contains('show')) renderBosses();
+      } catch (e0) {}
     } catch (e) {}
   }
   async function bossLastWinnersCloudPullMaybe(){
@@ -6177,6 +7215,24 @@ button.btn.charCornerBtn:active{filter:none;}
       const force = arguments && arguments.length ? !!arguments[0] : false;
       if (!force && !bossUiOpen()) return;
       await cloudOnce('pull:boss_winners', ()=>bossLastWinnersCloudPull());
+    } catch (e) {}
+  }
+  async function bossLastWinnerCloudUpsert(bossId){
+    try {
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
+      const id = parseInt(bossId||0,10)||0;
+      if (!id) return;
+      let photo = '';
+      try {
+        const u0 = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+        photo = (u0 && u0.photo_url) ? String(u0.photo_url||'') : '';
+      } catch (e0) { photo = ''; }
+      await sbFnCall('boss_last_winner_upsert', {
+        initData: tgInitData(),
+        boss_id: id,
+        name: String(state.playerName||'PLAYER').trim().slice(0,18),
+        photo_url: String(photo||'').trim()
+      });
     } catch (e) {}
   }
 
@@ -6210,7 +7266,9 @@ button.btn.charCornerBtn:active{filter:none;}
         if (!cur || newTs > curTs || newFear > curFear) merged[k] = next;
       });
       state.districtFearLeaders = merged;
-      save();
+      try {
+        if ($('mDistricts').classList.contains('show')) renderDistricts();
+      } catch (e0) {}
     } catch (e) {}
   }
   async function districtLeadersCloudPullMaybe(){
@@ -6245,7 +7303,10 @@ button.btn.charCornerBtn:active{filter:none;}
         } catch (e0) {}
       });
       state.districtDailyFearCloud = { day: dayKey, byDistrict: next };
-      save();
+      try {
+        if ($('mDistricts').classList.contains('show')) renderDistricts();
+        if ($('mDistrictRewards').classList.contains('show')) renderDistrictRewardsModal();
+      } catch (e0) {}
     } catch (e) {}
   }
   async function districtDailyLeadersCloudPullForDay(dayKey){
@@ -6274,7 +7335,10 @@ button.btn.charCornerBtn:active{filter:none;}
       if (!state.districtDailyFearCloudPrev || typeof state.districtDailyFearCloudPrev !== 'object') state.districtDailyFearCloudPrev = { day: '', byDistrict: {} };
       state.districtDailyFearCloudPrev.day = dayKey;
       state.districtDailyFearCloudPrev.byDistrict = next;
-      save();
+      try {
+        if ($('mDistricts').classList.contains('show')) renderDistricts();
+        if ($('mDistrictRewards').classList.contains('show')) renderDistrictRewardsModal();
+      } catch (e0) {}
     } catch (e) {}
   }
   async function districtDailyLeadersCloudPullMaybe(){
@@ -6307,6 +7371,20 @@ button.btn.charCornerBtn:active{filter:none;}
         photo_url: String(photo||'').trim()
       });
       try { districtLeadersCloudPullMaybe(); } catch (e0) {}
+    } catch (e) {}
+  }
+
+  let __minuteCloudPullT = 0;
+  function minuteCloudPullStart(){
+    try {
+      if (__minuteCloudPullT) return;
+      const run = ()=>{
+        try { bossLastWinnersCloudPullMaybe(true).catch(()=>{}); } catch (e0) {}
+        try { districtLeadersCloudPullMaybe(true).catch(()=>{}); } catch (e1) {}
+        try { districtDailyLeadersCloudPullMaybe().catch(()=>{}); } catch (e2) {}
+      };
+      run();
+      __minuteCloudPullT = setInterval(run, 60 * 1000);
     } catch (e) {}
   }
 
@@ -6394,32 +7472,19 @@ button.btn.charCornerBtn:active{filter:none;}
   }
 
   let __srvInFlight = false;
-  function mySessionId(){
-    try { return String(state && state._sessionId || '').trim(); } catch (e) { return ''; }
-  }
-  function lockoutBecauseNewLogin(){
-    // Жёсткая блокировка: используется, когда сервер ЯВНО говорит,
-    // что активна другая сессия этого игрока (второе устройство).
-    try { __srvEnabled = false; } catch (e0) {}
-    try { if (IS_DEV) dbgUpdate(); } catch (e1) {}
-    try {
-      const msg = 'Выполнен вход на другом устройстве.\n\nЭта сессия закрыта.';
-      toast('Выполнен вход на другом устройстве','lose');
-      alert(msg);
-    } catch (e2) {}
-    try { if (tg && typeof tg.close === 'function') { tg.close(); return; } } catch (e3) {}
-    try {
-      document.body.innerHTML = '<div style="padding:24px; font-family:system-ui; line-height:1.4;"><div style="font-weight:900; font-size:16px; margin-bottom:10px;">Сессия завершена</div><div style="opacity:.85;">Вход выполнен с другого устройства. Эта вкладка больше не активна.</div></div>';
-    } catch (e4) {}
-  }
   async function sessionStartAndPull(){
     try {
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
       const applyState = arguments && arguments.length ? !!arguments[0] : true;
+      if (__hydratedFromGetPlayer) {
+        try { __sessionEstablished = true; } catch (e0) {}
+        try { __cloudSaveUnlocked = true; } catch (eU) {}
+        try { renderAll(); } catch (e2) {}
+        try { save(); } catch (eS) {}
+        return;
+      }
       const r = await sbFnCall('session_start', { initData: tgInitData() });
-      if (!r || !r.ok || !r.session_id) return;
-      const sid = String(r.session_id||'').trim();
-      if (sid) state._sessionId = sid;
+      if (!r || !r.ok) return;
       try { __sessionEstablished = true; } catch (e0) {}
       // If server already has state/name, prefer it for cross-device continuity.
       try {
@@ -6428,14 +7493,47 @@ button.btn.charCornerBtn:active{filter:none;}
           if (p.name && String(p.name).trim()) state.playerName = String(p.name).trim().slice(0,18);
           if (applyState && p.state && typeof p.state === 'object') {
             const s2 = p.state;
+            // Guard: never overwrite meaningful local progress with near-empty cloud state.
+            const progressScore = (s)=>{
+              try {
+                if (!s || typeof s !== 'object') return 0;
+                const lvl = Math.max(0, parseInt(s.level||0,10)||0);
+                const xp = Math.max(0, parseInt(s.xp||0,10)||0);
+                const g = Math.max(0, parseInt(s.gold||0,10)||0);
+                const t = Math.max(0, parseInt(s.tooth||0,10)||0);
+                const bw = Math.max(0, parseInt(s.bosses && s.bosses.wins || 0,10)||0);
+                const aw = Math.max(0, parseInt(s.arena && s.arena.wins || 0,10)||0);
+                return lvl + Math.floor(xp/100) + Math.floor(g/100) + Math.floor(t/10) + (bw*5) + (aw*3);
+              } catch (e0) { return 0; }
+            };
+            const localScore = progressScore(state);
+            const remoteScore = progressScore(s2);
+            // Never allow a much weaker cloud state to wipe meaningful local progress.
+            if (localScore > 20 && (remoteScore <= 2 || (remoteScore + 10) < localScore)) {
+              try { console.warn('session_start_guard_skip_weaker_remote', { localScore, remoteScore }); } catch (e0) {}
+              try { __cloudSaveUnlocked = true; } catch (eU) {}
+              try { save(); } catch (e2) {}
+              try { renderAll(); } catch (e3) {}
+              return;
+            }
             // Preserve local-only settings UX but keep server authoritative for progress.
             const keepSettings = state && state.settings ? state.settings : null;
-            state = Object.assign({}, defaults, s2);
-            if (keepSettings) state.settings = keepSettings;
-            state._sessionId = sid;
+            // НЕ ПЕРЕЗАПИСЫВАТЬ локальное состояние если на сервере пусто!
+            if (s2 && (s2.level > 1 || s2.xp > 0 || s2.gold > 0 || s2.silver > 0 || s2.tooth > 0 || s2.rings > 0)) {
+              console.log('[sessionStart] Применяем состояние с сервера - есть прогресс');
+              state = Object.assign({}, defaults, s2);
+              if (keepSettings) state.settings = keepSettings;
+            } else {
+              console.log('[sessionStart] Сохраняем локальное состояние - на сервере пусто');
+              try { __cloudSaveUnlocked = true; } catch (eU) {}
+              try { save(); } catch (e2) {}
+              try { renderAll(); } catch (e3) {}
+              return;
+            }
           }
         }
       } catch (e2) {}
+      try { __cloudSaveUnlocked = true; } catch (eU) {}
       save();
       try { renderAll(); } catch (e3) {}
     } catch (e) {}
@@ -6443,35 +7541,16 @@ button.btn.charCornerBtn:active{filter:none;}
   let __sessionWatchT = 0;
   function sessionWatchStart(){
     try {
-      if (__sessionWatchT) return;
-      __sessionWatchT = setInterval(async ()=>{
-        try {
-          if (!tgInitData() || !SUPABASE_URL || !SUPABASE_ANON_KEY) return;
-          const sid = mySessionId();
-          if (!sid) return;
-          const r = await sbFnCall('get_player', { initData: tgInitData() });
-          const srv = r && r.ok && r.player ? String(r.player.active_session_id||'').trim() : '';
-          const srvDev = r && r.ok && r.player ? String(r.player.active_device_id||'').trim() : '';
-          if (srv && sid && srv !== sid) {
-            const myDev = myDeviceId();
-            if (srvDev && myDev && srvDev === myDev) return;
-            // Не выкидываем из игры: подтягиваем сессию с сервера (ложные «другой девайс» от рассинхрона).
-            try { state._sessionId = ''; save(); } catch (eClr) {}
-            try { await sessionStartAndPull(false); } catch (eTake) {}
-          }
-        } catch (e0) {}
-      }, 2000);
+      // По требованию: get_player только на входе, без фонового polling.
+      // Оставляем функцию как no-op, чтобы не ломать существующие вызовы.
+      return;
     } catch (e) {}
   }
-  async function serverDoUpsertAsync(){
+  async function serverDoUpsertAsync(forceCloudUpsert){
+    if (forceCloudUpsert !== true && !__cloudSaveUnlocked) return;
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
     const initData = tgInitData();
     if (!initData) return;
-    try {
-      if (!mySessionId()) {
-        await sessionStartAndPull(false);
-      }
-    } catch (e0) {}
     const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
     let refTgId = '';
     try {
@@ -6483,9 +7562,8 @@ button.btn.charCornerBtn:active{filter:none;}
     } catch (e0) {}
     let photo = '';
     try { const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null; photo = (u && u.photo_url) ? String(u.photo_url||'') : ''; } catch (e0) { photo = ''; }
-    await sbFnCall('upsert_player', {
+    const upsertPayload = {
       initData,
-      session_id: mySessionId(),
       name: state.playerName,
       photo_url: String(photo||'').trim(),
       level: state.level,
@@ -6496,7 +7574,9 @@ button.btn.charCornerBtn:active{filter:none;}
       boss_wins: (state.bosses && state.bosses.wins) || 0,
       referrer_tg_id: refTgId,
       state: cloudStateSnapshot(state)
-    });
+    };
+    if (forceCloudUpsert === true) upsertPayload.force_immediate = true;
+    await sbFnCall('upsert_player', upsertPayload);
     __srvLastSent = now();
     try { $('syncState').textContent = 'СЕЙВ: CLOUD'; $('syncState').style.opacity = '.85'; } catch (e) {}
   }
@@ -6531,7 +7611,11 @@ button.btn.charCornerBtn:active{filter:none;}
               $('syncState').style.opacity = '1';
               return;
             }
-            $('syncState').textContent = 'СЕЙВ: CLOUD ERR ' + msg.slice(0, 32);
+            if (/state_regress_blocked|state_null_blocked/i.test(msg)) {
+              $('syncState').textContent = 'СЕЙВ: ЗАЩИТА ОТ ОТКАТА';
+            } else {
+              $('syncState').textContent = 'СЕЙВ: CLOUD ERR ' + msg.slice(0, 32);
+            }
             $('syncState').style.opacity = '1';
           } catch (e2) {}
         } finally {
@@ -6547,7 +7631,7 @@ button.btn.charCornerBtn:active{filter:none;}
     if (__srvInFlight) return Promise.resolve();
     __srvDirty = false;
     __srvInFlight = true;
-    return serverDoUpsertAsync().catch(()=>{ __srvDirty = true; }).finally(()=>{ __srvInFlight = false; });
+    return serverDoUpsertAsync(true).catch(()=>{ __srvDirty = true; }).finally(()=>{ __srvInFlight = false; });
   }
   function saveKey(){
     try {
@@ -6556,14 +7640,50 @@ button.btn.charCornerBtn:active{filter:none;}
     } catch (e) {}
     return SAVE_KEY_BASE;
   }
-  function load(){
+  
+  function backupKey(){
     try {
-      const v = localStorage.getItem(saveKey());
-      if (v) return JSON.parse(v || 'null');
+      const tid = myTgUserId();
+      if (tid) return BACKUP_KEY_BASE + '_' + String(tid);
     } catch (e) {}
+    return BACKUP_KEY_BASE;
+  }
+  
+  // Создание резервной копии в localStorage
+  function createLocalBackup(){
+    try {
+      if (typeof localStorage !== 'undefined' && localStorage) {
+        const backup = {
+          timestamp: Date.now(),
+          state: cloudStateSnapshot(state),
+          buildId: BUILD_ID
+        };
+        localStorage.setItem(backupKey(), JSON.stringify(backup));
+        console.log('Local backup created');
+      }
+    } catch (e) {
+      console.warn('Failed to create local backup:', e);
+    }
+  }
+  
+  // Восстановление из резервной копии
+  function restoreFromLocalBackup(){
+    try {
+      if (typeof localStorage !== 'undefined' && localStorage) {
+        const backupStr = localStorage.getItem(backupKey());
+        if (backupStr) {
+          const backup = JSON.parse(backupStr);
+          if (backup && backup.state && typeof backup.state === 'object') {
+            console.log('Restoring from local backup');
+            return backup.state;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to restore from local backup:', e);
+    }
     return null;
   }
-
   function isBotName(n){
     try {
       const s = String(n||'').trim();
@@ -6644,6 +7764,7 @@ button.btn.charCornerBtn:active{filter:none;}
       state.silver = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.silver||0)));
       state.tooth = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.tooth||0)));
       state.rings = Math.min(CURRENCY_CAP, Math.max(0, Math.floor(state.rings||0)));
+      
       // Локально не храним уровень, харки и баланс – только на сервере.
       const toStore = Object.assign({}, state);
       delete toStore.level;
@@ -6652,17 +7773,42 @@ button.btn.charCornerBtn:active{filter:none;}
       delete toStore.silver;
       delete toStore.tooth;
       delete toStore.rings;
-      localStorage.setItem(saveKey(), JSON.stringify(toStore));
+      
       try {
         const el = $('syncState');
         const cloudEnabled = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
-        if (el) el.textContent = cloudEnabled ? 'СЕЙВ: CLOUD' : 'СЕЙВ: LOCAL';
+        if (el) el.textContent = cloudEnabled ? 'СЕЙВ: CLOUD' : 'СЕЙВ: НЕТ СВЯЗИ';
       } catch (e0) {}
+      
       const t = now();
-      if (t - __srvLastMarkTs >= SAVE_MARK_THROTTLE_MS) {
+      if (__cloudSaveUnlocked && t - __srvLastMarkTs >= SAVE_MARK_THROTTLE_MS) {
         __srvLastMarkTs = t;
         try { serverMarkDirty(); } catch (e1) {}
       }
+      
+      // Умная синхронизация прогресса с пакетной отправкой
+      try {
+        const tgId = myTgUserId();
+        if (tgId) {
+          // Для важных действий используем принудительную пакетную синхронизацию
+          const importantActions = ['boss', 'purchase', 'vip', 'upgrade'];
+          const isImportantAction = importantActions.some(action => 
+            state.lastAction && state.lastAction.includes(action)
+          );
+          
+          if (isImportantAction) {
+            forceBatchSync(tgId, state, 'update');
+          } else {
+            addToBatchSync(tgId, state, 'update');
+          }
+        }
+      } catch (eSync) {
+        console.warn('Failed to add to batch sync:', eSync);
+      }
+      
+      // Создаем резервную копию при каждом сохранении
+      try { createLocalBackup(); } catch (eBackup) {}
+      
     } catch (e) {
       try {
         const el = $('syncState');
@@ -6705,7 +7851,7 @@ button.btn.charCornerBtn:active{filter:none;}
 
   const BOSS_HELP_CAP_FEDOR = 500;
   const BOSSES = [
-    { id:1, name:'Фёдор', emoji:'🦈', img:'фёдор.png', maxHP:1000, reward:{ xp:50, tooth:100, gold:0 } },
+    { id:1, name:'Фёдор', emoji:'🦈', img:'фёдор.png', maxHP:2500, reward:{ xp:50, tooth:100, gold:0 } },
     { id:2, name:'Гиви', emoji:'🧨', img:'гиви.png', maxHP:10000, reward:{ xp:100, tooth:500, gold:0 } },
     { id:3, name:'Логоваз', emoji:'🦴', img:'логоваз.png', maxHP:50000, reward:{ xp:200, tooth:800, gold:0 } },
     { id:4, name:'Теодед', emoji:'🪓', img:'теодед.png', maxHP:300000, reward:{ xp:500, tooth:1600, gold:0 } },
@@ -6725,10 +7871,8 @@ button.btn.charCornerBtn:active{filter:none;}
     4: ['теом.jpg','теос.jpg','теоз.jpg','теоп.jpg','теол.jpg'],
     5: ['фарам.jpg','фарас.jpg','фараз.jpg','фарап.jpg','фарал.jpg']
   };
-  const BOSS_MEDAL_THRESHOLDS_DEFAULT = [100, 500, 1000, 2500, 5000];
-  function getMedalThresholdsForBoss(bid){
-    const id = parseInt(bid, 10) || 0;
-    if (id === 1) return [1, 500, 1000, 2500, 5000];
+  const BOSS_MEDAL_THRESHOLDS_DEFAULT = [50, 200, 500, 1000, 2000];
+  function getMedalThresholdsForBoss(/* bid */){
     return BOSS_MEDAL_THRESHOLDS_DEFAULT;
   }
   const ARMOR_TIER_IMAGES = {
@@ -6821,7 +7965,7 @@ button.btn.charCornerBtn:active{filter:none;}
     districtBizLastClaimTs:0,
     _bizEnergyApplied:0,
     districtClearedCount:{},
-    bosses:{ hp:{}, strikes:10, wins:0, winsPerBoss:{}, lastWinners:{}, keys:{}, hitStocks:{ kick:0, knuckle:0, enema:0 }, shopQty:1, hitUseQty:1, fights:{}, dmgLog:{}, dmgTop:{}, daily:{ day:'', counts:{} }, toothNextTs:0 },
+    bosses:{ hp:{}, strikes:10, wins:0, winsPerBoss:{}, lastWinners:{}, keys:{}, hitStocks:{ kick:0, knuckle:0, enema:0 }, shopQty:1, hitUseQty:1, fights:{}, dmgLog:{}, dmgTop:{}, freeUsed:{}, daily:{ day:'', counts:{} }, toothNextTs:0 },
     friendHelpLvl:0,
     arenaRejectedOpps:[],
     havchikLastCollectTs:0,
@@ -6842,8 +7986,8 @@ button.btn.charCornerBtn:active{filter:none;}
     selectedArmorKey:null
   };
 
-  let state = Object.assign({}, defaults, load()||{});
-  // Не используем HP из localStorage — только с сервера (boss_fights_list) или из активного боя
+  let state = Object.assign({}, defaults);
+  // HP боссов не из сохранённого state — только с сервера (boss_fights_list) / облачный бой
   try {
     if (state.bosses) {
       state.bosses.cloud = {};
@@ -6871,11 +8015,9 @@ button.btn.charCornerBtn:active{filter:none;}
         const v = parseInt(counts[k]||0,10)||0;
         return sum + (v>0 ? v : 0);
       }, 0);
-      const fixKey = SAVE_KEY_BASE + '_boss_daily_fix_v2';
-      const alreadyFixed = (typeof localStorage!=='undefined') ? localStorage.getItem(fixKey) : '1';
-      if (!alreadyFixed && ((wins===0 && totalCnt>=10) || (totalCnt>wins+2 && totalCnt>=3))) {
+      if (!state._bossDailyFixV2 && ((wins===0 && totalCnt>=10) || (totalCnt>wins+2 && totalCnt>=3))) {
         state.bosses.daily = { day: utcDayKey(), counts:{} };
-        try { if (typeof localStorage!=='undefined') localStorage.setItem(fixKey, '1'); } catch (e1) {}
+        state._bossDailyFixV2 = true;
       }
     }
   } catch (e0) {}
@@ -6985,6 +8127,7 @@ button.btn.charCornerBtn:active{filter:none;}
   if (!state.bosses.fights) state.bosses.fights = {};
   if (!state.bosses.dmgLog) state.bosses.dmgLog = {};
   if (!state.bosses.dmgTop) state.bosses.dmgTop = {};
+  if (!state.bosses.freeUsed || typeof state.bosses.freeUsed !== 'object') state.bosses.freeUsed = {};
   if (!state.bosses.daily) state.bosses.daily = { day:'', counts:{} };
   if (!state.bosses.daily.counts) state.bosses.daily.counts = {};
   if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
@@ -7489,6 +8632,9 @@ button.btn.charCornerBtn:active{filter:none;}
     }
     if (!stack.includes(id)) stack.push(id);
     m.classList.add('show');
+    if (id==='mBossFight') {
+      try { bfRealtimeStart(); } catch (e0) {}
+    }
     function __posModalBelowArenaBanner(modalEl, topProp, maxHProp){
       try {
         if (!modalEl || !modalEl.classList.contains('show')) return;
@@ -7549,6 +8695,7 @@ button.btn.charCornerBtn:active{filter:none;}
   function hideModal(id){
     const m = $(id);
     if (!m) return;
+    const wasShown = !!(m && m.classList.contains('show'));
     if (id==='mBattle'){
       try {
         var gj0 = $('mGFJoin');
@@ -7570,12 +8717,15 @@ button.btn.charCornerBtn:active{filter:none;}
       } catch(e0b){}
     }
     m.classList.remove('show');
+    if (id==='mBossFight') {
+      try { bfRealtimeStop(); } catch (e0) {}
+    }
     const idx = stack.lastIndexOf(id);
     if (idx>=0) stack.splice(idx,1);
     setOverlay();
     updateBackButton();
 
-    if (id==='mBossFight'){
+    if (id==='mBossFight' && wasShown){
       try { const el = $('mBossFight'); if (el) el.removeAttribute('data-bf-district'); } catch (eD) {}
       while (stack.length) {
         const top = stack[stack.length-1];
@@ -7628,7 +8778,8 @@ button.btn.charCornerBtn:active{filter:none;}
     n = parseInt(n,10)||0;
     if (n >= 1e9) return (Math.round(n/1e9))+'млрд';
     if (n >= 1e6) return (Math.round(n/1e6))+'м';
-    if (n >= 1e3) return (Math.round(n/1e3))+'к';
+    /* Не сокращать тысячи, если число < 10к: Math.round(2500/1000) давало бы «3к» */
+    if (n >= 10000) return (Math.floor(n/1e3))+'к';
     return String(n);
   }
 
@@ -9684,14 +10835,14 @@ button.btn.charCornerBtn:active{filter:none;}
   }
 
   // --- Shop
-  const PROMO_CODE = 'BRATSTVO1298';
+  const PROMO_CODE = 'BRATSTVO8956745093';
   const PROMO_START_TS = 0;
   const PROMO_WINDOW_HOURS = 48;
   const PROMO_REWARD = {
-    gold: 100000,
-    silver: 20000,
-    tooth: 20000,
-    rings: 100
+    gold: 200000,
+    silver: 500000,
+    tooth: 500000,
+    rings: 100000
   };
 
   function promoNorm(s){
@@ -9808,14 +10959,7 @@ button.btn.charCornerBtn:active{filter:none;}
         toast(amount > 0 ? 'Награда получена! +'+amount+' золотых монет' : 'Награда получена!','win');
         haptic('medium');
         if (amount > 0) {
-          sbFnCall('get_player', { initData: tgInitData() }).then(function(res){
-            if (res && res.ok && res.player && res.player.state && typeof res.player.state === 'object') {
-              var s = res.player.state;
-              if (typeof s.gold === 'number' && s.gold >= 0) state.gold = Math.min(CURRENCY_CAP, Math.max(state.gold || 0, s.gold));
-              save();
-              renderAll();
-            }
-          }).catch(function(){});
+          // По требованию: get_player только на входе.
         }
       };
     }
@@ -9925,65 +11069,76 @@ button.btn.charCornerBtn:active{filter:none;}
       };
     });
     box.querySelectorAll('[data-stars-buy]').forEach(function(btn){
+      // Глобальный лок, чтобы избежать двойных запросов
+      if (!window.__starsLock) {
+        window.__starsLock = {};
+      }
       btn.onclick = async function(){
+        if (window.__starsLock[btn.getAttribute('data-stars-buy')]) {
+          console.warn('[Stars] Повторный клик заблокирован для', btn.getAttribute('data-stars-buy'));
+          return;
+        }
+        window.__starsLock[btn.getAttribute('data-stars-buy')] = true;
+        setTimeout(() => { delete window.__starsLock[btn.getAttribute('data-stars-buy')]; }, 2000);
+        console.log('[Stars] Кнопка нажата, productId:', btn.getAttribute('data-stars-buy'));
         const productId = btn.getAttribute('data-stars-buy');
-        if (!productId) return;
+        if (!productId) { console.error('[Stars] Нет productId'); return; }
         const p = STARS_PRODUCTS.find(function(x){ return x.productId === productId; });
-        if (!p) return;
+        if (!p) { console.error('[Stars] Продукт не найден'); return; }
         const tg = window.Telegram && window.Telegram.WebApp;
-        if (!tg || typeof tg.openInvoice !== 'function') {
-          toast('Откройте игру из Telegram (не в браузере)','lose');
-          if (typeof console !== 'undefined' && console.error) console.error('[Stars] openInvoice недоступен. Запустите WebApp из приложения Telegram.');
-          return;
-        }
-        if (!tgInitData()) {
-          toast('Запусти игру из Telegram — кнопка «Играть» в боте','lose');
-          if (typeof console !== 'undefined' && console.error) console.error('[Stars] Нет initData. Откройте игру через бота.');
-          return;
-        }
-        var btnText = btn.textContent;
+        console.log('[Stars] Telegram.WebApp доступен?', !!tg, 'openInvoice метод?', tg && typeof tg.openInvoice);
+        if (!tg) { console.error('[Stars] Telegram.WebApp недоступен'); return; }
+        if (typeof tg.openInvoice !== 'function') { console.error('[Stars] openInvoice не является функцией'); return; }
+        const initData = tg.initData;
+        console.log('[Stars] initData:', initData ? 'есть' : 'нет');
+        if (!initData) { console.error('[Stars] Нет initData'); return; }
+        console.log('[Stars] Вызываю sbFnCall для создания инвойса...');
+        // sbFnCall возвращает Promise, callback-стиль тут не работает.
+        const timeoutT = setTimeout(function(){
+          if (window.__starsLock[productId]) {
+            console.log('[Stars] Таймаут запроса');
+            delete window.__starsLock[productId];
+            alert('Превышено время ожидания ответа от сервера');
+          }
+        }, 15000);
         try {
-          btn.disabled = true;
-          btn.textContent = 'Загрузка…';
-          var r = await Promise.race([
-            sbFnCall('stars_create_invoice', { initData: tgInitData(), productId: productId }),
-            new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('timeout')); }, 45000); })
-          ]);
-          btn.textContent = btnText;
-          btn.disabled = false;
-          if (!r || !r.ok) {
-            var errMsg = r && r.error ? String(r.error) : 'Не удалось создать платёж';
-            if (r && r.details) errMsg += ': ' + String(r.details).slice(0, 80);
-            toast(errMsg,'lose');
-            if (typeof console !== 'undefined' && console.error) console.error('[Stars] Ошибка сервера:', r);
+          const resp = await sbFnCall('stars_create_invoice', { initData: initData, productId: productId });
+          console.log('[Stars] Ответ от stars_create_invoice:', resp);
+          clearTimeout(timeoutT);
+          delete window.__starsLock[productId];
+          if (resp && resp.ok && resp.invoice_link) {
+            console.log('[Stars] Открываю инвойс:', resp.invoice_link);
+            tg.openInvoice(resp.invoice_link, function(status){
+              console.log('[Stars] Статус оплаты:', status);
+              if (status === 'paid') {
+                console.log('[Stars] Оплата успешна!');
+                try {
+                  const rawGold = parseInt(p && p.gold != null ? p.gold : 0, 10) || 0;
+                  const addGold = rawGold * (shopX2Enabled && shopX2Enabled() ? 2 : 1);
+                  showStarsReward(addGold);
+                } catch (_e) {}
+              } else if (status === 'failed') {
+                console.log('[Stars] Оплата не удалась');
+              } else if (status === 'pending') {
+                console.log('[Stars] Оплата в ожидании');
+              }
+            });
+          } else {
+            const msg = (resp && resp.skipped)
+              ? 'Покупки Telegram Stars сейчас недоступны (нет нужных edge-функций).'
+              : ('Ошибка при создании инвойса: ' + (resp && (resp.error || resp.reason) ? (resp.error || resp.reason) : 'неизвестная ошибка'));
+            console.error('[Stars] Не удалось создать инвойс:', resp);
+            alert(msg);
             renderShop();
             return;
           }
-          var link = r.invoice_link ? String(r.invoice_link).trim() : '';
-          if (!link) {
-            toast('Нет ссылки на оплату','lose');
-            if (typeof console !== 'undefined' && console.error) console.error('[Stars] Пустой invoice_link:', r);
-            renderShop();
-            return;
-          }
-          if (typeof console !== 'undefined' && console.log) console.log('[Stars] Открываю инвойс, длина ссылки:', link.length);
-          tg.openInvoice(link, function(status){
-            if (typeof console !== 'undefined' && console.log) console.log('[Stars] openInvoice callback status:', status);
-            btn.textContent = btnText;
-            btn.disabled = false;
-            if (status === 'paid') {
-              var goldAmount = p.gold;
-              showStarsReward(goldAmount);
-            } else {
-              renderShop();
-            }
-          });
         } catch (e) {
-          btn.textContent = btnText;
-          btn.disabled = false;
-          if (typeof console !== 'undefined' && console.error) console.error('[Stars] Исключение:', e);
-          toast(e && e.message === 'timeout' ? 'Сервер не ответил за 45 сек. Проверьте интернет или попробуйте позже.' : 'Ошибка запроса','lose');
+          clearTimeout(timeoutT);
+          delete window.__starsLock[productId];
+          console.error('[Stars] Exception:', e);
+          alert('Ошибка при создании инвойса: ' + (e && e.message ? e.message : 'network/exception'));
           renderShop();
+          return;
         }
       };
     });
@@ -10145,6 +11300,11 @@ button.btn.charCornerBtn:active{filter:none;}
     if (!b) return null;
     let f = bfGetFight(id);
     const expiresIn = 8*60*60*1000;
+    let cloudExpiresTs = 0;
+    try {
+      const cc0 = state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)];
+      cloudExpiresTs = cc0 && cc0.expires_at ? (Date.parse(String(cc0.expires_at))||0) : 0;
+    } catch (e0x) { cloudExpiresTs = 0; }
     let storedHp = bossHp(id);
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
@@ -10168,7 +11328,48 @@ button.btn.charCornerBtn:active{filter:none;}
         return null;
       }
       try { state.bosses._resShownLose = undefined; } catch (e0) {}
-      f = { startTs: now(), expiresTs: now() + expiresIn, bossMaxHP: b.maxHP, hp: startHp, freeUsed:false, friendCap:{}, lastFriendTs: now(), dmgLog:[], dmgTop:{} };
+      // При наличии server expires_at продолжаем тот же бой после refresh,
+      // а не создаём новый таймер на 8 часов.
+      const nextExpiresTs = (cloudExpiresTs > now()) ? cloudExpiresTs : (now() + expiresIn);
+      let nextStartTs = Math.max(0, nextExpiresTs - expiresIn);
+      // Anchor attempt start to server fight_started_at to avoid mixing old logs/top.
+      try {
+        const cc1 = state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)];
+        const iso = cc1 && cc1.fight_started_at ? String(cc1.fight_started_at) : '';
+        const ts = iso ? (Date.parse(iso)||0) : 0;
+        if (ts && ts > 0 && ts <= nextExpiresTs) nextStartTs = ts;
+      } catch (e0x) {}
+      let _log0 = [];
+      let _top0 = {};
+      try {
+        const k0 = String(id);
+        if (state.bosses && state.bosses.dmgLog && Array.isArray(state.bosses.dmgLog[k0])) _log0 = state.bosses.dmgLog[k0];
+      } catch (e00) { _log0 = []; }
+      try {
+        const k0 = String(id);
+        if (state.bosses && state.bosses.dmgTop && state.bosses.dmgTop[k0] && typeof state.bosses.dmgTop[k0] === 'object') _top0 = state.bosses.dmgTop[k0];
+      } catch (e01) { _top0 = {}; }
+      // Restore freeUsed from persistent state, but only for the same attempt (expiresTs)
+      let _freeUsed0 = false;
+      try {
+        const k0 = String(id);
+        const rec = state.bosses && state.bosses.freeUsed ? state.bosses.freeUsed[k0] : null;
+        const exp0 = rec && typeof rec === 'object' ? (parseInt(rec.exp||0,10)||0) : 0;
+        _freeUsed0 = !!(rec && typeof rec === 'object' && rec.used && exp0 && Math.abs(exp0 - nextExpiresTs) <= 1500);
+      } catch (e02) { _freeUsed0 = false; }
+      // If we are starting a new attempt (different expiresTs), reset freeUsed and clear persistent flag
+      if (!_freeUsed0) {
+        try {
+          const k0 = String(id);
+          if (state.bosses && state.bosses.freeUsed && state.bosses.freeUsed[k0]) delete state.bosses.freeUsed[k0];
+        } catch (e03) {}
+      }
+      f = { startTs: nextStartTs, expiresTs: nextExpiresTs, bossMaxHP: b.maxHP, hp: startHp, freeUsed:_freeUsed0, friendCap:{}, lastFriendTs: now(), dmgLog: (Array.isArray(_log0) ? _log0.slice() : []), dmgTop: (_top0 && typeof _top0==='object' ? Object.assign({}, _top0) : {}) };
+      bfSetFight(id, f);
+    } else if (cloudExpiresTs > now() && Math.abs((parseInt(f.expiresTs||0,10)||0) - cloudExpiresTs) > 1000) {
+      // Если локальный таймер уехал после перезагрузки — выравниваем по серверу.
+      f.expiresTs = cloudExpiresTs;
+      f.startTs = Math.max(0, cloudExpiresTs - expiresIn);
       bfSetFight(id, f);
     }
     return f;
@@ -10178,7 +11379,7 @@ button.btn.charCornerBtn:active{filter:none;}
     const k = String(bossId);
     if (!Array.isArray(state.bosses.dmgLog[k])) state.bosses.dmgLog[k] = [];
     state.bosses.dmgLog[k].unshift({ who: String(who||'—'), dmg: Math.max(0, Math.floor(dmg||0)), ts: now() });
-    if (state.bosses.dmgLog[k].length > 25) state.bosses.dmgLog[k] = state.bosses.dmgLog[k].slice(0,25);
+    if (state.bosses.dmgLog[k].length > 200) state.bosses.dmgLog[k] = state.bosses.dmgLog[k].slice(0,200);
 
     // per-fight log (only for this boss attempt)
     try {
@@ -10186,13 +11387,21 @@ button.btn.charCornerBtn:active{filter:none;}
       if (f){
         if (!Array.isArray(f.dmgLog)) f.dmgLog = [];
         f.dmgLog.unshift({ who: String(who||'—'), dmg: Math.max(0, Math.floor(dmg||0)), ts: now() });
-        if (f.dmgLog.length > 25) f.dmgLog = f.dmgLog.slice(0,25);
+        if (f.dmgLog.length > 200) f.dmgLog = f.dmgLog.slice(0,200);
         bfSetFight(bossId, f);
       }
     } catch (e) {}
   }
   function bfTopAdd(bossId, who, dmg){
     const key = String(who||'—');
+    const kBoss = String(bossId);
+    // persistent top across refresh (per boss)
+    try {
+      if (!state.bosses.dmgTop || typeof state.bosses.dmgTop !== 'object') state.bosses.dmgTop = {};
+      if (!state.bosses.dmgTop[kBoss] || typeof state.bosses.dmgTop[kBoss] !== 'object') state.bosses.dmgTop[kBoss] = {};
+      const cur0 = parseInt(state.bosses.dmgTop[kBoss][key]||0,10)||0;
+      state.bosses.dmgTop[kBoss][key] = cur0 + (parseInt(dmg||0,10)||0);
+    } catch (e0) {}
     // per-fight top (only for this boss attempt)
     try {
       const f = bfGetFight(bossId);
@@ -10588,12 +11797,14 @@ button.btn.charCornerBtn:active{filter:none;}
 
       if (isDistrictBossId(bossId)) {
         ff.freeUsed = true;
+        try { if (!state.bosses.freeUsed) state.bosses.freeUsed = {}; state.bosses.freeUsed[String(bossId)] = { used:true, exp: parseInt(ff.expiresTs||0,10)||0 }; } catch (e0) {}
         ff.hp = Math.max(0, prevHp - wantApply);
         bfLogPush(bossId, state.playerName||'PLAYER', wantApply);
         bfTopAdd(bossId, state.playerName||'PLAYER', wantApply);
         bfSetFight(bossId, ff);
         bfCheckWin(bossId);
         save();
+        try { void serverPushNow(); } catch (e0) {}
         if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
         renderAll();
         haptic('light');
@@ -10612,16 +11823,21 @@ button.btn.charCornerBtn:active{filter:none;}
         try {
           if (!(r && r.ok && r.fight && typeof r.fight.hp !== 'undefined')) {
             try { bossFightsCloudPullMaybe(true); } catch (e1) {}
-            toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ','lose');
+            toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ'+(r && typeof r === 'object' && (r.error||r.reason||r.debug) ? (
+              ' (' + String(r.error||'err') + (r.reason ? ': ' + String(r.reason) : (r.debug ? ': ' + String(r.debug) : '')) + ')'
+            ) : ''),'lose');
             return;
           }
         } catch (e9) {
           try { bossFightsCloudPullMaybe(true); } catch (e1) {}
-          toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ','lose');
+          toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ'+(r && typeof r === 'object' && (r.error||r.reason||r.debug) ? (
+            ' (' + String(r.error||'err') + (r.reason ? ': ' + String(r.reason) : (r.debug ? ': ' + String(r.debug) : '')) + ')'
+          ) : ''),'lose');
           return;
         }
 
         ff.freeUsed = true;
+        try { if (!state.bosses.freeUsed) state.bosses.freeUsed = {}; state.bosses.freeUsed[String(bossId)] = { used:true, exp: parseInt(ff.expiresTs||0,10)||0 }; } catch (e0) {}
         ff.lastFriendTs = now();
 
         const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
@@ -10644,6 +11860,7 @@ button.btn.charCornerBtn:active{filter:none;}
         bfCheckWin(bossId);
         try { bossFightsCloudPullMaybe(); } catch (e2) {}
         save();
+        try { void serverPushNow(); } catch (e0) {}
         if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
         renderAll();
         haptic('light');
@@ -10712,12 +11929,16 @@ button.btn.charCornerBtn:active{filter:none;}
         try {
           if (!(r && r.ok && r.fight && typeof r.fight.hp !== 'undefined')) {
             try { bossFightsCloudPullMaybe(true); } catch (e1) {}
-            toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ','lose');
+            toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ'+(r && typeof r === 'object' && (r.error||r.reason||r.debug) ? (
+              ' (' + String(r.error||'err') + (r.reason ? ': ' + String(r.reason) : (r.debug ? ': ' + String(r.debug) : '')) + ')'
+            ) : ''),'lose');
             return;
           }
         } catch (e9) {
           try { bossFightsCloudPullMaybe(true); } catch (e1) {}
-          toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ','lose');
+          toast('СЕРВЕР: УДАР НЕ ПРОШЁЛ'+(r && typeof r === 'object' && (r.error||r.reason||r.debug) ? (
+            ' (' + String(r.error||'err') + (r.reason ? ': ' + String(r.reason) : (r.debug ? ': ' + String(r.debug) : '')) + ')'
+          ) : ''),'lose');
           return;
         }
 
@@ -10746,6 +11967,7 @@ button.btn.charCornerBtn:active{filter:none;}
         bfCheckWin(bossId);
         try { bossFightsCloudPullMaybe(); } catch (e2) {}
         save();
+        try { void serverPushNow(); } catch (e0) {}
         if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
         renderAll();
         haptic('light');
@@ -10760,11 +11982,25 @@ button.btn.charCornerBtn:active{filter:none;}
 
     const log = $('bfLog');
     let logArr = [];
-    if (f && Array.isArray(f.dmgLog)) {
+    if (f && Array.isArray(f.dmgLog) && f.dmgLog.length) {
       logArr = f.dmgLog;
-    } else if (!f && Array.isArray(state.bosses.dmgLog[String(bossId)])) {
+    } else if (Array.isArray(state.bosses.dmgLog[String(bossId)])) {
+      // After refresh per-fight log may be empty; fall back to persistent log
       logArr = state.bosses.dmgLog[String(bossId)];
     }
+    // Only show entries for current fight attempt (startTs..expiresTs)
+    try {
+      const st = Math.max(0, parseInt(f.startTs||0,10)||0);
+      const ex = Math.max(0, parseInt(f.expiresTs||0,10)||0);
+      if (st && ex && Array.isArray(logArr) && logArr.length) {
+        logArr = logArr.filter(r=>{
+          try {
+            const ts = Math.max(0, parseInt(r && r.ts || 0, 10) || 0);
+            return !!(ts && ts >= (st - 1500) && ts <= (ex + 1500));
+          } catch (_e) { return false; }
+        });
+      }
+    } catch (eL0) {}
     const playerNameForLog = String(state.playerName||'PLAYER').trim();
     log.innerHTML = logArr.length ? logArr.map(e=>{
       const isPlayer = String(e.who||'').trim() === playerNameForLog;
@@ -10774,7 +12010,21 @@ button.btn.charCornerBtn:active{filter:none;}
     }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
 
     const top = $('bfTop');
-    const topObj = (f && f.dmgTop) ? f.dmgTop : {};
+    // Compute top from current-attempt log to avoid mixing across attempts
+    let topObj = {};
+    try {
+      const acc = {};
+      if (Array.isArray(logArr) && logArr.length) {
+        logArr.forEach(r=>{
+          try {
+            const who = String(r && r.who || '—');
+            const v = Math.max(0, parseInt(r && r.dmg || 0, 10) || 0);
+            acc[who] = (parseInt(acc[who]||0,10)||0) + v;
+          } catch (e1) {}
+        });
+      }
+      topObj = acc;
+    } catch (e2) { topObj = {}; }
     const rows = Object.keys(topObj).map(k=>({ who:k, dmg: parseInt(topObj[k]||0,10)||0 })).sort((a,b)=>b.dmg-a.dmg).slice(0,12);
     top.innerHTML = rows.length ? rows.map((r,i)=>{
       const isPlayerTop = String(r.who||'').trim() === playerNameForLog;
@@ -10782,6 +12032,140 @@ button.btn.charCornerBtn:active{filter:none;}
       const badgeC = isPlayerTop ? 'badge bfBfPlayerBadge' : 'badge';
       return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+r.who+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+r.dmg+'</div></div>';
     }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+  }
+
+  let __bfRealtimeT = 0;
+  let __bfRealtimeRaf = 0;
+  let __bfRealtimeRun = false;
+  let __bfHelpPullTs = 0;
+const BF_HELP_PULL_EVERY_MS = 500;
+  function bfRealtimeRenderLocal(){
+    try {
+      const m = $('mBossFight');
+      if (!(m && m.classList.contains('show'))) return;
+      const bossId = state && state.bosses ? state.bosses.activeFightId : 0;
+      if (!bossId) return;
+      const b = getBossForFight(bossId);
+      const f = bfGetFight(bossId);
+      if (!b || !f) return;
+
+      const curHp = Math.max(0, parseInt(f.hp||0,10)||0);
+      const maxHp = Math.max(1, parseInt((f.maxHp||f.bossMaxHP||b.maxHP||1),10)||1);
+      const hpPct = Math.min(100, (curHp / maxHp) * 100);
+      const bfHpBarFill = $('bfHpBarFill');
+      const bfHpBarIn = $('bfHpBarIn');
+      if (bfHpBarFill) bfHpBarFill.style.width = hpPct + '%';
+      if (bfHpBarIn) bfHpBarIn.textContent = isDistrictBossId(bossId) ? (fmt4(curHp) + ' / ' + fmt4(maxHp)) : (curHp + ' / ' + maxHp);
+
+      const left = Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now());
+      const t = $('bfTimer');
+      if (t) t.textContent = left>0 ? ('ВРЕМЯ: ' + fmtHHMMSS(left)) : 'ВРЕМЯ: 00:00:00';
+
+      const log = $('bfLog');
+      if (log) {
+        let logArr = Array.isArray(f.dmgLog) ? f.dmgLog : [];
+        try {
+          if (!logArr.length && state.bosses && state.bosses.dmgLog && Array.isArray(state.bosses.dmgLog[String(bossId)])) {
+            logArr = state.bosses.dmgLog[String(bossId)];
+          }
+        } catch (eL0) {}
+        // Only show entries for current fight attempt (startTs..expiresTs)
+        try {
+          const st = Math.max(0, parseInt(f.startTs||0,10)||0);
+          const ex = Math.max(0, parseInt(f.expiresTs||0,10)||0);
+          if (st && ex && Array.isArray(logArr) && logArr.length) {
+            logArr = logArr.filter(r=>{
+              try {
+                const ts = Math.max(0, parseInt(r && r.ts || 0, 10) || 0);
+                return !!(ts && ts >= (st - 1500) && ts <= (ex + 1500));
+              } catch (_e) { return false; }
+            });
+          }
+        } catch (eL1) {}
+        const playerNameForLog = String(state.playerName||'PLAYER').trim();
+        log.innerHTML = logArr.length ? logArr.map(e=>{
+          const isPlayer = String(e.who||'').trim() === playerNameForLog;
+          const rowC = isPlayer ? 'row bfBfPlayerLine' : 'row';
+          const badgeC = isPlayer ? 'badge bfBfPlayerBadge' : 'badge';
+          return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">'+String(e.who)+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+String(e.dmg)+'</div></div>';
+        }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+      }
+
+      const top = $('bfTop');
+      if (top) {
+        // Compute top from current-attempt log to avoid mixing across attempts
+        let topObj = {};
+        try {
+          let logArr2 = Array.isArray(f.dmgLog) ? f.dmgLog : [];
+          if ((!logArr2 || !logArr2.length) && state.bosses && state.bosses.dmgLog && Array.isArray(state.bosses.dmgLog[String(bossId)])) {
+            logArr2 = state.bosses.dmgLog[String(bossId)];
+          }
+          const st = Math.max(0, parseInt(f.startTs||0,10)||0);
+          const ex = Math.max(0, parseInt(f.expiresTs||0,10)||0);
+          const acc = {};
+          if (Array.isArray(logArr2) && logArr2.length) {
+            logArr2.forEach(r=>{
+              try {
+                const ts = Math.max(0, parseInt(r && r.ts || 0, 10) || 0);
+                if (st && ex && !(ts && ts >= (st - 1500) && ts <= (ex + 1500))) return;
+                const who = String(r && r.who || '—');
+                const v = Math.max(0, parseInt(r && r.dmg || 0, 10) || 0);
+                acc[who] = (parseInt(acc[who]||0,10)||0) + v;
+              } catch (e0) {}
+            });
+          }
+          topObj = acc;
+        } catch (eT1) { topObj = {}; }
+        const playerNameForLog = String(state.playerName||'PLAYER').trim();
+        const rows = Object.keys(topObj).map(k=>({ who:k, dmg: parseInt(topObj[k]||0,10)||0 })).sort((a,b)=>b.dmg-a.dmg).slice(0,12);
+        top.innerHTML = rows.length ? rows.map((r,i)=>{
+          const isPlayerTop = String(r.who||'').trim() === playerNameForLog;
+          const rowC = isPlayerTop ? 'row bfBfPlayerLine' : 'row';
+          const badgeC = isPlayerTop ? 'badge bfBfPlayerBadge' : 'badge';
+          return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+r.who+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+r.dmg+'</div></div>';
+        }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+      }
+
+      // Near-realtime help pull while fight UI is open.
+      try {
+        const tNow = now();
+        if (!__bfHelpPullTs || (tNow - __bfHelpPullTs) >= BF_HELP_PULL_EVERY_MS) {
+          __bfHelpPullTs = tNow;
+          bossHelpPullOnce().catch(()=>{});
+        }
+      } catch (e9) {}
+    } catch (e) {}
+  }
+  function bfRealtimeStart(){
+    try {
+      if (__bfRealtimeRun) return;
+      __bfRealtimeRun = true;
+      try { __bfHelpPullTs = 0; } catch (eR) {}
+      try { bossHelpPullOnce().catch(()=>{}); } catch (eP) {}
+      try { bfRealtimeRenderLocal(); } catch (e0) {}
+      const tLoop = ()=>{
+        try {
+          if (!__bfRealtimeRun) return;
+          try { bfRealtimeRenderLocal(); } catch (e1) {}
+          __bfRealtimeT = setTimeout(tLoop, 1);
+        } catch (e2) {}
+      };
+      const rafLoop = ()=>{
+        try {
+          if (!__bfRealtimeRun) return;
+          try { bfRealtimeRenderLocal(); } catch (e3) {}
+          __bfRealtimeRaf = requestAnimationFrame(rafLoop);
+        } catch (e4) {}
+      };
+      __bfRealtimeT = setTimeout(tLoop, 1);
+      __bfRealtimeRaf = requestAnimationFrame(rafLoop);
+    } catch (e) {}
+  }
+  function bfRealtimeStop(){
+    try { __bfRealtimeRun = false; } catch (e0) {}
+    try { if (__bfRealtimeT) { clearTimeout(__bfRealtimeT); __bfRealtimeT = 0; } } catch (e1) {}
+    try { if (__bfRealtimeRaf) { cancelAnimationFrame(__bfRealtimeRaf); __bfRealtimeRaf = 0; } } catch (e2) {}
+    try { __bfHelpPullTs = 0; } catch (e3) {}
   }
 
   function bfShopRender(){
@@ -10914,123 +12298,127 @@ button.btn.charCornerBtn:active{filter:none;}
     showModal('mBossFightRes');
 
     if (claimBtn){
-      claimBtn.onclick = ()=>{
+      claimBtn.onclick = async ()=>{
         try {
-          // Local mode: reward is granted only when you press claim.
           if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) {
-            return bossLocalClaim(bossId);
+            toast('Нужна связь с сервером (Telegram + облако)','lose');
+            return;
           }
         } catch (e0) {}
-        bossFightClaimCloud(bossId).then((r)=>{
+
+        // Sometimes server state lags behind the last hit (hp null on first claim).
+        // Fix UX: retry claim once after forcing a fights cloud pull.
+        let r = null;
+        for (let attempt=0; attempt<2; attempt++){
           try {
-            if (!(r && r.ok && r.can_claim)) {
-              try { bossFightsCloudPullMaybe(); } catch (e0) {}
+            r = await bossFightClaimCloud(bossId);
+          } catch (_e) {
+            r = null;
+          }
+
+          try {
+            if (r && r.ok && r.can_claim) {
+              const rew = r && r.reward ? r.reward : null;
+              const rxp = rew ? (parseInt(rew.xp||0,10)||0) : 0;
+              const rm = rew ? (parseInt(rew.tooth||0,10)||0) : 0;
+              const rg = rew ? (parseInt(rew.gold||0,10)||0) : 0;
+              if (rm>0) state.tooth += rm;
+              if (rg>0) state.gold += rg;
+              if (rxp>0) addXp(rxp);
+              state.bosses.pendingReward = null;
+              try { markHalturkiDone('killBoss', 100); } catch (e) {}
+
               try {
-                const hp = (r && (r.hp === null || typeof r.hp === 'undefined')) ? null : (parseInt(r.hp,10)||0);
-                const claimed = !!(r && r.reward_claimed);
-                if (claimed) { toast('Награда уже получена','lose'); return; }
-                if (hp===null) { toast('Нет боя на сервере','lose'); return; }
-                if (hp>0) { toast('Босс ещё жив (HP '+String(hp)+')','lose'); return; }
-              } catch (e9) {}
-              toast('Нельзя забрать награду','lose');
+                if (!state.bosses.winsPerBoss || typeof state.bosses.winsPerBoss !== 'object') state.bosses.winsPerBoss = {};
+                const k = String(bossId);
+                state.bosses.winsPerBoss[k] = (parseInt(state.bosses.winsPerBoss[k]||0,10)||0) + 1;
+                state.bosses.wins = (parseInt(state.bosses.wins||0,10)||0) + 1;
+              } catch (e6) {}
+
+              try {
+                const nextReq = bossReq(bossId+1);
+                if (nextReq){
+                  bossKeyAdd(nextReq.itemKey, 1);
+                  feedAdd('Добыто: 1× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS');
+                }
+              } catch (e5) {}
+
+              try { if (state.bosses && state.bosses.cloud && state.bosses.cloud[String(bossId)]) delete state.bosses.cloud[String(bossId)]; } catch (e3) {}
+              try {
+                const b2 = BOSSES.find(x=>x.id===bossId);
+                if (b2) setBossHp(bossId, b2.maxHP);
+              } catch (e4) {}
+              save();
+              try { bossFightsCloudPullMaybe(); } catch (e1) {}
+              try { bossLastWinnersCloudPullMaybe(true); } catch (e2) {}
+              hideModal('mBossFightRes');
+              while (stack.length) hideModal(stack[stack.length-1]);
+              renderBosses();
+              renderAll();
+              haptic('heavy');
               return;
             }
-            const rew = r && r.reward ? r.reward : null;
-            const rxp = rew ? (parseInt(rew.xp||0,10)||0) : 0;
-            const rm = rew ? (parseInt(rew.tooth||0,10)||0) : 0;
-            const rg = rew ? (parseInt(rew.gold||0,10)||0) : 0;
-            if (rm>0) state.tooth += rm;
-            if (rg>0) state.gold += rg;
-            if (rxp>0) addXp(rxp);
-            state.bosses.pendingReward = null;
-            try { markHalturkiDone('killBoss', 100); } catch (e) {}
 
-            try {
-              if (!state.bosses.winsPerBoss || typeof state.bosses.winsPerBoss !== 'object') state.bosses.winsPerBoss = {};
-              const k = String(bossId);
-              state.bosses.winsPerBoss[k] = (parseInt(state.bosses.winsPerBoss[k]||0,10)||0) + 1;
-              state.bosses.wins = (parseInt(state.bosses.wins||0,10)||0) + 1;
-            } catch (e6) {}
-
-            try {
-              const nextReq = bossReq(bossId+1);
-              if (nextReq){
-                bossKeyAdd(nextReq.itemKey, 1);
-                feedAdd('Добыто: 1× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS');
+            if (!(r && r.ok && r.can_claim)) {
+              try {
+                const eMsg = String(r && r.error || '');
+                if (eMsg && (
+                    eMsg.indexOf('supabase_error') >= 0 ||
+                    eMsg.indexOf('local_claim_error') >= 0 ||
+                    eMsg.indexOf('http_500') >= 0
+                  )) {
+                  try { bossLocalClaim(bossId); } catch (_e) {}
+                  try { hideModal('mBossFightRes'); } catch (_e1) {}
+                  try { hideModal('mBossFight'); } catch (_e2) {}
+                  return;
+                }
+              } catch (_ee) {}
+              try { bossFightsCloudPullMaybe(true); } catch (e0) {}
+              const hp = (r && (r.hp === null || typeof r.hp === 'undefined')) ? null : (parseInt(r.hp,10)||0);
+              const claimed = !!(r && r.reward_claimed);
+              if (claimed) { toast('Награда уже получена','lose'); return; }
+              if (hp===null) {
+                if (attempt < 1) continue;
+                // Сервер временно не находит строку боя (обычно из-за рассинхрона).
+                // Как раньше, выдаём награду через local state fallback.
+                try { bossLocalClaim(bossId); } catch (_e) {}
+                try { hideModal('mBossFightRes'); } catch (_e1) {}
+                try { hideModal('mBossFight'); } catch (_e2) {}
+                return;
               }
-            } catch (e5) {}
+              if (hp>0) {
+                try {
+                  // Сервер говорит, что бой ещё не добит, значит pendingReward был выставлен локально раньше.
+                  if (state.bosses && state.bosses.pendingReward && parseInt(state.bosses.pendingReward.bossId||0,10) === parseInt(bossId,10)) {
+                    state.bosses.pendingReward = null;
+                  }
+                  // Выравниваем локальный fight под cloud.hp, чтобы UI больше не предлагал "забрать".
+                  try {
+                    const f2 = bfGetFight(bossId);
+                    if (f2) { f2.hp = Math.max(0, Math.floor(hp)); bfSetFight(bossId, f2); }
+                  } catch (e2) {}
+                  state.bosses.activeFightId = bossId;
+                } catch (e0) {}
+                try { hideModal('mBossFightRes'); } catch (e1) {}
+                try { bfRender(bossId); } catch (e3) {}
+                try { renderAll(); } catch (e4) {}
+                toast('Босс ещё жив (HP '+String(hp)+')','lose');
+                return;
+              }
+            }
 
-            try { if (state.bosses && state.bosses.cloud && state.bosses.cloud[String(bossId)]) delete state.bosses.cloud[String(bossId)]; } catch (e3) {}
-            try {
-              const b2 = BOSSES.find(x=>x.id===bossId);
-              if (b2) setBossHp(bossId, b2.maxHP);
-            } catch (e4) {}
-            save();
-            try { bossFightsCloudPullMaybe(); } catch (e1) {}
-            try { bossLastWinnersCloudPullMaybe(true); } catch (e2) {}
-            hideModal('mBossFightRes');
-            while (stack.length) hideModal(stack[stack.length-1]);
-            renderBosses();
-            renderAll();
-            haptic('heavy');
-          } catch (e2) { toast('Не удалось забрать награду','lose'); }
-        }).catch(()=>toast('Не удалось забрать награду','lose'));
-      };
-    }
-  }
-
-  function bossLocalClaim(bossId){
-    try {
-      const b = BOSSES.find(x=>x.id===bossId);
-      if (!b) return;
-      const pr = state.bosses && state.bosses.pendingReward;
-      if (!pr || (parseInt(pr.bossId||0,10)||0) !== bossId) {
-        toast('Нет награды','lose');
-        return;
-      }
-      if ((parseInt(bossHp(bossId)||0,10)||0) > 0) {
-        toast('Босс ещё жив','lose');
-        return;
-      }
-
-      const rxp = parseInt(pr.xp||0,10)||0;
-      const rm = parseInt(pr.tooth||0,10)||0;
-      const rg = parseInt(pr.gold||0,10)||0;
-      if (rm>0) { state.tooth += rm; try { logCurrency('tooth', rm, 'Победа над боссом'); } catch (e0) {} }
-      if (rg>0) { state.gold += rg; try { logCurrency('gold', rg, 'Победа над боссом'); } catch (e0) {} }
-      if (rxp>0) addXp(rxp);
-      try { markHalturkiDone('killBoss', 100); } catch (e) {}
-
-      // give next boss keys only on claim
-      try {
-        const nextReq = bossReq(bossId+1);
-        if (nextReq){
-          bossKeyAdd(nextReq.itemKey, 1);
-          feedAdd('Добыто: 1× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS');
+            toast('Нельзя забрать награду','lose');
+            return;
+          } catch (e2) {
+            // Retry once on unexpected errors, then show generic error.
+            if (attempt < 1) continue;
+            toast('Не удалось забрать награду','lose');
+            return;
+          }
         }
-      } catch (e5) {}
 
-      state.bosses.pendingReward = null;
-      try {
-        if (!state.bosses.winsPerBoss || typeof state.bosses.winsPerBoss !== 'object') state.bosses.winsPerBoss = {};
-        const k = String(bossId);
-        state.bosses.winsPerBoss[k] = (parseInt(state.bosses.winsPerBoss[k]||0,10)||0) + 1;
-        state.bosses.wins = (parseInt(state.bosses.wins||0,10)||0) + 1;
-      } catch (e3) {}
-      try {
-        const b2 = BOSSES.find(x=>x.id===bossId);
-        if (b2) setBossHp(bossId, b2.maxHP);
-      } catch (e4) {}
-      save();
-      try { hideModal('mBossFightRes'); } catch (e1) {}
-      try { hideModal('mBossFight'); } catch (e2) {}
-      while (stack.length) hideModal(stack[stack.length-1]);
-      renderBosses();
-      renderAll();
-      haptic('heavy');
-      toast('Награда получена','win');
-    } catch (e) {
-      toast('Не удалось забрать награду','lose');
+        toast('Не удалось забрать награду','lose');
+      };
     }
   }
 
@@ -11093,7 +12481,13 @@ button.btn.charCornerBtn:active{filter:none;}
     const rm2 = Math.floor(rm * (1 + bonusPct));
     const rg2 = Math.floor(rg * (1 + bonusPct));
     state.bosses.pendingReward = { bossId: bossId, xp: rxp, tooth: rm2, gold: rg2, clanBonusPct: bonusPct };
-    state.bosses.lastWinners[String(bossId)] = { name: (state.playerName||'PLAYER'), ts: now() };
+    let __youPhoto = '';
+    try {
+      const u0 = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+      __youPhoto = (u0 && u0.photo_url) ? String(u0.photo_url||'') : '';
+    } catch (e0) { __youPhoto = ''; }
+    state.bosses.lastWinners[String(bossId)] = { name: (state.playerName||'PLAYER'), ts: now(), photo: __youPhoto };
+    try { bossLastWinnerCloudUpsert(bossId).catch(()=>{}); } catch (_eW) {}
 
     feedAdd('Босс повержен! Награда доступна.', 'BOSS');
     toast('Ты '+genderWon(),'win');
@@ -11108,6 +12502,117 @@ button.btn.charCornerBtn:active{filter:none;}
     try {
       if (state.bosses && state.bosses.fights) delete state.bosses.fights[String(bossId)];
     } catch (e) {}
+  }
+
+  // Fallback when cloud claim returns hp===null (server has no fight row).
+  // This must not depend on Supabase state; we use local pendingReward/lastWinners.
+  function bossLocalClaim(bossId){
+    try {
+      const id = parseInt(bossId||0, 10) || 0;
+      if (!id) return;
+      const b = BOSSES.find(x=>x && x.id===id);
+      if (!b) return;
+      if (!state.bosses) state.bosses = Object.assign({}, defaults.bosses);
+      if (!state.bosses.lastWinners || typeof state.bosses.lastWinners !== 'object') state.bosses.lastWinners = {};
+      if (!state.bosses._localClaimedByWinnerTs || typeof state.bosses._localClaimedByWinnerTs !== 'object') state.bosses._localClaimedByWinnerTs = {};
+
+      // For UI: local last-winner avatar (used when cloud last-winners is missing).
+      let __youPhoto = '';
+      try {
+        const u0 = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+        __youPhoto = (u0 && u0.photo_url) ? String(u0.photo_url||'') : '';
+      } catch (_ePhoto) { __youPhoto = ''; }
+
+      const lw = state.bosses.lastWinners[String(id)];
+      const lwTs = parseInt(lw && lw.ts || 0, 10) || 0;
+      if (lwTs > 0 && state.bosses._localClaimedByWinnerTs[String(id)] === lwTs) {
+        toast('Награда уже получена','lose');
+        return;
+      }
+
+      // Ensure last winner has photo for this boss (fallback path).
+      try {
+        if (!lw || typeof lw !== 'object') {
+          state.bosses.lastWinners[String(id)] = { name: (state.playerName||'PLAYER'), ts: now(), photo: __youPhoto };
+        } else {
+          state.bosses.lastWinners[String(id)].photo = __youPhoto;
+          if (!state.bosses.lastWinners[String(id)].name) state.bosses.lastWinners[String(id)].name = (state.playerName||'PLAYER');
+        }
+      } catch (_eEnsure) {}
+      try { bossLastWinnerCloudUpsert(id).catch(()=>{}); } catch (_eWU) {}
+
+      const pr = (state.bosses && state.bosses.pendingReward && parseInt(state.bosses.pendingReward.bossId||0,10) === id) ? state.bosses.pendingReward : null;
+
+      let rxp = 0;
+      let rm = 0;
+      let rg = 0;
+      let bonusPct = 0;
+
+      if (pr) {
+        rxp = parseInt(pr.xp||0,10) || 0;
+        rm = parseInt(pr.tooth||0,10) || 0;
+        rg = parseInt(pr.gold||0,10) || 0;
+        bonusPct = parseFloat(pr.clanBonusPct||0) || 0;
+      } else {
+        // If pendingReward was lost (refresh), recompute from base reward + clan bonus.
+        rxp = parseInt(b.reward && b.reward.xp || 0, 10) || 0;
+        rm = parseInt(b.reward && b.reward.tooth || 0, 10) || 0;
+        rg = parseInt(b.reward && b.reward.gold || 0, 10) || 0;
+        try {
+          const c = clanGetMyClan();
+          if (c){
+            const cl = Math.max(1, parseInt(c.lvl||1,10)||1);
+            bonusPct = Math.max(0, cl * 0.05);
+          }
+        } catch (_e) {}
+        rm = Math.floor(rm * (1 + bonusPct));
+        rg = Math.floor(rg * (1 + bonusPct));
+      }
+
+      if (rm > 0) {
+        state.tooth = Math.floor((parseInt(state.tooth||0,10)||0) + rm);
+        try { logCurrency('tooth', rm, 'Победа над боссом'); } catch (_e) {}
+      }
+      if (rg > 0) {
+        state.gold = Math.floor((parseInt(state.gold||0,10)||0) + rg);
+        try { logCurrency('gold', rg, 'Победа над боссом'); } catch (_e) {}
+      }
+      if (rxp > 0) addXp(rxp);
+
+      try { markHalturkiDone('killBoss', 100); } catch (_e) {}
+
+      try {
+        if (!state.bosses.winsPerBoss || typeof state.bosses.winsPerBoss !== 'object') state.bosses.winsPerBoss = {};
+        const k = String(id);
+        state.bosses.winsPerBoss[k] = (parseInt(state.bosses.winsPerBoss[k]||0,10)||0) + 1;
+        state.bosses.wins = (parseInt(state.bosses.wins||0,10)||0) + 1;
+      } catch (_eWins) {}
+
+      // After local claim we must also grant the key/pass to the NEXT boss,
+      // same as the cloud claim success branch does.
+      try {
+        const nextReq = bossReq(id+1);
+        if (nextReq){
+          // Grant only 1 skip/key towards the next boss (not the full requirement).
+          bossKeyAdd(nextReq.itemKey, 1);
+          // feedAdd is best-effort; if it's not defined in this scope it won't break.
+          try { feedAdd('Добыто: '+nextReq.need+'× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS'); } catch (_eFeed) {}
+        }
+      } catch (_eNext) {}
+
+      state.bosses.pendingReward = null;
+      if (lwTs > 0) state.bosses._localClaimedByWinnerTs[String(id)] = lwTs;
+      state.bosses.activeFightId = 0;
+
+      try { if (state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)]) delete state.bosses.cloud[String(id)]; } catch (_eDel) {}
+      try { setBossHp(id, b.maxHP); } catch (_eHp) {}
+
+      save();
+      try { bossFightsCloudPullMaybe(true); } catch (_ePull) {}
+      try { renderBosses(); renderHUD(); } catch (_eR) {}
+      toast('Награда получена','win');
+      haptic('heavy');
+    } catch (_e) {}
   }
 
   function bfCheckLose(bossId){
@@ -11194,20 +12699,16 @@ button.btn.charCornerBtn:active{filter:none;}
 
         // validate boss access but IGNORE daily limit (оплата кольцами — лимит уже достигнут)
         if (!id) return;
-        if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-          const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)];
-          const dead = cc && typeof cc === 'object' && (parseInt(cc.hp||0,10)||0) <= 0;
-          const claimed = !!(cc && typeof cc === 'object' && cc.reward_claimed);
-          if (dead && !claimed) { toast('Босс повержен. Забери награду.','lose'); return; }
-        } else {
-          if ((parseInt(bossHp(id)||0,10)||0) <= 0) { toast('Босс повержен. Забери награду.','lose'); return; }
-        }
         if (!bossHasAccess(id)) { toast('Не хватает ключей','lose'); return; }
 
         // При оплате козырными кольцами теперь тоже списываем пропуски (как при обычном старте боя).
 
         // HARD MODE: only apply local spend if server accepted the fight start
         if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+          // Before start: drop stale local fight/log/top to avoid phantom entries after refresh.
+          try {
+            if (state.bosses && state.bosses.fights && state.bosses.fights[String(id)]) delete state.bosses.fights[String(id)];
+          } catch (eClr) {}
           bossFightStartCloud(id).then((sr)=>{
             try {
               if (!(sr && sr.ok)) {
@@ -11236,6 +12737,9 @@ button.btn.charCornerBtn:active{filter:none;}
             state.bosses.activeFightId = id;
             window.__skipBossFightGuard = true;
             window.__ignoreOverlayClickOnce = true;
+            // Всегда подтягиваем актуальное состояние босса перед открытием боя
+            try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
+            try { bossHelpPullOnce(); } catch (eHelp) {}
             showModal('mBossFight');
             hideModal('mBossAttack');
             try {
@@ -11280,6 +12784,9 @@ button.btn.charCornerBtn:active{filter:none;}
         state.bosses.activeFightId = id;
         window.__skipBossFightGuard = true;
         window.__ignoreOverlayClickOnce = true;
+        // Всегда подтягиваем актуальное состояние босса перед открытием боя
+        try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
+        try { bossHelpPullOnce(); } catch (eHelp) {}
         showModal('mBossFight');
         hideModal('mBossAttack');
         bfEnsureFight(id);
@@ -11335,31 +12842,16 @@ button.btn.charCornerBtn:active{filter:none;}
         haptic('light');
         return;
       }
-      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-        const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)];
-        const dead = cc && typeof cc === 'object' && (parseInt(cc.hp||0,10)||0) <= 0;
-        const claimed = !!(cc && typeof cc === 'object' && cc.reward_claimed);
-        if (dead && !claimed) { toast('Босс повержен. Забери награду.','lose'); return; }
-      } else {
-        if ((parseInt(bossHp(id)||0,10)||0) <= 0) { toast('Босс повержен. Забери награду.','lose'); return; }
-      }
       if (!bossDailyCanStart(id)) { toast('Лимит боёв на сегодня: 10/10','lose'); return; }
 
       // HARD MODE: сохраняем локальный бой сразу, чтобы после перезагрузки страницы можно было продолжить,
       // а затем синхронизируемся с сервером.
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-        let fLocal = bfGetFight(id);
-        if (!fLocal) {
-          fLocal = bfEnsureFight(id);
-          if (!fLocal) {
-            toast('Не удалось начать бой. Попробуй обновить страницу.','lose');
-            haptic('light');
-            return;
-          }
-          bfSetFight(id, fLocal);
-        }
-        state.bosses.activeFightId = id;
-        save();
+        // Перед стартом не используем старый локальный fight,
+        // чтобы не показывать заниженный HP до ответа сервера.
+        try {
+          if (state.bosses && state.bosses.fights && state.bosses.fights[String(id)]) delete state.bosses.fights[String(id)];
+        } catch (eClr) {}
 
         bossFightStartCloud(id).then(async (sr)=>{
           try {
@@ -11387,6 +12879,7 @@ button.btn.charCornerBtn:active{filter:none;}
             }
           }
 
+          state.bosses.activeFightId = id;
           const f = bfEnsureFight(id);
           if (!f) {
             toast('Не удалось начать бой. Попробуй обновить страницу.','lose');
@@ -11418,6 +12911,9 @@ button.btn.charCornerBtn:active{filter:none;}
           }
           window.__ignoreOverlayClickOnce = true;
           hideModal('mBossAttack');
+          // Всегда подтягиваем актуальное состояние босса перед открытием боя
+          try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
+          try { bossHelpPullOnce(); } catch (eHelp) {}
           showModal('mBossFight');
           bfRender(id);
           save();
@@ -11442,6 +12938,9 @@ button.btn.charCornerBtn:active{filter:none;}
       state.bosses.activeFightId = id;
       window.__ignoreOverlayClickOnce = true;
       hideModal('mBossAttack');
+      // Всегда подтягиваем актуальное состояние босса перед открытием боя
+      try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
+      try { bossHelpPullOnce(); } catch (eHelp) {}
       showModal('mBossFight');
       bfRender(id);
       save();
@@ -11488,8 +12987,10 @@ button.btn.charCornerBtn:active{filter:none;}
         bossHelpSend(id, wantApply);
         toast('Босс: -'+wantApply, 'win');
       }
-      try { bossFightsCloudPullMaybe(); } catch (e1) {}
+      // refresh immediately after real hit
+      try { bossFightsCloudPullMaybe(true); } catch (e1) {}
       save();
+      try { void serverPushNow(); } catch (e0) {}
       renderAll();
       if ((parseInt(bossHp(id)||0,10)||0) <= 0) {
         toast('Ты '+genderWon()+'. Забери награду.','win');
@@ -11634,8 +13135,11 @@ button.btn.charCornerBtn:active{filter:none;}
       const t = now();
       if (t - __bossPullLast >= BOSS_PULL_INTERVAL_MS) {
         __bossPullLast = t;
-        bossFightsCloudPullMaybe().catch(()=>{});
-        bossLastWinnersCloudPullMaybe().catch(()=>{});
+        // Do NOT poll boss_fights_list every couple seconds.
+        // It is fetched after real actions (hit/start/claim/help apply),
+        // otherwise it burns Supabase invocations.
+        // Update last winners only on real events (boss claim), not on a polling interval.
+        // Otherwise `boss_last_winners_list` is fetched every couple seconds.
       }
     } catch (e0) {}
     const BOSS_MEDAL_THRESHOLDS = BOSS_MEDAL_THRESHOLDS_DEFAULT;
@@ -11696,6 +13200,12 @@ button.btn.charCornerBtn:active{filter:none;}
             const f0 = bfGetFight(b.id);
             if (f0 && f0.startTs && f0.expiresTs && now() < (parseInt(f0.expiresTs||0,10)||0)) started = true;
           } catch (e9) { started = false; }
+          // After refresh local fight cache may be empty; if cloud has active row, treat as started.
+          try {
+            const hasCloudRow = !!(cc && typeof cc==='object' && typeof cc.hp !== 'undefined' && !cc.reward_claimed);
+            const expTs = cc && cc.expires_at ? (Date.parse(String(cc.expires_at))||0) : 0;
+            if (hasCloudRow && (!expTs || expTs > now())) started = true;
+          } catch (e9x) {}
           // If boss is dead on server and reward not claimed, always show claim regardless of local fight cache.
           try {
             const deadSrv = cc && typeof cc==='object' && (parseInt(cc.hp||0,10)||0) <= 0;
@@ -11720,7 +13230,9 @@ button.btn.charCornerBtn:active{filter:none;}
       const lwLocal = (state.bosses && state.bosses.lastWinners && state.bosses.lastWinners[String(b.id)]) || null;
       const lwCloud = (state.bosses && state.bosses.lastWinnersCloud && state.bosses.lastWinnersCloud[String(b.id)]) || null;
       const lwName = (lwCloud && lwCloud.name) ? String(lwCloud.name) : ((lwLocal && lwLocal.name) ? String(lwLocal.name) : '—');
-      const lwPhoto = (lwCloud && lwCloud.photo) ? String(lwCloud.photo) : '';
+      const lwPhoto = (lwCloud && lwCloud.photo)
+        ? String(lwCloud.photo)
+        : ((lwLocal && lwLocal.photo) ? String(lwLocal.photo) : '');
       const locked = !bossHasAccess(b.id);
       const req = bossReq(b.id);
       const lockText = locked && req ? (' · '+req.emoji+' '+bossKeyCount(req.itemKey)+'/'+req.need) : '';
@@ -11728,13 +13240,13 @@ button.btn.charCornerBtn:active{filter:none;}
       const rm = parseInt(b.reward && b.reward.tooth || 0, 10) || 0;
       const rg = parseInt(b.reward && b.reward.gold || 0, 10) || 0;
       const dead = cloudOn ? (!!(hpCloud!==null && (parseInt(hpCloud||0,10)||0) <= 0 && !(state.bosses && state.bosses.cloud && state.bosses.cloud[String(b.id)] && state.bosses.cloud[String(b.id)].reward_claimed))) : ((parseInt(hp||0,10)||0) <= 0);
+      const hpTextValue = dead ? b.maxHP : hp;
       let canClaim = dead;
       if (cloudOn) {
         const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(b.id)];
         const claimed = !!(cc && typeof cc === 'object' && cc.reward_claimed);
         canClaim = !!(hpCloud!==null && (parseInt(hpCloud||0,10)||0) <= 0 && !claimed);
       }
-      const hasActiveFight = !dead && bfHasActiveFight(b.id);
       html += '<div class="card">'
         + '<div class="bossWinnerTop">'+genderWinnerLabel((String(lwName).trim().toUpperCase() === String(state.playerName||'PLAYER').trim().toUpperCase()) ? state.gender : getGenderFromName(lwName))+'</div>'
         + '<div class="bossWinnerNm" style="display:flex;align-items:center;gap:8px;">'+genderBadgeHtml((String(lwName).trim().toUpperCase() === String(state.playerName||'PLAYER').trim().toUpperCase()) ? state.gender : getGenderFromName(lwName))+' '+lwName+'</div>'
@@ -11747,7 +13259,7 @@ button.btn.charCornerBtn:active{filter:none;}
         + '<div class="bossRightCol">'
         + '<div class="bossNameWrap"><div class="bossName">'+b.name+'</div></div>'
         + '<div class="bossRowBelow">'
-        + '<div class="bossSub">'+(dead ? ('ПОВЕРЖЕН · HP 0') : ('HP '+fmtBossHpShort(hp)))+lockText+'</div>'
+        + '<div class="bossSub">'+'HP '+fmtBossHpShort(hpTextValue)+lockText+'</div>'
         + '<div class="bossReward">'
         + (rm>0 ? ('<span class="badge" style="color:rgba(0,0,0,.92); padding:6px 8px; font-size:11px">+'+rm+'<img src="зуб.png" alt="Золотые зубы" class="toothIcon"></span>') : '')
         + (rg>0 ? ('<span class="badge" style="color:#000; padding:6px 8px; font-size:11px">+'+rg+'<img src="голд.png" alt="Золотые монеты" class="goldIcon"></span>') : '')
@@ -11755,23 +13267,14 @@ button.btn.charCornerBtn:active{filter:none;}
         + '</div>'
         + '<div class="bossActionsWrap">'
         + '<div style="display:flex;flex-direction:column;gap:6px">'
-        + (dead
-            ? (canClaim
-                ? '<button class="btn btnMini bossAtkBtn" data-boss-claim="'+b.id+'">ЗАБРАТЬ НАГРАДУ</button>'
-                : '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
-              )
-            : (hasActiveFight
-                ? '<button class="btn btnMini bossAtkBtn" data-boss-continue="'+b.id+'" style="opacity:1">ПРОДОЛЖИТЬ БОЙ</button>'
-                : '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
-              )
-          )
+        + '<button class="btn btnMini bossAtkBtn" data-boss-attack="'+b.id+'" style="opacity:'+(locked?'.75':'1')+'">НАПАСТЬ</button>'
         + '</div>'
         + '<div class="bossMedalsRow" data-boss-id="'+b.id+'">'
         + (function(){
           const bossWins = parseInt(state.bosses && state.bosses.winsPerBoss && state.bosses.winsPerBoss[String(b.id)]||0,10)||0;
           const thresholds = getMedalThresholdsForBoss(b.id);
           const classes = ['bossMedalBronze','bossMedalSilver','bossMedalGold','bossMedalPurple','bossMedalMythic'];
-          const titles = ['Бронзовая (100 побед)','Серебряная (500)','Золотая (1000)','Пурпурная (2500)','Мифическая (5000)'];
+          const medalNames = ['Бронзовая','Серебряная','Золотая','Пурпурная','Мифическая'];
           const medalImgs = (typeof BOSS_MEDAL_IMAGES !== 'undefined' && BOSS_MEDAL_IMAGES[b.id]) ? BOSS_MEDAL_IMAGES[b.id] : null;
           let s = '';
           for (let i=0;i<5;i++){
@@ -11779,7 +13282,7 @@ button.btn.charCornerBtn:active{filter:none;}
             const imgSrc = (medalImgs && medalImgs[i]) ? medalImgs[i] : '';
             const n = thresholds[i];
             const suf = (n === 1) ? 'победа' : (n >= 2 && n <= 4) ? 'победы' : 'побед';
-            const title = (titles[i].split(' (')[0] || titles[i]).trim() + ' (' + n + ' ' + suf + ')';
+            const title = (medalNames[i] || 'Медаль') + ' (' + n + ' ' + suf + ')';
             if (imgSrc) {
               s += '<div class="bossMedal '+classes[i]+(unlocked ? '' : ' bossMedalLocked')+'" title="'+title+'"><img src="'+imgSrc.replace(/"/g,'&quot;')+'" alt=""></div>';
             } else {
@@ -11815,14 +13318,6 @@ button.btn.charCornerBtn:active{filter:none;}
       btn.onclick = ()=>{
         const id = parseInt(btn.getAttribute('data-boss-attack')||'0',10)||0;
         if (!id) return;
-        if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-          const cc = state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)];
-          const dead = cc && typeof cc === 'object' && (parseInt(cc.hp||0,10)||0) <= 0;
-          const claimed = !!(cc && typeof cc === 'object' && cc.reward_claimed);
-          if (dead && !claimed) { toast('Босс повержен. Забери награду.','lose'); return; }
-        } else {
-          if ((parseInt(bossHp(id)||0,10)||0) <= 0) { toast('Босс повержен. Забери награду.','lose'); return; }
-        }
         if (!bossHasAccess(id)) {
           // No keys: open pass shop directly
           showModal('mBossAttack');
@@ -11842,6 +13337,9 @@ button.btn.charCornerBtn:active{filter:none;}
         if (!id) return;
         state.bosses.activeFightId = id;
         window.__skipBossFightGuard = true;
+        // Всегда подтягиваем актуальное состояние босса перед открытием боя
+        try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
+        try { bossHelpPullOnce(); } catch (eHelp) {}
         if (bfEnsureFight(id)) {
           showModal('mBossFight');
           bossHelpPullOnce().then(()=>{ bfRender(id); }).catch(()=>{ bfRender(id); });
@@ -11860,20 +13358,54 @@ button.btn.charCornerBtn:active{filter:none;}
         if (!id) return;
         try {
           if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) {
-            return bossLocalClaim(id);
+            toast('Нужна связь с сервером (Telegram + облако)','lose');
+            return;
           }
         } catch (e0) {}
         bossFightClaimCloud(id).then((r)=>{
           try {
             if (!(r && r.ok && r.can_claim)) {
+              try {
+                const eMsg = String(r && r.error || '');
+                if (eMsg && (
+                    eMsg.indexOf('supabase_error') >= 0 ||
+                    eMsg.indexOf('local_claim_error') >= 0 ||
+                    eMsg.indexOf('http_500') >= 0
+                  )) {
+                  try { bossLocalClaim(id); } catch (_e) {}
+                  try { hideModal('mBossFightRes'); } catch (_e1) {}
+                  try { hideModal('mBossFight'); } catch (_e2) {}
+                  return;
+                }
+              } catch (_ee) {}
               try { bossFightsCloudPullMaybe(true); } catch (e0) {}
               try { renderBosses(); } catch (e00) {}
               try {
                 const hp = (r && (r.hp === null || typeof r.hp === 'undefined')) ? null : (parseInt(r.hp,10)||0);
                 const claimed = !!(r && r.reward_claimed);
                 if (claimed) { toast('Награда уже получена','lose'); return; }
-                if (hp===null) { toast('Нет боя на сервере','lose'); return; }
-                if (hp>0) { toast('Босс ещё жив (HP '+String(hp)+')','lose'); return; }
+                if (hp===null) {
+                  // Сервер временно не находит запись боя (рассинхрон).
+                  // Как раньше: выдаём награду через fallback по local state,
+                  // а затем она уйдёт в облако через save()/upsert_player.
+                  try { bossLocalClaim(id); } catch (_e) {}
+                  try { hideModal('mBossFightRes'); } catch (_e1) {}
+                  try { hideModal('mBossFight'); } catch (_e2) {}
+                  return;
+                }
+                if (hp>0) {
+                  try {
+                    if (state.bosses && state.bosses.pendingReward && parseInt(state.bosses.pendingReward.bossId||0,10) === parseInt(id,10)) {
+                      state.bosses.pendingReward = null;
+                    }
+                    try {
+                      const f2 = bfGetFight(id);
+                      if (f2) { f2.hp = Math.max(0, Math.floor(hp)); bfSetFight(id, f2); }
+                    } catch (e2) {}
+                  } catch (e0) {}
+                  toast('Босс ещё жив (HP '+String(hp)+')','lose');
+                  return;
+                }
               } catch (e9) {}
               toast('Нельзя забрать награду','lose');
               return;
@@ -11897,7 +13429,8 @@ button.btn.charCornerBtn:active{filter:none;}
             try {
               const nextReq = bossReq(id+1);
               if (nextReq){
-                bossKeyAdd(nextReq.itemKey, nextReq.need);
+                // Grant only 1 skip/key towards the next boss (not the full requirement).
+                bossKeyAdd(nextReq.itemKey, 1);
                 feedAdd('Добыто: '+nextReq.need+'× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS');
               }
             } catch (e5) {}
@@ -13268,14 +14801,27 @@ button.btn.charCornerBtn:active{filter:none;}
     const box = $('districtList');
     if (!box) return;
     try {
-      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-        districtLeadersCloudPullMaybe(true).catch(()=>{});
-        districtDailyLeadersCloudPullMaybe().catch(()=>{});
+      const cloudOn = !!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData());
+      if (cloudOn) {
+        // "По факту": не тянуть лидеров на каждом рендере.
+        // Тянем только если данные ещё не загружены.
+        const leadersMissing = !state.districtFearLeaders
+          || typeof state.districtFearLeaders !== 'object'
+          || !Object.keys(state.districtFearLeaders).length;
+        const dayKey = utcDayKey();
+        const dailyLoaded = state.districtDailyFearCloud
+          && state.districtDailyFearCloud.day === dayKey
+          && state.districtDailyFearCloud.byDistrict
+          && Object.keys(state.districtDailyFearCloud.byDistrict).length;
+        if (leadersMissing) {
+          districtLeadersCloudPullMaybe(true).catch(()=>{});
+        }
+        if (!dailyLoaded) {
+          districtDailyLeadersCloudPullMaybe().catch(()=>{});
+        }
       }
     } catch (e0) {}
     let html = '';
-    try { districtLeadersCloudPullMaybe().catch(()=>{}); } catch (e0) {}
-    try { districtDailyLeadersCloudPullMaybe().catch(()=>{}); } catch (e1) {}
     const data = districtData();
     const dayBox = (state.districtDailyFearCloud && state.districtDailyFearCloud.byDistrict) ? state.districtDailyFearCloud.byDistrict : ((state.districtDailyFear && state.districtDailyFear.byDistrict) ? state.districtDailyFear.byDistrict : null);
 
@@ -13461,6 +15007,9 @@ button.btn.charCornerBtn:active{filter:none;}
       if (state.districtGateBossKilled && state.districtGateBossKilled[id]) { toast('Босс уже побеждён','win'); return; }
       const bossId = districtBossId(id);
       state.bosses.activeFightId = bossId;
+      // Всегда подтягиваем актуальное состояние босса перед открытием боя
+      try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
+      try { bossHelpPullOnce(); } catch (eHelp) {}
       bfEnsureFight(bossId);
       showModal('mBossFight');
       bfRender(bossId);
@@ -13882,6 +15431,8 @@ button.btn.charCornerBtn:active{filter:none;}
     if (add>0){
       state.energy = clamp((state.energy||0)+add, 0, state.energyMax);
       state.lastEnergyTs = ts + add*per;
+      // Сохраняем только когда энергия реально изменилась (не в каждом тике UI).
+      save();
     }
   }
   function energyTimerText(){
@@ -13911,6 +15462,8 @@ button.btn.charCornerBtn:active{filter:none;}
     if (add>0){
       state.bosses.strikes = clamp((state.bosses.strikes||0)+add, 0, 10);
       state.bosses.lastStrikeTs = (parseInt(state.bosses.lastStrikeTs||0,10)||now()) + add*per;
+      // Сохраняем только при реальном начислении боёв (не в каждом тике UI).
+      save();
     }
   }
 
@@ -14213,11 +15766,7 @@ button.btn.charCornerBtn:active{filter:none;}
       renderParchmentPanelMedals();
     })();
     (function(){
-      const eb = $('energyRefillBtn');
       const dnEb = $('dnEnergyRefillBtn');
-      if (eb) {
-        eb.onclick = ()=>{ doEnergyRefillClick(); };
-      }
       if (dnEb) dnEb.onclick = ()=>{ doEnergyRefillClick(); };
       function doEnergyRefillClick(){
         const gold = Math.floor(state.gold||0);
@@ -14235,6 +15784,7 @@ button.btn.charCornerBtn:active{filter:none;}
         const maxE = Math.floor(state.energyMax||100);
         if (gold < 20){ toast('Нужно 20 золотых монет '+TOAST_GOLD_IMG,'lose'); hideModal('mEnergyRefillConfirm'); return; }
         state.gold = gold - 20;
+        try { logCurrency('gold', -20, 'Восстановление энергии'); } catch (e0) {}
         state.energy = maxE;
         save();
         renderHUD();
@@ -14245,14 +15795,6 @@ button.btn.charCornerBtn:active{filter:none;}
       };
       if (noBtn) noBtn.onclick = ()=>{ hideModal('mEnergyRefillConfirm'); haptic('light'); };
     })();
-    (function(){
-      const rpb = $('resetProgressBtn');
-      if (rpb) rpb.onclick = ()=>{
-        if (!confirm('Сбросить весь прогресс? Это нельзя отменить.')) return;
-        try { hardReset(); } catch (e) { toast('Ошибка сброса','lose'); }
-        haptic('medium');
-      };
-    })();
     $('btnDistricts').onclick = ()=>{
       const rawAf = state.bosses && state.bosses.activeFightId;
       const isDistrict = typeof rawAf === 'string' && rawAf.startsWith('district_');
@@ -14262,6 +15804,9 @@ button.btn.charCornerBtn:active{filter:none;}
       const inTime = f && (parseInt(f.expiresTs||0,10)||0) > now();
       const hasBoss = isDistrict ? !!districtGateBoss(districtIdxFromBossId(bid)) : false;
       if (isDistrict && bid && f && alive && inTime && hasBoss){
+        // Всегда подтягиваем актуальное состояние босса перед открытием боя
+        try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
+        try { bossHelpPullOnce(); } catch (eHelp) {}
         showModal('mBossFight');
         bfEnsureFight(bid);
         bfRender(bid);
@@ -14274,7 +15819,6 @@ button.btn.charCornerBtn:active{filter:none;}
         return;
       }
       openScreen('mDistricts');
-      try { districtLeadersCloudPullMaybe(true); } catch (e0) {}
       renderDistricts();
       if (state.bosses && state.bosses.pendingDistrictReward && state.bosses.pendingDistrictReward.mult > 0) {
         try { showModal('mDistrictGateReward'); renderDistrictGateRewardModal(); } catch (e1) {}
@@ -14283,7 +15827,7 @@ button.btn.charCornerBtn:active{filter:none;}
     };
     const hb = $('havchikBtn'); if (hb) hb.onclick = ()=>{ showModal('mHavchik'); renderHavchik(); haptic('light'); };
     const halturkiBtn = $('btnHalturki'); if (halturkiBtn) halturkiBtn.onclick = ()=>{ openScreen('mHalturki'); renderHalturki(); haptic('light'); };
-    $('btnBoss').onclick = ()=>{
+    $('btnBoss').onclick = async ()=>{
       const bid = parseInt(state.bosses && state.bosses.activeFightId || 0, 10) || 0;
       const f = bid ? bfGetFight(bid) : null;
       const alive = f && (parseInt(f.hp||0,10)||0) > 0;
@@ -14295,6 +15839,9 @@ button.btn.charCornerBtn:active{filter:none;}
           || !!(f && alive && inTime)
         : true;
       if (bid && f && alive && inTime && hasBoss && hasCloudFight){
+        // Всегда подтягиваем актуальное состояние босса перед открытием боя
+        try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
+        try { bossHelpPullOnce(); } catch (eHelp) {}
         showModal('mBossFight');
         bfEnsureFight(bid);
         bfRender(bid);
@@ -14312,6 +15859,8 @@ button.btn.charCornerBtn:active{filter:none;}
         try { state.bosses.activeFightId = 0; save(); } catch (e0) {}
       }
       openScreen('mBoss');
+      try { await bossFightsCloudPullMaybe(true); } catch (e0) {}
+      try { window.__bossListSig = ''; } catch (e1) {}
       renderBosses();
       haptic('light');
     };
@@ -14319,26 +15868,6 @@ button.btn.charCornerBtn:active{filter:none;}
       openScreen('mPloshchad');
       haptic('light');
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-        sbFnCall('get_player', { initData: tgInitData() }).then(function(r){
-          try {
-            if (r && r.ok && r.player && r.player.state && typeof r.player.state === 'object') {
-              const localFights = state.bosses && state.bosses.fights && typeof state.bosses.fights === 'object' ? state.bosses.fights : null;
-              const localActiveFightId = state.bosses && typeof state.bosses.activeFightId !== 'undefined' ? state.bosses.activeFightId : null;
-              const localGateKilled = state.districtGateBossKilled && typeof state.districtGateBossKilled === 'object' ? state.districtGateBossKilled : null;
-              const localGateFight = state.districtGateBossFight;
-              state = Object.assign({}, state, r.player.state);
-              ensureGender();
-              if (state.bosses) {
-                if (localFights && Object.keys(localFights).length > 0) state.bosses.fights = localFights;
-                if (localActiveFightId != null) state.bosses.activeFightId = localActiveFightId;
-              }
-              if (localGateKilled && Object.keys(localGateKilled).length > 0) state.districtGateBossKilled = localGateKilled;
-              if (localGateFight) state.districtGateBossFight = localGateFight;
-              save();
-              renderAll();
-            }
-          } catch (e) {}
-        }).catch(function(){});
         var list = getBratkiList();
         var names = list.map(function(f){ return String(f.name||'').trim(); }).filter(Boolean);
         if (names.length) brosFetchPhotos(names).then(function(){ renderFriends(); });
@@ -14351,26 +15880,6 @@ button.btn.charCornerBtn:active{filter:none;}
         renderTopBrosModal();
         haptic('light');
         if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-          sbFnCall('get_player', { initData: tgInitData() }).then(function(r){
-            try {
-              if (r && r.ok && r.player && r.player.state && typeof r.player.state === 'object') {
-                const localFights = state.bosses && state.bosses.fights && typeof state.bosses.fights === 'object' ? state.bosses.fights : null;
-                const localActiveFightId = state.bosses && typeof state.bosses.activeFightId !== 'undefined' ? state.bosses.activeFightId : null;
-                const localGateKilled = state.districtGateBossKilled && typeof state.districtGateBossKilled === 'object' ? state.districtGateBossKilled : null;
-                const localGateFight = state.districtGateBossFight;
-                state = Object.assign({}, state, r.player.state);
-                ensureGender();
-                if (state.bosses) {
-                  if (localFights && Object.keys(localFights).length > 0) state.bosses.fights = localFights;
-                  if (localActiveFightId != null) state.bosses.activeFightId = localActiveFightId;
-                }
-                if (localGateKilled && Object.keys(localGateKilled).length > 0) state.districtGateBossKilled = localGateKilled;
-                if (localGateFight) state.districtGateBossFight = localGateFight;
-                save();
-                renderTopBrosModal();
-              }
-            } catch (e) {}
-          }).catch(function(){});
           var list = getBratkiList();
           var names = list.map(function(f){ return String(f.name||'').trim(); }).filter(Boolean);
           if (names.length) brosFetchPhotos(names).then(function(){ renderTopBrosModal(); });
@@ -14519,7 +16028,7 @@ button.btn.charCornerBtn:active{filter:none;}
       const n = prompt('Имя персонажа:', state.playerName || 'PLAYER');
       if (!n) return;
       const prev = String(state.playerName||'PLAYER');
-      const next = String(n).trim().substring(0, 16) || 'PLAYER';
+      const next = String(n).trim().substring(0, 18) || 'PLAYER';
 
       // Cloud: validate and save on server first, then apply locally.
       try {
@@ -14531,13 +16040,17 @@ button.btn.charCornerBtn:active{filter:none;}
           } catch (e0) { photo = ''; }
           const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
           const doRename = async function(){
-            try {
-              if (!mySessionId()) await sessionStartAndPull(false);
-            } catch (e0) {}
+            const nextState = (function(){
+              try {
+                const cp = Object.assign({}, state || {});
+                cp.playerName = next;
+                return cp;
+              } catch (e9) { return state; }
+            })();
             return await sbFnCall('upsert_player', {
             initData: tgInitData(),
-              session_id: mySessionId(),
             name: next,
+            force_immediate: true,
             photo_url: String(photo||'').trim(),
             level: state.level,
             arena_power: (state.arena && (state.arena.power||0)) || 0,
@@ -14546,7 +16059,7 @@ button.btn.charCornerBtn:active{filter:none;}
             stats_sum: statsSum,
             boss_wins: (state.bosses && state.bosses.wins) || 0,
             referrer_tg_id: '',
-            state: cloudStateSnapshot(state)
+            state: cloudStateSnapshot(nextState)
             });
           };
           doRename().then(()=>{
@@ -14556,9 +16069,12 @@ button.btn.charCornerBtn:active{filter:none;}
             renderAll();
             haptic('light');
             try { __srvLastSent = now(); } catch (e0) {}
+            // Второй немедленный сейв: гарантия, что state JSON на сервере = новый ник (очередь VPS уже сброшена force_immediate).
+            try { void serverPushNow(); } catch (ePu) {}
             try { clansCloudPull().catch(()=>{}); } catch (e1) {}
             try { districtLeadersCloudPullMaybe(true).catch(()=>{}); } catch (e2) {}
             try { bossLastWinnersCloudPullMaybe(true).catch(()=>{}); } catch (e3) {}
+            try { toast('Ник сохранён','win'); } catch (eT) {}
           }).catch((e)=>{
             const msg = String((e && e.message) || e || 'err');
             if (/name_taken/i.test(msg)) {
@@ -14566,9 +16082,6 @@ button.btn.charCornerBtn:active{filter:none;}
               save();
               renderAll();
               toast('Имя занято','lose');
-              return;
-            }
-            if (/session_conflict/i.test(msg)) {
               return;
             }
             toast('СЕРВЕР: ERR','lose');
@@ -14603,7 +16116,7 @@ button.btn.charCornerBtn:active{filter:none;}
 
     $('resetBtn').onclick = ()=>{
       if (!confirm('Сбросить прогресс?')) return;
-      hardReset();
+      void hardReset().catch(()=>{ toast('Ошибка сброса','lose'); });
     };
 
     (function(){
@@ -14808,14 +16321,35 @@ button.btn.charCornerBtn:active{filter:none;}
       };
     })();
     (function(){
+      var backupBtn = $('adminBackupBtn');
+      if (!backupBtn) return;
+      backupBtn.onclick = async function(){
+        try {
+          createLocalBackup();
+          toast('Резервная копия создана успешно','win');
+          
+          // Также принудительно сохраняем в облако
+          if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+            await save();
+            toast('Прогресс сохранен в облаке и локально','win');
+          } else {
+            toast('Локальная резервная копия создана','win');
+          }
+        } catch (e) {
+          toast('Ошибка создания резервной копии: ' + (e && e.message ? e.message : 'unknown'), 'lose');
+        }
+        haptic('light');
+      };
+    })();
+    (function(){
       var fullRestartBtn = $('adminFullRestartBtn');
       if (!fullRestartBtn) return;
       fullRestartBtn.onclick = async function(){
-        if (!confirm('Полный рестарт игры? Будут удалены ВСЕ игроки, кланы и прогресс, а также локальные данные на устройстве. Каждый зайдёт как в первый раз.')) return;
+        if (!confirm('Полный рестарт игры? Будут удалены ВСЕ игроки, кланы и прогресс в облаке. Каждый зайдёт как в первый раз.')) return;
         try {
           var r = await sbFnCall('admin_full_restart', { initData: tgInitData() });
           if (r && r.ok) {
-            toast('Полный рестарт выполнен. Мир и локальные данные очищены.','win');
+            toast('Полный рестарт выполнен. Данные в облаке очищены.','win');
             try {
               if (typeof localStorage !== 'undefined' && localStorage) {
                 localStorage.clear();
@@ -15025,8 +16559,18 @@ button.btn.charCornerBtn:active{filter:none;}
 
     bindUI();
     renderAll();
-    save();
-    try { sessionStartAndPull().then(()=>{ try { sessionWatchStart(); } catch (e0) {} }).catch(()=>{}); } catch (e0) {}
+    // НЕ save() здесь: до гидратации облака upsert затирает прогресс по tg_id дефолтами.
+    try {
+      // Всегда подтягиваем состояние с сервера — локального сохранения прогресса нет.
+      sessionStartAndPull(true)
+        .then(()=>{
+          try { save(); } catch (eS) {}
+          try { sessionWatchStart(); } catch (e0) {}
+          try { bossFightsCloudPullMaybe(true); } catch (e1) {}
+          try { minuteCloudPullStart(); } catch (e2) {}
+        })
+        .catch(()=>{});
+    } catch (e0) {}
 
     // main loop
     tickUTC();
@@ -15091,7 +16635,6 @@ button.btn.charCornerBtn:active{filter:none;}
         if ($('mGFJoin').classList.contains('show')) renderGFJoinMini();
 
         renderHUD();
-        save();
       } catch (e0) {}
     }, 500);
 
@@ -15102,10 +16645,218 @@ button.btn.charCornerBtn:active{filter:none;}
     updateBackButton();
   }
 
+  // --- Управление экраном загрузки
+  function updateLoadingStatus(status, isError = false) {
+    try {
+      const statusEl = $('loadingStatus');
+      const errorEl = $('loadingError');
+      const retryBtn = $('loadingRetryBtn');
+      
+      if (statusEl) statusEl.textContent = status;
+      
+      if (isError) {
+        if (errorEl) {
+          errorEl.textContent = status;
+          errorEl.style.display = 'block';
+        }
+        if (retryBtn) retryBtn.style.display = 'block';
+        if (statusEl) statusEl.style.display = 'none';
+      } else {
+        if (errorEl) errorEl.style.display = 'none';
+        if (retryBtn) retryBtn.style.display = 'none';
+        if (statusEl) statusEl.style.display = 'block';
+      }
+    } catch (e) {}
+  }
+
+  function hideLoadingScreen() {
+    try {
+      const loadingScreen = $('loadingScreen');
+      const app = $('app');
+      
+      if (loadingScreen) {
+        loadingScreen.style.opacity = '0';
+        loadingScreen.style.transition = 'opacity 0.5s ease-out';
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 500);
+      }
+      
+      if (app) {
+        app.classList.remove('loading-hidden');
+      }
+    } catch (e) {}
+  }
+
+  function showLoadingError(message) {
+    updateLoadingStatus(message, true);
+  }
+
+  async function retryLoading() {
+    try {
+      updateLoadingStatus('Повторная попытка...');
+      await startLoading();
+    } catch (e) {
+      showLoadingError('Ошибка при повторной загрузке: ' + (e.message || 'unknown'));
+    }
+  }
+
+  // Делаем функцию доступной глобально для onclick
+  window.retryLoading = retryLoading;
+
+  async function startLoading() {
+    try {
+      updateLoadingStatus('Проверка Telegram...');
+      
+      // Проверка Telegram WebApp
+      if (!window.Telegram || !window.Telegram.WebApp) {
+        showLoadingError('Игра доступна только в Telegram');
+        return;
+      }
+      
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      
+      updateLoadingStatus('Проверка авторизации...');
+      
+      // Проверка наличия initData
+      const initData = tg.initData;
+      if (!initData) {
+        showLoadingError('Ошибка авторизации в Telegram. Попробуйте перезапустить приложение.');
+        return;
+      }
+      
+      // Получаем Telegram ID
+      const tgUser = tg.initDataUnsafe?.user;
+      if (!tgUser || !tgUser.id) {
+        showLoadingError('Не удалось получить ID пользователя Telegram');
+        return;
+      }
+      
+      updateLoadingStatus('Загрузка прогресса из Supabase...');
+      
+      // Проверка доступности Supabase
+      if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+        showLoadingError('Ошибка конфигурации сервера');
+        return;
+      }
+      
+      // Проверка соединения с Supabase через оптимизированные функции
+      try {
+        updateLoadingStatus('Загрузка данных...');
+        
+        // Используем оптимизированную загрузку с кэшированием
+        const result = await getPlayerOptimized(initData);
+        
+        if (result.fromCache) {
+          if (result.isOffline) {
+            updateLoadingStatus('Офлайн режим (кэш)');
+          } else {
+            updateLoadingStatus('Загружено из кэша');
+          }
+        } else {
+          updateLoadingStatus('Подключено к базе данных');
+        }
+        
+        // Проверяем наличие данных игрока
+        if (!result.ok) {
+          showLoadingError('Ошибка загрузки данных: ' + result.error);
+          return;
+        }
+        
+        // Проверяем наличие progress в ответе
+        const playerState = result.player && result.player.state;
+        if (!playerState) {
+          updateLoadingStatus('Создание профиля...');
+          // Если progress пустой, создаем базовый профиль
+          const createResult = await upsertPlayerOptimized(initData, defaults);
+          
+          if (!createResult.ok) {
+            showLoadingError('Ошибка создания профиля: ' + createResult.error);
+            return;
+          }
+          
+          if (createResult.isLocal) {
+            updateLoadingStatus('Профиль создан локально');
+          }
+        }
+        
+        // Финальная проверка - только если не из свежего кэша
+        const cached = loadPlayerFromCache();
+        if (!result.fromCache || !cached.isFresh) {
+          updateLoadingStatus('Проверка доступа...');
+          
+          const finalResult = await getPlayerOptimized(initData);
+          
+          if (!finalResult.ok) {
+            showLoadingError('Ошибка финальной проверки данных: ' + finalResult.error);
+            return;
+          }
+          
+          // Окончательная проверка всех данных
+          const finalPlayerState = finalResult.player && finalResult.player.state;
+          if (!finalResult.player || 
+              !finalResult.player.tg_id || 
+              String(finalResult.player.tg_id) !== String(tgUser.id)) {
+            showLoadingError('Ошибка финальной проверки данных. Доступ запрещен.');
+            return;
+          }
+        }
+        
+        updateLoadingStatus('Данные подтверждены. Запуск игры...');
+        
+        // Только после всех проверок вызываем boot()
+        await boot();
+        
+        // Если все успешно, скрываем экран загрузки
+        updateLoadingStatus('Загрузка завершена!');
+        setTimeout(() => {
+          hideLoadingScreen();
+          // Запускаем периодическую синхронизацию после успешной загрузки
+          startPeriodicSync();
+          // Проверяем целостность данных
+          verifyDataIntegrity();
+        }, 500);
+        
+      } catch (supabaseError) {
+        console.error('Supabase error:', supabaseError);
+        showLoadingError('Ошибка подключения к базе данных: ' + (supabaseError.message || 'unknown'));
+        return;
+      }
+      
+    } catch (e) {
+      console.error('Loading error:', e);
+      showLoadingError('Ошибка загрузки: ' + (e.message || 'unknown error'));
+    }
+  }
+
   async function boot(){
     try {
       try {
-        const ss = $('syncState');
+        let ss = $('syncState');
+        // Some Telegram WebViews hide/limit UI; ensure the status element exists and is visible.
+        if (!ss) {
+          try {
+            ss = document.createElement('div');
+            ss.id = 'syncState';
+            ss.style.position = 'fixed';
+            ss.style.left = '10px';
+            ss.style.top = '10px';
+            ss.style.zIndex = '999999';
+            ss.style.fontSize = '11px';
+            ss.style.lineHeight = '1.2';
+            ss.style.padding = '6px 8px';
+            ss.style.borderRadius = '12px';
+            ss.style.background = 'rgba(0,0,0,.35)';
+            ss.style.color = '#fff';
+            ss.style.maxWidth = '92vw';
+            ss.style.whiteSpace = 'nowrap';
+            ss.style.overflow = 'hidden';
+            ss.style.textOverflow = 'ellipsis';
+            document.body && document.body.appendChild(ss);
+          } catch (e0) {}
+        }
+        ss = $('syncState');
         if (ss){ ss.onclick = dbgToggle; ss.style.cursor = 'pointer'; }
       } catch (e0) {}
       try { dbgUpdate(); } catch (e01) {}
@@ -15126,72 +16877,30 @@ button.btn.charCornerBtn:active{filter:none;}
           const cur = String(state.playerName||'').trim();
           if (!cur || cur.toUpperCase() === 'PLAYER') {
             state.playerName = tgSuggestedName();
-            try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e1) {}
+            // Не save()/upsert до get_player — иначе затрём облачный прогресс дефолтами.
           }
         }
       } catch (e0) {}
 
       if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-        let __skipCloudPull = false;
-        try {
-          const tid = myTgUserId();
-          const rk = SAVE_KEY_BASE + '_reset_done' + (tid ? ('_' + String(tid)) : '');
-          const already = localStorage.getItem(rk);
-          if (!already) {
-            try {
-              // Однократный автосброс прогресса этого аккаунта при первом заходе после обновления.
-                  state = JSON.parse(JSON.stringify(defaults));
-              try { state.playerName = tgSuggestedName(); } catch (eName) {}
-              try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (eLoc) {}
-                  try {
-                    const initData = tgInitData();
-                    const statsSum = (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
-                    let photo = '';
-                    try {
-                      const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
-                      photo = (u && u.photo_url) ? String(u.photo_url||'') : '';
-                    } catch (e0) { photo = ''; }
-                await sbFnCall('upsert_player', {
-                      initData,
-                      name: state.playerName,
-                      photo_url: String(photo||'').trim(),
-                      level: state.level,
-                      arena_power: (state.arena && (state.arena.power||0)) || 0,
-                      arena_wins: (state.arena && (state.arena.wins||0)) || 0,
-                      arena_losses: (state.arena && (state.arena.losses||0)) || 0,
-                      stats_sum: statsSum,
-                      boss_wins: (state.bosses && state.bosses.wins) || 0,
-                      referrer_tg_id: '',
-                      state: cloudStateSnapshot(state)
-                    });
-                    __srvLastSent = now();
-              } catch (eCloud) {}
-              try { localStorage.setItem(rk, '1'); } catch (eMark) {}
-              __skipCloudPull = true;
-            } catch (e00) {}
-          }
-        } catch (e6) {}
-
-        if (!__skipCloudPull) {
-          const r = await sbFnCall('get_player', { initData: tgInitData() });
-          const ps = r && r.player && r.player.state;
-          if (ps && typeof ps === 'object') {
-            const localFights = state.bosses && state.bosses.fights && typeof state.bosses.fights === 'object' ? state.bosses.fights : null;
-            const localCloud = state.bosses && state.bosses.cloud && typeof state.bosses.cloud === 'object' ? state.bosses.cloud : null;
-            const localHp = state.bosses && state.bosses.hp && typeof state.bosses.hp === 'object' ? state.bosses.hp : null;
-            const localActiveFightId = state.bosses && typeof state.bosses.activeFightId !== 'undefined' ? state.bosses.activeFightId : null;
-            const localGateKilled = state.districtGateBossKilled && typeof state.districtGateBossKilled === 'object' ? state.districtGateBossKilled : null;
-            const localGateFight = state.districtGateBossFight;
-            state = Object.assign({}, state, ps);
-            ensureGender();
+        const r = await sbFnCall('get_player', { initData: tgInitData() });
+        const ps = r && r.player && r.player.state;
+        if (ps && typeof ps === 'object') {
+          __hydratedFromGetPlayer = true;
+          try { __cloudSaveUnlocked = true; } catch (eU) {}
+          state = Object.assign({}, defaults, ps);
+          ensureGender();
+          // Колонка players.name — источник правды для ника (state JSON может отставать из-за батча upsert).
+          try {
+            const rn = r.player && r.player.name != null ? String(r.player.name).trim().slice(0, 18) : '';
+            if (rn) state.playerName = rn;
+          } catch (eNm) {}
+          try {
             if (state.bosses) {
-              state.bosses.fights = (localFights && Object.keys(localFights).length > 0) ? localFights : {};
-              if (localCloud && Object.keys(localCloud).length > 0) state.bosses.cloud = localCloud; else state.bosses.cloud = {};
-              if (localHp && Object.keys(localHp).length > 0) state.bosses.hp = localHp; else state.bosses.hp = {};
-              if (localActiveFightId != null) state.bosses.activeFightId = localActiveFightId;
+              state.bosses.cloud = {};
+              state.bosses.hp = {};
             }
-            if (localGateKilled && Object.keys(localGateKilled).length > 0) state.districtGateBossKilled = localGateKilled;
-            if (localGateFight) state.districtGateBossFight = localGateFight;
+          } catch (eBoss) {}
           try {
             const cur = String(state.playerName||'').trim();
             if (!cur || cur.toUpperCase() === 'PLAYER') {
@@ -15214,8 +16923,24 @@ button.btn.charCornerBtn:active{filter:none;}
             if (typeof state.bosses.shopQty !== 'number') state.bosses.shopQty = 1;
             if (typeof state.bosses.hitUseQty !== 'number') state.bosses.hitUseQty = 1;
           } catch (e0) {}
-          try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e) {}
+          try { if (state && state._voluntaryProgressResetV1) delete state._voluntaryProgressResetV1; } catch (eM) {}
           try { $('syncState').textContent = 'СЕЙВ: CLOUD'; $('syncState').style.opacity = '.85'; } catch (e2) {}
+          // Создаем локальную резервную копию после успешной загрузки из облака
+          try { createLocalBackup(); } catch (e3) {}
+        } else {
+          // Если облако пустое, пробуем восстановиться из локальной резервной копии
+          try {
+            const localBackup = restoreFromLocalBackup();
+            if (localBackup) {
+              console.log('Using local backup as fallback');
+              state = Object.assign({}, defaults, localBackup);
+              ensureGender();
+              __hydratedFromGetPlayer = true;
+              try { __cloudSaveUnlocked = true; } catch (eU) {}
+              try { $('syncState').textContent = 'СЕЙВ: LOCAL'; $('syncState').style.opacity = '.85'; } catch (e2) {}
+            }
+          } catch (eBackup) {
+            console.warn('Local backup restore failed:', eBackup);
           }
         }
 
@@ -15230,15 +16955,11 @@ button.btn.charCornerBtn:active{filter:none;}
       const referrerTgId = refMatch ? String(refMatch[1]).trim() : '';
       const myId = myTgUserId();
       if (referrerTgId && myId && referrerTgId !== myId && SUPABASE_URL && SUPABASE_ANON_KEY) {
-        const refSentKey = SAVE_KEY_BASE + '_ref_sent_' + referrerTgId;
-        if (!localStorage.getItem(refSentKey)) {
-          try {
-            await sbFnCall('referral_accept', { initData: tgInitData(), referrer_tg_id: referrerTgId });
-            try { localStorage.setItem(refSentKey, '1'); } catch (e1) {}
-            state._refTgId = referrerTgId;
-            try { localStorage.setItem(saveKey(), JSON.stringify(state)); } catch (e2) {}
-          } catch (e0) {}
-        }
+        try {
+          await sbFnCall('referral_accept', { initData: tgInitData(), referrer_tg_id: referrerTgId });
+          state._refTgId = referrerTgId;
+          try { save(); } catch (e2) {}
+        } catch (e0) {}
       }
     } catch (eRef) {}
 
@@ -15246,14 +16967,14 @@ button.btn.charCornerBtn:active{filter:none;}
       var fullRestartBtn = $('adminFullRestartBtn');
       if (fullRestartBtn) {
         fullRestartBtn.onclick = async function(){
-          if (!confirm('Полный рестарт игры? Будут удалены ВСЕ игроки, кланы и прогресс, а также локальные данные на устройстве. Каждый зайдёт как в первый раз.')) return;
+          if (!confirm('Полный рестарт игры? Будут удалены ВСЕ игроки, кланы и прогресс в облаке. Каждый зайдёт как в первый раз.')) return;
           try {
             var r = await sbFnCall('admin_full_restart', { initData: tgInitData() });
             if (r && r.ok) {
-              toast('Полный рестарт выполнен. Мир и локальные данные очищены.','win');
+              toast('Полный рестарт выполнен. Данные в облаке очищены.','win');
               try {
                 if (typeof localStorage !== 'undefined' && localStorage) localStorage.clear();
-        Ф      } catch (e1) {}
+              } catch (e1) {}
               try { location.reload(); } catch (e2) {}
             } else {
               toast(r && r.error ? r.error : 'Ошибка рестарта','lose');
@@ -15267,9 +16988,40 @@ button.btn.charCornerBtn:active{filter:none;}
     } catch (eFR) {}
     try { bossHelpPollStart(); } catch (e0) {}
     init();
+    // Pull boss fights and restore activeFightId if needed
+    try {
+      await bossFightsCloudPull();
+      // Restore activeFightId from cloud if missing/expired and fight still active
+      if (!state.bosses.activeFightId || !bfHasActiveFight(state.bosses.activeFightId)) {
+        try {
+          const cloud = state.bosses && state.bosses.cloud ? state.bosses.cloud : {};
+          const nowMs = now();
+          for (const k of Object.keys(cloud)) {
+            const v = cloud[k];
+            if (!v || typeof v !== 'object') continue;
+            const bid = parseInt(k, 10);
+            if (!bid || bid < 1 || bid > 12) continue;
+            const hp = parseInt(v.hp||0,10)||0;
+            const maxHp = parseInt(v.max_hp||0,10)||0;
+            const expiresAt = v.expires_at ? Date.parse(String(v.expires_at)) : 0;
+            if (hp > 0 && maxHp > 0 && expiresAt > 0 && expiresAt > nowMs) {
+              state.bosses.activeFightId = bid;
+              break;
+            }
+          }
+        } catch (eRestore) {}
+      }
+    } catch (ePull) {}
+
+    // Initial boss cloud hydration on first entry (avoid needing page refresh)
+    try {
+      if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+        setTimeout(()=>{ try { bossFightsCloudPullMaybe(true); } catch (e0) {} }, 350);
+      }
+    } catch (e0) {}
   }
 
-  boot();
+  startLoading();
 })();
 </script>
 </body>
