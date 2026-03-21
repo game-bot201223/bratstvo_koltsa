@@ -11658,6 +11658,16 @@ button.btn.charCornerBtn:active{filter:none;}
       return;
     }
 
+    // Re-derive freeUsed from persisted state for this fight attempt (survives refresh/F5).
+    try {
+      const k0 = String(bossId);
+      const rec = state && state.bosses && state.bosses.freeUsed ? state.bosses.freeUsed[k0] : null;
+      const used = !!(rec && typeof rec === 'object' && rec.used);
+      const st0 = rec && typeof rec === 'object' ? (parseInt(rec.startTs||0,10)||0) : 0;
+      const st1 = Math.max(0, parseInt(f.startTs||0,10)||0);
+      if (used && st0 && st1 && Math.abs(st0 - st1) < 1500) f.freeUsed = true;
+    } catch (eFU) {}
+
     // Always hydrate authoritative HP/log/top from server when opening boss fight screen.
     // (Normal bosses only; district bosses are local.)
     try {
@@ -11697,6 +11707,20 @@ button.btn.charCornerBtn:active{filter:none;}
     }
 
     const isDistrict = isDistrictBossId(bossId);
+
+    function bfMiniAvatarHtml(name){
+      try {
+        const nm = String(name||'').trim();
+        const ph = brosPhotoFor(nm);
+        if (ph) {
+          return '<div style="width:22px;height:22px;border-radius:999px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.18);background-image:url(\''+String(ph).replace(/'/g,'%27')+'\');background-size:cover;background-position:center;"></div>';
+        }
+        const ch = nm ? nm.charAt(0).toUpperCase() : '•';
+        return '<div style="width:22px;height:22px;border-radius:999px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;opacity:.85;">'+ch+'</div>';
+      } catch (e) {
+        return '<div style="width:22px;height:22px;border-radius:999px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.18);"></div>';
+      }
+    }
     try {
       const rootBf = $('mBossFight');
       if (rootBf){
@@ -12115,11 +12139,34 @@ button.btn.charCornerBtn:active{filter:none;}
       }
     } catch (eL0) {}
     const playerNameForLog = String(state.playerName||'PLAYER').trim();
+
+    try {
+      const uniq = {};
+      (Array.isArray(logArr) ? logArr : []).forEach(function(e){
+        try {
+          const nm = String(e && e.who || '').trim();
+          if (!nm) return;
+          uniq[nm] = 1;
+        } catch (e0) {}
+      });
+      const names = Object.keys(uniq);
+      const missing = names.filter(function(n){ return !brosPhotoFor(n); });
+      if (missing.length) {
+        if (!window.__bfPhotoPullTs) window.__bfPhotoPullTs = {};
+        const bk = String(bossId);
+        const last = Math.max(0, parseInt(window.__bfPhotoPullTs[bk]||0,10)||0);
+        if (!last || (now() - last) > 2000) {
+          window.__bfPhotoPullTs[bk] = now();
+          brosFetchPhotos(missing).then(function(){ try { bfRender(bossId); } catch (e0) {} });
+        }
+      }
+    } catch (ePh) {}
+
     setHtmlPreserveScroll(log, logArr.length ? logArr.map(e=>{
       const isPlayer = String(e.who||'').trim() === playerNameForLog;
       const rowC = isPlayer ? 'row bfBfPlayerLine' : 'row';
       const badgeC = isPlayer ? 'badge bfBfPlayerBadge' : 'badge';
-      return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">'+String(e.who)+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+String(e.dmg)+'</div></div>';
+      return '<div class="'+rowC+'" style="gap:8px; align-items:center;">'+bfMiniAvatarHtml(e.who)+'<div style="min-width:0; font-size:12px; opacity:.9">'+String(e.who)+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+String(e.dmg)+'</div></div>';
     }).join('') : '');
 
     const top = $('bfTop');
@@ -12143,7 +12190,7 @@ button.btn.charCornerBtn:active{filter:none;}
       const isPlayerTop = String(r.who||'').trim() === playerNameForLog;
       const rowC = isPlayerTop ? 'row bfBfPlayerLine' : 'row';
       const badgeC = isPlayerTop ? 'badge bfBfPlayerBadge' : 'badge';
-      return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+r.who+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+r.dmg+'</div></div>';
+      return '<div class="'+rowC+'" style="gap:8px; align-items:center;">'+bfMiniAvatarHtml(r.who)+'<div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+r.who+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+r.dmg+'</div></div>';
     }).join('') : '');
   }
 
