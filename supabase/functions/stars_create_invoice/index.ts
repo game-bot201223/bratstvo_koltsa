@@ -1,3 +1,5 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-telegram-init-data",
@@ -5,6 +7,7 @@ const corsHeaders: Record<string, string> = {
 }
 
 const PRODUCTS: Record<string, { gold: number; stars: number; name: string }> = {
+  stars_2_1: { gold: 2, stars: 1, name: "2 золотых монеты (тест)" },
   stars_20_10: { gold: 20, stars: 10, name: "20 золотых монет" },
   stars_200_100: { gold: 200, stars: 100, name: "200 золотых монет" },
   stars_500_250: { gold: 500, stars: 250, name: "500 золотых монет" },
@@ -170,3 +173,5 @@ Deno.serve(async (req: Request) => {
     })
   }
 })
+
+export {}
