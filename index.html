@@ -12,6 +12,7 @@
 <meta name="edge-proxy-base" content="" />
 <title>Братство Кольца — Mobile TG Edition</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   // Supabase connection injected into the page globals.
   // Client code reads these values from `window`.
@@ -5973,6 +5974,114 @@ button.btn.charCornerBtn:active{filter:none;}
       try { const t = myTgUserId(); if (t) return 'dev_tg_' + t; } catch (e2) {}
       return 'dev_unknown';
     }
+  }
+  let __sbRealtimeClient = null;
+  let __bfRealtimeChannel = null;
+  let __bfRealtimeOwner = '';
+  let __bfRealtimeState = 'idle';
+  let __bfRealtimeLastEventTs = 0;
+  function sbRealtimeClient(){
+    try {
+      if (__sbRealtimeClient) return __sbRealtimeClient;
+      const g = window && window.supabase ? window.supabase : null;
+      const createClient = g && typeof g.createClient === 'function' ? g.createClient : null;
+      if (!createClient || !SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+      __sbRealtimeClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        realtime: { params: { eventsPerSecond: 20 } },
+        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+      });
+      return __sbRealtimeClient;
+    } catch (e) { return null; }
+  }
+  function bfRealtimeApplyServerFightRow(row){
+    try {
+      if (!row || typeof row !== 'object') return;
+      const bossId = parseInt(row.boss_id || 0, 10) || 0;
+      if (!bossId) return;
+      const hp = Math.max(0, parseInt(row.hp || 0, 10) || 0);
+      const maxHp = Math.max(0, parseInt(row.max_hp || 0, 10) || 0);
+      const expiresAt = row.expires_at ? String(row.expires_at) : '';
+      const startedAt = row.fight_started_at ? String(row.fight_started_at) : '';
+      const rewardClaimed = !!row.reward_claimed;
+      if (!state.bosses) state.bosses = {};
+      if (!state.bosses.cloud) state.bosses.cloud = {};
+      state.bosses.cloud[String(bossId)] = {
+        hp: hp,
+        max_hp: maxHp,
+        expires_at: expiresAt,
+        fight_started_at: startedAt,
+        reward_claimed: rewardClaimed
+      };
+      if (!state.bosses.hp) state.bosses.hp = {};
+      state.bosses.hp[String(bossId)] = hp;
+      let f = null;
+      try { f = bfGetFight(bossId); } catch (e0) { f = null; }
+      if (f) {
+        f.hp = hp;
+        if (maxHp > 0) {
+          f.maxHp = maxHp;
+          f.bossMaxHP = maxHp;
+        }
+        if (expiresAt) f.expiresTs = (new Date(expiresAt)).getTime() || f.expiresTs;
+        if (startedAt) f.startTs = (new Date(startedAt)).getTime() || f.startTs;
+        bfSetFight(bossId, f);
+      }
+      try { state.bosses.cloudPullTs = now(); } catch (e1) {}
+      __bfRealtimeLastEventTs = now();
+      try {
+        const m = $('mBossFight');
+        if (m && m.classList.contains('show') && String(state.bosses.activeFightId||'') === String(bossId)) {
+          bfRender(bossId);
+        } else {
+          const mb = $('mBoss');
+          if (mb && mb.classList.contains('show')) renderBosses();
+        }
+      } catch (e2) {}
+    } catch (e) {}
+  }
+  function bfRealtimeSubscribeOwner(force){
+    try {
+      const ownerTgId = myTgUserId();
+      if (!ownerTgId) return false;
+      if (!force && __bfRealtimeChannel && __bfRealtimeOwner === ownerTgId) return true;
+      bfRealtimeUnsubscribe();
+      const client = sbRealtimeClient();
+      if (!client) return false;
+      const channelName = 'boss-fights-' + ownerTgId;
+      const ch = client.channel(channelName);
+      ch.on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'player_boss_fights',
+        filter: 'owner_tg_id=eq.' + ownerTgId
+      }, function(payload){
+        try {
+          const row = payload && payload.new && typeof payload.new === 'object' && Object.keys(payload.new).length ? payload.new : (payload && payload.old ? payload.old : null);
+          bfRealtimeApplyServerFightRow(row);
+        } catch (e0) {}
+      });
+      ch.subscribe(function(status){
+        try {
+          __bfRealtimeState = String(status || '');
+          if (status === 'SUBSCRIBED') {
+            __bfRealtimeLastEventTs = now();
+          }
+        } catch (e0) {}
+      });
+      __bfRealtimeChannel = ch;
+      __bfRealtimeOwner = ownerTgId;
+      return true;
+    } catch (e) { return false; }
+  }
+  function bfRealtimeUnsubscribe(){
+    try {
+      const client = __sbRealtimeClient;
+      const ch = __bfRealtimeChannel;
+      __bfRealtimeChannel = null;
+      __bfRealtimeOwner = '';
+      __bfRealtimeState = 'idle';
+      if (client && ch) client.removeChannel(ch).catch(function(){});
+    } catch (e) {}
   }
   function isAdmin(){
     if (!ADMIN_TG_ID) return false;
@@ -12373,7 +12482,7 @@ button.btn.charCornerBtn:active{filter:none;}
   let __bfRealtimeRaf = 0;
   let __bfRealtimeRun = false;
   let __bfHelpPullTs = 0;
-const BF_HELP_PULL_EVERY_MS = 500;
+const BF_HELP_PULL_EVERY_MS = 3000;
   function bfRealtimeRenderLocal(){
     try {
       const m = $('mBossFight');
@@ -12464,9 +12573,12 @@ const BF_HELP_PULL_EVERY_MS = 500;
       // Near-realtime help pull while fight UI is open.
       try {
         const tNow = now();
-        if (!__bfHelpPullTs || (tNow - __bfHelpPullTs) >= BF_HELP_PULL_EVERY_MS) {
+        const needFallbackPull = !__bfRealtimeChannel || (__bfRealtimeState !== 'SUBSCRIBED' && (__bfRealtimeState !== 'CHANNEL_ERROR'));
+        const staleRealtime = !!(__bfRealtimeChannel && __bfRealtimeState === 'SUBSCRIBED' && __bfRealtimeLastEventTs && (tNow - __bfRealtimeLastEventTs) >= 15000);
+        if ((needFallbackPull || staleRealtime) && (!__bfHelpPullTs || (tNow - __bfHelpPullTs) >= BF_HELP_PULL_EVERY_MS)) {
           __bfHelpPullTs = tNow;
           bossHelpPullOnce().catch(()=>{});
+          try { bossFightsCloudPullMaybe(true); } catch (e10) {}
         }
       } catch (e9) {}
     } catch (e) {}
@@ -12476,11 +12588,17 @@ const BF_HELP_PULL_EVERY_MS = 500;
       if (__bfRealtimeRun) return;
       __bfRealtimeRun = true;
       try { __bfHelpPullTs = 0; } catch (eR) {}
+      try { bfRealtimeSubscribeOwner(false); } catch (eS) {}
       try { bossHelpPullOnce().catch(()=>{}); } catch (eP) {}
       try { bfRealtimeRenderLocal(); } catch (e0) {}
       const tLoop = ()=>{
         try {
           if (!__bfRealtimeRun) return;
+          try {
+            if ((!__bfRealtimeChannel || __bfRealtimeState === 'CHANNEL_ERROR' || __bfRealtimeState === 'TIMED_OUT' || __bfRealtimeState === 'CLOSED') && myTgUserId()) {
+              bfRealtimeSubscribeOwner(true);
+            }
+          } catch (eRt) {}
           try { bfRealtimeRenderLocal(); } catch (e1) {}
           __bfRealtimeT = setTimeout(tLoop, 1);
         } catch (e2) {}
@@ -12501,6 +12619,7 @@ const BF_HELP_PULL_EVERY_MS = 500;
     try { if (__bfRealtimeT) { clearTimeout(__bfRealtimeT); __bfRealtimeT = 0; } } catch (e1) {}
     try { if (__bfRealtimeRaf) { cancelAnimationFrame(__bfRealtimeRaf); __bfRealtimeRaf = 0; } } catch (e2) {}
     try { __bfHelpPullTs = 0; } catch (e3) {}
+    try { bfRealtimeUnsubscribe(); } catch (e4) {}
   }
 
   function bfShopRender(){
