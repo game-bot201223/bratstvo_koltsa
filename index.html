@@ -6623,11 +6623,29 @@ button.btn.charCornerBtn:active{filter:none;}
     try {
       const userData = parseInitData(initData);
       if (!userData || !userData.id) throw new Error('Invalid initData');
+      const s0 = (state && typeof state === 'object') ? state : {};
+      const statsSum = (function(){
+        try {
+          if (typeof GYM_STATS !== 'undefined' && Array.isArray(GYM_STATS) && typeof gfEffStat === 'function') {
+            return GYM_STATS.reduce((a,s)=> a + (gfEffStat(s.key)||0), 0);
+          }
+          return (typeof clanStatsSum==='function') ? clanStatsSum() : 0;
+        } catch (e0) {
+          try { return (typeof clanStatsSum==='function') ? clanStatsSum() : 0; } catch (e1) { return 0; }
+        }
+      })();
+      const playerName = String(s0.playerName != null ? s0.playerName : (userData.first_name || 'Player')).trim().slice(0,18) || 'Player';
       const result = await sbFnCall('upsert_player', {
         initData: initData,
         tg_id: userData.id,
-        name: userData.first_name || 'Player',
-        state: state,
+        name: playerName,
+        level: parseInt(s0.level != null ? s0.level : 1, 10) || 1,
+        arena_power: (s0.arena && (s0.arena.power||0)) || 0,
+        arena_wins: (s0.arena && (s0.arena.wins||0)) || 0,
+        arena_losses: (s0.arena && (s0.arena.losses||0)) || 0,
+        stats_sum: Math.max(0, parseInt(statsSum||0,10)||0),
+        boss_wins: (s0.bosses && s0.bosses.wins) || 0,
+        state: s0,
         updated_at: new Date().toISOString()
       });
       return {
