@@ -1295,28 +1295,27 @@ button.btn.charCornerBtn:active{filter:none;}
 .bossRightCol{min-width:0;flex:1;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
 .bossRowBelow{display:flex;flex-direction:column;gap:8px;}
 .bossRowBelow .bossReward{margin-top:0;}
-.bossMiniWrap{position:relative;width:160px;height:160px;flex-shrink:0;}
-.bossMini{width:160px;height:160px;border-radius:20px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:110% auto;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:60px;}
-.bossMini.bossMiniContain{background-size:contain;background-position:center center;background-color:rgba(255,255,255,.18);}
-.bossWinnerAva{position:absolute;right:-10px;bottom:10px;width:44px;height:44px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:rgba(45,30,18,.28);object-fit:cover;}
-.bossName{font-weight:900;letter-spacing:2px;line-height:1.15;}
-.bossSub{font-size:11px;opacity:.75;margin-top:4px;}
-.bossReward{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-.bossInfo{min-width:0;}
-.bossMedalsRow{margin-top:8px;display:flex;flex-direction:row;flex-wrap:nowrap;gap:0;align-items:center;}
-.bossMedal{width:30px;height:30px;border-radius:50%;flex-shrink:0;overflow:hidden;border:1px solid rgba(0,0,0,.25);}
-.bossMedal img{width:100%;height:100%;object-fit:cover;}
-.bossMedalBronze{background:linear-gradient(145deg,#cd7f32,#8b5a2b);}
-.bossMedalSilver{background:linear-gradient(145deg,#c0c0c0,#808080);}
-.bossMedalGold{background:linear-gradient(145deg,#ffd700,#b8860b);}
-.bossMedalPurple{background:linear-gradient(145deg,#9b59b6,#6c3483);}
-.bossMedalMythic{background:linear-gradient(145deg,#e8d5b7,#c9a227);box-shadow:0 0 10px rgba(201,162,39,.5);}
-.bossMedal.bossMedalLocked{opacity:.45;filter:grayscale(0.85);}
-.bossActionsWrap{width:300px;margin-top:0;display:flex;flex-direction:column;gap:6px;}
-.bossActionsWrap .bossAtkBtn{width:50%;box-sizing:border-box;}
-.bossActionsWrap .bossMedalsRow{margin-top:0;}
-.bossWinsCount{font-size:10px;opacity:.8;margin-top:4px;}
-.bossWinnerTop{font-size:11px;letter-spacing:1px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+ .bossMiniWrap{position:relative;width:160px;height:160px;flex-shrink:0;}
+ .bossMini{width:160px;height:160px;border-radius:20px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:110% auto;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:60px;}
+ .bossMini.bossMiniContain{background-size:contain;background-position:center center;background-color:rgba(255,255,255,.18);}
+ .bossReqMiniIcon{display:inline-flex;align-items:center;justify-content:center;width:10px;height:10px;overflow:hidden;vertical-align:-1px;flex:0 0 10px;}
+ .bossReqMiniIcon img{display:block;width:10px;height:10px;object-fit:cover;transform:scale(1.25);}
+ .bossWinnerAva{position:absolute;right:-10px;bottom:10px;width:44px;height:44px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:rgba(45,30,18,.28);object-fit:cover;}
+ .bossName{font-weight:900;letter-spacing:2px;line-height:1.15;}
+ .bossSub{font-size:11px;opacity:.75;margin-top:4px;}
+ .bossMedal{width:30px;height:30px;border-radius:50%;flex-shrink:0;overflow:hidden;border:1px solid rgba(0,0,0,.25);}
+ .bossMedal img{width:100%;height:100%;object-fit:cover;}
+ .bossMedalBronze{background:linear-gradient(145deg,#cd7f32,#8b5a2b);}
+ .bossMedalSilver{background:linear-gradient(145deg,#c0c0c0,#808080);}
+ .bossMedalGold{background:linear-gradient(145deg,#ffd700,#b8860b);}
+ .bossMedalPurple{background:linear-gradient(145deg,#9b59b6,#6c3483);}
+ .bossMedalMythic{background:linear-gradient(145deg,#e8d5b7,#c9a227);box-shadow:0 0 10px rgba(201,162,39,.5);}
+ .bossMedal.bossMedalLocked{opacity:.45;filter:grayscale(0.85);}
+ .bossActionsWrap{width:300px;margin-top:0;display:flex;flex-direction:column;gap:6px;}
+ .bossActionsWrap .bossAtkBtn{width:50%;box-sizing:border-box;}
+ .bossActionsWrap .bossMedalsRow{margin-top:0;}
+ .bossWinsCount{font-size:10px;opacity:.8;margin-top:4px;}
+ .bossWinnerTop{font-size:11px;letter-spacing:1px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
  .bossWinnerNm{font-size:12px;letter-spacing:1px;opacity:.9;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
 
  .districtStack{margin-top:8px;display:flex;flex-direction:column;gap:10px;}
@@ -11543,7 +11542,7 @@ button.btn.charCornerBtn:active{filter:none;}
 
   // --- Bosses (simple)
   const BOSS_KEY_CHAIN = [
-    { key:'pass', name:'Пропуск', emoji:'🟥', price: 10 },
+    { key:'ring', name:'Кольцо', emoji:'💍', price: 10 },
     { key:'key', name:'Ключ', emoji:'🟨', price: 20 },
     { key:'sigil', name:'Печать', emoji:'🟧', price: 35 },
     { key:'gem', name:'Камень', emoji:'🟩', price: 55 },
@@ -11554,6 +11553,20 @@ button.btn.charCornerBtn:active{filter:none;}
     { key:'hour', name:'Песок', emoji:'⬜', price: 260 },
     { key:'star', name:'Звезда', emoji:'🔴', price: 340 }
   ];
+
+  const BOSS_REQ_RING_IMAGES = {
+    2: '2г.png',
+    3: '3л.png',
+    4: '4т.png',
+    5: '5ф.png',
+    6: '6па.png',
+    7: '7б.png',
+    8: '8с.png',
+    9: '9д.png',
+    10: '10пе.png',
+    11: '11э.png',
+    12: '12б.png'
+  };
 
   function bossReq(id){
     if (id<=1) return null;
@@ -11572,13 +11585,55 @@ button.btn.charCornerBtn:active{filter:none;}
     };
     const price = passPriceByBossId[id];
     if (typeof price !== 'number') return null;
-    return { itemKey: 'pass'+id, itemName: 'Пропуск (босс '+id+')', emoji: '🎟️', need: 3, price: price };
+    return { bossId: id, itemKey: 'ring'+id, itemName: 'Кольцо', need: 3, price: price, img: BOSS_REQ_RING_IMAGES[id] || '' };
+  }
+
+  function bossReqIconHtml(req){
+    try {
+      if (req && req.img) return '<span class="bossReqMiniIcon"><img src="'+String(req.img).replace(/"/g,'&quot;')+'" alt=""></span>';
+    } catch (e) {}
+    return '<span class="bossReqMiniIcon">💍</span>';
   }
 
   function bossRingStrikePrice(bossId){
     const id = parseInt(bossId||0,10)||0;
     if (id<=0) return 0;
     return id * 10;
+  }
+  function bossAccessRingCount(bossId){
+    const id = parseInt(bossId||0,10)||0;
+    if (id<=1) return 0;
+    const ringKey = 'ring'+id;
+    const legacyKey = 'pass'+id;
+    const ringV = parseInt(state.bosses.keys[String(ringKey)]||0,10);
+    const legacyV = parseInt(state.bosses.keys[String(legacyKey)]||0,10);
+    return (isNaN(ringV) || ringV < 0 ? 0 : ringV) + (isNaN(legacyV) || legacyV < 0 ? 0 : legacyV);
+  }
+  function bossAccessRingAdd(bossId, n){
+    const id = parseInt(bossId||0,10)||0;
+    if (id<=1) return;
+    const ringKey = 'ring'+id;
+    state.bosses.keys[String(ringKey)] = bossAccessRingCount(id) + (parseInt(n||0,10)||0);
+    try { delete state.bosses.keys['pass'+id]; } catch (e) {}
+  }
+  function bossAccessRingSpend(bossId, n){
+    const id = parseInt(bossId||0,10)||0;
+    let left = Math.max(0, parseInt(n||0,10)||0);
+    if (id<=1 || !left) return;
+    const legacyKey = 'pass'+id;
+    const ringKey = 'ring'+id;
+    const legacyHave = Math.max(0, parseInt(state.bosses.keys[String(legacyKey)]||0,10)||0);
+    const useLegacy = Math.min(left, legacyHave);
+    if (useLegacy > 0) {
+      state.bosses.keys[String(legacyKey)] = Math.max(0, legacyHave - useLegacy);
+      left -= useLegacy;
+    }
+    const ringHave = Math.max(0, parseInt(state.bosses.keys[String(ringKey)]||0,10)||0);
+    const useRing = Math.min(left, ringHave);
+    if (useRing > 0) {
+      state.bosses.keys[String(ringKey)] = Math.max(0, ringHave - useRing);
+      left -= useRing;
+    }
   }
   function bossKeyCount(itemKey){
     const v = parseInt(state.bosses.keys[String(itemKey)]||0,10);
@@ -11654,7 +11709,7 @@ button.btn.charCornerBtn:active{filter:none;}
   function bossHasAccess(id){
     const req = bossReq(id);
     if (!req) return true;
-    return bossKeyCount(req.itemKey) >= req.need;
+    return bossAccessRingCount(id) >= req.need;
   }
 
   function bfGetFight(id){
@@ -12894,8 +12949,8 @@ const BF_HELP_PULL_EVERY_MS = 3000;
               try {
                 const nextReq = bossReq(bossId+1);
                 if (nextReq){
-                  bossKeyAdd(nextReq.itemKey, 1);
-                  feedAdd('Добыто: 1× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS');
+                  bossAccessRingAdd(bossId+1, 1);
+                  feedAdd('Добыто: 1× '+nextReq.itemName, 'BOSS');
                 }
               } catch (e5) {}
 
@@ -13149,10 +13204,8 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       try {
         const nextReq = bossReq(id+1);
         if (nextReq){
-          // Grant only 1 skip/key towards the next boss (not the full requirement).
-          bossKeyAdd(nextReq.itemKey, 1);
-          // feedAdd is best-effort; if it's not defined in this scope it won't break.
-          try { feedAdd('Добыто: '+nextReq.need+'× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS'); } catch (_eFeed) {}
+          bossAccessRingAdd(id+1, 1);
+          try { feedAdd('Добыто: 1× '+nextReq.itemName, 'BOSS'); } catch (_eFeed) {}
         }
       } catch (_eNext) {}
 
@@ -13227,16 +13280,16 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     let accessText = 'БЕСПЛАТНО';
     let canGo = true;
     if (req){
-      const have = bossKeyCount(req.itemKey);
-      accessText = req.emoji+' '+req.itemName+': '+have+' / '+req.need;
+      const have = bossAccessRingCount(selectedId);
+      accessText = bossReqIconHtml(req)+' Кольца: '+have+' / '+req.need;
       canGo = have >= req.need;
     }
-    $('baAccess').textContent = accessText;
+    $('baAccess').innerHTML = accessText;
     const goBtn = $('baGo');
     const ringBtn = $('baBuyRing');
     const leftDaily = bossDailyLeft(selectedId);
     const canByDaily = leftDaily > 0;
-    $('baAccess').textContent = accessText + ' · Бои сегодня: ' + (10-leftDaily) + '/10';
+    $('baAccess').innerHTML = accessText + ' · Бои сегодня: ' + (10-leftDaily) + '/10';
     goBtn.disabled = (!canGo);
     goBtn.style.opacity = (canGo) ? '1' : '.6';
 
@@ -13253,15 +13306,10 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         if (priceR2<=0) return;
         if ((parseInt(state.rings||0,10)||0) < priceR2){ toast('Нужно '+priceR2+' 💍','lose'); return; }
 
-        // validate boss access but IGNORE daily limit (оплата кольцами — лимит уже достигнут)
         if (!id) return;
-        if (!bossHasAccess(id)) { toast('Не хватает ключей','lose'); return; }
+        if (!bossHasAccess(id)) { toast('Не хватает колец','lose'); return; }
 
-        // При оплате козырными кольцами теперь тоже списываем пропуски (как при обычном старте боя).
-
-        // HARD MODE: only apply local spend if server accepted the fight start
         if (SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
-          // Before start: drop stale local fight/log/top to avoid phantom entries after refresh.
           try {
             if (state.bosses && state.bosses.fights && state.bosses.fights[String(id)]) delete state.bosses.fights[String(id)];
             if (state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)]) delete state.bosses.cloud[String(id)];
@@ -13318,9 +13366,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
             try {
               const rr = bossReq(id);
               if (rr){
-                if (!state.bosses.keys || typeof state.bosses.keys !== 'object') state.bosses.keys = {};
-                const have = bossKeyCount(rr.itemKey);
-                state.bosses.keys[String(rr.itemKey)] = Math.max(0, have - rr.need);
+                bossAccessRingSpend(id, rr.need);
               }
             } catch (e1) {}
 
@@ -13346,9 +13392,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         try {
           const rr = bossReq(id);
           if (rr){
-            if (!state.bosses.keys || typeof state.bosses.keys !== 'object') state.bosses.keys = {};
-            const have = bossKeyCount(rr.itemKey);
-            state.bosses.keys[String(rr.itemKey)] = Math.max(0, have - rr.need);
+            bossAccessRingSpend(id, rr.need);
           }
         } catch (e1) {}
 
@@ -13378,25 +13422,25 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       if (bb.id<=1) return;
       const r = bossReq(bb.id);
       if (!r) return;
-      const have = bossKeyCount(r.itemKey);
+      const have = bossAccessRingCount(bb.id);
       const price = r.price;
       html += '<div class="row" style="align-items:flex-start">'
         + '<div style="min-width:0">'
         + '<div class="k">БОСС '+(bb.name || ('#'+bb.id))+'</div>'
-        + '<div style="margin-top:4px; font-size:12px; opacity:.8; line-height:1.25">'+r.emoji+' '+r.itemName+': <b style="letter-spacing:1px">'+have+'</b> / '+r.need+'<br>Цена за 1: <span style="color:#000; font-weight:900">'+price+' <img src="голд.png" alt="Золотые монеты" class="goldIcon"></span></div>'
+        + '<div style="margin-top:4px; font-size:12px; opacity:.8; line-height:1.25">'+bossReqIconHtml(r)+' Кольца: <b style="letter-spacing:1px">'+have+'</b> / '+r.need+'<br>Цена за 1: <span style="color:#000; font-weight:900">'+price+' <img src="голд.png" alt="Золотые монеты" class="goldIcon"></span></div>'
         + '</div>'
-        + '<button class="btn btnSmall" data-key-buy="'+r.itemKey+'" data-key-price="'+price+'">КУПИТЬ</button>'
+        + '<button class="btn btnSmall" data-ring-buy="'+bb.id+'" data-ring-price="'+price+'">КУПИТЬ</button>'
         + '</div>';
     });
     table.innerHTML = html;
 
-    table.querySelectorAll('[data-key-buy]').forEach(btn=>{
+    table.querySelectorAll('[data-ring-buy]').forEach(btn=>{
       btn.onclick = ()=>{
-        const k = btn.getAttribute('data-key-buy');
-        const price = parseInt(btn.getAttribute('data-key-price')||'0',10)||0;
+        const id = parseInt(btn.getAttribute('data-ring-buy')||'0',10)||0;
+        const price = parseInt(btn.getAttribute('data-ring-price')||'0',10)||0;
         if ((state.gold||0) < price){ toast('Нужно '+price+' золотых монет '+TOAST_GOLD_IMG,'lose'); return; }
         state.gold -= price;
-        bossKeyAdd(k, 1);
+        bossAccessRingAdd(id, 1);
         toast('+1','win');
         save();
         renderBossAttackModal(state.bosses.pendingAttackId||selectedId);
@@ -13513,9 +13557,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       bossDailyInc(id);
       const rr = bossReq(id);
       if (rr){
-        if (!state.bosses.keys || typeof state.bosses.keys !== 'object') state.bosses.keys = {};
-        const have = bossKeyCount(rr.itemKey);
-        state.bosses.keys[String(rr.itemKey)] = Math.max(0, have - rr.need);
+        bossAccessRingSpend(id, rr.need);
       }
       state.bosses.activeFightId = id;
       window.__skipBossFightGuard = true;
@@ -13817,7 +13859,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         : ((lwLocal && lwLocal.photo) ? String(lwLocal.photo) : '');
       const locked = !bossHasAccess(b.id);
       const req = bossReq(b.id);
-      const lockText = locked && req ? (' · '+req.emoji+' '+bossKeyCount(req.itemKey)+'/'+req.need) : '';
+      const lockText = locked && req ? (' · Кольца '+bossAccessRingCount(b.id)+'/'+req.need) : '';
       const rxp = parseInt(b.reward && b.reward.xp || 0, 10) || 0;
       const rm = parseInt(b.reward && b.reward.tooth || 0, 10) || 0;
       const rg = parseInt(b.reward && b.reward.gold || 0, 10) || 0;
@@ -14011,9 +14053,8 @@ const BF_HELP_PULL_EVERY_MS = 3000;
             try {
               const nextReq = bossReq(id+1);
               if (nextReq){
-                // Grant only 1 skip/key towards the next boss (not the full requirement).
-                bossKeyAdd(nextReq.itemKey, 1);
-                feedAdd('Добыто: '+nextReq.need+'× '+nextReq.emoji+' '+nextReq.itemName, 'BOSS');
+                bossAccessRingAdd(id+1, 1);
+                feedAdd('Добыто: 1× '+nextReq.itemName, 'BOSS');
               }
             } catch (e5) {}
 
