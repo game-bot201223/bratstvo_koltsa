@@ -1173,10 +1173,17 @@ button.btn.charCornerBtn:active{filter:none;}
 .diceGrid{
   margin-top:14px;
   display:grid;
-  grid-template-columns:repeat(5,minmax(0,1fr));
-  gap:4px; /* минимальный отступ между кубиками */
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  width:100%;
   justify-items:center;
 }
+.diceGrid .dice:nth-child(1){grid-column:1 / span 1; grid-row:1;}
+.diceGrid .dice:nth-child(2){grid-column:2 / span 1; grid-row:1;}
+.diceGrid .dice:nth-child(3){grid-column:1 / span 1; grid-row:2;}
+.diceGrid .dice:nth-child(4){grid-column:2 / span 1; grid-row:2;}
+.diceGrid .dice:nth-child(5){grid-column:3 / span 1; grid-row:2;}
+.diceGrid .dice:nth-child(1), .diceGrid .dice:nth-child(2){justify-self:center;}
 .dice{
   width:100%;
   max-width:50px; /* 50x50, чтобы 5 штук влезали по ширине */
@@ -13857,7 +13864,7 @@ const BF_HELP_PULL_EVERY_MS = 500;
       state.tooth += baseTooth;
       try { logCurrency('tooth', baseTooth, 'Кости'); } catch (e0) {}
     } else {
-      if (was5x) { state.gold += 20 * mult; try { logCurrency('gold', 20 * mult, 'Кости'); } catch (e0) {} }
+      if (was5x && mult === 1) { state.gold += 20; try { logCurrency('gold', 20, 'Кости'); } catch (e0) {} }
       if (face===1){
         const ringsGain = 15 * mult;
         state.rings = (parseInt(state.rings||0,10)||0) + ringsGain;
@@ -13889,7 +13896,7 @@ const BF_HELP_PULL_EVERY_MS = 500;
         state.tooth += baseTooth;
         try { logCurrency('tooth', baseTooth, 'Кости'); } catch (e0) {}
       }
-      if (was5x) rewardText = rewardText + ' +' + (20*mult) + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
+      if (was5x && mult === 1) rewardText = rewardText + ' +20 <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
     }
 
     try { $('diceRewardVal').innerHTML = rewardText; } catch (e) {}
