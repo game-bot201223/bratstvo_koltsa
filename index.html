@@ -9,14 +9,14 @@
 <!-- Ссылка на группу в Telegram (например https://t.me/bratstvo_koltsa_group) -->
 <meta name="telegram-group-url" content="https://t.me/+fHMBRFCqk39lYjJi" />
 <!-- VPS proxy base for edge calls (used for all non-player features) -->
-<meta name="edge-proxy-base" content="https://bratstvokoltsa.duckdns.org" />
+<meta name="edge-proxy-base" content="" />
 <title>Братство Кольца — Mobile TG Edition</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
   // Supabase connection injected into the page globals.
   // Client code reads these values from `window`.
-  window.SUPABASE_URL = 'https://mfteolyzqmqvyehqcpnh.supabase.co';
-  window.SUPABASE_ANON_KEY = 'sb_publishable_Axay8Agr6mHo3UlZl79QFw_RaMrb_Pp';
+  window.SUPABASE_URL = 'https://naotcupjxlyczignutxp.supabase.co';
+  window.SUPABASE_ANON_KEY = 'sb_publishable_Yop_FLuJxNatnuxz8kO4VQ_MHMG7gzP';
 </script>
  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&display=swap" rel="stylesheet">
  <style>
@@ -5791,7 +5791,7 @@ button.btn.charCornerBtn:active{filter:none;}
   // New setup: on Supabase there are ONLY DB tables (no Edge Functions).
   // We keep gameplay working by talking directly to PostgREST (`/rest/v1/players`)
   // for player save/load.
-  const CLOUD_PLAYERS_ONLY = true;
+  const CLOUD_PLAYERS_ONLY = false;
   const PLAYERS_TABLE = 'players';
   const TELEGRAM_GROUP_LINK = (function(){ var m=document.querySelector('meta[name="telegram-group-url"]'); if(m&&m.content&&String(m.content).trim()) return String(m.content).trim(); return (window && window.TELEGRAM_GROUP_URL) ? String(window.TELEGRAM_GROUP_URL||'').trim() : ''; })();
   const ADMIN_TG_ID = (function(){ var m=document.querySelector('meta[name="admin-tg-id"]'); if(m&&m.content&&String(m.content).trim()) return String(m.content).trim(); return (window && window.ADMIN_TG_ID) ? String(window.ADMIN_TG_ID||'').trim() : ''; })();

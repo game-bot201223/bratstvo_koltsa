@@ -140,7 +140,7 @@ Deno.serve(async (req: Request) => {
 
   const botToken = getEnv("TELEGRAM_BOT_TOKEN") || getEnv("BOT_TOKEN")
   const webhookSecret = getEnv("TELEGRAM_WEBHOOK_SECRET") || getEnv("WEBHOOK_SECRET_TOKEN")
-  const webappUrl = getEnv("WEBAPP_URL") || "https://bratstvo-koltsa.vercel.app"
+  const webappUrl = getEnv("WEBAPP_URL") || "https://game-bot201223.github.io/bratstvo_koltsa/"
   const projectUrl = getEnv("PROJECT_URL")
   const serviceKey = getEnv("SERVICE_ROLE_KEY")
 
