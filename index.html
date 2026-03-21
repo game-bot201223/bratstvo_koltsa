@@ -1299,7 +1299,11 @@ button.btn.charCornerBtn:active{filter:none;}
 .bossMiniWrap{position:relative;width:min(136px,34vw);height:min(136px,34vw);max-width:136px;max-height:136px;flex-shrink:0;box-sizing:border-box;}
 .bossMini{width:100%;height:100%;border-radius:18px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:110% auto;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:52px;box-sizing:border-box;}
 .bossMini.bossMiniContain{background-size:contain;background-position:center center;background-color:rgba(255,255,255,.18);}
-.bossReqMiniIcon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;overflow:hidden;vertical-align:-4px;flex:0 0 20px;}
+ .ringMiniIcon{display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;overflow:hidden;vertical-align:-5px;flex:0 0 23px;border-radius:999px;}
+ .ringMiniIcon img{display:block;width:23px;height:23px;object-fit:cover;border-radius:999px;}
+ .ringMiniIconLg{width:30px;height:30px;flex-basis:30px;vertical-align:-6px;}
+ .ringMiniIconLg img{width:30px;height:30px;}
+.bossReqMiniIcon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;overflow:hidden;vertical-align:-4px;flex:0 0 20px;border-radius:999px;}
 .bossReqMiniIcon img{display:block;width:20px;height:20px;object-fit:cover;transform:scale(1.25);border-radius:999px;}
 .bossWinnerAva{position:absolute;right:-10px;bottom:10px;width:44px;height:44px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:rgba(45,30,18,.28);object-fit:cover;}
 .bossName{font-weight:900;letter-spacing:2px;line-height:1.15;}
@@ -1320,10 +1324,6 @@ button.btn.charCornerBtn:active{filter:none;}
 .bossWinnerTop{font-size:11px;letter-spacing:1px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .bossWinnerNm{font-size:12px;letter-spacing:1px;opacity:.9;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
 
- .ringMiniIcon{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;overflow:hidden;vertical-align:-3px;flex:0 0 15px;border-radius:999px;}
- .ringMiniIcon img{display:block;width:15px;height:15px;object-fit:cover;border-radius:999px;}
- .ringMiniIconLg{width:20px;height:20px;flex-basis:20px;vertical-align:-4px;}
- .ringMiniIconLg img{width:20px;height:20px;}
  .bossCurrencyBtnImg{display:block;width:100%;height:100%;object-fit:cover;border-radius:999px;}
  .bossCurrencyBadge{display:inline-flex;align-items:center;gap:6px;}
 
@@ -1339,8 +1339,8 @@ button.btn.charCornerBtn:active{filter:none;}
  #mBoss .bossWinnerNm{max-width:100%;}
  #mBoss .bossNameWrap,#mBoss .bossRowBelow,#mBoss .bossActionsWrap{width:100%;max-width:100%;min-width:0;box-sizing:border-box;}
 
- #mBossAttack .sheet{width:min(100%,var(--appCol));max-width:var(--appCol);box-sizing:border-box;overflow:hidden;}
- #mBossAttack .sheetBody{overflow-x:hidden;}
+ #mBossAttack .sheet{border-radius:0;border:none;box-sizing:border-box;overflow:hidden;}
+ #mBossAttack .sheetBody{overflow-x:hidden;display:block;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
  #mBossAttack .card{width:100%;max-width:100%;box-sizing:border-box;overflow:hidden;}
  #baAccess{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;max-width:100%;line-height:1.3;overflow-wrap:anywhere;word-break:break-word;}
  #baTable{width:100%;max-width:100%;min-width:0;overflow:hidden;}
