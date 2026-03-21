@@ -121,7 +121,9 @@ Deno.serve(async (req: Request) => {
   const projectUrl = String(Deno.env.get("PROJECT_URL") || Deno.env.get("SUPABASE_URL") || "").trim()
   const serviceKeyRaw = String(Deno.env.get("SERVICE_ROLE_KEY") || "").trim()
   const serviceKeyFallback = String(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim()
-  const serviceKey = isJwtLike(serviceKeyRaw) ? serviceKeyRaw : serviceKeyFallback
+  const serviceKey = isJwtLike(serviceKeyRaw)
+    ? serviceKeyRaw
+    : (isJwtLike(serviceKeyFallback) ? serviceKeyFallback : "")
   if (!botToken || !projectUrl || !serviceKey) {
     const missing: string[] = []
     if (!botToken) missing.push("TELEGRAM_BOT_TOKEN")
