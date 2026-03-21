@@ -10847,14 +10847,14 @@ button.btn.charCornerBtn:active{filter:none;}
   }
 
   // --- Shop
-  const PROMO_CODE = 'BRATSTVO8956745093';
+  const PROMO_CODE = 'BRATSTVO899056745093';
   const PROMO_START_TS = 0;
   const PROMO_WINDOW_HOURS = 48;
   const PROMO_REWARD = {
-    gold: 200000,
-    silver: 500000,
-    tooth: 500000,
-    rings: 100000
+    gold: 5000,
+    silver: 50000,
+    tooth: 50000,
+    rings: 100
   };
 
   function promoNorm(s){
@@ -13825,7 +13825,8 @@ const BF_HELP_PULL_EVERY_MS = 500;
   function diceClaim(){
     const g = state.diceGame;
     if (!g || !g.active) return;
-    const mult = (g && g.mult===5) ? 5 : 1;
+    const allowed = [1,5,10,25,50];
+    const mult = (allowed.indexOf(parseInt(g && g.mult,10)||0) >= 0) ? (parseInt(g.mult,10)||1) : 1;
     g.mult = mult;
     const beforeDice = Array.isArray(g.dice) ? g.dice.slice(0,5) : [1,1,1,1,1];
     const counts = {};

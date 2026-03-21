@@ -133,6 +133,11 @@ function sanitizeName(nm: unknown): string {
   return s
 }
 
+function escapeLikePattern(s: string): string {
+  // Escape SQL LIKE wildcards. PostgREST supports backslash escaping in patterns.
+  return String(s || "").replace(/([%_\\])/g, "\\$1")
+}
+
 async function postgrestGetPlayersByNames(projectUrl: string, serviceKey: string, names: string[]): Promise<any[]> {
   try {
     const uniq: string[] = []
@@ -147,11 +152,21 @@ async function postgrestGetPlayersByNames(projectUrl: string, serviceKey: string
       if (uniq.length >= 60) break
     }
     if (!uniq.length) return []
-
-    const inList = uniq.map((x) => `"${String(x).replace(/\\/g, "\\\\").replace(/\"/g, "\\\"")}"`).join(",")
     const base = projectUrl.replace(/\/$/, "")
+
+    // Use case-insensitive matching (names coming from events can differ by case).
+    // Also escape LIKE wildcards to avoid accidental broad matches.
+    const orParts: string[] = []
+    for (const n0 of uniq) {
+      const n = escapeLikePattern(String(n0 || "").trim())
+      if (!n) continue
+      // Match exact string case-insensitively.
+      orParts.push(`name.ilike.${n}`)
+    }
+    if (!orParts.length) return []
+    const orExpr = `(${orParts.join(",")})`
     const url = base +
-      `/rest/v1/players?select=tg_id,name,photo_url,level,stats_sum,boss_wins,arena_power&name=in.(${encodeURIComponent(inList)})`
+      `/rest/v1/players?select=tg_id,name,photo_url,level,stats_sum,boss_wins,arena_power&or=${encodeURIComponent(orExpr)}`
 
     const resp = await fetch(url, {
       method: "GET",
