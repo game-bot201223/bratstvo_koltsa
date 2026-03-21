@@ -113,6 +113,22 @@ async function postgrestGetPlayerState(projectUrl: string, serviceKey: string, t
   return row && typeof row === "object" ? (row as any).state : null
 }
 
+function deepMergeState(base: any, patch: any): any {
+  if (!patch || typeof patch !== "object" || Array.isArray(patch)) return patch
+  const out: any = (base && typeof base === "object" && !Array.isArray(base)) ? { ...base } : {}
+  for (const k of Object.keys(patch)) {
+    const pv = (patch as any)[k]
+    if (typeof pv === "undefined") continue
+    const bv = out[k]
+    if (pv && typeof pv === "object" && !Array.isArray(pv)) {
+      out[k] = deepMergeState(bv, pv)
+    } else {
+      out[k] = pv
+    }
+  }
+  return out
+}
+
 async function postgrestGetPlayerSession(projectUrl: string, serviceKey: string, tgId: string): Promise<{ sid: string; updatedAt: string; deviceId: string }> {
   try {
     const url = projectUrl.replace(/\/$/, "") +
@@ -544,9 +560,20 @@ Deno.serve(async (req: Request) => {
         }
       } catch (_eSize) {}
 
+      // Merge partial admin patch with existing state to avoid progress resets.
+      let mergedState: unknown = state0
+      try {
+        const prevState = await postgrestGetPlayerState(projectUrl, serviceKey, targetTgId).catch(() => null)
+        if (prevState && typeof prevState === "object" && state0 && typeof state0 === "object") {
+          mergedState = deepMergeState(prevState, state0)
+        }
+      } catch (_eMerge) {
+        mergedState = state0
+      }
+
       const resp = await postgrestUpsertPlayer(projectUrl, serviceKey, {
         tg_id: targetTgId,
-        state: state0,
+        state: mergedState,
         updated_at: new Date().toISOString(),
       })
       if (!resp.ok) {

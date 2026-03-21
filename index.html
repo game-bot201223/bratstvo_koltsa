@@ -3204,6 +3204,10 @@ button.btn.charCornerBtn:active{filter:none;}
         <div class="row"><div class="k">Харизма</div><input type="number" id="adminGymCharisma" min="1" style="width:80px; padding:6px; border-radius:6px; border:1px solid var(--paperLine);"></div>
         <div style="margin-top:14px;"><button class="btn" id="adminPlayerSave" style="width:100%">Сохранить</button></div>
       </div>
+      <div class="card" id="adminPlayerProgressCard" style="margin-top:12px; display:none;">
+        <div class="k" style="margin-bottom:8px;">ВЕСЬ ПРОГРЕСС (только просмотр)</div>
+        <div id="adminPlayerProgress" style="font-size:11px; line-height:1.35; white-space:pre-wrap; word-break:break-word; max-height:320px; overflow:auto;"></div>
+      </div>
       <div class="card" id="adminCurrencyLogCard" style="margin-top:12px; display:none;">
         <div class="k" style="margin-bottom:8px;">ИСТОРИЯ ВАЛЮТЫ</div>
         <div id="adminCurrencyTotals" style="font-size:12px; opacity:.9; margin-bottom:10px;"></div>
@@ -16298,6 +16302,8 @@ const BF_HELP_PULL_EVERY_MS = 500;
           if (!r || !r.ok || !r.player) { toast(r && r.error ? r.error : 'Игрок не найден','lose'); return; }
           window.__adminTargetTgId = r.player.tg_id;
           var st = (r.player.state && typeof r.player.state === 'object') ? r.player.state : {};
+          try { window.__adminLoadedPlayer = r.player; } catch (eA0) {}
+          try { window.__adminLoadedState = JSON.parse(JSON.stringify(st||{})); } catch (eA1) { try { window.__adminLoadedState = st||{}; } catch (eA2) {} }
           var gym = st.gym && typeof st.gym === 'object' ? st.gym : {};
           if ($('adminGold')) $('adminGold').value = Math.max(0, parseInt(st.gold,10)||0);
           if ($('adminSilver')) $('adminSilver').value = Math.max(0, parseInt(st.silver,10)||0);
@@ -16308,6 +16314,27 @@ const BF_HELP_PULL_EVERY_MS = 500;
           });
           if (infoEl) infoEl.textContent = r.player.name + ' (tg_id: ' + r.player.tg_id + ')';
           formCard.style.display = '';
+
+          try {
+            var progCard = $('adminPlayerProgressCard');
+            var progEl = $('adminPlayerProgress');
+            if (progCard && progEl) {
+              progCard.style.display = '';
+              var lines = [];
+              lines.push('Имя: ' + String(r.player.name||''));
+              lines.push('tg_id: ' + String(r.player.tg_id||''));
+              lines.push('level: ' + String(r.player.level!=null ? r.player.level : '—'));
+              lines.push('arena_power: ' + String(r.player.arena_power!=null ? r.player.arena_power : '—'));
+              lines.push('stats_sum: ' + String(r.player.stats_sum!=null ? r.player.stats_sum : '—'));
+              lines.push('boss_wins: ' + String(r.player.boss_wins!=null ? r.player.boss_wins : '—'));
+              lines.push('updated_at: ' + String(r.player.updated_at||''));
+              lines.push('');
+              lines.push('state (json):');
+              try { lines.push(JSON.stringify(st||{}, null, 2)); } catch (eJ) { lines.push(String(st||'')); }
+              progEl.textContent = lines.join('\n');
+            }
+          } catch (eProg) {}
+
           var logCard = $('adminCurrencyLogCard');
           var totalsEl = $('adminCurrencyTotals');
           var logEl = $('adminCurrencyLog');
@@ -16369,20 +16396,39 @@ const BF_HELP_PULL_EVERY_MS = 500;
       saveBtn.onclick = async function(){
         var tid = window.__adminTargetTgId;
         if (!tid) { toast('Сначала загрузите игрока','lose'); return; }
+        var prev = window.__adminLoadedState && typeof window.__adminLoadedState === 'object' ? window.__adminLoadedState : {};
         var gym = {};
         ['health','strength','agility','initiative','endurance','might','charisma'].forEach(function(k){
           var el = $('adminGym'+k.charAt(0).toUpperCase()+k.slice(1));
           gym[k] = Math.max(1, parseInt((el && el.value) ? el.value : 1, 10) || 1);
         });
-        var state = {
-          gold: Math.max(0, parseInt(($('adminGold')&&$('adminGold').value)?$('adminGold').value:0,10)||0),
-          silver: Math.max(0, parseInt(($('adminSilver')&&$('adminSilver').value)?$('adminSilver').value:0,10)||0),
-          tooth: Math.max(0, parseInt(($('adminTooth')&&$('adminTooth').value)?$('adminTooth').value:0,10)||0),
-          gym: gym
-        };
+        var nextGold = Math.max(0, parseInt(($('adminGold')&&$('adminGold').value)?$('adminGold').value:0,10)||0);
+        var nextSilver = Math.max(0, parseInt(($('adminSilver')&&$('adminSilver').value)?$('adminSilver').value:0,10)||0);
+        var nextTooth = Math.max(0, parseInt(($('adminTooth')&&$('adminTooth').value)?$('adminTooth').value:0,10)||0);
+        var patch = {};
         try {
-          var r = await sbFnCall('admin_update_player', { initData: tgInitData(), target_tg_id: tid, state: state });
+          if (nextGold !== (parseInt(prev.gold||0,10)||0)) patch.gold = nextGold;
+          if (nextSilver !== (parseInt(prev.silver||0,10)||0)) patch.silver = nextSilver;
+          if (nextTooth !== (parseInt(prev.tooth||0,10)||0)) patch.tooth = nextTooth;
+        } catch (e0) {}
+        try {
+          var prevGym = (prev && prev.gym && typeof prev.gym === 'object') ? prev.gym : {};
+          var gymPatch = {};
+          var anyGym = false;
+          Object.keys(gym).forEach(function(k){
+            var nv = Math.max(1, parseInt(gym[k]||1,10)||1);
+            var pv = Math.max(1, parseInt(prevGym[k]||1,10)||1);
+            if (nv !== pv) { gymPatch[k] = nv; anyGym = true; }
+          });
+          if (anyGym) patch.gym = gymPatch;
+        } catch (e1) {}
+        try {
+          if (!Object.keys(patch).length) { toast('Нет изменений','lose'); return; }
+          var r = await sbFnCall('admin_update_player', { initData: tgInitData(), target_tg_id: tid, state: patch });
           if (r && r.ok) toast('Сохранено','win'); else toast(r && r.error ? r.error : 'Ошибка','lose');
+          try {
+            window.__adminLoadedState = Object.assign({}, prev, patch, (patch.gym ? { gym: Object.assign({}, (prev && prev.gym && typeof prev.gym === 'object') ? prev.gym : {}, patch.gym) } : {}));
+          } catch (e2) {}
         } catch (e) { toast('Ошибка: ' + (e && e.message ? e.message : 'network'), 'lose'); }
         haptic('light');
       };
