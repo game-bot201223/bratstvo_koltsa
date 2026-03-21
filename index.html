@@ -4139,6 +4139,9 @@ button.btn.charCornerBtn:active{filter:none;}
           <div class="diceMultBtns">
             <button type="button" class="diceMultBtn active" id="diceMult1">x1</button>
             <button type="button" class="diceMultBtn" id="diceMult5">x5</button>
+            <button type="button" class="diceMultBtn" id="diceMult10">x10</button>
+            <button type="button" class="diceMultBtn" id="diceMult25">x25</button>
+            <button type="button" class="diceMultBtn" id="diceMult50">x50</button>
           </div>
         </div>
         <div class="diceGrid" id="diceRow"></div>
@@ -7400,9 +7403,12 @@ button.btn.charCornerBtn:active{filter:none;}
   }
 
   var __brosPhotosCache = {};
+  function brosNameKey(name){
+    try { return String(name||'').trim().toUpperCase(); } catch (e) { return ''; }
+  }
   function brosPhotoFor(name){
     try {
-      const n = String(name||'').trim();
+      const n = brosNameKey(name);
       if (!n) return '';
       const c = __brosPhotosCache[n];
       return (c && c.photo_url) ? String(c.photo_url) : '';
@@ -7428,7 +7434,8 @@ button.btn.charCornerBtn:active{filter:none;}
       const r = await sbFnCall('get_players_by_names', { initData: tgInitData(), names: list });
       const arr = (r && Array.isArray(r.players)) ? r.players : [];
       arr.forEach(function(p){
-        const n = p && String(p.name||'').trim();
+        const n0 = p && String(p.name||'').trim();
+        const n = brosNameKey(n0);
         if (!n) return;
         __brosPhotosCache[n] = { photo_url: p && String(p.photo_url||''), level: p && p.level, stats_sum: p && p.stats_sum };
       });
@@ -13626,7 +13633,8 @@ const BF_HELP_PULL_EVERY_MS = 500;
     row.innerHTML = '';
 
     const g = state.diceGame || { active:false, rolls:0, max:10, dice:[1,1,1,1,1] };
-    const mult = (g && g.mult===5) ? 5 : 1;
+    const allowed = [1,5,10,25,50];
+    const mult = (allowed.indexOf(parseInt(g && g.mult,10)||0) >= 0) ? (parseInt(g.mult,10)||1) : 1;
     g.mult = mult;
     const d = Array.isArray(g.dice) && g.dice.length===5 ? g.dice : [1,1,1,1,1];
     for (let i=0;i<5;i++){
@@ -13652,9 +13660,15 @@ const BF_HELP_PULL_EVERY_MS = 500;
     }
     const m1 = $('diceMult1');
     const m5 = $('diceMult5');
+    const m10 = $('diceMult10');
+    const m25 = $('diceMult25');
+    const m50 = $('diceMult50');
     const multWrap = document.querySelector('.diceMultWrap');
     if (m1) { m1.classList.toggle('active', mult===1); m1.disabled = !!g.active; }
     if (m5) { m5.classList.toggle('active', mult===5); m5.disabled = !!g.active; }
+    if (m10) { m10.classList.toggle('active', mult===10); m10.disabled = !!g.active; }
+    if (m25) { m25.classList.toggle('active', mult===25); m25.disabled = !!g.active; }
+    if (m50) { m50.classList.toggle('active', mult===50); m50.disabled = !!g.active; }
     if (multWrap) multWrap.classList.toggle('locked', !!g.active);
 
     const res = $('diceRes');
@@ -13722,7 +13736,8 @@ const BF_HELP_PULL_EVERY_MS = 500;
 
   function diceStart(){
     // HARD: roll animation first, then assign values.
-    const mult = (state.diceGame && state.diceGame.mult===5) ? 5 : 1;
+    const allowed = [1,5,10,25,50];
+    const mult = (allowed.indexOf(parseInt(state.diceGame && state.diceGame.mult,10)||0) >= 0) ? (parseInt(state.diceGame.mult,10)||1) : 1;
     const cost = mult;
     if ((state.gold||0) < cost){ toast('Нужно '+cost+' золотых монет '+TOAST_GOLD_IMG,'lose'); return false; }
     state.gold -= cost;
@@ -16148,6 +16163,9 @@ const BF_HELP_PULL_EVERY_MS = 500;
     $('diceRewardOk').onclick = ()=>hideModal('mDiceReward');
     const dm1 = $('diceMult1');
     const dm5 = $('diceMult5');
+    const dm10 = $('diceMult10');
+    const dm25 = $('diceMult25');
+    const dm50 = $('diceMult50');
     if (dm1) dm1.onclick = ()=>{
       if (state.diceGame && state.diceGame.active) return;
       state.diceGame.mult = 1;
@@ -16157,6 +16175,24 @@ const BF_HELP_PULL_EVERY_MS = 500;
     if (dm5) dm5.onclick = ()=>{
       if (state.diceGame && state.diceGame.active) return;
       state.diceGame.mult = 5;
+      save();
+      renderDice();
+    };
+    if (dm10) dm10.onclick = ()=>{
+      if (state.diceGame && state.diceGame.active) return;
+      state.diceGame.mult = 10;
+      save();
+      renderDice();
+    };
+    if (dm25) dm25.onclick = ()=>{
+      if (state.diceGame && state.diceGame.active) return;
+      state.diceGame.mult = 25;
+      save();
+      renderDice();
+    };
+    if (dm50) dm50.onclick = ()=>{
+      if (state.diceGame && state.diceGame.active) return;
+      state.diceGame.mult = 50;
       save();
       renderDice();
     };
