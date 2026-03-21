@@ -11836,7 +11836,7 @@ button.btn.charCornerBtn:active{filter:none;}
     const bfHpBarFill = $('bfHpBarFill');
     const bfHpBarIn = $('bfHpBarIn');
     if (bfHpBarFill) bfHpBarFill.style.width = hpPct + '%';
-    if (bfHpBarIn) bfHpBarIn.textContent = isDistrict ? (fmt4(curHp) + ' / ' + fmt4(maxHp)) : (curHp + ' / ' + maxHp);
+    if (bfHpBarIn) bfHpBarIn.textContent = isDistrict ? (fmt4(curHp) + ' / ' + fmt4(maxHp)) : (Math.round(hpPct) + ' / 100');
     const left = isDistrict ? Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now()) : Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now());
     $('bfTimer').textContent = left>0 ? ('ВРЕМЯ: ' + fmtHHMMSS(left)) : 'ВРЕМЯ: 00:00:00';
     try {
@@ -12237,7 +12237,7 @@ const BF_HELP_PULL_EVERY_MS = 500;
       const bfHpBarFill = $('bfHpBarFill');
       const bfHpBarIn = $('bfHpBarIn');
       if (bfHpBarFill) bfHpBarFill.style.width = hpPct + '%';
-      if (bfHpBarIn) bfHpBarIn.textContent = isDistrictBossId(bossId) ? (fmt4(curHp) + ' / ' + fmt4(maxHp)) : (curHp + ' / ' + maxHp);
+      if (bfHpBarIn) bfHpBarIn.textContent = isDistrictBossId(bossId) ? (fmt4(curHp) + ' / ' + fmt4(maxHp)) : (Math.round(hpPct) + ' / 100');
 
       const left = Math.max(0, (parseInt(f.expiresTs||0,10)||0) - now());
       const t = $('bfTimer');

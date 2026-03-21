@@ -155,17 +155,17 @@ function safeInt(v: unknown, def = 0): number {
 function bossDef(bossId: number): { boss_id: number; max_hp: number; reward: { xp: number; tooth: number; gold: number } } | null {
   const defs: Record<number, { max_hp: number; reward: { xp: number; tooth: number; gold: number } }> = {
     1: { max_hp: 2500, reward: { xp: 50, tooth: 100, gold: 0 } },
-    2: { max_hp: 10000, reward: { xp: 100, tooth: 300, gold: 0 } },
-    3: { max_hp: 50000, reward: { xp: 200, tooth: 500, gold: 0 } },
-    4: { max_hp: 200000, reward: { xp: 500, tooth: 800, gold: 0 } },
-    5: { max_hp: 1000000, reward: { xp: 1000, tooth: 1200, gold: 0 } },
-    6: { max_hp: 2000000, reward: { xp: 2000, tooth: 2000, gold: 0 } },
-    7: { max_hp: 5000000, reward: { xp: 5000, tooth: 5000, gold: 0 } },
-    8: { max_hp: 10000000, reward: { xp: 10000, tooth: 10000, gold: 0 } },
-    9: { max_hp: 20000000, reward: { xp: 20000, tooth: 20000, gold: 0 } },
-    10: { max_hp: 50000000, reward: { xp: 50000, tooth: 50000, gold: 0 } },
-    11: { max_hp: 100000000, reward: { xp: 100000, tooth: 100000, gold: 0 } },
-    12: { max_hp: 200000000, reward: { xp: 200000, tooth: 200000, gold: 0 } },
+    2: { max_hp: 10000, reward: { xp: 100, tooth: 500, gold: 0 } },
+    3: { max_hp: 50000, reward: { xp: 200, tooth: 800, gold: 0 } },
+    4: { max_hp: 300000, reward: { xp: 500, tooth: 1600, gold: 0 } },
+    5: { max_hp: 1000000, reward: { xp: 1000, tooth: 3000, gold: 0 } },
+    6: { max_hp: 6000000, reward: { xp: 2000, tooth: 5000, gold: 0 } },
+    7: { max_hp: 15000000, reward: { xp: 5000, tooth: 8000, gold: 0 } },
+    8: { max_hp: 60000000, reward: { xp: 10000, tooth: 12000, gold: 0 } },
+    9: { max_hp: 125000000, reward: { xp: 20000, tooth: 20000, gold: 0 } },
+    10: { max_hp: 300000000, reward: { xp: 50000, tooth: 50000, gold: 0 } },
+    11: { max_hp: 600000000, reward: { xp: 70000, tooth: 100000, gold: 0 } },
+    12: { max_hp: 1000000000, reward: { xp: 100000, tooth: 200000, gold: 0 } },
   }
   const d = defs[bossId]
   if (!d) return null
