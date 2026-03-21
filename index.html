@@ -1887,8 +1887,21 @@ button.btn.charCornerBtn:active{filter:none;}
    width:130% !important;height:130% !important;max-width:none !important;max-height:none !important;
    object-fit:contain !important;pointer-events:none;
  }
- #mBattle #bLogItems .feedItem.gfLogHeal{color:rgba(52,211,153,.95) !important;}
- #mBattle #bLogItems .feedItem.gfLogItemDmg{color:rgba(251,191,36,.95) !important;}
+ #baBuyRing{
+    border-radius:50% !important;
+    overflow:hidden !important;
+  }
+  #baBuyRing .bossCurrencyBtnImg{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:center;
+    border-radius:50%;
+    clip-path:circle(50% at 50% 50%);
+  }
+  #mBattle #bLogItems .feedItem.gfLogHeal{color:rgba(52,211,153,.95) !important;}
+  #mBattle #bLogItems .feedItem.gfLogItemDmg{color:rgba(251,191,36,.95) !important;}
   #mBattle #bMyTeam .badge,
   #mBattle #bEnemyTeam .gfGbEnemyInfo .badge{width:100%;}
   #mBattle #bMyTeam .hpBar,
