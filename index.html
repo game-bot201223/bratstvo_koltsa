@@ -10858,6 +10858,8 @@ button.btn.charCornerBtn:active{filter:none;}
   }
   async function handleStarsBuyClick(btn){
     if (!btn) return;
+    try { console.log('[Stars] handleStarsBuyClick start'); } catch (_eLog0) {}
+    try { toast('Открываю оплату...'); } catch (_eToast0) {}
     if (!window.__starsLock) window.__starsLock = {};
     var productId = btn.getAttribute('data-stars-buy');
     if (window.__starsLock[productId]) {
@@ -10944,6 +10946,25 @@ button.btn.charCornerBtn:active{filter:none;}
       return;
     }
   }
+  window.__starsBuyClick = function(productId){
+    try {
+      var id = String(productId || '').trim();
+      if (!id) return false;
+      var btn = document.querySelector('[data-stars-buy="' + id.replace(/"/g, '\\"') + '"]');
+      if (!btn) {
+        try { console.warn('[Stars] Кнопка не найдена для productId:', id); } catch (_eWarn) {}
+        try { toast('Кнопка оплаты не найдена','lose'); } catch (_eToast1) {}
+        return false;
+      }
+      try { haptic('light'); } catch (_eH) {}
+      handleStarsBuyClick(btn);
+      return false;
+    } catch (e) {
+      try { console.error('[Stars] __starsBuyClick exception', e); } catch (_eErr) {}
+      try { alert('Ошибка запуска оплаты'); } catch (_eAlert) {}
+      return false;
+    }
+  };
   function renderShop(){
     const box = $('shopList');
     let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
@@ -10990,7 +11011,7 @@ button.btn.charCornerBtn:active{filter:none;}
     STARS_PRODUCTS.forEach(function(p){
       html += '<div class="row" style="align-items:center; margin-bottom:8px;">'
         + '<div style="min-width:0;flex:1"><span class="k">'+p.name+'</span> <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:14px;width:auto;vertical-align:middle"></div>'
-        + '<button type="button" class="btn btnSmall" data-stars-buy="'+p.productId+'">Купить за '+p.stars+' ⭐</button>'
+        + '<button type="button" class="btn btnSmall" data-stars-buy="'+p.productId+'" onclick="return window.__starsBuyClick && window.__starsBuyClick(\''+p.productId+'\')" style="pointer-events:auto">Купить за '+p.stars+' ⭐</button>'
         + '</div>';
     });
     html += '</div>';
