@@ -13287,19 +13287,24 @@ const BF_HELP_PULL_EVERY_MS = 3000;
               const startHp = Math.max(0, parseInt(sr.fight && sr.fight.hp, 10) || 0);
               const maxHpVal = Math.max(0, parseInt(sr.fight && sr.fight.max_hp, 10) || 0);
               const expiresTs = sr.fight && sr.fight.expires_at ? (new Date(String(sr.fight.expires_at))).getTime() : 0;
+              const startTs = sr.fight && sr.fight.fight_started_at ? (new Date(String(sr.fight.fight_started_at))).getTime() : 0;
               f0 = bfEnsureFight(id);
               if (!f0) {
                 toast('СЕРВЕР: БОЙ НЕ СОЗДАН','lose');
                 return;
               }
               if (startHp > 0) f0.hp = startHp;
-              if (maxHpVal > 0) f0.maxHp = maxHpVal;
+              if (maxHpVal > 0) {
+                f0.maxHp = maxHpVal;
+                f0.bossMaxHP = maxHpVal;
+              }
               if (expiresTs > 0) f0.expiresTs = expiresTs;
+              if (startTs > 0) f0.startTs = startTs;
               bfSetFight(id, f0);
               if (!state.bosses.hp) state.bosses.hp = {};
               state.bosses.hp[String(id)] = startHp;
               if (!state.bosses.cloud) state.bosses.cloud = {};
-              state.bosses.cloud[String(id)] = { hp: startHp, max_hp: maxHpVal, expires_at: (sr.fight.expires_at || ''), reward_claimed: !!(sr.fight.reward_claimed) };
+              state.bosses.cloud[String(id)] = { hp: startHp, max_hp: maxHpVal, expires_at: (sr.fight.expires_at || ''), fight_started_at: (sr.fight.fight_started_at || ''), reward_claimed: !!(sr.fight.reward_claimed) };
             } catch (eMake) {
               toast('СЕРВЕР: БОЙ НЕ СОЗДАН','lose');
               return;
@@ -13449,7 +13454,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
                 const bDef = BOSSES.find(function(x){ return x && x.id===id; });
                 const maxHpVal = (sr.fight && sr.fight.max_hp) != null ? (parseInt(sr.fight.max_hp,10)||0) : (bDef && bDef.maxHP) || 0;
                 if (!state.bosses.cloud) state.bosses.cloud = {};
-                state.bosses.cloud[String(id)] = { hp: startHp, max_hp: maxHpVal, expires_at: (sr.fight && sr.fight.expires_at) || '', reward_claimed: !!(sr.fight && sr.fight.reward_claimed) };
+                state.bosses.cloud[String(id)] = { hp: startHp, max_hp: maxHpVal, expires_at: (sr.fight && sr.fight.expires_at) || '', fight_started_at: (sr.fight && sr.fight.fight_started_at) || '', reward_claimed: !!(sr.fight && sr.fight.reward_claimed) };
               } catch (e1) {}
             }
           }
