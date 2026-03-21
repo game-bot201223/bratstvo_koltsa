@@ -6682,6 +6682,7 @@ button.btn.charCornerBtn:active{filter:none;}
       // Direct PostgREST only for admin player tools or in players-only mode.
       if (isAdminPlayersDirectFn || (CLOUD_PLAYERS_ONLY && isPlayersDbFn)) {
         const playersUrl = supaBase + '/rest/v1/' + encodeURIComponent(PLAYERS_TABLE);
+        const playersUpsertUrl = playersUrl + '?on_conflict=' + encodeURIComponent('tg_id');
         const apikey = String(SUPABASE_ANON_KEY||'');
         const authz = 'Bearer ' + apikey;
         const tgId = String((bodyObj && typeof bodyObj === 'object' && bodyObj.tg_id != null) ? bodyObj.tg_id : myTgUserId() || '').trim();
@@ -6728,7 +6729,7 @@ button.btn.charCornerBtn:active{filter:none;}
             vip_until: vipUntil0,
             state: state0
           };
-          const upResp = await fetch(playersUrl, {
+          const upResp = await fetch(playersUpsertUrl, {
             method:'POST',
             headers: Object.assign({}, dbHeadersJson, {
               'Prefer': 'resolution=merge-duplicates,return=representation'
@@ -6762,7 +6763,7 @@ button.btn.charCornerBtn:active{filter:none;}
             vip_until: vipUntil0,
             state: (bodyObj && bodyObj.state && typeof bodyObj.state === 'object') ? bodyObj.state : {}
           };
-          const upResp = await fetch(playersUrl, {
+          const upResp = await fetch(playersUpsertUrl, {
             method:'POST',
             headers: Object.assign({}, dbHeadersJson, { 'Prefer': 'resolution=merge-duplicates,return=representation' }),
             body: JSON.stringify(upObj),
@@ -6794,7 +6795,7 @@ button.btn.charCornerBtn:active{filter:none;}
             vip_until: vipUntil0,
             state: state0
           };
-          const upResp = await fetch(playersUrl, {
+          const upResp = await fetch(playersUpsertUrl, {
             method:'POST',
             headers: Object.assign({}, dbHeadersJson, { 'Prefer': 'resolution=merge-duplicates,return=representation' }),
             body: JSON.stringify(upObj),
@@ -6852,7 +6853,7 @@ button.btn.charCornerBtn:active{filter:none;}
             vip_until: parseInt(row0.vip_until != null ? row0.vip_until : 0, 10) || 0,
             state: nextState
           };
-          const upResp = await fetch(playersUrl, {
+          const upResp = await fetch(playersUpsertUrl, {
             method:'POST',
             headers: Object.assign({}, dbHeadersJson, { 'Prefer': 'resolution=merge-duplicates,return=representation' }),
             body: JSON.stringify(upObj),
