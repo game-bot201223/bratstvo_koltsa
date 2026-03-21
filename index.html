@@ -16,7 +16,8 @@
   // Supabase connection injected into the page globals.
   // Client code reads these values from `window`.
   window.SUPABASE_URL = 'https://naotcupjxlyczignutxp.supabase.co';
-  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5hb3RjdXBqeGx5Y3ppZ251dHhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMjQzNzcsImV4cCI6MjA4OTYwMDM3N30.iLFURL5AtLClsb2dU7rCldh1WZnWHDDQ5kU8rkoc20c';
+  window.SUPABASE_ANON_KEY = 'sb_publishable_Yop_FLuJxNatnuxz8kO4VQ_MHMG7gzP';
+  window.SUPABASE_JWT_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5hb3RjdXBqeGx5Y3ppZ251dHhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMjQzNzcsImV4cCI6MjA4OTYwMDM3N30.iLFURL5AtLClsb2dU7rCldh1WZnWHDDQ5kU8rkoc20c';
 </script>
  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&display=swap" rel="stylesheet">
  <style>
@@ -5825,6 +5826,7 @@ button.btn.charCornerBtn:active{filter:none;}
   const BUILD_ID = '2026-03-04_13-26_clanid_deputy';
   const SUPABASE_URL = (window && window.SUPABASE_URL) ? String(window.SUPABASE_URL||'') : '';
   const SUPABASE_ANON_KEY = (window && window.SUPABASE_ANON_KEY) ? String(window.SUPABASE_ANON_KEY||'') : '';
+  const SUPABASE_JWT_ANON_KEY = (window && window.SUPABASE_JWT_ANON_KEY) ? String(window.SUPABASE_JWT_ANON_KEY||'') : '';
   // New setup: on Supabase there are ONLY DB tables (no Edge Functions).
   // We keep gameplay working by talking directly to PostgREST (`/rest/v1/players`)
   // for player save/load.
@@ -6744,7 +6746,7 @@ button.btn.charCornerBtn:active{filter:none;}
         const playersUrl = supaBase + '/rest/v1/' + encodeURIComponent(PLAYERS_TABLE);
         const playersUpsertUrl = playersUrl + '?on_conflict=' + encodeURIComponent('tg_id');
         const apikey = String(SUPABASE_ANON_KEY||'');
-        const authz = 'Bearer ' + apikey;
+        const authz = 'Bearer ' + String(SUPABASE_JWT_ANON_KEY || apikey);
         const tgId = String((bodyObj && typeof bodyObj === 'object' && bodyObj.tg_id != null) ? bodyObj.tg_id : myTgUserId() || '').trim();
         const dbHeadersBase = {
           'apikey': apikey,
@@ -6896,7 +6898,7 @@ button.btn.charCornerBtn:active{filter:none;}
         'Content-Type': 'application/json',
         'x-telegram-init-data': initData,
         'apikey': String(SUPABASE_ANON_KEY||''),
-        'Authorization': 'Bearer ' + String(SUPABASE_ANON_KEY||'')
+        'Authorization': 'Bearer ' + String(SUPABASE_JWT_ANON_KEY || SUPABASE_ANON_KEY || '')
       };
       const resp = await fetch(url, {
         method: 'POST',
