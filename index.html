@@ -11330,8 +11330,18 @@ button.btn.charCornerBtn:active{filter:none;}
           const prevRec = prevFreeUsed[key];
           if (!prevRec || typeof prevRec !== 'object' || !prevRec.used) return;
           const nextRec = nextBosses.freeUsed[key];
-          if (nextRec && typeof nextRec === 'object' && nextRec.used) return;
-          nextBosses.freeUsed[key] = { used:true };
+          if (nextRec && typeof nextRec === 'object' && nextRec.used) {
+            // Preserve startTs if existing record lost it.
+            try {
+              const ns = (typeof nextRec.startTs !== 'undefined') ? (parseInt(nextRec.startTs||0,10)||0) : 0;
+              const ps = (typeof prevRec.startTs !== 'undefined') ? (parseInt(prevRec.startTs||0,10)||0) : 0;
+              if (!ns && ps) nextRec.startTs = ps;
+            } catch (_eSt) {}
+            return;
+          }
+          // Carry over used flag and attempt anchor (startTs).
+          const ps2 = (typeof prevRec.startTs !== 'undefined') ? (parseInt(prevRec.startTs||0,10)||0) : 0;
+          nextBosses.freeUsed[key] = { used:true, startTs: ps2 || undefined };
         } catch (_eMergeOne) {}
       });
       return nextState;
