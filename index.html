@@ -11002,13 +11002,8 @@ button.btn.charCornerBtn:active{filter:none;}
           delete window.__starsLock[productId];
           if (resp && resp.ok && resp.invoice_link) {
             const rawInvoiceLink = String(resp.invoice_link || '').trim();
-            let openInvoiceArg = rawInvoiceLink;
-            try {
-              const m = rawInvoiceLink.match(/\/\$([A-Za-z0-9_-]+)(?:\?.*)?$/);
-              if (m && m[1]) openInvoiceArg = String(m[1]);
-            } catch (_eInv) {}
-            console.log('[Stars] Открываю инвойс:', rawInvoiceLink, 'arg:', openInvoiceArg);
-            tg.openInvoice(openInvoiceArg, function(status){
+            console.log('[Stars] Открываю инвойс:', rawInvoiceLink);
+            tg.openInvoice(rawInvoiceLink, function(status){
               console.log('[Stars] Статус оплаты:', status);
               if (status === 'paid') {
                 console.log('[Stars] Оплата успешна!');
