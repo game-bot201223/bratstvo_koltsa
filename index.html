@@ -106,10 +106,10 @@
   width: 120px;
   height: 120px;
   margin-bottom: 24px;
-  background-image: url('фон.png');
+  background-image: url('старт.jpg');
   background-size: cover;
   background-position: center;
-  border-radius: 20px;
+  border-radius: 50%;
   box-shadow: var(--shadowLg);
   animation: logoFloat 3s ease-in-out infinite;
 }
@@ -6797,6 +6797,66 @@ button.btn.charCornerBtn:active{filter:none;}
           });
           if (!upResp.ok) throw new Error('db_reset_http_' + String(upResp.status||0));
           return { ok:true };
+        }
+
+        if (fn === 'admin_get_player') {
+          if (!isAdmin || !isAdmin()) throw new Error('admin_only');
+          const targetTgId = String(bodyObj && bodyObj.target_tg_id != null ? bodyObj.target_tg_id : '').trim();
+          const targetName = String(bodyObj && bodyObj.target_name != null ? bodyObj.target_name : '').trim();
+          if (!targetTgId && !targetName) throw new Error('missing_target');
+          const selectCols = 'tg_id,name,photo_url,level,arena_power,arena_wins,arena_losses,stats_sum,boss_wins,referrer_tg_id,vip,vip_until,state';
+          const filter = targetTgId
+            ? ('&tg_id=eq.' + encodeURIComponent(targetTgId))
+            : ('&name=eq.' + encodeURIComponent(targetName));
+          const urlGet = playersUrl + '?select=' + encodeURIComponent(selectCols) + filter + '&limit=1';
+          const resp0 = await fetch(urlGet, { method:'GET', headers: dbHeadersBase, keepalive:true });
+          const arr0 = await resp0.json().catch(()=> null);
+          if (!resp0.ok) throw new Error('db_admin_get_player_http_' + String(resp0.status||0));
+          const row0 = (Array.isArray(arr0) && arr0.length) ? arr0[0] : null;
+          if (!row0) return { ok:false, error:'player_not_found' };
+          return { ok:true, player: row0 };
+        }
+
+        if (fn === 'admin_update_player') {
+          if (!isAdmin || !isAdmin()) throw new Error('admin_only');
+          const targetTgId = String(bodyObj && bodyObj.target_tg_id != null ? bodyObj.target_tg_id : '').trim();
+          if (!targetTgId) throw new Error('missing_target_tg_id');
+          const patchState = (bodyObj && bodyObj.state && typeof bodyObj.state === 'object') ? bodyObj.state : {};
+          const selectCols = 'tg_id,name,photo_url,level,arena_power,arena_wins,arena_losses,stats_sum,boss_wins,referrer_tg_id,vip,vip_until,state';
+          const urlGet = playersUrl + '?select=' + encodeURIComponent(selectCols) + '&tg_id=eq.' + encodeURIComponent(targetTgId) + '&limit=1';
+          const resp0 = await fetch(urlGet, { method:'GET', headers: dbHeadersBase, keepalive:true });
+          const arr0 = await resp0.json().catch(()=> null);
+          if (!resp0.ok) throw new Error('db_admin_get_player_http_' + String(resp0.status||0));
+          const row0 = (Array.isArray(arr0) && arr0.length) ? arr0[0] : null;
+          if (!row0) return { ok:false, error:'player_not_found' };
+          const curState = (row0.state && typeof row0.state === 'object') ? row0.state : {};
+          const nextGym = Object.assign({}, (curState.gym && typeof curState.gym === 'object') ? curState.gym : {}, (patchState.gym && typeof patchState.gym === 'object') ? patchState.gym : {});
+          const nextState = Object.assign({}, curState, patchState, { gym: nextGym });
+          const upObj = {
+            tg_id: String(row0.tg_id || targetTgId),
+            name: String(row0.name || '').trim().slice(0,18),
+            photo_url: String(row0.photo_url || '').trim(),
+            level: parseInt(row0.level != null ? row0.level : 0, 10) || 0,
+            arena_power: parseInt(row0.arena_power != null ? row0.arena_power : 0, 10) || 0,
+            arena_wins: parseInt(row0.arena_wins != null ? row0.arena_wins : 0, 10) || 0,
+            arena_losses: parseInt(row0.arena_losses != null ? row0.arena_losses : 0, 10) || 0,
+            stats_sum: parseInt(row0.stats_sum != null ? row0.stats_sum : 0, 10) || 0,
+            boss_wins: parseInt(row0.boss_wins != null ? row0.boss_wins : 0, 10) || 0,
+            referrer_tg_id: String(row0.referrer_tg_id || '').trim(),
+            vip: !!row0.vip,
+            vip_until: parseInt(row0.vip_until != null ? row0.vip_until : 0, 10) || 0,
+            state: nextState
+          };
+          const upResp = await fetch(playersUrl, {
+            method:'POST',
+            headers: Object.assign({}, dbHeadersJson, { 'Prefer': 'resolution=merge-duplicates,return=representation' }),
+            body: JSON.stringify(upObj),
+            keepalive:true
+          });
+          const arr1 = await upResp.json().catch(()=> null);
+          if (!upResp.ok) throw new Error('db_admin_update_player_http_' + String(upResp.status||0));
+          const row1 = (Array.isArray(arr1) && arr1.length) ? arr1[0] : upObj;
+          return { ok:true, player: row1 };
         }
 
         if (fn === 'get_players_by_names') {
