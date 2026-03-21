@@ -7611,6 +7611,10 @@ button.btn.charCornerBtn:active{filter:none;}
               state = Object.assign({}, defaults, s2);
               mergeBossFreeUsedState(state, prevState2);
               if (keepSettings) state.settings = keepSettings;
+              try {
+                const rn2 = p && p.name != null ? String(p.name).trim().slice(0,18) : '';
+                if (rn2) state.playerName = rn2;
+              } catch (eNm2) {}
             } else {
               console.log('[sessionStart] Сохраняем локальное состояние - на сервере пусто');
               try { __cloudSaveUnlocked = true; } catch (eU) {}
@@ -17108,6 +17112,10 @@ const BF_HELP_PULL_EVERY_MS = 500;
             var prevState0 = state;
             state = Object.assign({}, defaults, ps0);
             mergeBossFreeUsedState(state, prevState0);
+            try {
+              const rn0 = result && result.player && result.player.name != null ? String(result.player.name).trim().slice(0,18) : '';
+              if (rn0) state.playerName = rn0;
+            } catch (_eName0) {}
             ensureGender();
             try { __hydratedFromGetPlayer = true; } catch (_eHydr0) {}
             try { __cloudSaveUnlocked = true; } catch (_eCloud0) {}
@@ -17123,6 +17131,10 @@ const BF_HELP_PULL_EVERY_MS = 500;
               var prevState1 = state;
               state = Object.assign({}, defaults, fresh.player.state);
               mergeBossFreeUsedState(state, prevState1);
+              try {
+                const rn1 = fresh && fresh.player && fresh.player.name != null ? String(fresh.player.name).trim().slice(0,18) : '';
+                if (rn1) state.playerName = rn1;
+              } catch (_eName1) {}
               ensureGender();
               try { __hydratedFromGetPlayer = true; } catch (_eHydr1) {}
               try { __cloudSaveUnlocked = true; } catch (_eCloud1) {}
