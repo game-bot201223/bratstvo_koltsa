@@ -10843,11 +10843,6 @@ button.btn.charCornerBtn:active{filter:none;}
     if (el) el.innerHTML = '+' + amount + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
     if (btn) {
       btn.onclick = function(){
-        if (amount > 0) {
-          state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + amount);
-          try { logCurrency('gold', amount, 'Звёзды'); } catch (e0) {}
-          save();
-        }
         hideModal('mStarsReward');
         renderAll();
         toast(amount > 0 ? 'Награда получена! +'+amount+' золотых монет' : 'Награда получена!','win');
