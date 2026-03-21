@@ -6023,6 +6023,22 @@ button.btn.charCornerBtn:active{filter:none;}
     }
   }
 
+  function holyLegionPhotoForName(name){
+    try {
+      const nm = String(name||'').trim().toUpperCase();
+      return nm === 'HOLY LEGION' ? 'hl.jpg' : '';
+    } catch (e) { return ''; }
+  }
+
+  function enforceHolyLegionClanPhoto(clanObj){
+    try {
+      if (!clanObj || typeof clanObj !== 'object') return clanObj;
+      const forced = holyLegionPhotoForName(clanObj.name);
+      if (forced) clanObj.photo = forced;
+      return clanObj;
+    } catch (e) { return clanObj; }
+  }
+
   function inviteBros(){
     try {
       const bot = 'bratstvo_koltsa_bot';
@@ -6060,6 +6076,7 @@ button.btn.charCornerBtn:active{filter:none;}
           const id = String(row && row.id || '');
           const data = row && row.data;
           if (!id || !data || typeof data !== 'object') return;
+          enforceHolyLegionClanPhoto(data);
           nextClans[id] = data;
           nextOrder.push(id);
         } catch (e2) {}
@@ -14778,6 +14795,7 @@ const BF_HELP_PULL_EVERY_MS = 500;
     const myClan = clanGetMyClan();
     const has = !!(myClan && myClan.id);
     const me = clanMyName();
+    try { if (myClan) enforceHolyLegionClanPhoto(myClan); } catch (e0) {}
     if (has && state.clansDb.myApps && typeof state.clansDb.myApps === 'object' && Object.keys(state.clansDb.myApps).length) {
       state.clansDb.myApps = {};
       save();
@@ -14990,6 +15008,7 @@ const BF_HELP_PULL_EVERY_MS = 500;
     const id = 'CLN'+String(Date.now());
     const me = clanMyName();
     const obj = { id:id, name:nm, leader: me, deputy:'', members:[me], apps:[], createdTs: now(), totalBossDmg:0, lvl:1, bossDmgByMember:{}, memberMeta:{}, bankGold:0, filters:{ minLvl:1, minStats:0 }, chat:[] };
+    enforceHolyLegionClanPhoto(obj);
     clanEnsureMemberMeta(obj);
     clanLog(obj, 'Клан создан');
     state.clansDb.clans[id] = obj;

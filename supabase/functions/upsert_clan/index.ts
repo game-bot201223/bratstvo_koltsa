@@ -146,6 +146,17 @@ function isJwtLike(s: string): boolean {
   }
 }
 
+function enforceHolyLegionClanPhoto(data: any, name: string): any {
+  try {
+    const out = data && typeof data === "object" ? { ...(data as Record<string, unknown>) } : {}
+    const nm = String(name || out.name || "").trim().toUpperCase()
+    if (nm === "HOLY LEGION") out.photo = "hl.jpg"
+    return out
+  } catch (_e) {
+    return data
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
   if (req.method !== "POST") {
@@ -245,7 +256,7 @@ Deno.serve(async (req: Request) => {
     id: clanId,
     name,
     owner_tg_id: tgId,
-    data,
+    data: enforceHolyLegionClanPhoto(data, name),
     updated_at: new Date().toISOString(),
   }
 
