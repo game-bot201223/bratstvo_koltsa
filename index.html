@@ -6642,6 +6642,7 @@ button.btn.charCornerBtn:active{filter:none;}
         level: parseInt(s0.level != null ? s0.level : 1, 10) || 1,
         xp: parseInt(s0.totalXp != null ? s0.totalXp : (s0.xp != null ? s0.xp : 0), 10) || 0,
         gold: parseInt(s0.gold != null ? s0.gold : 0, 10) || 0,
+        silver: parseInt(s0.silver != null ? s0.silver : 0, 10) || 0,
         tooth: parseInt(s0.tooth != null ? s0.tooth : 0, 10) || 0,
         district_fear_total: (function(){ try { const df = (s0 && s0.districtFear && typeof s0.districtFear === 'object') ? s0.districtFear : {}; return Object.keys(df).reduce((sum, k)=> sum + (parseInt(df[k]||0,10)||0), 0); } catch (e0) { return 0; } })(),
         arena_power: (s0.arena && (s0.arena.power||0)) || 0,
@@ -6779,7 +6780,7 @@ button.btn.charCornerBtn:active{filter:none;}
 
         if (fn === 'get_player') {
           if (!tgId) throw new Error('missing_tg_id');
-          const selectCols = 'tg_id,name,photo_url,level,xp,gold,tooth,district_fear_total,arena_power,arena_wins,arena_losses,stats_sum,boss_wins,vip,vip_until,state';
+          const selectCols = 'tg_id,name,photo_url,level,xp,gold,silver,tooth,district_fear_total,arena_power,arena_wins,arena_losses,stats_sum,boss_wins,vip,vip_until,state';
           const urlGet = playersUrl + '?select=' + encodeURIComponent(selectCols) + '&tg_id=eq.' + encodeURIComponent(tgId);
           const resp0 = await fetch(urlGet, { method:'GET', headers: dbHeadersBase, keepalive:true });
           const arr0 = await resp0.json().catch(()=> null);
@@ -6805,6 +6806,7 @@ button.btn.charCornerBtn:active{filter:none;}
             level: parseInt(defaults.level||1,10)||1,
             xp: parseInt(defaults.totalXp||defaults.xp||0,10)||0,
             gold: parseInt(defaults.gold||0,10)||0,
+            silver: parseInt(defaults.silver||0,10)||0,
             tooth: parseInt(defaults.tooth||0,10)||0,
             district_fear_total: 0,
             arena_power: 0,
@@ -6847,6 +6849,7 @@ button.btn.charCornerBtn:active{filter:none;}
             level: parseInt(bodyObj && bodyObj.level != null ? bodyObj.level : 0, 10) || 0,
             xp: parseInt(bodyObj && bodyObj.xp != null ? bodyObj.xp : ((s0 && s0.totalXp != null) ? s0.totalXp : (s0 && s0.xp != null ? s0.xp : 0)), 10) || 0,
             gold: parseInt(bodyObj && bodyObj.gold != null ? bodyObj.gold : (s0 && s0.gold != null ? s0.gold : 0), 10) || 0,
+            silver: parseInt(bodyObj && bodyObj.silver != null ? bodyObj.silver : (s0 && s0.silver != null ? s0.silver : 0), 10) || 0,
             tooth: parseInt(bodyObj && bodyObj.tooth != null ? bodyObj.tooth : (s0 && s0.tooth != null ? s0.tooth : 0), 10) || 0,
             district_fear_total: parseInt(bodyObj && bodyObj.district_fear_total != null ? bodyObj.district_fear_total : districtFearTotal0, 10) || 0,
             arena_power: parseInt(bodyObj && bodyObj.arena_power != null ? bodyObj.arena_power : 0, 10) || 0,
@@ -6882,6 +6885,7 @@ button.btn.charCornerBtn:active{filter:none;}
             level: parseInt(defaults.level||1,10)||1,
             xp: parseInt(defaults.totalXp||defaults.xp||0,10)||0,
             gold: parseInt(defaults.gold||0,10)||0,
+            silver: parseInt(defaults.silver||0,10)||0,
             tooth: parseInt(defaults.tooth||0,10)||0,
             district_fear_total: 0,
             arena_power: 0,
@@ -7557,6 +7561,33 @@ button.btn.charCornerBtn:active{filter:none;}
     }
   }
 
+  function hasMeaningfulCloudProgress(s){
+    try {
+      if (!s || typeof s !== 'object') return false;
+      if ((parseInt(s.level||0,10)||0) > 1) return true;
+      if ((parseInt(s.xp||0,10)||0) > 0) return true;
+      if ((parseInt(s.totalXp||0,10)||0) > 0) return true;
+      if ((parseInt(s.gold||0,10)||0) > 0) return true;
+      if ((parseInt(s.silver||0,10)||0) > 0) return true;
+      if ((parseInt(s.tooth||0,10)||0) > 0) return true;
+      if ((parseInt(s.rings||0,10)||0) > 0) return true;
+      if (s.gym && typeof s.gym === 'object' && Object.keys(s.gym).some(k => (parseInt(s.gym[k]||0,10)||0) > 10)) return true;
+      if (s.armorOwned && typeof s.armorOwned === 'object' && Object.keys(s.armorOwned).length > 0) return true;
+      if (s.selectedArmorKey) return true;
+      if (s.mainCharacterImg && String(s.mainCharacterImg||'').trim()) return true;
+      if (s.petsOwned && typeof s.petsOwned === 'object' && Object.keys(s.petsOwned).length > 0) return true;
+      if ((parseInt(s.activePetId||0,10)||0) > 0) return true;
+      if (s.districtBizLvls && typeof s.districtBizLvls === 'object' && Object.keys(s.districtBizLvls).some(k => (parseInt(s.districtBizLvls[k]||0,10)||0) > 0)) return true;
+      if ((parseInt(s.districtBizFirstPurchaseTs||0,10)||0) > 0) return true;
+      if (s.inventory && Array.isArray(s.inventory) && s.inventory.some(x => String(x||'').trim() && String(x||'').trim() !== '')) return true;
+      if (s.bosses && typeof s.bosses === 'object') {
+        if ((parseInt(s.bosses.wins||0,10)||0) > 0) return true;
+        if (s.bosses.keys && Object.keys(s.bosses.keys).length > 0) return true;
+      }
+      return false;
+    } catch (e) { return false; }
+  }
+
   let __srvInFlight = false;
   async function sessionStartAndPull(){
     try {
@@ -7605,7 +7636,7 @@ button.btn.charCornerBtn:active{filter:none;}
             // Preserve local-only settings UX but keep server authoritative for progress.
             const keepSettings = state && state.settings ? state.settings : null;
             // НЕ ПЕРЕЗАПИСЫВАТЬ локальное состояние если на сервере пусто!
-            if (s2 && (s2.level > 1 || s2.xp > 0 || s2.gold > 0 || s2.silver > 0 || s2.tooth > 0 || s2.rings > 0)) {
+            if (hasMeaningfulCloudProgress(s2)) {
               console.log('[sessionStart] Применяем состояние с сервера - есть прогресс');
               var prevState2 = state;
               state = Object.assign({}, defaults, s2);
@@ -7661,6 +7692,7 @@ button.btn.charCornerBtn:active{filter:none;}
       level: state.level,
       xp: parseInt(state && state.totalXp != null ? state.totalXp : (state && state.xp != null ? state.xp : 0), 10) || 0,
       gold: parseInt(state && state.gold != null ? state.gold : 0, 10) || 0,
+      silver: parseInt(state && state.silver != null ? state.silver : 0, 10) || 0,
       tooth: parseInt(state && state.tooth != null ? state.tooth : 0, 10) || 0,
       district_fear_total: (function(){ try { const df = (state && state.districtFear && typeof state.districtFear === 'object') ? state.districtFear : {}; return Object.keys(df).reduce((sum, k)=> sum + (parseInt(df[k]||0,10)||0), 0); } catch (e0) { return 0; } })(),
       arena_power: (state.arena && (state.arena.power||0)) || 0,
@@ -11106,6 +11138,10 @@ button.btn.charCornerBtn:active{filter:none;}
                   var prevState = state;
                   state = Object.assign({}, defaults, ps);
                   mergeBossFreeUsedState(state, prevState);
+                  try {
+                    const rnFresh = fresh && fresh.player && fresh.player.name != null ? String(fresh.player.name).trim().slice(0,18) : '';
+                    if (rnFresh) state.playerName = rnFresh;
+                  } catch (_eNameFresh) {}
                   ensureGender();
                   try { __hydratedFromGetPlayer = true; } catch (_eHydr) {}
                   try { __cloudSaveUnlocked = true; } catch (_eCloud) {}

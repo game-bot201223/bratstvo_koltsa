@@ -145,11 +145,12 @@ function deriveDistrictFearTotal(state: any): number {
   }
 }
 
-function derivePersistedMetrics(body: any, state: any): { xp: number; gold: number; tooth: number; districtFearTotal: number } {
+function derivePersistedMetrics(body: any, state: any): { xp: number; gold: number; silver: number; tooth: number; districtFearTotal: number } {
   const src = state && typeof state === "object" ? state : {}
   return {
     xp: safeNonNegInt(body?.xp ?? (body as any)?.total_xp ?? (body as any)?.totalXp ?? (src as any).totalXp ?? (src as any).xp),
     gold: safeNonNegInt(body?.gold ?? (src as any).gold),
+    silver: safeNonNegInt(body?.silver ?? (src as any).silver),
     tooth: safeNonNegInt(body?.tooth ?? (src as any).tooth),
     districtFearTotal: safeNonNegInt(body?.district_fear_total ?? (body as any)?.districtFearTotal ?? deriveDistrictFearTotal(src)),
   }
@@ -759,6 +760,7 @@ Deno.serve(async (req: Request) => {
     boss_wins: safeNonNegInt(body?.boss_wins ?? (body as any)?.bossWins),
     xp: persistedMetrics.xp,
     gold: persistedMetrics.gold,
+    silver: persistedMetrics.silver,
     tooth: persistedMetrics.tooth,
     district_fear_total: persistedMetrics.districtFearTotal,
     state,
