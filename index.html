@@ -6824,7 +6824,7 @@ button.btn.charCornerBtn:active{filter:none;}
           const selectCols = 'tg_id,name,photo_url,state';
           const filter = targetTgId
             ? ('&tg_id=eq.' + encodeURIComponent(targetTgId))
-            : ('&name=eq.' + encodeURIComponent(targetName));
+            : ('&name=ilike.*' + encodeURIComponent(targetName) + '*');
           const urlGet = playersUrl + '?select=' + encodeURIComponent(selectCols) + filter + '&limit=1';
           const resp0 = await fetch(urlGet, { method:'GET', headers: dbHeadersBase, keepalive:true });
           const arr0 = await resp0.json().catch(()=> null);
