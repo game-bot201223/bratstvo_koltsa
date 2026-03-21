@@ -6213,6 +6213,58 @@ button.btn.charCornerBtn:active{filter:none;}
     }
   }
 
+  function clanNormalizeMemberMetaTgIds(clanObj){
+    try {
+      if (!clanObj || typeof clanObj !== 'object') return false;
+      if (!clanObj.memberMeta || typeof clanObj.memberMeta !== 'object') clanObj.memberMeta = {};
+      const mem = Array.isArray(clanObj.members) ? clanObj.members : [];
+      const me = String(clanMyName() || '').trim();
+      const myId = String(myTgUserId() || '').trim();
+      const friendMap = {};
+      try {
+        (Array.isArray(state.friends) ? state.friends : []).forEach(fr=>{
+          try {
+            const nm = String(fr && fr.name || '').trim();
+            const tid = String(fr && (fr.tg_id || fr.tgId || fr.id) || '').trim();
+            if (!nm || !tid) return;
+            friendMap[nm.toUpperCase()] = tid;
+          } catch (e0) {}
+        });
+      } catch (e1) {}
+      let changed = false;
+      mem.forEach(nm0=>{
+        try {
+          const nm = String(nm0 || '').trim();
+          if (!nm) return;
+          if (!clanObj.memberMeta[nm] || typeof clanObj.memberMeta[nm] !== 'object') {
+            clanObj.memberMeta[nm] = {};
+            changed = true;
+          }
+          const meta = clanObj.memberMeta[nm];
+          let tid = '';
+          if (nm.toUpperCase() === me.toUpperCase()) tid = myId;
+          if (!tid) tid = String(friendMap[nm.toUpperCase()] || '').trim();
+          if (tid && String(meta.tg_id || '').trim() !== tid) {
+            meta.tg_id = tid;
+            changed = true;
+          }
+        } catch (e2) {}
+      });
+      return changed;
+    } catch (e) { return false; }
+  }
+
+  async function clanMemberMetaTgIdsPushMaybe(clanObj){
+    try {
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return false;
+      if (!clanObj || typeof clanObj !== 'object') return false;
+      const changed = clanNormalizeMemberMetaTgIds(clanObj);
+      if (!changed) return false;
+      await clansCloudUpsert(clanObj);
+      return true;
+    } catch (e) { return false; }
+  }
+
   async function clansCloudPull(){
     try {
       if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
@@ -6233,6 +6285,7 @@ button.btn.charCornerBtn:active{filter:none;}
           const data = row && row.data;
           if (!id || !data || typeof data !== 'object') return;
           enforceHolyLegionClanPhoto(data);
+          try { clanNormalizeMemberMetaTgIds(data); } catch (eN) {}
           nextClans[id] = data;
           nextOrder.push(id);
         } catch (e2) {}
@@ -6253,6 +6306,7 @@ button.btn.charCornerBtn:active{filter:none;}
           if (Array.isArray(c.members) && c.members.map(x=>String(x||'').trim().toUpperCase()).includes(String(me||'').trim().toUpperCase())) {
             found = true;
             if (!state.clan || !state.clan.id) state.clan = Object.assign({}, c);
+            try { clanMemberMetaTgIdsPushMaybe(c).catch(()=>{}); } catch (ePush) {}
             if (state.clansDb.myApps && typeof state.clansDb.myApps === 'object' && Object.keys(state.clansDb.myApps).length) {
               state.clansDb.myApps = {};
               save();
@@ -6260,9 +6314,6 @@ button.btn.charCornerBtn:active{filter:none;}
             break;
           }
         }
-        // auto-heal stale local membership
-        // IMPORTANT: only clear if our clan row is present in server list but we are NOT a member.
-        // Otherwise, list could be paginated/limited and our clan row might not be included.
         if (!found && myClanId && myClanRowPresent) {
           state.clan = Object.assign({}, defaults.clan);
           save();
@@ -6283,6 +6334,7 @@ button.btn.charCornerBtn:active{filter:none;}
       const initData = tgInitData();
       if (!initData) return;
       if (!clanObj || typeof clanObj !== 'object') return;
+      try { clanNormalizeMemberMetaTgIds(clanObj); } catch (eN) {}
       const id = String(clanObj.id||'');
       const name = String(clanObj.name||'');
       if (!id || !name) return;
@@ -14630,6 +14682,11 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       if (!c.memberMeta[me] || typeof c.memberMeta[me] !== 'object') c.memberMeta[me] = {};
       c.memberMeta[me].lvl = parseInt(state.level||1,10)||1;
       c.memberMeta[me].stats = clanStatsSum();
+      try {
+        const tid = String(myTgUserId() || '').trim();
+        if (tid) c.memberMeta[me].tg_id = tid;
+      } catch (e0) {}
+      try { clanNormalizeMemberMetaTgIds(c); } catch (e1) {}
     } catch (e) {}
   }
 
