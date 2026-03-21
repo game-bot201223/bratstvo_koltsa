@@ -13017,6 +13017,8 @@ const BF_HELP_PULL_EVERY_MS = 500;
           // Before start: drop stale local fight/log/top to avoid phantom entries after refresh.
           try {
             if (state.bosses && state.bosses.fights && state.bosses.fights[String(id)]) delete state.bosses.fights[String(id)];
+            if (state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)]) delete state.bosses.cloud[String(id)];
+            if (state.bosses && state.bosses.hp && typeof state.bosses.hp === 'object') delete state.bosses.hp[String(id)];
           } catch (eClr) {}
           bossFightStartCloud(id).then((sr)=>{
             try {
@@ -13026,6 +13028,36 @@ const BF_HELP_PULL_EVERY_MS = 500;
                 return;
               }
             } catch (e0) { toast('СЕРВЕР: ERR','lose'); return; }
+
+            try {
+              if (!(sr && sr.fight && typeof sr.fight === 'object')) {
+                toast('СЕРВЕР: БОЙ НЕ СОЗДАН','lose');
+                return;
+              }
+            } catch (eCheck) { toast('СЕРВЕР: БОЙ НЕ СОЗДАН','lose'); return; }
+
+            let f0 = null;
+            try {
+              const startHp = Math.max(0, parseInt(sr.fight && sr.fight.hp, 10) || 0);
+              const maxHpVal = Math.max(0, parseInt(sr.fight && sr.fight.max_hp, 10) || 0);
+              const expiresTs = sr.fight && sr.fight.expires_at ? (new Date(String(sr.fight.expires_at))).getTime() : 0;
+              f0 = bfEnsureFight(id);
+              if (!f0) {
+                toast('СЕРВЕР: БОЙ НЕ СОЗДАН','lose');
+                return;
+              }
+              if (startHp > 0) f0.hp = startHp;
+              if (maxHpVal > 0) f0.maxHp = maxHpVal;
+              if (expiresTs > 0) f0.expiresTs = expiresTs;
+              bfSetFight(id, f0);
+              if (!state.bosses.hp) state.bosses.hp = {};
+              state.bosses.hp[String(id)] = startHp;
+              if (!state.bosses.cloud) state.bosses.cloud = {};
+              state.bosses.cloud[String(id)] = { hp: startHp, max_hp: maxHpVal, expires_at: (sr.fight.expires_at || ''), reward_claimed: !!(sr.fight.reward_claimed) };
+            } catch (eMake) {
+              toast('СЕРВЕР: БОЙ НЕ СОЗДАН','lose');
+              return;
+            }
 
             state.rings -= priceR2;
             state.bosses.strikes = clamp((parseInt(state.bosses.strikes||0,10)||0) + 1, 0, 99);
@@ -13040,38 +13072,17 @@ const BF_HELP_PULL_EVERY_MS = 500;
               }
             } catch (e1) {}
 
-            save();
-
             state.bosses.pendingAttackId = id;
             state.bosses.activeFightId = id;
             window.__skipBossFightGuard = true;
             window.__ignoreOverlayClickOnce = true;
-            // Всегда подтягиваем актуальное состояние босса перед открытием боя
-            try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
-            try { bossHelpPullOnce(); } catch (eHelp) {}
             showModal('mBossFight');
             hideModal('mBossAttack');
-            try {
-              if (sr && sr.fight && typeof sr.fight.hp !== 'undefined') {
-                const startHp = Math.max(0, parseInt(sr.fight.hp, 10) || 0);
-                if (!state.bosses.hp) state.bosses.hp = {};
-                state.bosses.hp[String(id)] = startHp;
-                if (!state.bosses.cloud) state.bosses.cloud = {};
-                const maxHpVal = (sr.fight.max_hp != null) ? (parseInt(sr.fight.max_hp, 10) || 0) : 0;
-                state.bosses.cloud[String(id)] = { hp: startHp, max_hp: maxHpVal, expires_at: (sr.fight.expires_at || ''), reward_claimed: !!(sr.fight.reward_claimed) };
-              }
-              const f0 = bfEnsureFight(id);
-              if (f0 && sr && sr.fight && sr.fight.expires_at) {
-                f0.expiresTs = (new Date(String(sr.fight.expires_at))).getTime();
-                bfSetFight(id, f0);
-              }
-              if (f0 && sr && sr.fight && typeof sr.fight.hp !== 'undefined') {
-                f0.hp = Math.max(0, parseInt(sr.fight.hp, 10) || 0);
-                bfSetFight(id, f0);
-              }
-            } catch (e0) {}
             bfRender(id);
             save();
+            // Подтянуть серверное состояние уже после успешного локального открытия боя.
+            try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
+            try { bossHelpPullOnce(); } catch (eHelp) {}
 
             renderBosses();
             renderHUD();
