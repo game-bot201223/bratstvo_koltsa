@@ -6635,6 +6635,7 @@ button.btn.charCornerBtn:active{filter:none;}
     const supaBase = String(SUPABASE_URL||'').replace(/\/$/,'');
     if (!supaBase) throw new Error('no_supabase_url');
     const fn = String(fnName||'').trim();
+    const edgeFnName = (fn === 'admin_get_player') ? 'get_player' : (fn === 'admin_update_player') ? 'upsert_player' : fn;
     const isPlayersDbFn =
       fn === 'get_player' ||
       fn === 'upsert_player' ||
@@ -6643,9 +6644,7 @@ button.btn.charCornerBtn:active{filter:none;}
       fn === 'top_players_list' ||
       fn === 'admin_get_player' ||
       fn === 'admin_update_player';
-    const isAdminPlayersDirectFn =
-      fn === 'admin_get_player' ||
-      fn === 'admin_update_player';
+    const isAdminPlayersDirectFn = false;
     const allowEdgeFnInPlayersOnly =
       fn === 'stars_create_invoice';
     // In players-only DB mode: we do not call edge functions at all.
@@ -6655,9 +6654,9 @@ button.btn.charCornerBtn:active{filter:none;}
       return { ok:false, skipped:true, error:'edge_functions_disabled_by_players_only', fn: fn };
     }
     const proxyBase = String((state && state.edgeProxyBase) || EDGE_PROXY_BASE || '').replace(/\/$/,'');
-    const useProxy = !!(proxyBase && edgeProxyCanHandle(fnName));
+    const useProxy = !!(proxyBase && edgeProxyCanHandle(edgeFnName));
     const base = useProxy ? proxyBase : supaBase;
-    const url = base + '/functions/v1/' + encodeURIComponent(fnName);
+    const url = base + '/functions/v1/' + encodeURIComponent(edgeFnName);
     const initData = tgInitData();
     let bodyObj = payload||{};
     try {
@@ -6680,7 +6679,7 @@ button.btn.charCornerBtn:active{filter:none;}
     } catch (e0) { if (!__dbgFreeze && IS_DEV) __lastCloudFn = String(fnName||''); }
     try { if (!__dbgFreeze && IS_DEV) __lastCloudTs = now(); } catch (e00) { if (!__dbgFreeze && IS_DEV) __lastCloudTs = (new Date()).getTime(); }
     const reqKey = (()=>{
-      try { return String(fnName||'') + '::' + JSON.stringify(bodyObj||{}); } catch (e) { return String(fnName||''); }
+      try { return String(edgeFnName||'') + '::' + JSON.stringify(bodyObj||{}); } catch (e) { return String(edgeFnName||''); }
     })();
     return await cloudOnce('act:'+reqKey, async ()=>{
       const prev = __cloudGatePromise;
@@ -6693,8 +6692,8 @@ button.btn.charCornerBtn:active{filter:none;}
       });
       __cloudGatePromise = myTurn;
       await myTurn;
-      // Direct PostgREST only for admin player tools or in players-only mode.
-      if (isAdminPlayersDirectFn || (CLOUD_PLAYERS_ONLY && isPlayersDbFn)) {
+      // Direct PostgREST only in players-only mode.
+      if ((CLOUD_PLAYERS_ONLY && isPlayersDbFn)) {
         const playersUrl = supaBase + '/rest/v1/' + encodeURIComponent(PLAYERS_TABLE);
         const playersUpsertUrl = playersUrl + '?on_conflict=' + encodeURIComponent('tg_id');
         const apikey = String(SUPABASE_ANON_KEY||'');
@@ -6816,50 +6815,7 @@ button.btn.charCornerBtn:active{filter:none;}
           return { ok:true };
         }
 
-        if (fn === 'admin_get_player') {
-          if (!isAdmin || !isAdmin()) throw new Error('admin_only');
-          const targetTgId = String(bodyObj && bodyObj.target_tg_id != null ? bodyObj.target_tg_id : '').trim();
-          const targetName = String(bodyObj && bodyObj.target_name != null ? bodyObj.target_name : '').trim();
-          if (!targetTgId && !targetName) throw new Error('missing_target');
-          const selectCols = 'tg_id,name,photo_url,state';
-          const filter = targetTgId
-            ? ('&tg_id=eq.' + encodeURIComponent(targetTgId))
-            : ('&name=ilike.*' + encodeURIComponent(targetName) + '*');
-          const urlGet = playersUrl + '?select=' + encodeURIComponent(selectCols) + filter + '&limit=1';
-          const resp0 = await fetch(urlGet, { method:'GET', headers: dbHeadersBase, keepalive:true });
-          const arr0 = await resp0.json().catch(()=> null);
-          if (!resp0.ok) throw new Error('db_admin_get_player_http_' + String(resp0.status||0));
-          const row0 = (Array.isArray(arr0) && arr0.length) ? arr0[0] : null;
-          if (!row0) return { ok:false, error:'player_not_found' };
-          return { ok:true, player: row0 };
-        }
 
-        if (fn === 'admin_update_player') {
-          if (!isAdmin || !isAdmin()) throw new Error('admin_only');
-          const targetTgId = String(bodyObj && bodyObj.target_tg_id != null ? bodyObj.target_tg_id : '').trim();
-          if (!targetTgId) throw new Error('missing_target_tg_id');
-          const patchState = (bodyObj && bodyObj.state && typeof bodyObj.state === 'object') ? bodyObj.state : {};
-          const urlGet = playersUrl + '?select=' + encodeURIComponent('state') + '&tg_id=eq.' + encodeURIComponent(targetTgId) + '&limit=1';
-          const resp0 = await fetch(urlGet, { method:'GET', headers: dbHeadersBase, keepalive:true });
-          const arr0 = await resp0.json().catch(()=> null);
-          if (!resp0.ok) throw new Error('db_admin_get_player_http_' + String(resp0.status||0));
-          const row0 = (Array.isArray(arr0) && arr0.length) ? arr0[0] : null;
-          if (!row0) return { ok:false, error:'player_not_found' };
-          const curState = (row0.state && typeof row0.state === 'object') ? row0.state : {};
-          const nextGym = Object.assign({}, (curState.gym && typeof curState.gym === 'object') ? curState.gym : {}, (patchState.gym && typeof patchState.gym === 'object') ? patchState.gym : {});
-          const nextState = Object.assign({}, curState, patchState, { gym: nextGym });
-          const urlPatch = playersUrl + '?tg_id=eq.' + encodeURIComponent(targetTgId);
-          const upResp = await fetch(urlPatch, {
-            method:'PATCH',
-            headers: Object.assign({}, dbHeadersJson, { 'Prefer': 'return=representation' }),
-            body: JSON.stringify({ state: nextState }),
-            keepalive:true
-          });
-          const arr1 = await upResp.json().catch(()=> null);
-          if (!upResp.ok) throw new Error('db_admin_update_player_http_' + String(upResp.status||0));
-          const row1 = (Array.isArray(arr1) && arr1.length) ? arr1[0] : null;
-          return { ok:true, player: row1 };
-        }
 
         if (fn === 'get_players_by_names') {
           const names = (bodyObj && Array.isArray(bodyObj.names)) ? bodyObj.names : [];

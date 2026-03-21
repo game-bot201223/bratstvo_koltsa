@@ -522,7 +522,47 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  const tgId = String(verified.user.id)
+  const actorTgId = String(verified.user.id)
+
+  // Admin mode: allow updating arbitrary player state by tg_id.
+  // Uses SERVICE_ROLE_KEY so it works even when RLS is enabled on players.
+  try {
+    const adminIdsRaw = String(Deno.env.get("ADMIN_TG_IDS") || Deno.env.get("ADMIN_TG_ID") || "8794843839").trim()
+    const adminIds = adminIdsRaw.split(/[\s,;]+/g).map((x) => x.trim()).filter((x) => x)
+    const isAdmin = adminIds.includes(actorTgId)
+    const targetTgId = String(body?.target_tg_id ?? (body as any)?.targetTgId ?? "").trim()
+    const hasState = !!(body && typeof body === "object" && (body as any).state && typeof (body as any).state === "object")
+    if (isAdmin && targetTgId && hasState) {
+      const state0: unknown = (body as any).state
+      try {
+        const size = JSON.stringify(state0).length
+        if (size > 420000) {
+          return new Response(JSON.stringify({ ok: false, error: "state_too_large", size }), {
+            status: 413,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          })
+        }
+      } catch (_eSize) {}
+
+      const resp = await postgrestUpsertPlayer(projectUrl, serviceKey, {
+        tg_id: targetTgId,
+        state: state0,
+        updated_at: new Date().toISOString(),
+      })
+      if (!resp.ok) {
+        const text = await resp.text().catch(() => "")
+        return new Response(JSON.stringify({ ok: false, error: "supabase_error", details: text.slice(0, 1500) }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        })
+      }
+      return new Response(JSON.stringify({ ok: true, tg_id: targetTgId }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+  } catch (_eAdmin) {}
+
+  const tgId = actorTgId
 
   // Soft rate limit: cloud saves can be frequent; cap to a few per second.
   try {

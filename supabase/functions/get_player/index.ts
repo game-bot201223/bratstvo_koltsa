@@ -90,6 +90,17 @@ async function postgrestGetPlayer(projectUrl: string, serviceKey: string, tgId: 
   })
 }
 
+async function postgrestGetPlayerByName(projectUrl: string, serviceKey: string, name: string): Promise<Response> {
+  const url = projectUrl.replace(/\/$/, "") + `/rest/v1/players?name=ilike.*${encodeURIComponent(name)}*&select=tg_id,name,photo_url,arena_power,level,stats_sum,boss_wins,state,active_session_id,active_session_updated_at,active_device_id,updated_at&limit=1`
+  return await fetch(url, {
+    method: "GET",
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+    },
+  })
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
   if (req.method !== "POST") {
@@ -135,7 +146,16 @@ Deno.serve(async (req: Request) => {
   }
 
   const tgId = String(verified.user.id)
-  const resp = await postgrestGetPlayer(projectUrl, serviceKey, tgId)
+  const adminIdsRaw = String(Deno.env.get("ADMIN_TG_IDS") || Deno.env.get("ADMIN_TG_ID") || "8794843839").trim()
+  const adminIds = adminIdsRaw.split(/[\s,;]+/g).map((x) => x.trim()).filter((x) => x)
+  const isAdmin = adminIds.includes(tgId)
+
+  const targetTgId = String(body?.target_tg_id ?? (body as any)?.targetTgId ?? "").trim()
+  const targetName = String(body?.target_name ?? (body as any)?.targetName ?? "").trim()
+
+  const resp = (isAdmin && (targetTgId || targetName))
+    ? (targetTgId ? await postgrestGetPlayer(projectUrl, serviceKey, targetTgId) : await postgrestGetPlayerByName(projectUrl, serviceKey, targetName))
+    : await postgrestGetPlayer(projectUrl, serviceKey, tgId)
   if (!resp.ok) {
     const text = await resp.text().catch(() => "")
     return new Response(JSON.stringify({ ok: false, error: "supabase_error", details: text.slice(0, 500) }), {
