@@ -13171,6 +13171,8 @@ const BF_HELP_PULL_EVERY_MS = 500;
         // чтобы не показывать заниженный HP до ответа сервера.
         try {
           if (state.bosses && state.bosses.fights && state.bosses.fights[String(id)]) delete state.bosses.fights[String(id)];
+          if (state.bosses && state.bosses.cloud && state.bosses.cloud[String(id)]) delete state.bosses.cloud[String(id)];
+          if (state.bosses && state.bosses.hp && typeof state.bosses.hp === 'object') delete state.bosses.hp[String(id)];
         } catch (eClr) {}
 
         bossFightStartCloud(id).then(async (sr)=>{
@@ -13181,6 +13183,13 @@ const BF_HELP_PULL_EVERY_MS = 500;
               return;
             }
           } catch (e0) { toast('СЕРВЕР: ERR','lose'); return; }
+
+          try {
+            if (!(sr && sr.fight && typeof sr.fight === 'object')) {
+              toast('СЕРВЕР: БОЙ НЕ СОЗДАН','lose');
+              return;
+            }
+          } catch (eCheck) { toast('СЕРВЕР: БОЙ НЕ СОЗДАН','lose'); return; }
 
           // Сначала применяем HP с сервера, чтобы bfEnsureFight и bfRender брали уже новые данные
           if (sr && sr.fight && (typeof sr.fight.hp !== 'undefined' || typeof sr.fight.max_hp !== 'undefined')) {
@@ -13229,14 +13238,15 @@ const BF_HELP_PULL_EVERY_MS = 500;
             const have = bossKeyCount(rr.itemKey);
             state.bosses.keys[String(rr.itemKey)] = Math.max(0, have - rr.need);
           }
+          window.__skipBossFightGuard = true;
           window.__ignoreOverlayClickOnce = true;
           hideModal('mBossAttack');
-          // Всегда подтягиваем актуальное состояние босса перед открытием боя
-          try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
-          try { bossHelpPullOnce(); } catch (eHelp) {}
           showModal('mBossFight');
           bfRender(id);
           save();
+          // Подтягиваем облако уже после успешного открытия боя.
+          try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
+          try { bossHelpPullOnce(); } catch (eHelp) {}
           try { await serverPushNow(); } catch (e0) {}
         }).catch(()=>{ toast('СЕРВЕР: ERR','lose'); });
         return;
@@ -13256,14 +13266,14 @@ const BF_HELP_PULL_EVERY_MS = 500;
         state.bosses.keys[String(rr.itemKey)] = Math.max(0, have - rr.need);
       }
       state.bosses.activeFightId = id;
+      window.__skipBossFightGuard = true;
       window.__ignoreOverlayClickOnce = true;
       hideModal('mBossAttack');
-      // Всегда подтягиваем актуальное состояние босса перед открытием боя
-      try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
-      try { bossHelpPullOnce(); } catch (eHelp) {}
       showModal('mBossFight');
       bfRender(id);
       save();
+      try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
+      try { bossHelpPullOnce(); } catch (eHelp) {}
     };
   }
 
