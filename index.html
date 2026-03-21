@@ -7092,6 +7092,7 @@ button.btn.charCornerBtn:active{filter:none;}
         topRows.forEach(tr=>{ try { topObj[String(tr.who||'—')] = Math.max(0, parseInt(tr.dmg||0,10)||0); } catch (e0) {} });
         f.dmgTop = topObj;
       } catch (e2) {}
+      try { f._cloudHydrated = true; } catch (e2b) {}
       bfSetFight(bossId, f);
 
       try {
@@ -11334,13 +11335,21 @@ button.btn.charCornerBtn:active{filter:none;}
       const idx = districtIdxFromBossId(id);
       const boss = districtGateBoss(idx);
       if (!boss) return null;
-      const maxHp = parseInt(boss.hp||50000,10)||50000;
-      const districtExpiresIn = 8*60*60*1000;
+      const maxHp = boss.maxHP||1;
       let f = bfGetFight(id);
       if (!f || f.districtIdx !== idx){
         const curHp = (state.districtGateBossFight && state.districtGateBossFight.districtIdx === idx) ? (parseInt(state.districtGateBossFight.hp||0,10)||0) : maxHp;
         const startTs = now();
-        f = { districtIdx: idx, hp: curHp, maxHp: maxHp, startTs: startTs, expiresTs: startTs + districtExpiresIn, dmgLog: (f && Array.isArray(f.dmgLog)) ? f.dmgLog : [], dmgTop: (f && f.dmgTop) ? f.dmgTop : {}, freeUsed: false };
+        // Restore freeUsed per district boss attempt.
+        let _freeUsed0 = false;
+        try {
+          const k0 = String(id);
+          const rec = state.bosses && state.bosses.freeUsed ? state.bosses.freeUsed[k0] : null;
+          const used = !!(rec && typeof rec === 'object' && rec.used);
+          const st = rec && typeof rec === 'object' ? (parseInt(rec.startTs||0,10)||0) : 0;
+          _freeUsed0 = !!(used && st && st === startTs);
+        } catch (e02) { _freeUsed0 = false; }
+        f = { districtIdx: idx, hp: curHp, maxHp: maxHp, startTs: startTs, expiresTs: startTs + districtExpiresIn, dmgLog: [], dmgTop: {}, freeUsed: _freeUsed0 };
         bfSetFight(id, f);
       }
       return f;
@@ -11398,12 +11407,14 @@ button.btn.charCornerBtn:active{filter:none;}
         const k0 = String(id);
         if (state.bosses && state.bosses.dmgTop && state.bosses.dmgTop[k0] && typeof state.bosses.dmgTop[k0] === 'object') _top0 = state.bosses.dmgTop[k0];
       } catch (e01) { _top0 = {}; }
-      // Restore permanent freeUsed per boss.
+      // Restore freeUsed per boss attempt (1 free hit per boss per fight_started_at).
       let _freeUsed0 = false;
       try {
         const k0 = String(id);
         const rec = state.bosses && state.bosses.freeUsed ? state.bosses.freeUsed[k0] : null;
-        _freeUsed0 = !!(rec && typeof rec === 'object' && rec.used);
+        const used = !!(rec && typeof rec === 'object' && rec.used);
+        const st = rec && typeof rec === 'object' ? (parseInt(rec.startTs||0,10)||0) : 0;
+        _freeUsed0 = !!(used && st && Math.abs(st - nextStartTs) < 1500);
       } catch (e02) { _freeUsed0 = false; }
       f = { startTs: nextStartTs, expiresTs: nextExpiresTs, bossMaxHP: b.maxHP, hp: startHp, freeUsed:_freeUsed0, friendCap:{}, lastFriendTs: now(), dmgLog: (Array.isArray(_log0) ? _log0.slice() : []), dmgTop: (_top0 && typeof _top0==='object' ? Object.assign({}, _top0) : {}) };
       bfSetFight(id, f);
@@ -11876,7 +11887,7 @@ button.btn.charCornerBtn:active{filter:none;}
 
       if (isDistrictBossId(bossId)) {
         ff.freeUsed = true;
-        try { if (!state.bosses.freeUsed) state.bosses.freeUsed = {}; state.bosses.freeUsed[String(bossId)] = { used:true }; } catch (e0) {}
+        try { if (!state.bosses.freeUsed) state.bosses.freeUsed = {}; state.bosses.freeUsed[String(bossId)] = { used:true, startTs: Math.max(0, parseInt(ff.startTs||0,10)||0) }; } catch (e0) {}
         ff.hp = Math.max(0, prevHp - wantApply);
         bfLogPush(bossId, state.playerName||'PLAYER', wantApply);
         bfTopAdd(bossId, state.playerName||'PLAYER', wantApply);
@@ -11916,7 +11927,7 @@ button.btn.charCornerBtn:active{filter:none;}
         }
 
         ff.freeUsed = true;
-        try { if (!state.bosses.freeUsed) state.bosses.freeUsed = {}; state.bosses.freeUsed[String(bossId)] = { used:true }; } catch (e0) {}
+        try { if (!state.bosses.freeUsed) state.bosses.freeUsed = {}; state.bosses.freeUsed[String(bossId)] = { used:true, startTs: Math.max(0, parseInt(ff.startTs||0,10)||0) }; } catch (e0) {}
         ff.lastFriendTs = now();
 
         const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
@@ -12061,10 +12072,14 @@ button.btn.charCornerBtn:active{filter:none;}
 
     const log = $('bfLog');
     let logArr = [];
-    if (f && Array.isArray(f.dmgLog) && f.dmgLog.length) {
+    if (f && Array.isArray(f.dmgLog)) {
+      // If cloud-hydrated, trust it even if empty.
       logArr = f.dmgLog;
+      if (!logArr.length && !f._cloudHydrated && Array.isArray(state.bosses.dmgLog[String(bossId)])) {
+        // After refresh per-fight log may be empty; fall back to persistent log (local-only mode)
+        logArr = state.bosses.dmgLog[String(bossId)];
+      }
     } else if (Array.isArray(state.bosses.dmgLog[String(bossId)])) {
-      // After refresh per-fight log may be empty; fall back to persistent log
       logArr = state.bosses.dmgLog[String(bossId)];
     }
     // Only show entries for current fight attempt (startTs..expiresTs)
@@ -12086,7 +12101,7 @@ button.btn.charCornerBtn:active{filter:none;}
       const rowC = isPlayer ? 'row bfBfPlayerLine' : 'row';
       const badgeC = isPlayer ? 'badge bfBfPlayerBadge' : 'badge';
       return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">'+String(e.who)+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+String(e.dmg)+'</div></div>';
-    }).join('') : '<div style="opacity:.75; font-size:12px">—</div>');
+    }).join('') : '');
 
     const top = $('bfTop');
     // Compute top from current-attempt log to avoid mixing across attempts
@@ -12110,7 +12125,7 @@ button.btn.charCornerBtn:active{filter:none;}
       const rowC = isPlayerTop ? 'row bfBfPlayerLine' : 'row';
       const badgeC = isPlayerTop ? 'badge bfBfPlayerBadge' : 'badge';
       return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+r.who+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+r.dmg+'</div></div>';
-    }).join('') : '<div style="opacity:.75; font-size:12px">—</div>');
+    }).join('') : '');
   }
 
   let __bfRealtimeT = 0;
