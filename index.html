@@ -7142,7 +7142,16 @@ button.btn.charCornerBtn:active{filter:none;}
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && initData)) {
         return { ok:false, error:'missing_init_data', reason:'tgInitData empty (or Supabase not configured)' };
       }
-      return await sbFnCall('boss_fight_hit', { initData, boss_id: bossId, dmg });
+      const cid = (function(){
+        try {
+          const c0 = String(state && state.clan && state.clan.id || '').trim().toUpperCase();
+          if (/^CLN\d{1,20}$/.test(c0)) return c0;
+        } catch (e0) {}
+        try { return String(clanFindMyClanId()||'').trim().toUpperCase(); } catch (e1) { return ''; }
+        return '';
+      })();
+      const me = String(state && state.playerName ? state.playerName : clanMyName() || 'PLAYER').trim().slice(0,18);
+      return await sbFnCall('boss_fight_hit', { initData, boss_id: bossId, dmg, from_name: me, clan_id: cid });
     } catch (e) {
       try { return { ok:false, error:'boss_fight_hit_cloud_exception', reason:String((e && (e.message||e.name)) || e || 'err') }; } catch (_e0) {}
       return { ok:false, error:'boss_fight_hit_cloud_exception', reason:'err' };
@@ -12159,7 +12168,7 @@ const BF_HELP_PULL_EVERY_MS = 500;
       if (log) {
         let logArr = Array.isArray(f.dmgLog) ? f.dmgLog : [];
         try {
-          if (!logArr.length && state.bosses && state.bosses.dmgLog && Array.isArray(state.bosses.dmgLog[String(bossId)])) {
+          if (!logArr.length && !(f && f._cloudHydrated) && state.bosses && state.bosses.dmgLog && Array.isArray(state.bosses.dmgLog[String(bossId)])) {
             logArr = state.bosses.dmgLog[String(bossId)];
           }
         } catch (eL0) {}
@@ -12182,7 +12191,7 @@ const BF_HELP_PULL_EVERY_MS = 500;
           const rowC = isPlayer ? 'row bfBfPlayerLine' : 'row';
           const badgeC = isPlayer ? 'badge bfBfPlayerBadge' : 'badge';
           return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">'+String(e.who)+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+String(e.dmg)+'</div></div>';
-        }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+        }).join('') : '';
       }
 
       const top = $('bfTop');
@@ -12191,7 +12200,7 @@ const BF_HELP_PULL_EVERY_MS = 500;
         let topObj = {};
         try {
           let logArr2 = Array.isArray(f.dmgLog) ? f.dmgLog : [];
-          if ((!logArr2 || !logArr2.length) && state.bosses && state.bosses.dmgLog && Array.isArray(state.bosses.dmgLog[String(bossId)])) {
+          if ((!logArr2 || !logArr2.length) && !(f && f._cloudHydrated) && state.bosses && state.bosses.dmgLog && Array.isArray(state.bosses.dmgLog[String(bossId)])) {
             logArr2 = state.bosses.dmgLog[String(bossId)];
           }
           const st = Math.max(0, parseInt(f.startTs||0,10)||0);
@@ -12211,13 +12220,13 @@ const BF_HELP_PULL_EVERY_MS = 500;
           topObj = acc;
         } catch (eT1) { topObj = {}; }
         const playerNameForLog = String(state.playerName||'PLAYER').trim();
-        const rows = Object.keys(topObj).map(k=>({ who:k, dmg: parseInt(topObj[k]||0,10)||0 })).sort((a,b)=>b.dmg-a.dmg).slice(0,12);
+        const rows = Object.keys(topObj).map(k=>({ who:k, dmg: parseInt(topObj[k]||0,10)||0 })).sort((a,b)=>b.dmg-a.dmg);
         top.innerHTML = rows.length ? rows.map((r,i)=>{
           const isPlayerTop = String(r.who||'').trim() === playerNameForLog;
           const rowC = isPlayerTop ? 'row bfBfPlayerLine' : 'row';
           const badgeC = isPlayerTop ? 'badge bfBfPlayerBadge' : 'badge';
           return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+r.who+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+r.dmg+'</div></div>';
-        }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+        }).join('') : '';
       }
 
       // Near-realtime help pull while fight UI is open.

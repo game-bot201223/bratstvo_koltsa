@@ -181,6 +181,9 @@ async function postgrestApplyBossDamage(
   maxHp: number,
   expiresAt: string,
   source?: string,
+  fromTgId?: string,
+  fromName?: string,
+  clanId?: string,
 ): Promise<{ ok: boolean; fight?: any; status?: number; statusText?: string; body?: string }> {
   const url = projectUrl.replace(/\/$/, "") + "/rest/v1/rpc/apply_boss_damage_v2"
   const resp = await fetch(url, {
@@ -197,6 +200,9 @@ async function postgrestApplyBossDamage(
       p_max_hp: maxHp,
       p_expires_at: expiresAt,
       p_source: source || "hit",
+      p_from_tg_id: fromTgId || null,
+      p_from_name: fromName || null,
+      p_clan_id: clanId || null,
     }),
   })
 
@@ -256,6 +262,8 @@ Deno.serve(async (req: Request) => {
   const ownerTgId = String(verified.user.id)
   const bossId = Math.max(1, safeInt(body?.boss_id ?? body?.bossId, 0))
   const dmg = Math.max(0, Math.min(1_000_000_000, safeInt(body?.dmg, 0)))
+  const fromName = String(body?.from_name ?? body?.fromName ?? "").trim().slice(0, 18)
+  const clanId = String(body?.clan_id ?? body?.clanId ?? "").trim().toUpperCase().slice(0, 32)
 
   const def = bossDef(bossId)
   if (!def) {
@@ -266,7 +274,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
-  const ar = await postgrestApplyBossDamage(projectUrl, serviceKey, ownerTgId, bossId, dmg, def.max_hp, expiresAt, "hit")
+  const ar = await postgrestApplyBossDamage(projectUrl, serviceKey, ownerTgId, bossId, dmg, def.max_hp, expiresAt, "hit", ownerTgId, fromName || undefined, clanId || undefined)
   if (!ar.ok || !ar.fight) {
     return new Response(JSON.stringify({
       ok: false,

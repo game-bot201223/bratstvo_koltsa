@@ -162,6 +162,7 @@ async function postgrestListBossDamageEvents(
       `/rest/v1/boss_damage_events?to_tg_id=eq.${encodeURIComponent(ownerTgId)}` +
       `&boss_id=eq.${encodeURIComponent(String(bossId))}` +
       `&fight_started_at=eq.${encodeURIComponent(String(fightStartedAtIso))}` +
+      `&dmg_applied=gt.0` +
       `&select=created_at,from_name,from_tg_id,dmg_applied,source` +
       `&order=created_at.desc&limit=${encodeURIComponent(String(Math.max(1, Math.min(500, limit))))}`
     const resp = await fetch(url, {
