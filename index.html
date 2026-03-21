@@ -5976,8 +5976,8 @@ button.btn.charCornerBtn:active{filter:none;}
     }
   }
   let __sbRealtimeClient = null;
-  let __bfRealtimeChannel = null;
-  let __bfRealtimeOwner = '';
+  let __bfRealtimeChannels = {};
+  let __bfRealtimeOwners = [];
   let __bfRealtimeState = 'idle';
   let __bfRealtimeLastEventTs = 0;
   function sbRealtimeClient(){
@@ -5992,6 +5992,40 @@ button.btn.charCornerBtn:active{filter:none;}
       });
       return __sbRealtimeClient;
     } catch (e) { return null; }
+  }
+  function bfRealtimeOwnerIds(){
+    try {
+      const ids = [];
+      const seen = {};
+      const add = function(v){
+        try {
+          const s = String(v||'').trim();
+          if (!/^\d{3,}$/.test(s)) return;
+          if (seen[s]) return;
+          seen[s] = 1;
+          ids.push(s);
+        } catch (e0) {}
+      };
+      add(myTgUserId());
+      try {
+        (Array.isArray(state && state.friends) ? state.friends : []).forEach(function(fr){
+          try { add(fr && (fr.tg_id || fr.tgId || fr.id)); } catch (e1) {}
+        });
+      } catch (e2) {}
+      try {
+        const myClan = typeof clanGetMyClan === 'function' ? clanGetMyClan() : null;
+        const meta = myClan && myClan.memberMeta && typeof myClan.memberMeta === 'object' ? myClan.memberMeta : null;
+        if (meta) {
+          Object.keys(meta).forEach(function(name){
+            try {
+              const rec = meta[name];
+              add(rec && (rec.tg_id || rec.tgId || rec.id));
+            } catch (e3) {}
+          });
+        }
+      } catch (e4) {}
+      return ids;
+    } catch (e) { return []; }
   }
   function bfRealtimeApplyServerFightRow(row){
     try {
@@ -6039,48 +6073,61 @@ button.btn.charCornerBtn:active{filter:none;}
       } catch (e2) {}
     } catch (e) {}
   }
-  function bfRealtimeSubscribeOwner(force){
+  function bfRealtimeSubscribeOwners(force){
     try {
-      const ownerTgId = myTgUserId();
-      if (!ownerTgId) return false;
-      if (!force && __bfRealtimeChannel && __bfRealtimeOwner === ownerTgId) return true;
-      bfRealtimeUnsubscribe();
+      const ownerIds = bfRealtimeOwnerIds();
+      if (!ownerIds.length) return false;
+      const nextKey = ownerIds.slice().sort().join(',');
+      const prevKey = (__bfRealtimeOwners || []).slice().sort().join(',');
+      if (!force && prevKey === nextKey && __bfRealtimeChannels && Object.keys(__bfRealtimeChannels).length) return true;
+      bfRealtimeUnsubscribeAll();
       const client = sbRealtimeClient();
       if (!client) return false;
-      const channelName = 'boss-fights-' + ownerTgId;
-      const ch = client.channel(channelName);
-      ch.on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'player_boss_fights',
-        filter: 'owner_tg_id=eq.' + ownerTgId
-      }, function(payload){
+      const nextChannels = {};
+      ownerIds.forEach(function(ownerTgId){
         try {
-          const row = payload && payload.new && typeof payload.new === 'object' && Object.keys(payload.new).length ? payload.new : (payload && payload.old ? payload.old : null);
-          bfRealtimeApplyServerFightRow(row);
-        } catch (e0) {}
+          const channelName = 'boss-fights-' + ownerTgId;
+          const ch = client.channel(channelName);
+          ch.on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'player_boss_fights',
+            filter: 'owner_tg_id=eq.' + ownerTgId
+          }, function(payload){
+            try {
+              const row = payload && payload.new && typeof payload.new === 'object' && Object.keys(payload.new).length ? payload.new : (payload && payload.old ? payload.old : null);
+              bfRealtimeApplyServerFightRow(row);
+            } catch (e0) {}
+          });
+          ch.subscribe(function(status){
+            try {
+              __bfRealtimeState = String(status || '');
+              if (status === 'SUBSCRIBED') __bfRealtimeLastEventTs = now();
+            } catch (e1) {}
+          });
+          nextChannels[ownerTgId] = ch;
+        } catch (e2) {}
       });
-      ch.subscribe(function(status){
-        try {
-          __bfRealtimeState = String(status || '');
-          if (status === 'SUBSCRIBED') {
-            __bfRealtimeLastEventTs = now();
-          }
-        } catch (e0) {}
-      });
-      __bfRealtimeChannel = ch;
-      __bfRealtimeOwner = ownerTgId;
-      return true;
+      __bfRealtimeChannels = nextChannels;
+      __bfRealtimeOwners = ownerIds.slice();
+      return Object.keys(nextChannels).length > 0;
     } catch (e) { return false; }
   }
-  function bfRealtimeUnsubscribe(){
+  function bfRealtimeUnsubscribeAll(){
     try {
       const client = __sbRealtimeClient;
-      const ch = __bfRealtimeChannel;
-      __bfRealtimeChannel = null;
-      __bfRealtimeOwner = '';
+      const all = __bfRealtimeChannels && typeof __bfRealtimeChannels === 'object' ? __bfRealtimeChannels : {};
+      __bfRealtimeChannels = {};
+      __bfRealtimeOwners = [];
       __bfRealtimeState = 'idle';
-      if (client && ch) client.removeChannel(ch).catch(function(){});
+      if (client) {
+        Object.keys(all).forEach(function(k){
+          try {
+            const ch = all[k];
+            if (ch) client.removeChannel(ch).catch(function(){});
+          } catch (e0) {}
+        });
+      }
     } catch (e) {}
   }
   function isAdmin(){
@@ -12573,8 +12620,9 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       // Near-realtime help pull while fight UI is open.
       try {
         const tNow = now();
-        const needFallbackPull = !__bfRealtimeChannel || (__bfRealtimeState !== 'SUBSCRIBED' && (__bfRealtimeState !== 'CHANNEL_ERROR'));
-        const staleRealtime = !!(__bfRealtimeChannel && __bfRealtimeState === 'SUBSCRIBED' && __bfRealtimeLastEventTs && (tNow - __bfRealtimeLastEventTs) >= 15000);
+        const rtCount = __bfRealtimeChannels && typeof __bfRealtimeChannels === 'object' ? Object.keys(__bfRealtimeChannels).length : 0;
+        const needFallbackPull = !rtCount || (__bfRealtimeState !== 'SUBSCRIBED' && (__bfRealtimeState !== 'CHANNEL_ERROR'));
+        const staleRealtime = !!(rtCount && __bfRealtimeState === 'SUBSCRIBED' && __bfRealtimeLastEventTs && (tNow - __bfRealtimeLastEventTs) >= 15000);
         if ((needFallbackPull || staleRealtime) && (!__bfHelpPullTs || (tNow - __bfHelpPullTs) >= BF_HELP_PULL_EVERY_MS)) {
           __bfHelpPullTs = tNow;
           bossHelpPullOnce().catch(()=>{});
@@ -12588,15 +12636,16 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       if (__bfRealtimeRun) return;
       __bfRealtimeRun = true;
       try { __bfHelpPullTs = 0; } catch (eR) {}
-      try { bfRealtimeSubscribeOwner(false); } catch (eS) {}
+      try { bfRealtimeSubscribeOwners(false); } catch (eS) {}
       try { bossHelpPullOnce().catch(()=>{}); } catch (eP) {}
       try { bfRealtimeRenderLocal(); } catch (e0) {}
       const tLoop = ()=>{
         try {
           if (!__bfRealtimeRun) return;
           try {
-            if ((!__bfRealtimeChannel || __bfRealtimeState === 'CHANNEL_ERROR' || __bfRealtimeState === 'TIMED_OUT' || __bfRealtimeState === 'CLOSED') && myTgUserId()) {
-              bfRealtimeSubscribeOwner(true);
+            const rtCount = __bfRealtimeChannels && typeof __bfRealtimeChannels === 'object' ? Object.keys(__bfRealtimeChannels).length : 0;
+            if ((!rtCount || __bfRealtimeState === 'CHANNEL_ERROR' || __bfRealtimeState === 'TIMED_OUT' || __bfRealtimeState === 'CLOSED') && myTgUserId()) {
+              bfRealtimeSubscribeOwners(true);
             }
           } catch (eRt) {}
           try { bfRealtimeRenderLocal(); } catch (e1) {}
@@ -12619,7 +12668,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     try { if (__bfRealtimeT) { clearTimeout(__bfRealtimeT); __bfRealtimeT = 0; } } catch (e1) {}
     try { if (__bfRealtimeRaf) { cancelAnimationFrame(__bfRealtimeRaf); __bfRealtimeRaf = 0; } } catch (e2) {}
     try { __bfHelpPullTs = 0; } catch (e3) {}
-    try { bfRealtimeUnsubscribe(); } catch (e4) {}
+    try { bfRealtimeUnsubscribeAll(); } catch (e4) {}
   }
 
   function bfShopRender(){
