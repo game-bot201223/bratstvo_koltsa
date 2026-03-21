@@ -11284,19 +11284,9 @@ button.btn.charCornerBtn:active{filter:none;}
         try {
           const prevRec = prevFreeUsed[key];
           if (!prevRec || typeof prevRec !== 'object' || !prevRec.used) return;
-          const prevExp = parseInt(prevRec.exp || 0, 10) || 0;
-          if (!prevExp) return;
           const nextRec = nextBosses.freeUsed[key];
-          const nextExp = nextRec && typeof nextRec === 'object' ? (parseInt(nextRec.exp || 0, 10) || 0) : 0;
-          if (nextRec && typeof nextRec === 'object' && nextRec.used && nextExp && Math.abs(nextExp - prevExp) <= 1500) return;
-          const cloud = nextBosses.cloud && typeof nextBosses.cloud === 'object' ? nextBosses.cloud[key] : null;
-          const cloudExp = cloud && cloud.expires_at ? (Date.parse(String(cloud.expires_at)) || 0) : 0;
-          const localFight = nextBosses.fights && typeof nextBosses.fights === 'object' ? nextBosses.fights[key] : null;
-          const localExp = localFight && typeof localFight === 'object' ? (parseInt(localFight.expiresTs || 0, 10) || 0) : 0;
-          const matchExp = cloudExp || localExp;
-          if (matchExp && Math.abs(matchExp - prevExp) <= 1500) {
-            nextBosses.freeUsed[key] = { used:true, exp: prevExp };
-          }
+          if (nextRec && typeof nextRec === 'object' && nextRec.used) return;
+          nextBosses.freeUsed[key] = { used:true };
         } catch (_eMergeOne) {}
       });
       return nextState;
@@ -11373,21 +11363,13 @@ button.btn.charCornerBtn:active{filter:none;}
         const k0 = String(id);
         if (state.bosses && state.bosses.dmgTop && state.bosses.dmgTop[k0] && typeof state.bosses.dmgTop[k0] === 'object') _top0 = state.bosses.dmgTop[k0];
       } catch (e01) { _top0 = {}; }
-      // Restore freeUsed from persistent state, but only for the same attempt (expiresTs)
+      // Restore permanent freeUsed per boss.
       let _freeUsed0 = false;
       try {
         const k0 = String(id);
         const rec = state.bosses && state.bosses.freeUsed ? state.bosses.freeUsed[k0] : null;
-        const exp0 = rec && typeof rec === 'object' ? (parseInt(rec.exp||0,10)||0) : 0;
-        _freeUsed0 = !!(rec && typeof rec === 'object' && rec.used && exp0 && Math.abs(exp0 - nextExpiresTs) <= 1500);
+        _freeUsed0 = !!(rec && typeof rec === 'object' && rec.used);
       } catch (e02) { _freeUsed0 = false; }
-      // If we are starting a new attempt (different expiresTs), reset freeUsed and clear persistent flag
-      if (!_freeUsed0) {
-        try {
-          const k0 = String(id);
-          if (state.bosses && state.bosses.freeUsed && state.bosses.freeUsed[k0]) delete state.bosses.freeUsed[k0];
-        } catch (e03) {}
-      }
       f = { startTs: nextStartTs, expiresTs: nextExpiresTs, bossMaxHP: b.maxHP, hp: startHp, freeUsed:_freeUsed0, friendCap:{}, lastFriendTs: now(), dmgLog: (Array.isArray(_log0) ? _log0.slice() : []), dmgTop: (_top0 && typeof _top0==='object' ? Object.assign({}, _top0) : {}) };
       bfSetFight(id, f);
     } else if (cloudExpiresTs > now() && Math.abs((parseInt(f.expiresTs||0,10)||0) - cloudExpiresTs) > 1000) {
@@ -11821,7 +11803,7 @@ button.btn.charCornerBtn:active{filter:none;}
 
       if (isDistrictBossId(bossId)) {
         ff.freeUsed = true;
-        try { if (!state.bosses.freeUsed) state.bosses.freeUsed = {}; state.bosses.freeUsed[String(bossId)] = { used:true, exp: parseInt(ff.expiresTs||0,10)||0 }; } catch (e0) {}
+        try { if (!state.bosses.freeUsed) state.bosses.freeUsed = {}; state.bosses.freeUsed[String(bossId)] = { used:true }; } catch (e0) {}
         ff.hp = Math.max(0, prevHp - wantApply);
         bfLogPush(bossId, state.playerName||'PLAYER', wantApply);
         bfTopAdd(bossId, state.playerName||'PLAYER', wantApply);
@@ -11861,7 +11843,7 @@ button.btn.charCornerBtn:active{filter:none;}
         }
 
         ff.freeUsed = true;
-        try { if (!state.bosses.freeUsed) state.bosses.freeUsed = {}; state.bosses.freeUsed[String(bossId)] = { used:true, exp: parseInt(ff.expiresTs||0,10)||0 }; } catch (e0) {}
+        try { if (!state.bosses.freeUsed) state.bosses.freeUsed = {}; state.bosses.freeUsed[String(bossId)] = { used:true }; } catch (e0) {}
         ff.lastFriendTs = now();
 
         const fhp = r && r.fight && typeof r.fight.hp !== 'undefined' ? (parseInt(r.fight.hp||0,10)||0) : null;
