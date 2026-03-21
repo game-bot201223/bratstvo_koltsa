@@ -6640,6 +6640,10 @@ button.btn.charCornerBtn:active{filter:none;}
         tg_id: userData.id,
         name: playerName,
         level: parseInt(s0.level != null ? s0.level : 1, 10) || 1,
+        xp: parseInt(s0.totalXp != null ? s0.totalXp : (s0.xp != null ? s0.xp : 0), 10) || 0,
+        gold: parseInt(s0.gold != null ? s0.gold : 0, 10) || 0,
+        tooth: parseInt(s0.tooth != null ? s0.tooth : 0, 10) || 0,
+        district_fear_total: (function(){ try { const df = (s0 && s0.districtFear && typeof s0.districtFear === 'object') ? s0.districtFear : {}; return Object.keys(df).reduce((sum, k)=> sum + (parseInt(df[k]||0,10)||0), 0); } catch (e0) { return 0; } })(),
         arena_power: (s0.arena && (s0.arena.power||0)) || 0,
         arena_wins: (s0.arena && (s0.arena.wins||0)) || 0,
         arena_losses: (s0.arena && (s0.arena.losses||0)) || 0,
@@ -6775,7 +6779,7 @@ button.btn.charCornerBtn:active{filter:none;}
 
         if (fn === 'get_player') {
           if (!tgId) throw new Error('missing_tg_id');
-          const selectCols = 'tg_id,name,photo_url,level,arena_power,arena_wins,arena_losses,stats_sum,boss_wins,vip,vip_until,state';
+          const selectCols = 'tg_id,name,photo_url,level,xp,gold,tooth,district_fear_total,arena_power,arena_wins,arena_losses,stats_sum,boss_wins,vip,vip_until,state';
           const urlGet = playersUrl + '?select=' + encodeURIComponent(selectCols) + '&tg_id=eq.' + encodeURIComponent(tgId);
           const resp0 = await fetch(urlGet, { method:'GET', headers: dbHeadersBase, keepalive:true });
           const arr0 = await resp0.json().catch(()=> null);
@@ -6799,6 +6803,10 @@ button.btn.charCornerBtn:active{filter:none;}
             name: String(initName||'PLAYER').trim().slice(0,18),
             photo_url: String(photo||'').trim(),
             level: parseInt(defaults.level||1,10)||1,
+            xp: parseInt(defaults.totalXp||defaults.xp||0,10)||0,
+            gold: parseInt(defaults.gold||0,10)||0,
+            tooth: parseInt(defaults.tooth||0,10)||0,
+            district_fear_total: 0,
             arena_power: 0,
             arena_wins: 0,
             arena_losses: 0,
@@ -6827,11 +6835,20 @@ button.btn.charCornerBtn:active{filter:none;}
           const s0 = (bodyObj && bodyObj.state && typeof bodyObj.state === 'object') ? bodyObj.state : {};
           const vip0 = !!s0.vip;
           const vipUntil0 = parseInt(s0.vipUntil ? s0.vipUntil : 0, 10) || 0;
+          let districtFearTotal0 = 0;
+          try {
+            const df0 = (s0 && s0.districtFear && typeof s0.districtFear === 'object') ? s0.districtFear : {};
+            districtFearTotal0 = Object.keys(df0).reduce((sum, k)=> sum + (parseInt(df0[k]||0,10)||0), 0);
+          } catch (e0) { districtFearTotal0 = 0; }
           const upObj = {
             tg_id: tgId,
             name: String(bodyObj && bodyObj.name != null ? bodyObj.name : '').trim().slice(0,18),
             photo_url: String(bodyObj && bodyObj.photo_url != null ? bodyObj.photo_url : '').trim(),
             level: parseInt(bodyObj && bodyObj.level != null ? bodyObj.level : 0, 10) || 0,
+            xp: parseInt(bodyObj && bodyObj.xp != null ? bodyObj.xp : ((s0 && s0.totalXp != null) ? s0.totalXp : (s0 && s0.xp != null ? s0.xp : 0)), 10) || 0,
+            gold: parseInt(bodyObj && bodyObj.gold != null ? bodyObj.gold : (s0 && s0.gold != null ? s0.gold : 0), 10) || 0,
+            tooth: parseInt(bodyObj && bodyObj.tooth != null ? bodyObj.tooth : (s0 && s0.tooth != null ? s0.tooth : 0), 10) || 0,
+            district_fear_total: parseInt(bodyObj && bodyObj.district_fear_total != null ? bodyObj.district_fear_total : districtFearTotal0, 10) || 0,
             arena_power: parseInt(bodyObj && bodyObj.arena_power != null ? bodyObj.arena_power : 0, 10) || 0,
             arena_wins: parseInt(bodyObj && bodyObj.arena_wins != null ? bodyObj.arena_wins : 0, 10) || 0,
             arena_losses: parseInt(bodyObj && bodyObj.arena_losses != null ? bodyObj.arena_losses : 0, 10) || 0,
@@ -6863,6 +6880,10 @@ button.btn.charCornerBtn:active{filter:none;}
             name: String(defaults.playerName||'PLAYER').trim().slice(0,18),
             photo_url: '',
             level: parseInt(defaults.level||1,10)||1,
+            xp: parseInt(defaults.totalXp||defaults.xp||0,10)||0,
+            gold: parseInt(defaults.gold||0,10)||0,
+            tooth: parseInt(defaults.tooth||0,10)||0,
+            district_fear_total: 0,
             arena_power: 0,
             arena_wins: 0,
             arena_losses: 0,
@@ -7634,6 +7655,10 @@ button.btn.charCornerBtn:active{filter:none;}
       name: state.playerName,
       photo_url: String(photo||'').trim(),
       level: state.level,
+      xp: parseInt(state && state.totalXp != null ? state.totalXp : (state && state.xp != null ? state.xp : 0), 10) || 0,
+      gold: parseInt(state && state.gold != null ? state.gold : 0, 10) || 0,
+      tooth: parseInt(state && state.tooth != null ? state.tooth : 0, 10) || 0,
+      district_fear_total: (function(){ try { const df = (state && state.districtFear && typeof state.districtFear === 'object') ? state.districtFear : {}; return Object.keys(df).reduce((sum, k)=> sum + (parseInt(df[k]||0,10)||0), 0); } catch (e0) { return 0; } })(),
       arena_power: (state.arena && (state.arena.power||0)) || 0,
       arena_wins: (state.arena && (state.arena.wins||0)) || 0,
       arena_losses: (state.arena && (state.arena.losses||0)) || 0,

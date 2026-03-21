@@ -129,6 +129,32 @@ function deepMergeState(base: any, patch: any): any {
   return out
 }
 
+function deriveDistrictFearTotal(state: any): number {
+  try {
+    const src = state && typeof state === "object" ? (state as any).districtFear : null
+    if (!src || typeof src !== "object") return 0
+    let total = 0
+    for (const k of Object.keys(src)) {
+      const v = safeNonNegInt((src as any)[k])
+      total += v
+      if (total > 2147483647) return 2147483647
+    }
+    return total
+  } catch (_e) {
+    return 0
+  }
+}
+
+function derivePersistedMetrics(body: any, state: any): { xp: number; gold: number; tooth: number; districtFearTotal: number } {
+  const src = state && typeof state === "object" ? state : {}
+  return {
+    xp: safeNonNegInt(body?.xp ?? (body as any)?.total_xp ?? (body as any)?.totalXp ?? (src as any).totalXp ?? (src as any).xp),
+    gold: safeNonNegInt(body?.gold ?? (src as any).gold),
+    tooth: safeNonNegInt(body?.tooth ?? (src as any).tooth),
+    districtFearTotal: safeNonNegInt(body?.district_fear_total ?? (body as any)?.districtFearTotal ?? deriveDistrictFearTotal(src)),
+  }
+}
+
 async function postgrestGetPlayerSession(projectUrl: string, serviceKey: string, tgId: string): Promise<{ sid: string; updatedAt: string; deviceId: string }> {
   try {
     const url = projectUrl.replace(/\/$/, "") +
@@ -717,6 +743,8 @@ Deno.serve(async (req: Request) => {
     }
   } catch (_) {}
 
+  const persistedMetrics = derivePersistedMetrics(body, state)
+
   const payload: Record<string, unknown> = {
     tg_id: tgId,
     name,
@@ -727,6 +755,10 @@ Deno.serve(async (req: Request) => {
     level: Math.max(1, safeNonNegInt(body?.level)),
     stats_sum: safeNonNegInt(body?.stats_sum ?? (body as any)?.statsSum),
     boss_wins: safeNonNegInt(body?.boss_wins ?? (body as any)?.bossWins),
+    xp: persistedMetrics.xp,
+    gold: persistedMetrics.gold,
+    tooth: persistedMetrics.tooth,
+    district_fear_total: persistedMetrics.districtFearTotal,
     state,
     updated_at: new Date().toISOString(),
   }
