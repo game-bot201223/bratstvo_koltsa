@@ -6333,11 +6333,23 @@ button.btn.charCornerBtn:active{filter:none;}
       }
     } catch (error) {
       console.warn('Sync failed, will retry:', error);
+
+      // Stop hammering the server on persistent 5xx errors.
+      try {
+        const em = String((error && error.message) ? error.message : error);
+        if (em.indexOf('db_upsert_player_http_500') >= 0) {
+          setOfflineMode(true);
+        }
+      } catch (_eOff0) {}
       
       // Retry логика
       if (pendingSyncData) {
         pendingSyncData.retries++;
         pendingSyncData.timestamp = Date.now();
+
+        try {
+          if (pendingSyncData.retries >= 4) setOfflineMode(true);
+        } catch (_eOff1) {}
         
         // Экспоненциальный backoff: 1s, 2s, 4s, 8s, 16s, max 30s
         const delay = Math.min(1000 * Math.pow(2, pendingSyncData.retries - 1), 30000);

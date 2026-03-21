@@ -3,7 +3,7 @@
 // This enables autocomplete, go to definition, etc.
 
 // Setup type definitions for built-in Supabase Runtime APIs
-import "@supabase/functions-js/edge-runtime.d.ts"
+import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -504,10 +504,14 @@ Deno.serve(async (req: Request) => {
   }
 
   const botToken = String(Deno.env.get("TELEGRAM_BOT_TOKEN") || "").trim()
-  const projectUrl = String(Deno.env.get("PROJECT_URL") || "").trim()
-  const serviceKey = String(Deno.env.get("SERVICE_ROLE_KEY") || "").trim()
+  const projectUrl = String(Deno.env.get("PROJECT_URL") || Deno.env.get("SUPABASE_URL") || "").trim()
+  const serviceKey = String(Deno.env.get("SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim()
   if (!botToken || !projectUrl || !serviceKey) {
-    return new Response(JSON.stringify({ ok: false, error: "missing_secrets" }), {
+    const missing: string[] = []
+    if (!botToken) missing.push("TELEGRAM_BOT_TOKEN")
+    if (!projectUrl) missing.push("PROJECT_URL/SUPABASE_URL")
+    if (!serviceKey) missing.push("SERVICE_ROLE_KEY/SUPABASE_SERVICE_ROLE_KEY")
+    return new Response(JSON.stringify({ ok: false, error: "missing_secrets", missing }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
@@ -756,6 +760,8 @@ Deno.serve(async (req: Request) => {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   })
 })
+
+ export {}
 
 /* To invoke locally:
 
