@@ -11038,10 +11038,18 @@ button.btn.charCornerBtn:active{filter:none;}
         haptic('light');
       };
     });
+    box.querySelectorAll('[data-stars-buy]').forEach(btn=>{
+      btn.onclick = function(ev){
+        try { if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation(); } catch (_eStop) {}
+        try { haptic('light'); } catch (_eH) {}
+        handleStarsBuyClick(btn);
+      };
+    });
     box.onclick = function(ev){
       const target = ev && ev.target ? ev.target : null;
       const btn = target && target.closest ? target.closest('[data-stars-buy]') : null;
       if (!btn || !box.contains(btn)) return;
+      try { haptic('light'); } catch (_eH2) {}
       handleStarsBuyClick(btn);
     };
   }
