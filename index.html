@@ -4442,10 +4442,24 @@ button.btn.charCornerBtn:active{filter:none;}
   }
   function bossHelpPollStart(){
     try {
-      // Disabled polling: boss_help_pull should run ONLY after real actions.
-      // (e.g. after boss_help_send on an actual hit, or when user explicitly opens help UI.)
-      // Keeping this function as a no-op so existing boot calls won't start background traffic.
-      return;
+      if (__bossHelpPollT) return;
+      const tick = async ()=>{
+        try {
+          if (!bossHelpShouldRun()) return;
+          const t = now();
+          if (__bossHelpLast && (t - __bossHelpLast) < 10000) return;
+          __bossHelpLast = t;
+          await bossHelpPullOnce();
+        } catch (e0) {}
+      };
+      const loop = ()=>{
+        try {
+          tick().catch(()=>{});
+        } catch (e0) {}
+      };
+      __bossHelpPollT = setInterval(loop, 10000);
+      // fire once (but still respects bossHelpShouldRun)
+      loop();
     } catch (e) {}
   }
 
