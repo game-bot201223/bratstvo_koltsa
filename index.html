@@ -6287,6 +6287,10 @@ button.btn.charCornerBtn:active{filter:none;}
         const updatedPlayer = { ...cached.data, state: newState, updated_at: new Date().toISOString() };
         savePlayerToCache(updatedPlayer);
       }
+
+      // Никогда не отправлять прогресс на сервер до успешной гидрации,
+      // иначе defaults/пустой state может затереть облако.
+      try { if (!__cloudSaveUnlocked) return; } catch (_eLock0) { return; }
       
       // Добавляем в очередь на синхронизацию
       pendingSyncData = {
@@ -6306,6 +6310,9 @@ button.btn.charCornerBtn:active{filter:none;}
   // Попытка синхронизации с retry механизмом
   async function attemptSync() {
     if (!pendingSyncData || syncInProgress || isOfflineMode()) return;
+
+    // Защита от обнуления: синк на сервер только после успешной гидрации.
+    try { if (!__cloudSaveUnlocked) return; } catch (_eLock1) { return; }
     
     syncInProgress = true;
     
@@ -6344,6 +6351,8 @@ button.btn.charCornerBtn:active{filter:none;}
   // Принудительная синхронизация важных изменений
   async function forceSyncProgress(newState) {
     try {
+      // Защита от обнуления: синк на сервер только после успешной гидрации.
+      try { if (!__cloudSaveUnlocked) return false; } catch (_eLock2) { return false; }
       const initData = tgInitData();
       if (!initData) return false;
       
