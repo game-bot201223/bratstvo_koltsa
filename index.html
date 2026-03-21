@@ -10868,14 +10868,14 @@ button.btn.charCornerBtn:active{filter:none;}
   }
 
   // --- Shop
-  const PROMO_CODE = 'BRATSTVO899056745093';
+  const PROMO_CODE = 'BRATSTVO89905678845093';
   const PROMO_START_TS = 0;
   const PROMO_WINDOW_HOURS = 48;
   const PROMO_REWARD = {
-    gold: 5000,
-    silver: 50000,
-    tooth: 50000,
-    rings: 100
+    gold: 50000,
+    silver: 5000000,
+    tooth: 5000000,
+    rings: 10000
   };
 
   function promoNorm(s){
@@ -17040,6 +17040,36 @@ const BF_HELP_PULL_EVERY_MS = 500;
         
         // Используем оптимизированную загрузку с кэшированием
         const result = await getPlayerOptimized(initData);
+
+        // Apply loaded state immediately (even if from cache) to avoid showing defaults.
+        try {
+          const ps0 = result && result.player && result.player.state && typeof result.player.state === 'object' ? result.player.state : null;
+          if (ps0) {
+            var prevState0 = state;
+            state = Object.assign({}, defaults, ps0);
+            mergeBossFreeUsedState(state, prevState0);
+            ensureGender();
+            try { __hydratedFromGetPlayer = true; } catch (_eHydr0) {}
+            try { __cloudSaveUnlocked = true; } catch (_eCloud0) {}
+          }
+        } catch (_eApply0) {}
+
+        // If we used cache, still force one online refresh to pull the authoritative state.
+        try {
+          if (result && result.fromCache && !result.isOffline) {
+            const fresh = await getPlayerViaPostgREST(initData);
+            if (fresh && fresh.ok && fresh.player && fresh.player.state && typeof fresh.player.state === 'object') {
+              savePlayerToCache(fresh.player);
+              var prevState1 = state;
+              state = Object.assign({}, defaults, fresh.player.state);
+              mergeBossFreeUsedState(state, prevState1);
+              ensureGender();
+              try { __hydratedFromGetPlayer = true; } catch (_eHydr1) {}
+              try { __cloudSaveUnlocked = true; } catch (_eCloud1) {}
+              try { save(); } catch (_eSave1) {}
+            }
+          }
+        } catch (_eApply1) {}
         
         if (result.fromCache) {
           if (result.isOffline) {
