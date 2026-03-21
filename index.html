@@ -1292,32 +1292,71 @@ button.btn.charCornerBtn:active{filter:none;}
 .bossRow{display:flex;flex-direction:row;gap:8px;align-items:flex-start;}
 .bossRowTop{display:flex;flex-direction:row;gap:12px;align-items:center;}
 .bossRowTop .bossNameWrap{min-width:0;flex:1;}
-.bossRightCol{min-width:0;flex:1;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.bossRightCol{min-width:0;flex:1;max-width:100%;display:flex;flex-direction:column;gap:8px;overflow:hidden;box-sizing:border-box;}
 .bossRowBelow{display:flex;flex-direction:column;gap:8px;}
 .bossRowBelow .bossReward{margin-top:0;}
- .bossMiniWrap{position:relative;width:160px;height:160px;flex-shrink:0;}
- .bossMini{width:160px;height:160px;border-radius:20px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:110% auto;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:60px;}
- .bossMini.bossMiniContain{background-size:contain;background-position:center center;background-color:rgba(255,255,255,.18);}
- .bossReqMiniIcon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;overflow:hidden;vertical-align:-4px;flex:0 0 20px;}
- .bossReqMiniIcon img{display:block;width:20px;height:20px;object-fit:cover;transform:scale(1.25);}
- .bossWinnerAva{position:absolute;right:-10px;bottom:10px;width:44px;height:44px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:rgba(45,30,18,.28);object-fit:cover;}
- .bossName{font-weight:900;letter-spacing:2px;line-height:1.15;}
- .bossSub{font-size:11px;opacity:.75;margin-top:4px;}
- .bossMedalsRow{margin-top:8px;display:flex;flex-direction:row;flex-wrap:nowrap;gap:0;align-items:center;}
- .bossMedal{width:30px;height:30px;border-radius:50%;flex-shrink:0;overflow:hidden;border:1px solid rgba(0,0,0,.25);}
- .bossMedal img{width:100%;height:100%;object-fit:cover;}
- .bossMedalBronze{background:linear-gradient(145deg,#cd7f32,#8b5a2b);}
- .bossMedalSilver{background:linear-gradient(145deg,#c0c0c0,#808080);}
- .bossMedalGold{background:linear-gradient(145deg,#ffd700,#b8860b);}
- .bossMedalPurple{background:linear-gradient(145deg,#9b59b6,#6c3483);}
- .bossMedalMythic{background:linear-gradient(145deg,#e8d5b7,#c9a227);box-shadow:0 0 10px rgba(201,162,39,.5);}
- .bossMedal.bossMedalLocked{opacity:.45;filter:grayscale(0.85);}
- .bossActionsWrap{width:300px;margin-top:0;display:flex;flex-direction:column;gap:6px;}
- .bossActionsWrap .bossAtkBtn{width:50%;box-sizing:border-box;}
- .bossActionsWrap .bossMedalsRow{margin-top:0;}
- .bossWinsCount{font-size:10px;opacity:.8;margin-top:4px;}
- .bossWinnerTop{font-size:11px;letter-spacing:1px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
- .bossWinnerNm{font-size:12px;letter-spacing:1px;opacity:.9;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
+.bossMiniWrap{position:relative;width:min(136px,34vw);height:min(136px,34vw);max-width:136px;max-height:136px;flex-shrink:0;box-sizing:border-box;}
+.bossMini{width:100%;height:100%;border-radius:18px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:110% auto;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:52px;box-sizing:border-box;}
+.bossMini.bossMiniContain{background-size:contain;background-position:center center;background-color:rgba(255,255,255,.18);}
+.bossReqMiniIcon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;overflow:hidden;vertical-align:-4px;flex:0 0 20px;}
+.bossReqMiniIcon img{display:block;width:20px;height:20px;object-fit:cover;transform:scale(1.25);border-radius:999px;}
+.bossWinnerAva{position:absolute;right:-10px;bottom:10px;width:44px;height:44px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:rgba(45,30,18,.28);object-fit:cover;}
+.bossName{font-weight:900;letter-spacing:2px;line-height:1.15;}
+.bossSub{font-size:11px;opacity:.75;margin-top:4px;}
+.bossMedalsRow{margin-top:8px;display:flex;flex-direction:row;flex-wrap:nowrap;gap:0;align-items:center;}
+.bossMedal{width:30px;height:30px;border-radius:50%;flex-shrink:0;overflow:hidden;border:1px solid rgba(0,0,0,.25);}
+.bossMedal img{width:100%;height:100%;object-fit:cover;}
+.bossMedalBronze{background:linear-gradient(145deg,#cd7f32,#8b5a2b);}
+.bossMedalSilver{background:linear-gradient(145deg,#c0c0c0,#808080);}
+.bossMedalGold{background:linear-gradient(145deg,#ffd700,#b8860b);}
+.bossMedalPurple{background:linear-gradient(145deg,#9b59b6,#6c3483);}
+.bossMedalMythic{background:linear-gradient(145deg,#e8d5b7,#c9a227);box-shadow:0 0 10px rgba(201,162,39,.5);}
+.bossMedal.bossMedalLocked{opacity:.45;filter:grayscale(0.85);}
+.bossActionsWrap{width:100%;max-width:100%;margin-top:0;display:flex;flex-direction:column;gap:6px;min-width:0;box-sizing:border-box;}
+.bossActionsWrap .bossAtkBtn{width:100%;max-width:180px;box-sizing:border-box;align-self:flex-start;}
+.bossActionsWrap .bossMedalsRow{margin-top:0;max-width:100%;overflow-x:auto;overflow-y:hidden;padding-bottom:2px;}
+.bossWinsCount{font-size:10px;opacity:.8;margin-top:4px;line-height:1.25;word-break:break-word;overflow-wrap:anywhere;}
+.bossWinnerTop{font-size:11px;letter-spacing:1px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bossWinnerNm{font-size:12px;letter-spacing:1px;opacity:.9;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
+
+ .ringMiniIcon{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;overflow:hidden;vertical-align:-3px;flex:0 0 15px;border-radius:999px;}
+ .ringMiniIcon img{display:block;width:15px;height:15px;object-fit:cover;border-radius:999px;}
+ .ringMiniIconLg{width:20px;height:20px;flex-basis:20px;vertical-align:-4px;}
+ .ringMiniIconLg img{width:20px;height:20px;}
+ .bossCurrencyBtnImg{display:block;width:100%;height:100%;object-fit:cover;border-radius:999px;}
+ .bossCurrencyBadge{display:inline-flex;align-items:center;gap:6px;}
+
+ #mBoss .sheet{border-radius:0;border:none;}
+ #mBoss .sheetBody{display:block;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+ #mBoss #bossList{display:block;padding:6px 6px calc(16px + env(safe-area-inset-bottom));width:100%;box-sizing:border-box;}
+ #mBoss #bossList .card{width:100%;max-width:100%;box-sizing:border-box;display:block;margin-bottom:8px;clear:both;padding:10px;overflow:hidden;}
+ #mBoss #bossList .card:last-child{margin-bottom:0;}
+ #mBoss .bossRow{display:grid;grid-template-columns:minmax(0,min(136px,34%)) minmax(0,1fr);gap:10px 12px;align-items:start;width:100%;max-width:100%;box-sizing:border-box;}
+ #mBoss .bossMiniWrap{width:100%;height:auto;aspect-ratio:1;max-width:136px;max-height:none;}
+ #mBoss .bossReward{width:100%;max-width:100%;display:flex;gap:8px;flex-wrap:wrap;align-items:center;overflow:hidden;}
+ #mBoss .bossReward .badge{max-width:100%;box-sizing:border-box;}
+ #mBoss .bossWinnerNm{max-width:100%;}
+ #mBoss .bossNameWrap,#mBoss .bossRowBelow,#mBoss .bossActionsWrap{width:100%;max-width:100%;min-width:0;box-sizing:border-box;}
+
+ #mBossAttack .sheet{width:min(100%,var(--appCol));max-width:var(--appCol);box-sizing:border-box;overflow:hidden;}
+ #mBossAttack .sheetBody{overflow-x:hidden;}
+ #mBossAttack .card{width:100%;max-width:100%;box-sizing:border-box;overflow:hidden;}
+ #baAccess{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;max-width:100%;line-height:1.3;overflow-wrap:anywhere;word-break:break-word;}
+ #baTable{width:100%;max-width:100%;min-width:0;overflow:hidden;}
+ #baTable .row{align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:nowrap;min-width:0;}
+ #baTable .row > div:first-child{min-width:0;flex:1;}
+ #baTable .btn{flex:0 0 auto;min-width:92px;}
+
+ #mBossFightRes .sheet{width:min(100%,var(--appCol));max-width:var(--appCol);}
+ #mBossFightRes .sheetBody,#mBossFightRes .card{overflow-x:hidden;box-sizing:border-box;}
+
+ @media (max-width:380px){
+  #mBoss .bossRow{grid-template-columns:minmax(0,min(118px,38%)) minmax(0,1fr);gap:8px 10px;}
+  #mBoss .bossMiniWrap{max-width:118px;}
+  #mBoss .bossActionsWrap .bossAtkBtn{max-width:none;}
+  #baTable .row{flex-wrap:wrap;}
+  #baTable .btn{width:100%;min-width:0;}
+ }
 
  .districtStack{margin-top:8px;display:flex;flex-direction:column;gap:10px;}
  .districtNick{font-size:11px;font-weight:900;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -1496,8 +1535,8 @@ button.btn.charCornerBtn:active{filter:none;}
 }
 #mBossFight #bfSheetBody{
   overflow-y: auto; overflow-x: hidden; min-height: 0; -webkit-overflow-scrolling: touch;
-  padding-left: calc(10% + env(safe-area-inset-left,0px));
-  padding-right: calc(10% + env(safe-area-inset-right,0px));
+  padding-left: calc(8px + env(safe-area-inset-left,0px));
+  padding-right: calc(8px + env(safe-area-inset-right,0px));
   padding-bottom: calc(10px + env(safe-area-inset-bottom,0px) + 8px);
   padding-top: 0; box-sizing: border-box; flex: 1;
   font-size: clamp(9px, 2.5vw, 12px);
@@ -1506,8 +1545,8 @@ button.btn.charCornerBtn:active{filter:none;}
 /* Всегда 2 колонки: слева босс, справа множители и удары (не схлопывать на телефонах) */
 #mBossFight .bfFightGrid{
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(108px, 31%);
-  gap: 10px 12px;
+  grid-template-columns: minmax(0,min(148px,42%)) minmax(0,1fr);
+  gap: 8px 10px;
   align-items: start;
   width: 100%;
   max-width: 100%;
@@ -1520,9 +1559,9 @@ button.btn.charCornerBtn:active{filter:none;}
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  width: min(100%, 168px, 44vw);
+  width: min(100%, 148px, 40vw);
   max-width: 100%;
-  margin-top: 8px;
+  margin-top: 4px;
   margin-left: auto;
   margin-right: auto;
   box-sizing: border-box;
@@ -1557,7 +1596,8 @@ button.btn.charCornerBtn:active{filter:none;}
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
+  gap: 5px;
+  overflow: hidden;
 }
 #mBossFight .bfHitQtyGrid{
   margin-top: 0 !important;
@@ -1827,12 +1867,6 @@ button.btn.charCornerBtn:active{filter:none;}
   border-radius:0;
   border:none;
 }
-
- #mBoss .sheet{border-radius:0;border:none;}
-#mBoss .sheetBody{display:block;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
-#mBoss #bossList{display:block;padding:6px 6px;padding-bottom:calc(16px + env(safe-area-inset-bottom));width:100%;box-sizing:border-box;}
-#mBoss #bossList .card{width:100%;max-width:100%;box-sizing:border-box;display:block;margin-bottom:6px;clear:both;padding:8px;}
-#mBoss #bossList .card:last-child{margin-bottom:0;}
 
 .sheetScreen .sheetBody{
   padding:0;
@@ -3449,7 +3483,7 @@ button.btn.charCornerBtn:active{filter:none;}
         <div class="row" style="margin-top:10px;"><div class="k">ДОСТУП</div><div class="badge" id="baAccess">—</div></div>
         <div style="margin-top:12px; display:flex; gap:10px; align-items:center;">
           <button class="btn" style="flex:1" id="baGo">В БОЙ</button>
-          <button class="btn" style="width:56px; padding:0; font-size:20px; letter-spacing:0" id="baBuyRing" aria-label="Купить 1 атаку за козырные кольца">💍</button>
+          <button class="btn" style="width:56px; padding:0; font-size:20px; letter-spacing:0" id="baBuyRing" aria-label="Купить 1 атаку за козырные кольца"><img src="ккк.png" alt="Козырные кольца" class="bossCurrencyBtnImg"></button>
         </div>
       </div>
 
@@ -4088,7 +4122,7 @@ button.btn.charCornerBtn:active{filter:none;}
       <button class="iconBtn" data-close="mBoss">‹</button>
       <div class="title">БОССЫ</div>
       <div style="display:flex; gap:8px; align-items:center;">
-        <div class="badge" id="bossRingBadge" style="padding:8px 10px; border-color:rgba(255,255,255,.10); background:rgba(0,0,0,.18)">💍 <b id="bossRingVal" style="letter-spacing:1px">0</b></div>
+        <div class="badge bossCurrencyBadge" id="bossRingBadge" style="padding:8px 10px; border-color:rgba(255,255,255,.10); background:rgba(0,0,0,.18)"><span class="ringMiniIcon"><img src="ккк.png" alt="Козырные кольца"></span><b id="bossRingVal" style="letter-spacing:1px">0</b></div>
       </div>
     </div>
     <div class="sheetBody" id="bossList"></div>
@@ -4166,7 +4200,7 @@ button.btn.charCornerBtn:active{filter:none;}
       <div class="card" style="margin-top:12px;">
         <div class="row"><div class="k">НАГРАДЫ</div><div style="font-size:12px;opacity:.75">за 4 одинаковых</div></div>
         <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px; font-size:12px; opacity:.9; line-height:1.25">
-          <div class="row"><div style="min-width:0">4×1</div><div class="badge">15 💍 Козырных колец</div></div>
+          <div class="row"><div style="min-width:0">4×1</div><div class="badge">15 <span class="ringMiniIcon"><img src="ккк.png" alt="Козырные кольца"></span> Козырных колец</div></div>
           <div class="row"><div style="min-width:0">4×2</div><div class="badge">+ 1 удар ногой</div></div>
           <div class="row"><div style="min-width:0">4×3</div><div class="badge">+ 1 удар костетом</div></div>
           <div class="row"><div style="min-width:0">4×4</div><div class="badge">+ 1 клизма</div></div>
@@ -11233,7 +11267,7 @@ button.btn.charCornerBtn:active{filter:none;}
     if ((r.gold||0)>0) parts.push('+'+r.gold+' <img src="голд.png" alt="Золотые монеты" class="goldIcon">');
     if ((r.silver||0)>0) parts.push('+'+r.silver+' <img src="сильвер.png" alt="Серебро" class="silverIcon">');
     if ((r.tooth||0)>0) parts.push('+'+r.tooth+' <img src="зуб.png" alt="Золотые зубы" class="toothIcon">');
-    if ((r.rings||0)>0) parts.push('+'+r.rings+' 💍');
+    if ((r.rings||0)>0) parts.push('+'+r.rings+' <span class="ringMiniIcon"><img src="ккк.png" alt="Козырные кольца"></span>');
     return parts.join(' ');
   }
   function promoActive(){
@@ -11593,7 +11627,7 @@ button.btn.charCornerBtn:active{filter:none;}
     try {
       if (req && req.img) return '<span class="bossReqMiniIcon"><img src="'+String(req.img).replace(/"/g,'&quot;')+'" alt=""></span>';
     } catch (e) {}
-    return '<span class="bossReqMiniIcon">💍</span>';
+    return '<span class="bossReqMiniIcon"><img src="ккк.png" alt="Козырные кольца"></span>';
   }
 
   function bossRingStrikePrice(bossId){
@@ -13300,12 +13334,12 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       const limitReached = !canByDaily; // можно атаковать за кольца только когда лимит 10/10 достигнут
       ringBtn.disabled = (priceR<=0 || haveR < priceR || !limitReached);
       ringBtn.style.opacity = ringBtn.disabled ? '.55' : '1';
-      ringBtn.title = limitReached ? ('Купить 1 атаку: '+priceR+' 💍') : 'Доступно только при достигнутом лимите боёв (10/10)';
+      ringBtn.title = limitReached ? ('Купить 1 атаку: '+priceR+' козырных колец') : 'Доступно только при достигнутом лимите боёв (10/10)';
       ringBtn.onclick = ()=>{
         const id = parseInt(state.bosses.pendingAttackId||selectedId||0,10)||0;
         const priceR2 = bossRingStrikePrice(id);
         if (priceR2<=0) return;
-        if ((parseInt(state.rings||0,10)||0) < priceR2){ toast('Нужно '+priceR2+' 💍','lose'); return; }
+        if ((parseInt(state.rings||0,10)||0) < priceR2){ toast('Нужно '+priceR2+' козырных колец','lose'); return; }
 
         if (!id) return;
         if (!bossHasAccess(id)) { toast('Не хватает колец','lose'); return; }
@@ -14314,7 +14348,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       if (face===1){
         const ringsGain = 15 * mult;
         state.rings = (parseInt(state.rings||0,10)||0) + ringsGain;
-        rewardText = ringsGain+' 💍 Козырных колец';
+        rewardText = ringsGain+' <span class="ringMiniIcon"><img src="ккк.png" alt="Козырные кольца"></span> Козырных колец';
       } else if (face===2){
         if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
         const gain = 1 * mult;
