@@ -8750,11 +8750,15 @@ button.btn.charCornerBtn:active{filter:none;}
           const rawBid = state.bosses.activeFightId;
           const isDistrict = typeof rawBid === 'string' && rawBid.startsWith('district_');
           let bid = isDistrict ? rawBid : (parseInt(rawBid || 0, 10) || 0);
-          if (!bid && state.bosses.pendingAttackId != null) bid = parseInt(state.bosses.pendingAttackId, 10) || 0;
+          const pendingBid = state.bosses.pendingAttackId != null ? (parseInt(state.bosses.pendingAttackId, 10) || 0) : 0;
+          if (!bid && pendingBid) bid = pendingBid;
           if (bid && !isDistrict) state.bosses.activeFightId = bid;
           const hasBoss = isDistrict ? true : (bid ? bossExists(bid) : false);
           if (!bid || !hasBoss) {
-            try { if (!isDistrict) state.bosses.activeFightId = 0; save(); } catch (e0) {}
+            try {
+              if (!isDistrict && !pendingBid) state.bosses.activeFightId = 0;
+              if (!pendingBid) save();
+            } catch (e0) {}
             try { hideModal('mBfShop'); } catch (e1) {}
             try { hideModal('mBossFightRes'); } catch (e2) {}
             return;
@@ -8762,8 +8766,8 @@ button.btn.charCornerBtn:active{filter:none;}
         } catch (e) {
           try {
             if (state.bosses && typeof state.bosses.activeFightId === 'string' && state.bosses.activeFightId.startsWith('district_')) { /* не сбрасывать босса района */ }
-            else if (state.bosses) state.bosses.activeFightId = 0;
-            save();
+            else if (state.bosses && !state.bosses.pendingAttackId) state.bosses.activeFightId = 0;
+            if (!(state.bosses && state.bosses.pendingAttackId)) save();
           } catch (e0) {}
           return;
         }
@@ -11801,6 +11805,28 @@ button.btn.charCornerBtn:active{filter:none;}
     }
     const f = bfEnsureFight(bossId);
     if (!f) {
+      try {
+        const pendingBid = parseInt(state && state.bosses && state.bosses.pendingAttackId || 0, 10) || 0;
+        if (pendingBid && parseInt(bossId||0,10) === pendingBid && b && b.maxHP > 0) {
+          const fallbackFight = {
+            startTs: now(),
+            expiresTs: now() + 8*60*60*1000,
+            bossMaxHP: b.maxHP,
+            hp: b.maxHP,
+            freeUsed: false,
+            friendCap: {},
+            lastFriendTs: now(),
+            dmgLog: [],
+            dmgTop: {}
+          };
+          bfSetFight(bossId, fallbackFight);
+          if (!state.bosses.hp) state.bosses.hp = {};
+          if (!(parseInt(state.bosses.hp[String(bossId)]||0,10)>0)) state.bosses.hp[String(bossId)] = b.maxHP;
+          state.bosses.activeFightId = pendingBid;
+          save();
+          return bfRender(bossId);
+        }
+      } catch (eRetry) {}
       try { state.bosses.activeFightId = 0; save(); } catch (e0) {}
       try { hideModal('mBfShop'); } catch (e1) {}
       try { hideModal('mBossFight'); } catch (e2) {}
