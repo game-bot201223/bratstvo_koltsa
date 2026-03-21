@@ -7415,7 +7415,9 @@ button.btn.charCornerBtn:active{filter:none;}
             // НЕ ПЕРЕЗАПИСЫВАТЬ локальное состояние если на сервере пусто!
             if (s2 && (s2.level > 1 || s2.xp > 0 || s2.gold > 0 || s2.silver > 0 || s2.tooth > 0 || s2.rings > 0)) {
               console.log('[sessionStart] Применяем состояние с сервера - есть прогресс');
+              var prevState2 = state;
               state = Object.assign({}, defaults, s2);
+              mergeBossFreeUsedState(state, prevState2);
               if (keepSettings) state.settings = keepSettings;
             } else {
               console.log('[sessionStart] Сохраняем локальное состояние - на сервере пусто');
@@ -10900,7 +10902,9 @@ button.btn.charCornerBtn:active{filter:none;}
                 var fresh = await getPlayerViaPostgREST(initData);
                 if (fresh && fresh.ok && fresh.player && fresh.player.state && typeof fresh.player.state === 'object') {
                   var ps = fresh.player.state;
+                  var prevState = state;
                   state = Object.assign({}, defaults, ps);
+                  mergeBossFreeUsedState(state, prevState);
                   ensureGender();
                   try { __hydratedFromGetPlayer = true; } catch (_eHydr) {}
                   try { __cloudSaveUnlocked = true; } catch (_eCloud) {}
@@ -11205,6 +11209,40 @@ button.btn.charCornerBtn:active{filter:none;}
   function bfSetFight(id, obj){
     if (isDistrictBossId(id)) { state.districtGateBossFight = obj; return; }
     state.bosses.fights[String(id)] = obj;
+  }
+  function mergeBossFreeUsedState(nextState, prevState){
+    try {
+      if (!nextState || typeof nextState !== 'object') return nextState;
+      if (!prevState || typeof prevState !== 'object') return nextState;
+      if (!nextState.bosses || typeof nextState.bosses !== 'object') nextState.bosses = {};
+      const nextBosses = nextState.bosses;
+      const prevBosses = (prevState && prevState.bosses && typeof prevState.bosses === 'object') ? prevState.bosses : null;
+      const prevFreeUsed = prevBosses && prevBosses.freeUsed && typeof prevBosses.freeUsed === 'object' ? prevBosses.freeUsed : null;
+      if (!prevFreeUsed) return nextState;
+      if (!nextBosses.freeUsed || typeof nextBosses.freeUsed !== 'object') nextBosses.freeUsed = {};
+      Object.keys(prevFreeUsed).forEach(function(key){
+        try {
+          const prevRec = prevFreeUsed[key];
+          if (!prevRec || typeof prevRec !== 'object' || !prevRec.used) return;
+          const prevExp = parseInt(prevRec.exp || 0, 10) || 0;
+          if (!prevExp) return;
+          const nextRec = nextBosses.freeUsed[key];
+          const nextExp = nextRec && typeof nextRec === 'object' ? (parseInt(nextRec.exp || 0, 10) || 0) : 0;
+          if (nextRec && typeof nextRec === 'object' && nextRec.used && nextExp && Math.abs(nextExp - prevExp) <= 1500) return;
+          const cloud = nextBosses.cloud && typeof nextBosses.cloud === 'object' ? nextBosses.cloud[key] : null;
+          const cloudExp = cloud && cloud.expires_at ? (Date.parse(String(cloud.expires_at)) || 0) : 0;
+          const localFight = nextBosses.fights && typeof nextBosses.fights === 'object' ? nextBosses.fights[key] : null;
+          const localExp = localFight && typeof localFight === 'object' ? (parseInt(localFight.expiresTs || 0, 10) || 0) : 0;
+          const matchExp = cloudExp || localExp;
+          if (matchExp && Math.abs(matchExp - prevExp) <= 1500) {
+            nextBosses.freeUsed[key] = { used:true, exp: prevExp };
+          }
+        } catch (_eMergeOne) {}
+      });
+      return nextState;
+    } catch (_eMerge) {
+      return nextState;
+    }
   }
   function bfEnsureFight(id){
     if (isDistrictBossId(id)){
@@ -16814,7 +16852,9 @@ const BF_HELP_PULL_EVERY_MS = 500;
         if (ps && typeof ps === 'object') {
           __hydratedFromGetPlayer = true;
           try { __cloudSaveUnlocked = true; } catch (eU) {}
+          var prevState3 = state;
           state = Object.assign({}, defaults, ps);
+          mergeBossFreeUsedState(state, prevState3);
           ensureGender();
           // Колонка players.name — источник правды для ника (state JSON может отставать из-за батча upsert).
           try {
