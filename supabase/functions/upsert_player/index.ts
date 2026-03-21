@@ -98,6 +98,50 @@ async function postgrestUpsertPlayer(projectUrl: string, serviceKey: string, pay
   })
 }
 
+async function postgrestUpsertSidecar(projectUrl: string, serviceKey: string, table: string, payload: Record<string, unknown>): Promise<void> {
+  const url = projectUrl.replace(/\/$/, "") + `/rest/v1/${table}?on_conflict=tg_id`
+  await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      Prefer: "resolution=merge-duplicates,return=minimal",
+    },
+    body: JSON.stringify(payload),
+  }).catch(() => {})
+}
+
+async function syncPlayerSidecarTables(projectUrl: string, serviceKey: string, tgId: string, state: any): Promise<void> {
+  try {
+    const src = state && typeof state === "object" ? state : {}
+    await Promise.all([
+      postgrestUpsertSidecar(projectUrl, serviceKey, "player_armors", {
+        tg_id: tgId,
+        armor_owned: src && typeof src.armorOwned === "object" ? src.armorOwned : {},
+        selected_armor_key: src?.selectedArmorKey ? String(src.selectedArmorKey) : null,
+        main_character_img: src?.mainCharacterImg ? String(src.mainCharacterImg) : null,
+        updated_at: new Date().toISOString(),
+      }),
+      postgrestUpsertSidecar(projectUrl, serviceKey, "player_pets", {
+        tg_id: tgId,
+        pets_owned: src && typeof src.petsOwned === "object" ? src.petsOwned : {},
+        active_pet_id: safeNonNegInt(src?.activePetId),
+        updated_at: new Date().toISOString(),
+      }),
+      postgrestUpsertSidecar(projectUrl, serviceKey, "player_businesses", {
+        tg_id: tgId,
+        district_biz_lvls: src && typeof src.districtBizLvls === "object" ? src.districtBizLvls : {},
+        district_biz_daily: src && typeof src.districtBizDaily === "object" ? src.districtBizDaily : { day: "", claimed: {} },
+        district_biz_first_purchase_ts: safeNonNegInt(src?.districtBizFirstPurchaseTs),
+        district_biz_last_claim_ts: safeNonNegInt(src?.districtBizLastClaimTs),
+        biz_energy_applied: safeNonNegInt(src?._bizEnergyApplied),
+        updated_at: new Date().toISOString(),
+      }),
+    ])
+  } catch (_e) {}
+}
+
 async function postgrestGetPlayerState(projectUrl: string, serviceKey: string, tgId: string): Promise<any | null> {
   const url = projectUrl.replace(/\/$/, "") + `/rest/v1/players?tg_id=eq.${encodeURIComponent(tgId)}&select=state&limit=1`
   const resp = await fetch(url, {
@@ -795,7 +839,8 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  // Best-effort: if nickname changed, propagate to places that store name by string.
+  await syncPlayerSidecarTables(projectUrl, serviceKey, tgId, state).catch(() => {})
+
   try {
     const prevN = normName(prevName)
     const nextN = normName(name)
