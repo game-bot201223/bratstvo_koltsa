@@ -6541,49 +6541,11 @@ button.btn.charCornerBtn:active{filter:none;}
 
   // --- PostgREST функции для работы с таблицей players ---
   async function getPlayerViaPostgREST(initData) {
-    const headers = {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Prefer': 'return=representation'
-    };
-    
     try {
-      // Парсим initData для получения tg_id
-      const tgId = extractTgIdFromInitData(initData);
-      console.log('Debug: getPlayerViaPostgREST extracted tgId =', tgId);
-      if (!tgId) throw new Error('Invalid initData - no tg_id');
-      
-      const url = `${SUPABASE_URL}/rest/v1/players?tg_id=eq.${tgId}&select=*`;
-      console.log('Debug: getPlayerViaPostgREST URL =', url);
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: headers
-      });
-      
-      console.log('Debug: getPlayerViaPostgREST response status =', response.status);
-      console.log('Debug: getPlayerViaPostgREST response ok =', response.ok);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const players = await response.json();
-      console.log('Debug: getPlayerViaPostgREST players array =', players);
-      console.log('Debug: getPlayerViaPostgREST players length =', players.length);
-      
-      const player = players.length > 0 ? players[0] : null;
-      console.log('Debug: getPlayerViaPostgREST player =', player);
-      
-      if (player) {
-        console.log('Debug: getPlayerViaPostgREST player.tg_id =', player.tg_id);
-        console.log('Debug: getPlayerViaPostgREST player keys =', Object.keys(player));
-      }
-      
+      const result = await sbFnCall('get_player', { initData: initData });
       return {
-        player: player,
-        ok: true
+        player: result && result.player ? result.player : null,
+        ok: !!(result && result.ok)
       };
     } catch (error) {
       console.error('Debug: getPlayerViaPostgREST error =', error);
@@ -6595,39 +6557,19 @@ button.btn.charCornerBtn:active{filter:none;}
   }
 
   async function upsertPlayerViaPostgREST(initData, state) {
-    const headers = {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Prefer': 'resolution=merge-duplicates,return=representation'
-    };
-    
     try {
-      // Парсим initData для получения данных пользователя
       const userData = parseInitData(initData);
       if (!userData || !userData.id) throw new Error('Invalid initData');
-      
-      const playerData = {
+      const result = await sbFnCall('upsert_player', {
+        initData: initData,
         tg_id: userData.id,
         name: userData.first_name || 'Player',
         state: state,
         updated_at: new Date().toISOString()
-      };
-      
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/players?on_conflict=tg_id`, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(playerData)
       });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const result = await response.json();
       return {
-        player: result[0],
-        ok: true
+        player: result && result.player ? result.player : null,
+        ok: !!(result && result.ok)
       };
     } catch (error) {
       return {
