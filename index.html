@@ -6626,7 +6626,9 @@ button.btn.charCornerBtn:active{filter:none;}
       fn === 'upsert_player' ||
       fn === 'player_progress_reset' ||
       fn === 'get_players_by_names' ||
-      fn === 'top_players_list';
+      fn === 'top_players_list' ||
+      fn === 'admin_get_player' ||
+      fn === 'admin_update_player';
     const allowEdgeFnInPlayersOnly =
       fn === 'stars_create_invoice';
     // In players-only DB mode: we do not call edge functions at all.
