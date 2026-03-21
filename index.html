@@ -6676,8 +6676,8 @@ button.btn.charCornerBtn:active{filter:none;}
       });
       __cloudGatePromise = myTurn;
       await myTurn;
-      // Player-only DB mode: call PostgREST directly instead of Edge Functions.
-      if (CLOUD_PLAYERS_ONLY && isPlayersDbFn) {
+      // DB-handled calls: use PostgREST directly instead of Edge Functions.
+      if (isPlayersDbFn) {
         const playersUrl = supaBase + '/rest/v1/' + encodeURIComponent(PLAYERS_TABLE);
         const apikey = String(SUPABASE_ANON_KEY||'');
         const authz = 'Bearer ' + apikey;
