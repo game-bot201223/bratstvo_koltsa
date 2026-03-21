@@ -6629,6 +6629,9 @@ button.btn.charCornerBtn:active{filter:none;}
       fn === 'top_players_list' ||
       fn === 'admin_get_player' ||
       fn === 'admin_update_player';
+    const isAdminPlayersDirectFn =
+      fn === 'admin_get_player' ||
+      fn === 'admin_update_player';
     const allowEdgeFnInPlayersOnly =
       fn === 'stars_create_invoice';
     // In players-only DB mode: we do not call edge functions at all.
@@ -6676,8 +6679,8 @@ button.btn.charCornerBtn:active{filter:none;}
       });
       __cloudGatePromise = myTurn;
       await myTurn;
-      // DB-handled calls: use PostgREST directly instead of Edge Functions.
-      if (isPlayersDbFn) {
+      // Direct PostgREST only for admin player tools or in players-only mode.
+      if (isAdminPlayersDirectFn || (CLOUD_PLAYERS_ONLY && isPlayersDbFn)) {
         const playersUrl = supaBase + '/rest/v1/' + encodeURIComponent(PLAYERS_TABLE);
         const apikey = String(SUPABASE_ANON_KEY||'');
         const authz = 'Bearer ' + apikey;
