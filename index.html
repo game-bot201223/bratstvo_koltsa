@@ -10852,23 +10852,86 @@ button.btn.charCornerBtn:active{filter:none;}
         renderAll();
         toast(amount > 0 ? 'Награда получена! +'+amount+' золотых монет' : 'Награда получена!','win');
         haptic('medium');
-        if (amount > 0) {
-          // По требованию: get_player только на входе.
-        }
       };
     }
     showModal('mStarsReward');
+  }
+  async function handleStarsBuyClick(btn){
+    if (!btn) return;
+    if (!window.__starsLock) window.__starsLock = {};
+    var productId = btn.getAttribute('data-stars-buy');
+    if (window.__starsLock[productId]) {
+      console.warn('[Stars] Повторный клик заблокирован для', productId);
+      return;
+    }
+    window.__starsLock[productId] = true;
+    setTimeout(function(){ try { delete window.__starsLock[productId]; } catch (_eLock) {} }, 2000);
+    console.log('[Stars] Кнопка нажата, productId:', productId);
+    if (!productId) { console.error('[Stars] Нет productId'); return; }
+    var p = STARS_PRODUCTS.find(function(x){ return x.productId === productId; });
+    if (!p) { console.error('[Stars] Продукт не найден'); return; }
+    var tg = window.Telegram && window.Telegram.WebApp;
+    console.log('[Stars] Telegram.WebApp доступен?', !!tg, 'openInvoice метод?', tg && typeof tg.openInvoice);
+    if (!tg) { console.error('[Stars] Telegram.WebApp недоступен'); return; }
+    if (typeof tg.openInvoice !== 'function') { console.error('[Stars] openInvoice не является функцией'); return; }
+    var initData = tg.initData;
+    console.log('[Stars] initData:', initData ? 'есть' : 'нет');
+    if (!initData) { console.error('[Stars] Нет initData'); return; }
+    console.log('[Stars] Вызываю sbFnCall для создания инвойса...');
+    var timeoutT = setTimeout(function(){
+      if (window.__starsLock[productId]) {
+        console.log('[Stars] Таймаут запроса');
+        delete window.__starsLock[productId];
+        alert('Превышено время ожидания ответа от сервера');
+      }
+    }, 15000);
+    try {
+      var resp = await sbFnCall('stars_create_invoice', { initData: initData, productId: productId });
+      console.log('[Stars] Ответ от stars_create_invoice:', resp);
+      clearTimeout(timeoutT);
+      delete window.__starsLock[productId];
+      if (resp && resp.ok && resp.invoice_link) {
+        var rawInvoiceLink = String(resp.invoice_link || '').trim();
+        console.log('[Stars] Открываю инвойс:', rawInvoiceLink);
+        tg.openInvoice(rawInvoiceLink, function(status){
+          console.log('[Stars] Статус оплаты:', status);
+          if (status === 'paid') {
+            console.log('[Stars] Оплата успешна!');
+            try {
+              var rawGold = parseInt(p && p.gold != null ? p.gold : 0, 10) || 0;
+              var addGold = rawGold * (shopX2Enabled && shopX2Enabled() ? 2 : 1);
+              showStarsReward(addGold);
+            } catch (_e) {}
+          } else if (status === 'failed') {
+            console.log('[Stars] Оплата не удалась');
+          } else if (status === 'pending') {
+            console.log('[Stars] Оплата в ожидании');
+          }
+        });
+      } else {
+        var msg = (resp && resp.skipped)
+          ? 'Покупки Telegram Stars сейчас недоступны (нет нужных edge-функций).'
+          : ('Ошибка при создании инвойса: ' + (resp && (resp.error || resp.reason) ? (resp.error || resp.reason) : 'неизвестная ошибка'));
+        console.error('[Stars] Не удалось создать инвойс:', resp);
+        alert(msg);
+        renderShop();
+        return;
+      }
+    } catch (e) {
+      clearTimeout(timeoutT);
+      delete window.__starsLock[productId];
+      console.error('[Stars] Exception:', e);
+      alert('Ошибка при создании инвойса: ' + (e && e.message ? e.message : 'network/exception'));
+      renderShop();
+      return;
+    }
   }
   function renderShop(){
     const box = $('shopList');
     let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
     if (IS_DEV && SHOP_X2_FORCE==='AUTO'){
-      html += '<div class="card">'
-        + '<div class="row"><div style="min-width:0"><div class="k">РЕЖИМ X2</div><div style="font-size:12px;opacity:.75;margin-top:4px">Двойные золотые монеты при покупке</div></div>'
-        + '<button class="btn btnSmall" id="shopX2Btn">'+(shopX2Enabled()?'X2: ON':'X2: OFF')+'</button></div>'
-        + '</div>';
+      html += '<div class="row" style="align-items:center"><div class="k">x2 SHOP</div><button type="button" class="btn btnSmall" id="shopX2Btn">'+(state.shopX2?'ВКЛ':'ВЫКЛ')+'</button></div>';
     }
-
     const promoOk = promoActive();
     const promoWasUsed = promoUsed();
     const promoDisabled = (!promoOk) || promoWasUsed;
@@ -10880,17 +10943,16 @@ button.btn.charCornerBtn:active{filter:none;}
         + '</div></div>';
     } else {
       html += '<div class="card" id="promoCard">'
-      + '<div class="row"><div class="k">ПРОМОКОД</div></div>'
-      + '<div style="margin-top:10px;">'
-      + '<label for="promoInput" style="display:block; font-size:11px; opacity:.85; margin-bottom:6px;">Введите промокод</label>'
-      + '<div style="display:flex; gap:10px; align-items:stretch;">'
-      + '<input id="promoInput" type="text" placeholder="Промокод" autocomplete="off" spellcheck="false" '
-      + 'style="flex:1; min-width:120px; height:44px; box-sizing:border-box; border:2px solid rgba(0,0,0,.2); border-radius:14px; background:rgba(255,255,255,.9); color:#1a1a1a; padding:0 14px; font-size:14px; font-weight:700; letter-spacing:1px; outline:none;" />'
-      + '<button class="btn btnSmall" id="promoApply" '+(promoDisabled?'disabled':'')+'>'+(promoOk?'ПРИМЕНИТЬ':'НЕ АКТИВЕН')+'</button>'
-      + '</div></div>'
-      + '</div>';
+        + '<div class="row"><div class="k">ПРОМОКОД</div></div>'
+        + '<div style="margin-top:10px;">'
+        + '<label for="promoInput" style="display:block; font-size:11px; opacity:.85; margin-bottom:6px;">Введите промокод</label>'
+        + '<div style="display:flex; gap:10px; align-items:stretch;">'
+        + '<input id="promoInput" type="text" placeholder="Промокод" autocomplete="off" spellcheck="false" '
+        + 'style="flex:1; min-width:120px; height:44px; box-sizing:border-box; border:2px solid rgba(0,0,0,.2); border-radius:14px; background:rgba(255,255,255,.9); color:#1a1a1a; padding:0 14px; font-size:14px; font-weight:700; letter-spacing:1px; outline:none;" />'
+        + '<button class="btn btnSmall" id="promoApply" '+(promoDisabled?'disabled':'')+'>'+(promoOk?'ПРИМЕНИТЬ':'НЕ АКТИВЕН')+'</button>'
+        + '</div></div>'
+        + '</div>';
     }
-
     ITEMS.forEach(it=>{
       const showX2 = !!(shopX2Enabled() && it.goldAdd);
       const costLabel = shopCostLabel(it);
@@ -10916,20 +10978,16 @@ button.btn.charCornerBtn:active{filter:none;}
     html += '</div>';
     html += '</div>';
     box.innerHTML = html;
-
     const x2 = $('shopX2Btn');
     if (x2) x2.onclick = ()=>{ state.shopX2 = !state.shopX2; save(); renderShop(); haptic('light'); };
-
     const pa = $('promoApply');
     if (pa) pa.onclick = ()=>promoApply();
     const pi = $('promoInput');
     if (pi) pi.onkeydown = (e)=>{ try { if ((e && (e.key==='Enter' || e.keyCode===13))) promoApply(); } catch (e2) {} };
-
     box.querySelectorAll('[data-buy]').forEach(btn=>{
       const key = btn.getAttribute('data-buy');
       const it = ITEMS.find(x=>x.key===key);
       if (it && it.key === 'VIP'){
-        // если VIP уже активен или ещё не истёк — отключаем кнопку
         if (isVipActive()){
           btn.disabled = true;
         }
@@ -10962,81 +11020,12 @@ button.btn.charCornerBtn:active{filter:none;}
         haptic('light');
       };
     });
-    box.querySelectorAll('[data-stars-buy]').forEach(function(btn){
-      // Глобальный лок, чтобы избежать двойных запросов
-      if (!window.__starsLock) {
-        window.__starsLock = {};
-      }
-      btn.onclick = async function(){
-        if (window.__starsLock[btn.getAttribute('data-stars-buy')]) {
-          console.warn('[Stars] Повторный клик заблокирован для', btn.getAttribute('data-stars-buy'));
-          return;
-        }
-        window.__starsLock[btn.getAttribute('data-stars-buy')] = true;
-        setTimeout(() => { delete window.__starsLock[btn.getAttribute('data-stars-buy')]; }, 2000);
-        console.log('[Stars] Кнопка нажата, productId:', btn.getAttribute('data-stars-buy'));
-        const productId = btn.getAttribute('data-stars-buy');
-        if (!productId) { console.error('[Stars] Нет productId'); return; }
-        const p = STARS_PRODUCTS.find(function(x){ return x.productId === productId; });
-        if (!p) { console.error('[Stars] Продукт не найден'); return; }
-        const tg = window.Telegram && window.Telegram.WebApp;
-        console.log('[Stars] Telegram.WebApp доступен?', !!tg, 'openInvoice метод?', tg && typeof tg.openInvoice);
-        if (!tg) { console.error('[Stars] Telegram.WebApp недоступен'); return; }
-        if (typeof tg.openInvoice !== 'function') { console.error('[Stars] openInvoice не является функцией'); return; }
-        const initData = tg.initData;
-        console.log('[Stars] initData:', initData ? 'есть' : 'нет');
-        if (!initData) { console.error('[Stars] Нет initData'); return; }
-        console.log('[Stars] Вызываю sbFnCall для создания инвойса...');
-        // sbFnCall возвращает Promise, callback-стиль тут не работает.
-        const timeoutT = setTimeout(function(){
-          if (window.__starsLock[productId]) {
-            console.log('[Stars] Таймаут запроса');
-            delete window.__starsLock[productId];
-            alert('Превышено время ожидания ответа от сервера');
-          }
-        }, 15000);
-        try {
-          const resp = await sbFnCall('stars_create_invoice', { initData: initData, productId: productId });
-          console.log('[Stars] Ответ от stars_create_invoice:', resp);
-          clearTimeout(timeoutT);
-          delete window.__starsLock[productId];
-          if (resp && resp.ok && resp.invoice_link) {
-            const rawInvoiceLink = String(resp.invoice_link || '').trim();
-            console.log('[Stars] Открываю инвойс:', rawInvoiceLink);
-            tg.openInvoice(rawInvoiceLink, function(status){
-              console.log('[Stars] Статус оплаты:', status);
-              if (status === 'paid') {
-                console.log('[Stars] Оплата успешна!');
-                try {
-                  const rawGold = parseInt(p && p.gold != null ? p.gold : 0, 10) || 0;
-                  const addGold = rawGold * (shopX2Enabled && shopX2Enabled() ? 2 : 1);
-                  showStarsReward(addGold);
-                } catch (_e) {}
-              } else if (status === 'failed') {
-                console.log('[Stars] Оплата не удалась');
-              } else if (status === 'pending') {
-                console.log('[Stars] Оплата в ожидании');
-              }
-            });
-          } else {
-            const msg = (resp && resp.skipped)
-              ? 'Покупки Telegram Stars сейчас недоступны (нет нужных edge-функций).'
-              : ('Ошибка при создании инвойса: ' + (resp && (resp.error || resp.reason) ? (resp.error || resp.reason) : 'неизвестная ошибка'));
-            console.error('[Stars] Не удалось создать инвойс:', resp);
-            alert(msg);
-            renderShop();
-            return;
-          }
-        } catch (e) {
-          clearTimeout(timeoutT);
-          delete window.__starsLock[productId];
-          console.error('[Stars] Exception:', e);
-          alert('Ошибка при создании инвойса: ' + (e && e.message ? e.message : 'network/exception'));
-          renderShop();
-          return;
-        }
-      };
-    });
+    box.onclick = function(ev){
+      const target = ev && ev.target ? ev.target : null;
+      const btn = target && target.closest ? target.closest('[data-stars-buy]') : null;
+      if (!btn || !box.contains(btn)) return;
+      handleStarsBuyClick(btn);
+    };
   }
 
   // --- Bosses (simple)
