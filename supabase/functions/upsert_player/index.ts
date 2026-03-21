@@ -494,6 +494,16 @@ async function postgrestRateLimitAllow(
   }
 }
 
+function isJwtLike(s: string): boolean {
+  try {
+    const t = String(s || "").trim()
+    // Supabase anon/service_role keys are JWT-like strings starting with 'eyJ' and containing 2 dots.
+    return !!(t && t.startsWith("eyJ") && t.split(".").length >= 3)
+  } catch (_e) {
+    return false
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
   if (req.method !== "POST") {
@@ -505,7 +515,9 @@ Deno.serve(async (req: Request) => {
 
   const botToken = String(Deno.env.get("TELEGRAM_BOT_TOKEN") || "").trim()
   const projectUrl = String(Deno.env.get("PROJECT_URL") || Deno.env.get("SUPABASE_URL") || "").trim()
-  const serviceKey = String(Deno.env.get("SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim()
+  const serviceKeyRaw = String(Deno.env.get("SERVICE_ROLE_KEY") || "").trim()
+  const serviceKeyFallback = String(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim()
+  const serviceKey = isJwtLike(serviceKeyRaw) ? serviceKeyRaw : serviceKeyFallback
   if (!botToken || !projectUrl || !serviceKey) {
     const missing: string[] = []
     if (!botToken) missing.push("TELEGRAM_BOT_TOKEN")
