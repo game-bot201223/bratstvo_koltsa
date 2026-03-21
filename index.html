@@ -2637,6 +2637,8 @@ button.btn.charCornerBtn:active{filter:none;}
   display:flex;
   flex-direction:column;
 }
+#mBossAttack.modalPage{z-index:5200;}
+#mFriendHelp.modalPage{z-index:5200;}
 #mBfShop.modalPage{z-index:5400;}
 #mBossFightRes.modalPage{z-index:5500;}
 #mDistrictBiz .sheet.sheetOpaque,
@@ -14402,11 +14404,11 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         rewardText = '+ '+gain+' клизм';
       } else if (face===5){
         const r6 = bossReq(6);
-        if (r6) bossKeyAdd(r6.itemKey, r6.need * mult);
+        if (r6) bossKeyAdd(r6.itemKey, 1 * mult);
         rewardText = (mult>1 ? (mult+'× ') : '')+'Кольцо на босса «Паучиха»';
       } else if (face===6){
         const r8 = bossReq(8);
-        if (r8) bossKeyAdd(r8.itemKey, r8.need * mult);
+        if (r8) bossKeyAdd(r8.itemKey, 1 * mult);
         rewardText = (mult>1 ? (mult+'× ') : '')+'Кольцо на босса «Сарумян»';
       } else {
         state.tooth += baseTooth;
