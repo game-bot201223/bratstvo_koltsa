@@ -116,7 +116,7 @@ function safeInt(v: unknown, def = 0): number {
 
 function bossDef(bossId: number): { boss_id: number; max_hp: number; reward: { xp: number; tooth: number; gold: number } } | null {
   const defs: Record<number, { max_hp: number; reward: { xp: number; tooth: number; gold: number } }> = {
-    1: { max_hp: 1000, reward: { xp: 50, tooth: 100, gold: 0 } },
+    1: { max_hp: 2500, reward: { xp: 50, tooth: 100, gold: 0 } },
     2: { max_hp: 10000, reward: { xp: 100, tooth: 300, gold: 0 } },
     3: { max_hp: 50000, reward: { xp: 200, tooth: 500, gold: 0 } },
     4: { max_hp: 200000, reward: { xp: 500, tooth: 800, gold: 0 } },

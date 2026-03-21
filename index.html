@@ -6933,9 +6933,13 @@ button.btn.charCornerBtn:active{filter:none;}
         try {
           const bid = parseInt(f && f.boss_id || 0, 10) || 0;
           if (!bid || bid < 1 || bid > 12) return;
-          const srvHp = Math.max(0, Math.floor(parseInt(f && f.hp || 0, 10) || 0));
+          let srvHp = Math.max(0, Math.floor(parseInt(f && f.hp || 0, 10) || 0));
           const isActive = parseInt(state.bosses && state.bosses.activeFightId||0,10) === bid;
-          const maxHpSrv = Math.max(0, Math.floor(parseInt(f && f.max_hp || 0, 10) || 0));
+          let maxHpSrv = Math.max(0, Math.floor(parseInt(f && f.max_hp || 0, 10) || 0));
+          if (bid === 1 && maxHpSrv > 0 && maxHpSrv < 2500) {
+            srvHp = Math.max(0, Math.round((srvHp / maxHpSrv) * 2500));
+            maxHpSrv = 2500;
+          }
           const expiresAtSrv = f && f.expires_at ? String(f.expires_at) : '';
           const startedAtSrv = f && f.fight_started_at ? String(f.fight_started_at) : '';
           const rewardClaimedSrv = !!(f && f.reward_claimed);
@@ -7122,20 +7126,7 @@ button.btn.charCornerBtn:active{filter:none;}
   }
   async function bossLastWinnerCloudUpsert(bossId){
     try {
-      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return;
-      const id = parseInt(bossId||0,10)||0;
-      if (!id) return;
-      let photo = '';
-      try {
-        const u0 = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
-        photo = (u0 && u0.photo_url) ? String(u0.photo_url||'') : '';
-      } catch (e0) { photo = ''; }
-      await sbFnCall('boss_last_winner_upsert', {
-        initData: tgInitData(),
-        boss_id: id,
-        name: String(state.playerName||'PLAYER').trim().slice(0,18),
-        photo_url: String(photo||'').trim()
-      });
+      return;
     } catch (e) {}
   }
 

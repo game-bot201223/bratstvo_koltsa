@@ -123,7 +123,7 @@ function safeInt(v: unknown, def = 0): number {
 
 function bossDef(bossId: number): { boss_id: number; max_hp: number } | null {
   const defs: Record<number, number> = {
-    1: 1000,
+    1: 2500,
     2: 10000,
     3: 50000,
     4: 200000,
