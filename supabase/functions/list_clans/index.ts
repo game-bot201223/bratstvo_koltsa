@@ -1,4 +1,4 @@
-import "@supabase/functions-js/edge-runtime.d.ts"
+import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -135,6 +135,15 @@ async function postgrestListClans(projectUrl: string, serviceKey: string, limit:
   })
 }
 
+function isJwtLike(s: string): boolean {
+  try {
+    const t = String(s || "").trim()
+    return !!(t && t.startsWith("eyJ") && t.split(".").length >= 3)
+  } catch (_e) {
+    return false
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
   if (req.method !== "POST") {
@@ -145,10 +154,16 @@ Deno.serve(async (req: Request) => {
   }
 
   const botToken = String(Deno.env.get("TELEGRAM_BOT_TOKEN") || "").trim()
-  const projectUrl = String(Deno.env.get("PROJECT_URL") || "").trim()
-  const serviceKey = String(Deno.env.get("SERVICE_ROLE_KEY") || "").trim()
+  const projectUrl = String(Deno.env.get("PROJECT_URL") || Deno.env.get("SUPABASE_URL") || "").trim()
+  const serviceKeyRaw = String(Deno.env.get("SERVICE_ROLE_KEY") || "").trim()
+  const serviceKeyFallback = String(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim()
+  const serviceKey = isJwtLike(serviceKeyRaw) ? serviceKeyRaw : serviceKeyFallback
   if (!botToken || !projectUrl || !serviceKey) {
-    return new Response(JSON.stringify({ ok: false, error: "missing_secrets" }), {
+    const missing: string[] = []
+    if (!botToken) missing.push("TELEGRAM_BOT_TOKEN")
+    if (!projectUrl) missing.push("PROJECT_URL/SUPABASE_URL")
+    if (!serviceKey) missing.push("SERVICE_ROLE_KEY/SUPABASE_SERVICE_ROLE_KEY")
+    return new Response(JSON.stringify({ ok: false, error: "missing_secrets", missing }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
@@ -234,3 +249,5 @@ Deno.serve(async (req: Request) => {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   })
 })
+
+ export {}
