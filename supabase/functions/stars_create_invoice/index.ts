@@ -133,7 +133,16 @@ Deno.serve(async (req: Request) => {
 
   const verified = await verifyTelegramInitData(initData, botToken)
   if (!verified.ok || !verified.user?.id) {
-    return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), {
+    return new Response(JSON.stringify({
+      ok: false,
+      error: "unauthorized",
+      reason: "bad_init_data",
+      debug: {
+        init_data_present: !!initData,
+        init_data_len: initData.length,
+        has_hash: /(?:^|&)hash=/.test(initData),
+      },
+    }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
