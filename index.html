@@ -6340,6 +6340,9 @@ button.btn.charCornerBtn:active{filter:none;}
         if (em.indexOf('db_upsert_player_http_500') >= 0) {
           setOfflineMode(true);
         }
+        if (em.indexOf('db_upsert_player_http_401') >= 0 || em.indexOf('unauthorized') >= 0) {
+          setOfflineMode(true);
+        }
       } catch (_eOff0) {}
       
       // Retry логика
