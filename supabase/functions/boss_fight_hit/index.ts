@@ -172,6 +172,40 @@ function bossDef(bossId: number): { boss_id: number; max_hp: number; reward: { x
   return { boss_id: bossId, max_hp: d.max_hp, reward: d.reward }
 }
 
+async function postgrestFindActiveBossFightMeta(
+  projectUrl: string,
+  serviceKey: string,
+  ownerTgId: string,
+  bossId: number,
+): Promise<{ boss_id: number; fight_started_at: string; expires_at: string } | null> {
+  try {
+    const bid = safeInt(bossId, 0)
+    if (bid <= 0) return null
+    const nowIso = new Date().toISOString()
+    const url = projectUrl.replace(/\/$/, "") +
+      `/rest/v1/player_boss_fights?owner_tg_id=eq.${encodeURIComponent(ownerTgId)}` +
+      `&boss_id=eq.${encodeURIComponent(String(bid))}` +
+      `&reward_claimed=eq.false` +
+      `&hp=gt.0` +
+      `&or=${encodeURIComponent(`(expires_at.is.null,expires_at.gt.${nowIso})`)}` +
+      `&select=boss_id,fight_started_at,expires_at&order=updated_at.desc&limit=1`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp.ok) return null
+    const rows = await resp.json().catch(() => [])
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null
+    const bid2 = safeInt(row && typeof row === "object" ? (row as any).boss_id : 0, 0)
+    const started = row && typeof row === "object" ? String((row as any).fight_started_at || "").trim() : ""
+    const expires = row && typeof row === "object" ? String((row as any).expires_at || "").trim() : ""
+    if (bid2 <= 0) return null
+    return { boss_id: bid2, fight_started_at: started, expires_at: expires }
+  } catch (_e) {
+    return null
+  }
+}
+
 async function postgrestApplyBossDamage(
   projectUrl: string,
   serviceKey: string,
@@ -273,7 +307,8 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
+  const activeFightMeta = await postgrestFindActiveBossFightMeta(projectUrl, serviceKey, ownerTgId, bossId)
+  const expiresAt = String(activeFightMeta?.expires_at || "").trim() || new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
   const ar = await postgrestApplyBossDamage(projectUrl, serviceKey, ownerTgId, bossId, dmg, def.max_hp, expiresAt, "hit", ownerTgId, fromName || undefined, clanId || undefined)
   if (!ar.ok || !ar.fight) {
     return new Response(JSON.stringify({
