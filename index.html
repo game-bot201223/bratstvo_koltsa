@@ -6209,47 +6209,8 @@ button.btn.charCornerBtn:active{filter:none;}
       }
       
       console.log(`Sending batch sync: ${currentBatch.length} players`);
-      
-      // Отправляем на наш VPS эндпоинт
-      const response = await fetch('/api/batch-sync', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          players: currentBatch,
-          server_timestamp: Date.now()
-        })
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Batch sync successful:', result);
-        
-        // Обрабатываем ошибки для отдельных игроков
-        if (result.errors && result.errors.length > 0) {
-          result.errors.forEach(error => {
-            if (error.retry && error.tg_id) {
-              // Возвращаем в очередь с увеличенным счетчиком попыток
-              const failedItem = currentBatch.find(item => item.tg_id === error.tg_id);
-              if (failedItem && failedItem.retry_count < 3) {
-                failedItem.retry_count++;
-                batchSyncData.push(failedItem);
-              }
-            }
-          });
-        }
-      } else {
-        // Если сервер недоступен, возвращаем все в очередь
-        console.warn('Batch sync failed, retrying later...');
-        batchSyncData.unshift(...currentBatch);
-        
-        // Увеличиваем счетчик попыток
-        batchSyncData.forEach(item => item.retry_count++);
-        
-        // Удаляем элементы с слишком большим количеством попыток
-        batchSyncData = batchSyncData.filter(item => item.retry_count < 3);
-      }
+      console.log('Batch sync disabled on static hosting; relying on direct Supabase sync.');
+      return { ok: true, skipped: true, count: currentBatch.length };
       
     } catch (error) {
       console.error('Batch sync error:', error);
@@ -6638,7 +6599,7 @@ button.btn.charCornerBtn:active{filter:none;}
       'Content-Type': 'application/json',
       'apikey': SUPABASE_ANON_KEY,
       'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Prefer': 'return=representation'
+      'Prefer': 'resolution=merge-duplicates,return=representation'
     };
     
     try {
@@ -6653,7 +6614,7 @@ button.btn.charCornerBtn:active{filter:none;}
         updated_at: new Date().toISOString()
       };
       
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/players`, {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/players?on_conflict=tg_id`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(playerData)
