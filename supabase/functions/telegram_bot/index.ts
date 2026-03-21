@@ -7,6 +7,125 @@ const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 }
 
+async function postgrestGetPlayerState(projectUrl: string, serviceKey: string, tgId: string): Promise<any | null> {
+  try {
+    const url = projectUrl.replace(/\/$/, "") + `/rest/v1/players?tg_id=eq.${encodeURIComponent(tgId)}&select=state&limit=1`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp.ok) return null
+    const rows = await resp.json().catch(() => [])
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null
+    return row && typeof row === "object" ? (row as any).state : null
+  } catch (_e) {
+    return null
+  }
+}
+
+async function postgrestUpsertPlayer(projectUrl: string, serviceKey: string, payload: Record<string, unknown>): Promise<Response> {
+  const url = projectUrl.replace(/\/$/, "") + "/rest/v1/players?on_conflict=tg_id"
+  return await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      Prefer: "resolution=merge-duplicates",
+    },
+    body: JSON.stringify(payload),
+  })
+}
+
+function pickPreCheckout(update: any): { id: string; fromId: string; payload: string; currency: string; amount: number } | null {
+  try {
+    const pq = update?.pre_checkout_query
+    if (!pq) return null
+    const id = String(pq.id || "").trim()
+    const fromId = String(pq?.from?.id || "").trim()
+    const payload = String(pq.invoice_payload || "").trim()
+    const currency = String(pq.currency || "").trim().toUpperCase()
+    const amount = safeInt(pq.total_amount, 0)
+    if (!id) return null
+    return { id, fromId, payload, currency, amount }
+  } catch (_e) {
+    return null
+  }
+}
+
+function pickSuccessfulPayment(update: any): { chatId: number | null; tgId: string; payload: string; currency: string; amount: number; telegramPaymentChargeId: string; providerPaymentChargeId: string } | null {
+  try {
+    const sp = update?.message?.successful_payment
+    if (!sp) return null
+    const tgId = String(update?.message?.from?.id || "").trim()
+    const chatRaw = update?.message?.chat?.id
+    let chatId: number | null = null
+    if (typeof chatRaw === "number") chatId = chatRaw
+    else if (typeof chatRaw === "string" && chatRaw.trim()) {
+      const n = Number(chatRaw)
+      if (Number.isFinite(n)) chatId = n
+    }
+    return {
+      chatId,
+      tgId,
+      payload: String(sp.invoice_payload || "").trim(),
+      currency: String(sp.currency || "").trim().toUpperCase(),
+      amount: safeInt(sp.total_amount, 0),
+      telegramPaymentChargeId: String(sp.telegram_payment_charge_id || "").trim(),
+      providerPaymentChargeId: String(sp.provider_payment_charge_id || "").trim(),
+    }
+  } catch (_e) {
+    return null
+  }
+}
+
+function parseStarsPayload(payload: string): { productId: string; tgId: string } | null {
+  try {
+    const parts = String(payload || "").trim().split(":")
+    if (parts.length < 3) return null
+    if (parts[0] !== "stars") return null
+    const productId = String(parts[1] || "").trim()
+    const tgId = String(parts[2] || "").trim()
+    if (!productId || !tgId) return null
+    return { productId, tgId }
+  } catch (_e) {
+    return null
+  }
+}
+
+async function creditStarsPurchase(projectUrl: string, serviceKey: string, tgId: string, productId: string, chargeId: string): Promise<{ ok: boolean; gold: number }> {
+  try {
+    const product = STARS_PRODUCTS[productId]
+    if (!product) return { ok: false, gold: 0 }
+    const st = await postgrestGetPlayerState(projectUrl, serviceKey, tgId)
+    const stateObj = (st && typeof st === "object") ? st as Record<string, unknown> : {}
+    const payments0 = (stateObj as any)._starsPayments
+    const payments = (payments0 && typeof payments0 === "object") ? payments0 as Record<string, unknown> : {}
+    if (chargeId && payments[chargeId]) return { ok: true, gold: product.gold }
+    const curGold = Number((stateObj as any).gold)
+    const nextGold = (Number.isFinite(curGold) ? curGold : 0) + product.gold
+    ;(stateObj as any).gold = Math.floor(nextGold)
+    ;(stateObj as any)._starsLastPurchase = {
+      productId,
+      gold: product.gold,
+      ts: new Date().toISOString(),
+      charge_id: chargeId,
+    }
+    if (chargeId) {
+      payments[chargeId] = { productId, gold: product.gold, ts: new Date().toISOString() }
+      ;(stateObj as any)._starsPayments = payments
+    }
+    const resp = await postgrestUpsertPlayer(projectUrl, serviceKey, {
+      tg_id: tgId,
+      state: stateObj,
+      updated_at: new Date().toISOString(),
+    })
+    return { ok: resp.ok, gold: product.gold }
+  } catch (_e) {
+    return { ok: false, gold: 0 }
+  }
+}
+
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
@@ -22,6 +141,18 @@ function safeInt(v: unknown, def = 0): number {
   const n = Number(v)
   if (!Number.isFinite(n)) return def
   return Math.floor(n)
+}
+
+const STARS_PRODUCTS: Record<string, { gold: number; stars: number; name: string }> = {
+  stars_20_10: { gold: 20, stars: 10, name: "20 золотых монет" },
+  stars_200_100: { gold: 200, stars: 100, name: "200 золотых монет" },
+  stars_500_250: { gold: 500, stars: 250, name: "500 золотых монет" },
+  stars_700_350: { gold: 700, stars: 350, name: "700 золотых монет" },
+  stars_1000_500: { gold: 1000, stars: 500, name: "1000 золотых монет" },
+  stars_3000_1500: { gold: 3000, stars: 1500, name: "3000 золотых монет" },
+  stars_5000_2500: { gold: 5000, stars: 2500, name: "5000 золотых монет" },
+  stars_10000_5000: { gold: 10000, stars: 5000, name: "10000 золотых монет" },
+  stars_20000_10000: { gold: 20000, stars: 10000, name: "20000 золотых монет" },
 }
 
 async function postgrestDedupeUpdate(
@@ -183,6 +314,61 @@ Deno.serve(async (req: Request) => {
       })
     } catch (_e) {
       // ignore telegram errors to keep webhook stable
+    }
+    return json({ ok: true })
+  }
+
+  const preCheckout = pickPreCheckout(update)
+  if (preCheckout) {
+    try {
+      const parsed = parseStarsPayload(preCheckout.payload)
+      const product = parsed ? STARS_PRODUCTS[parsed.productId] : null
+      const ok = !!(parsed && product && preCheckout.currency === "XTR" && preCheckout.amount === safeInt(product.stars, 0))
+      await tgCall(botToken, "answerPreCheckoutQuery", {
+        pre_checkout_query_id: preCheckout.id,
+        ok,
+        error_message: ok ? undefined : "Платёж не прошёл проверку. Попробуй ещё раз.",
+      })
+    } catch (_e) {
+      try {
+        await tgCall(botToken, "answerPreCheckoutQuery", {
+          pre_checkout_query_id: preCheckout.id,
+          ok: false,
+          error_message: "Временная ошибка оплаты. Попробуй ещё раз.",
+        })
+      } catch (_e2) {}
+    }
+    return json({ ok: true })
+  }
+
+  const successfulPayment = pickSuccessfulPayment(update)
+  if (successfulPayment) {
+    try {
+      const parsed = parseStarsPayload(successfulPayment.payload)
+      const product = parsed ? STARS_PRODUCTS[parsed.productId] : null
+      const targetTgId = parsed ? parsed.tgId : successfulPayment.tgId
+      const valid = !!(
+        parsed &&
+        product &&
+        targetTgId &&
+        successfulPayment.currency === "XTR" &&
+        successfulPayment.amount === safeInt(product.stars, 0)
+      )
+      if (valid && projectUrl && serviceKey) {
+        await creditStarsPurchase(projectUrl, serviceKey, targetTgId, parsed!.productId, successfulPayment.telegramPaymentChargeId)
+      }
+      if (successfulPayment.chatId) {
+        try {
+          await tgCall(botToken, "sendMessage", {
+            chat_id: successfulPayment.chatId,
+            text: valid && product
+              ? `Оплата прошла. Начислено ${product.gold} золотых монет.`
+              : "Оплата прошла, но награда не была распознана. Напиши /help если что-то пошло не так.",
+          })
+        } catch (_eMsg) {}
+      }
+    } catch (_e) {
+      // ignore to keep webhook stable
     }
     return json({ ok: true })
   }

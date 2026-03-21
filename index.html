@@ -10897,11 +10897,29 @@ button.btn.charCornerBtn:active{filter:none;}
           console.log('[Stars] Статус оплаты:', status);
           if (status === 'paid') {
             console.log('[Stars] Оплата успешна!');
-            try {
-              var rawGold = parseInt(p && p.gold != null ? p.gold : 0, 10) || 0;
-              var addGold = rawGold * (shopX2Enabled && shopX2Enabled() ? 2 : 1);
-              showStarsReward(addGold);
-            } catch (_e) {}
+            (async function(){
+              try {
+                await new Promise(function(resolve){ setTimeout(resolve, 1200); });
+                var fresh = await getPlayerViaPostgREST(initData);
+                if (fresh && fresh.ok && fresh.player && fresh.player.state && typeof fresh.player.state === 'object') {
+                  var ps = fresh.player.state;
+                  state = Object.assign({}, defaults, ps);
+                  ensureGender();
+                  try { __hydratedFromGetPlayer = true; } catch (_eHydr) {}
+                  try { __cloudSaveUnlocked = true; } catch (_eCloud) {}
+                  savePlayerToCache(fresh.player);
+                  save();
+                  renderAll();
+                  var lastPurchase = ps && ps._starsLastPurchase && typeof ps._starsLastPurchase === 'object' ? ps._starsLastPurchase : null;
+                  var confirmedGold = Math.max(0, parseInt(lastPurchase && lastPurchase.gold != null ? lastPurchase.gold : 0, 10) || 0);
+                  showStarsReward(confirmedGold || (parseInt(p && p.gold != null ? p.gold : 0, 10) || 0));
+                } else {
+                  showStarsReward(parseInt(p && p.gold != null ? p.gold : 0, 10) || 0);
+                }
+              } catch (_ePaid) {
+                showStarsReward(parseInt(p && p.gold != null ? p.gold : 0, 10) || 0);
+              }
+            })();
           } else if (status === 'failed') {
             console.log('[Stars] Оплата не удалась');
           } else if (status === 'pending') {
