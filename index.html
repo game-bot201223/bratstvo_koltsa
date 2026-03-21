@@ -6695,7 +6695,7 @@ button.btn.charCornerBtn:active{filter:none;}
 
         if (fn === 'get_player') {
           if (!tgId) throw new Error('missing_tg_id');
-          const selectCols = 'tg_id,name,photo_url,level,arena_power,arena_wins,arena_losses,stats_sum,boss_wins,referrer_tg_id,vip,vip_until,state';
+          const selectCols = 'tg_id,name,photo_url,level,arena_power,arena_wins,arena_losses,stats_sum,boss_wins,vip,vip_until,state';
           const urlGet = playersUrl + '?select=' + encodeURIComponent(selectCols) + '&tg_id=eq.' + encodeURIComponent(tgId);
           const resp0 = await fetch(urlGet, { method:'GET', headers: dbHeadersBase, keepalive:true });
           const arr0 = await resp0.json().catch(()=> null);
@@ -6724,7 +6724,6 @@ button.btn.charCornerBtn:active{filter:none;}
             arena_losses: 0,
             stats_sum: 0,
             boss_wins: 0,
-            referrer_tg_id: '',
             vip: vip0,
             vip_until: vipUntil0,
             state: state0
@@ -6758,7 +6757,6 @@ button.btn.charCornerBtn:active{filter:none;}
             arena_losses: parseInt(bodyObj && bodyObj.arena_losses != null ? bodyObj.arena_losses : 0, 10) || 0,
             stats_sum: parseInt(bodyObj && bodyObj.stats_sum != null ? bodyObj.stats_sum : 0, 10) || 0,
             boss_wins: parseInt(bodyObj && bodyObj.boss_wins != null ? bodyObj.boss_wins : 0, 10) || 0,
-            referrer_tg_id: String(bodyObj && bodyObj.referrer_tg_id != null ? bodyObj.referrer_tg_id : '').trim(),
             vip: vip0,
             vip_until: vipUntil0,
             state: (bodyObj && bodyObj.state && typeof bodyObj.state === 'object') ? bodyObj.state : {}
@@ -6790,7 +6788,6 @@ button.btn.charCornerBtn:active{filter:none;}
             arena_losses: 0,
             stats_sum: 0,
             boss_wins: 0,
-            referrer_tg_id: '',
             vip: vip0,
             vip_until: vipUntil0,
             state: state0
