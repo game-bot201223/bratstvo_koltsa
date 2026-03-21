@@ -3490,11 +3490,11 @@ button.btn.charCornerBtn:active{filter:none;}
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start;">
           <div>
             <div class="row"><div class="k">ЛОГ УРОНА</div></div>
-            <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="bfLog"></div>
+            <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; padding-right:6px;" id="bfLog"></div>
           </div>
           <div>
             <div class="row"><div class="k">ТОП УРОНА</div></div>
-            <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="bfTop"></div>
+            <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; padding-right:6px;" id="bfTop"></div>
           </div>
         </div>
       </div>
@@ -7038,6 +7038,78 @@ button.btn.charCornerBtn:active{filter:none;}
       await cloudOnce('pull:boss_fights', ()=>bossFightsCloudPull());
     } catch (e) {}
   }
+
+  async function bossFightGetCloud(bossId){
+    try {
+      const initData = tgInitData();
+      if (!(SUPABASE_URL && SUPABASE_ANON_KEY && initData)) {
+        return { ok:false, error:'missing_init_data', reason:'tgInitData empty (or Supabase not configured)' };
+      }
+      const idNum = Math.max(1, parseInt(bossId||0,10)||0);
+      if (!idNum) return { ok:false, error:'bad_boss_id' };
+      return await sbFnCall('boss_fight_get', { initData, boss_id: idNum });
+    } catch (e) {
+      try { return { ok:false, error:'boss_fight_get_cloud_exception', reason:String((e && (e.message||e.name)) || e || 'err') }; } catch (_e0) {}
+      return { ok:false, error:'boss_fight_get_cloud_exception', reason:'err' };
+    }
+  }
+
+  async function bfHydrateFromCloud(bossId){
+    try {
+      if (isDistrictBossId(bossId)) return;
+      if (!window.__bfHydrateTs) window.__bfHydrateTs = {};
+      if (!window.__bfHydrateInFlight) window.__bfHydrateInFlight = {};
+      const hk = String(bossId);
+      const lastTs = Math.max(0, parseInt(window.__bfHydrateTs[hk]||0,10)||0);
+      if (lastTs && (now() - lastTs) < 1200) return;
+      if (window.__bfHydrateInFlight[hk]) return;
+      window.__bfHydrateInFlight[hk] = true;
+      const r = await bossFightGetCloud(bossId);
+      if (!(r && r.ok)) return;
+      const fight = r.fight && typeof r.fight === 'object' ? r.fight : null;
+      if (!fight) return;
+      const f = bfEnsureFight(bossId);
+      if (!f) return;
+      try {
+        if (typeof fight.hp !== 'undefined') f.hp = Math.max(0, parseInt(fight.hp||0,10)||0);
+        if (typeof fight.max_hp !== 'undefined') f.bossMaxHP = Math.max(1, parseInt(fight.max_hp||0,10)||1);
+        if (fight.expires_at) f.expiresTs = (new Date(String(fight.expires_at))).getTime();
+        if (fight.fight_started_at) f.startTs = (new Date(String(fight.fight_started_at))).getTime();
+      } catch (e0) {}
+      try {
+        const logRows = Array.isArray(r.log) ? r.log : [];
+        const mapped = logRows.map(rr=>{
+          const ts = rr && rr.created_at ? (Date.parse(String(rr.created_at))||0) : 0;
+          const who = String((rr && (rr.from_name || rr.from_tg_id)) || '—');
+          const dmg = Math.max(0, parseInt(rr && rr.dmg_applied || rr && rr.dmg || 0,10)||0);
+          return { who: who, dmg: dmg, ts: ts || now() };
+        });
+        f.dmgLog = mapped;
+      } catch (e1) {}
+      try {
+        const topRows = Array.isArray(r.top) ? r.top : [];
+        const topObj = {};
+        topRows.forEach(tr=>{ try { topObj[String(tr.who||'—')] = Math.max(0, parseInt(tr.dmg||0,10)||0); } catch (e0) {} });
+        f.dmgTop = topObj;
+      } catch (e2) {}
+      bfSetFight(bossId, f);
+
+      try {
+        if (!state.bosses.cloud || typeof state.bosses.cloud !== 'object') state.bosses.cloud = {};
+        const k = String(bossId);
+        state.bosses.cloud[k] = Object.assign({}, (state.bosses.cloud[k]||{}), {
+          hp: Math.max(0, parseInt(f.hp||0,10)||0),
+          max_hp: Math.max(1, parseInt(f.bossMaxHP||0,10)||1),
+          expires_at: fight.expires_at || (state.bosses.cloud[k] && state.bosses.cloud[k].expires_at) || '',
+          reward_claimed: !!(fight.reward_claimed)
+        });
+      } catch (e3) {}
+
+      try { window.__bfHydrateTs[hk] = now(); } catch (e9) {}
+    } catch (e) {}
+    finally { try { if (window.__bfHydrateInFlight) delete window.__bfHydrateInFlight[String(bossId)]; } catch (e0) {} }
+  }
+
   async function bossFightStartCloud(bossId){
     try {
       if (!(SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData())) return null;
@@ -11556,6 +11628,44 @@ button.btn.charCornerBtn:active{filter:none;}
       return;
     }
 
+    // Always hydrate authoritative HP/log/top from server when opening boss fight screen.
+    // (Normal bosses only; district bosses are local.)
+    try {
+      const isDistrict0 = isDistrictBossId(bossId);
+      const m = $('mBossFight');
+      const open = !!(m && m.classList.contains('show'));
+      if (!isDistrict0 && open && SUPABASE_URL && SUPABASE_ANON_KEY && tgInitData()) {
+        const hk = String(bossId);
+        if (!window.__bfHydrateUiTs) window.__bfHydrateUiTs = {};
+        const lastUi = Math.max(0, parseInt(window.__bfHydrateUiTs[hk]||0,10)||0);
+        if (!lastUi || (now() - lastUi) > 900) {
+          window.__bfHydrateUiTs[hk] = now();
+          bfHydrateFromCloud(bossId).then(()=>{
+            try {
+              const m2 = $('mBossFight');
+              if (m2 && m2.classList.contains('show')) bfRender(bossId);
+            } catch (e0) {}
+          }).catch(()=>{});
+        }
+      }
+    } catch (eH) {}
+
+    function setHtmlPreserveScroll(el, html){
+      try {
+        if (!el) return;
+        const atBottom = (el.scrollTop + el.clientHeight) >= (el.scrollHeight - 6);
+        const prevTop = el.scrollTop;
+        el.innerHTML = html;
+        if (atBottom) {
+          try { el.scrollTop = el.scrollHeight; } catch (e0) {}
+        } else {
+          try { el.scrollTop = prevTop; } catch (e1) {}
+        }
+      } catch (e) {
+        try { if (el) el.innerHTML = html; } catch (e2) {}
+      }
+    }
+
     const isDistrict = isDistrictBossId(bossId);
     try {
       const rootBf = $('mBossFight');
@@ -11971,12 +12081,12 @@ button.btn.charCornerBtn:active{filter:none;}
       }
     } catch (eL0) {}
     const playerNameForLog = String(state.playerName||'PLAYER').trim();
-    log.innerHTML = logArr.length ? logArr.map(e=>{
+    setHtmlPreserveScroll(log, logArr.length ? logArr.map(e=>{
       const isPlayer = String(e.who||'').trim() === playerNameForLog;
       const rowC = isPlayer ? 'row bfBfPlayerLine' : 'row';
       const badgeC = isPlayer ? 'badge bfBfPlayerBadge' : 'badge';
       return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">'+String(e.who)+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+String(e.dmg)+'</div></div>';
-    }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+    }).join('') : '<div style="opacity:.75; font-size:12px">—</div>');
 
     const top = $('bfTop');
     // Compute top from current-attempt log to avoid mixing across attempts
@@ -11994,13 +12104,13 @@ button.btn.charCornerBtn:active{filter:none;}
       }
       topObj = acc;
     } catch (e2) { topObj = {}; }
-    const rows = Object.keys(topObj).map(k=>({ who:k, dmg: parseInt(topObj[k]||0,10)||0 })).sort((a,b)=>b.dmg-a.dmg).slice(0,12);
-    top.innerHTML = rows.length ? rows.map((r,i)=>{
+    const rows = Object.keys(topObj).map(k=>({ who:k, dmg: parseInt(topObj[k]||0,10)||0 })).sort((a,b)=>b.dmg-a.dmg);
+    setHtmlPreserveScroll(top, rows.length ? rows.map((r,i)=>{
       const isPlayerTop = String(r.who||'').trim() === playerNameForLog;
       const rowC = isPlayerTop ? 'row bfBfPlayerLine' : 'row';
       const badgeC = isPlayerTop ? 'badge bfBfPlayerBadge' : 'badge';
       return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+r.who+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+r.dmg+'</div></div>';
-    }).join('') : '<div style="opacity:.75; font-size:12px">—</div>';
+    }).join('') : '<div style="opacity:.75; font-size:12px">—</div>');
   }
 
   let __bfRealtimeT = 0;

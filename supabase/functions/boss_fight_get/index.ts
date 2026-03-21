@@ -136,7 +136,7 @@ function bossDef(bossId: number): { boss_id: number; max_hp: number; reward: { x
 
 async function postgrestGetFight(projectUrl: string, serviceKey: string, ownerTgId: string, bossId: number): Promise<any | null> {
   const url = projectUrl.replace(/\/$/, "") +
-    `/rest/v1/player_boss_fights?owner_tg_id=eq.${encodeURIComponent(ownerTgId)}&boss_id=eq.${encodeURIComponent(String(bossId))}&select=owner_tg_id,boss_id,hp,max_hp,expires_at,reward_claimed,updated_at&limit=1`
+    `/rest/v1/player_boss_fights?owner_tg_id=eq.${encodeURIComponent(ownerTgId)}&boss_id=eq.${encodeURIComponent(String(bossId))}&select=owner_tg_id,boss_id,hp,max_hp,expires_at,reward_claimed,fight_started_at,updated_at&limit=1`
   const resp = await fetch(url, {
     method: "GET",
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
@@ -145,6 +145,50 @@ async function postgrestGetFight(projectUrl: string, serviceKey: string, ownerTg
   const rows = await resp.json().catch(() => [])
   const row = Array.isArray(rows) && rows.length ? rows[0] : null
   return row && typeof row === "object" ? row : null
+}
+
+async function postgrestListBossDamageEvents(
+  projectUrl: string,
+  serviceKey: string,
+  ownerTgId: string,
+  bossId: number,
+  fightStartedAtIso: string,
+  limit = 200,
+): Promise<any[]> {
+  try {
+    if (!fightStartedAtIso) return []
+    const base = projectUrl.replace(/\/$/, "")
+    const url = base +
+      `/rest/v1/boss_damage_events?to_tg_id=eq.${encodeURIComponent(ownerTgId)}` +
+      `&boss_id=eq.${encodeURIComponent(String(bossId))}` +
+      `&fight_started_at=eq.${encodeURIComponent(String(fightStartedAtIso))}` +
+      `&select=created_at,from_name,from_tg_id,dmg_applied,source` +
+      `&order=created_at.desc&limit=${encodeURIComponent(String(Math.max(1, Math.min(500, limit))))}`
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    })
+    if (!resp.ok) return []
+    const rows = await resp.json().catch(() => [])
+    return Array.isArray(rows) ? rows : []
+  } catch (_e) {
+    return []
+  }
+}
+
+function buildTopFromEvents(rows: any[], topN = 50): Array<{ who: string; dmg: number }> {
+  const acc: Record<string, number> = {}
+  for (const r of rows) {
+    try {
+      const who = String(r?.from_name || r?.from_tg_id || "—").trim() || "—"
+      const dmg = Math.max(0, safeInt(r?.dmg_applied, 0))
+      acc[who] = (acc[who] || 0) + dmg
+    } catch (_e) {}
+  }
+  return Object.keys(acc)
+    .map((k) => ({ who: k, dmg: acc[k] || 0 }))
+    .sort((a, b) => b.dmg - a.dmg)
+    .slice(0, Math.max(1, Math.min(200, safeInt(topN, 50))))
 }
 
 Deno.serve(async (req: Request) => {
@@ -201,12 +245,23 @@ Deno.serve(async (req: Request) => {
 
   const fight = await postgrestGetFight(projectUrl, serviceKey, ownerTgId, bossId)
   if (!fight) {
-    return new Response(JSON.stringify({ ok: true, fight: null, boss: def }), {
+    return new Response(JSON.stringify({ ok: true, fight: null, boss: def, log: [], top: [] }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
   }
 
-  return new Response(JSON.stringify({ ok: true, fight, boss: def }), {
+  let log: any[] = []
+  let top: Array<{ who: string; dmg: number }> = []
+  try {
+    const fightStartedAtIso = String((fight as any)?.fight_started_at || "").trim()
+    log = await postgrestListBossDamageEvents(projectUrl, serviceKey, ownerTgId, bossId, fightStartedAtIso, 250)
+    top = buildTopFromEvents(log, 100)
+  } catch (_e) {
+    log = []
+    top = []
+  }
+
+  return new Response(JSON.stringify({ ok: true, fight, boss: def, log, top }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   })
 })
