@@ -1297,6 +1297,7 @@ button.btn.charCornerBtn:active{filter:none;}
 .bossRowBelow .bossReward{margin-top:0;}
 .bossMiniWrap{position:relative;width:160px;height:160px;flex-shrink:0;}
 .bossMini{width:160px;height:160px;border-radius:20px;border:2px solid rgba(45,30,18,.18);background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.14));background-size:110% auto;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:60px;}
+.bossMini.bossMiniContain{background-size:contain;background-position:center center;background-color:rgba(255,255,255,.18);}
 .bossWinnerAva{position:absolute;right:-10px;bottom:10px;width:44px;height:44px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:rgba(45,30,18,.28);object-fit:cover;}
 .bossName{font-weight:900;letter-spacing:2px;line-height:1.15;}
 .bossSub{font-size:11px;opacity:.75;margin-top:4px;}
@@ -13834,7 +13835,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         + '<div style="height:10px"></div>'
         + '<div class="bossRow">'
         + '<div class="bossMiniWrap">'
-        + '<div class="bossMini" style="'+(b.img?('background-image:url(\''+encodeURI(String(b.img))+'\');'):'')+'">'+(b.img?'':b.emoji)+'</div>'
+        + '<div class="bossMini'+(parseInt(b.id||0,10)===1 ? ' bossMiniContain' : '')+'" style="'+(b.img?('background-image:url(\''+encodeURI(String(b.img))+'\');'):'')+'">'+(b.img?'':b.emoji)+'</div>'
         + (lwPhoto ? ('<img class="bossWinnerAva" src="'+String(lwPhoto).replace(/"/g,'&quot;')+'" alt="" />') : '')
         + '</div>'
         + '<div class="bossRightCol">'
