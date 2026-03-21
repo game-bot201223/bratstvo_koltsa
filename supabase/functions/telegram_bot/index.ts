@@ -102,6 +102,25 @@ async function creditStarsPurchase(projectUrl: string, serviceKey: string, tgId:
     const payments0 = (stateObj as any)._starsPayments
     const payments = (payments0 && typeof payments0 === "object") ? payments0 as Record<string, unknown> : {}
     if (chargeId && payments[chargeId]) return { ok: true, gold: product.gold }
+
+    // Donation stats for admin: total gold credited from Stars purchases.
+    try {
+      const curTot = Number((stateObj as any)._donationsGoldTotal)
+      const curCnt = Number((stateObj as any)._donationsCount)
+      ;(stateObj as any)._donationsGoldTotal = (Number.isFinite(curTot) ? curTot : 0) + product.gold
+      ;(stateObj as any)._donationsCount = (Number.isFinite(curCnt) ? curCnt : 0) + 1
+      const lst0 = (stateObj as any)._donationsLast
+      const lst: any[] = Array.isArray(lst0) ? lst0.slice() : []
+      lst.unshift({
+        productId,
+        gold: product.gold,
+        stars: product.stars,
+        ts: new Date().toISOString(),
+        charge_id: chargeId,
+      })
+      ;(stateObj as any)._donationsLast = lst.slice(0, 20)
+    } catch (_eDon) {}
+
     const curGold = Number((stateObj as any).gold)
     const nextGold = (Number.isFinite(curGold) ? curGold : 0) + product.gold
     ;(stateObj as any).gold = Math.floor(nextGold)
