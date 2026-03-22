@@ -3590,11 +3590,11 @@ button.btn.charCornerBtn:active{filter:none;}
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start;">
           <div>
             <div class="row"><div class="k">ЛОГ УРОНА</div></div>
-            <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; padding-right:6px;" id="bfLog"></div>
+            <div style="margin-top:10px; display:flex; flex-direction:row; flex-wrap:wrap; gap:8px; max-height:280px; overflow-y:auto; padding-right:6px; justify-content:center;" id="bfLog"></div>
           </div>
           <div>
             <div class="row"><div class="k">ТОП УРОНА</div></div>
-            <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; padding-right:6px;" id="bfTop"></div>
+            <div style="margin-top:10px; display:flex; flex-direction:row; flex-wrap:wrap; gap:8px; max-height:280px; overflow-y:auto; padding-right:6px; justify-content:center;" id="bfTop"></div>
           </div>
         </div>
       </div>
@@ -12742,7 +12742,7 @@ button.btn.charCornerBtn:active{filter:none;}
       const isPlayer = String(e.who||'').trim() === playerNameForLog;
       const rowC = isPlayer ? 'row bfBfPlayerLine' : 'row';
       const badgeC = isPlayer ? 'badge bfBfPlayerBadge' : 'badge';
-      return '<div class="'+rowC+'" style="gap:8px; align-items:center;">'+bfMiniAvatarHtml(e.who)+'<div style="min-width:0; font-size:12px; opacity:.9">'+String(e.who)+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+String(e.dmg)+'</div></div>';
+      return '<div class="'+rowC+'" style="flex-direction:column;align-items:center;gap:2px;padding:4px 0;">'+bfMiniAvatarHtml(e.who)+'<div style="font-size:11px;opacity:.9;text-align:center;word-break:break-word;">'+String(e.who)+'</div><div class="'+badgeC+'" style="padding:4px 8px;font-size:11px;">'+String(e.dmg)+'</div></div>';
     }).join('') : '');
 
     const top = $('bfTop');
@@ -12766,7 +12766,7 @@ button.btn.charCornerBtn:active{filter:none;}
       const isPlayerTop = String(r.who||'').trim() === playerNameForLog;
       const rowC = isPlayerTop ? 'row bfBfPlayerLine' : 'row';
       const badgeC = isPlayerTop ? 'badge bfBfPlayerBadge' : 'badge';
-      return '<div class="'+rowC+'" style="gap:8px; align-items:center;">'+bfMiniAvatarHtml(r.who)+'<div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+r.who+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+r.dmg+'</div></div>';
+      return '<div class="'+rowC+'" style="flex-direction:column;align-items:center;gap:2px;padding:4px 0;">'+bfMiniAvatarHtml(r.who)+'<div style="font-size:11px;opacity:.9;text-align:center;word-break:break-word;">#'+(i+1)+' '+r.who+'</div><div class="'+badgeC+'" style="padding:4px 8px;font-size:11px;">'+r.dmg+'</div></div>';
     }).join('') : '');
   }
 
@@ -12818,13 +12818,22 @@ const BF_HELP_PULL_EVERY_MS = 3000;
             });
           }
         } catch (eL1) {}
-        const playerNameForLog = String(state.playerName||'PLAYER').trim();
-        log.innerHTML = logArr.length ? logArr.map(e=>{
-          const isPlayer = String(e.who||'').trim() === playerNameForLog;
-          const rowC = isPlayer ? 'row bfBfPlayerLine' : 'row';
-          const badgeC = isPlayer ? 'badge bfBfPlayerBadge' : 'badge';
-          return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">'+String(e.who)+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+String(e.dmg)+'</div></div>';
-        }).join('') : '';
+        // Signature cache: skip innerHTML rebuild if log data unchanged
+        var _logSig = '';
+        try { _logSig = logArr.map(function(e){ return String(e.who||'')+':'+String(e.dmg||0); }).join('|'); } catch(_eLS){}
+        if (log.__logSig !== _logSig) {
+          log.__logSig = _logSig;
+          const playerNameForLog = String(state.playerName||'PLAYER').trim();
+          log.innerHTML = logArr.length ? logArr.map(e=>{
+            const isPlayer = String(e.who||'').trim() === playerNameForLog;
+            const rowC = isPlayer ? 'row bfBfPlayerLine' : 'row';
+            const badgeC = isPlayer ? 'badge bfBfPlayerBadge' : 'badge';
+            const nm = String(e.who||'');
+            const ph = brosPhotoFor(nm);
+            const ava = ph ? '<div style="width:22px;height:22px;border-radius:999px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.18);background-image:url(\''+String(ph).replace(/'/g,'%27')+'\');background-size:cover;background-position:center;"></div>' : '<div style="width:22px;height:22px;border-radius:999px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;opacity:.85;">'+(nm?nm.charAt(0).toUpperCase():'•')+'</div>';
+            return '<div class="'+rowC+'" style="flex-direction:column;align-items:center;gap:2px;padding:4px 0;">'+ava+'<div style="font-size:11px;opacity:.9;text-align:center;word-break:break-word;">'+nm+'</div><div class="'+badgeC+'" style="padding:4px 8px;font-size:11px;">'+String(e.dmg)+'</div></div>';
+          }).join('') : '';
+        }
       }
 
       const top = $('bfTop');
@@ -12852,14 +12861,23 @@ const BF_HELP_PULL_EVERY_MS = 3000;
           }
           topObj = acc;
         } catch (eT1) { topObj = {}; }
-        const playerNameForLog = String(state.playerName||'PLAYER').trim();
         const rows = Object.keys(topObj).map(k=>({ who:k, dmg: parseInt(topObj[k]||0,10)||0 })).sort((a,b)=>b.dmg-a.dmg);
-        top.innerHTML = rows.length ? rows.map((r,i)=>{
-          const isPlayerTop = String(r.who||'').trim() === playerNameForLog;
-          const rowC = isPlayerTop ? 'row bfBfPlayerLine' : 'row';
-          const badgeC = isPlayerTop ? 'badge bfBfPlayerBadge' : 'badge';
-          return '<div class="'+rowC+'"><div style="min-width:0; font-size:12px; opacity:.9">#'+(i+1)+' '+r.who+'</div><div class="'+badgeC+'" style="padding:6px 8px; font-size:11px">'+r.dmg+'</div></div>';
-        }).join('') : '';
+        // Signature cache: skip innerHTML rebuild if top data unchanged
+        var _topSig = '';
+        try { _topSig = rows.map(function(r){ return String(r.who||'')+':'+String(r.dmg||0); }).join('|'); } catch(_eTS){}
+        if (top.__topSig !== _topSig) {
+          top.__topSig = _topSig;
+          const playerNameForLog = String(state.playerName||'PLAYER').trim();
+          top.innerHTML = rows.length ? rows.map((r,i)=>{
+            const isPlayerTop = String(r.who||'').trim() === playerNameForLog;
+            const rowC = isPlayerTop ? 'row bfBfPlayerLine' : 'row';
+            const badgeC = isPlayerTop ? 'badge bfBfPlayerBadge' : 'badge';
+            const nm = String(r.who||'');
+            const ph = brosPhotoFor(nm);
+            const ava = ph ? '<div style="width:22px;height:22px;border-radius:999px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.18);background-image:url(\''+String(ph).replace(/'/g,'%27')+'\');background-size:cover;background-position:center;"></div>' : '<div style="width:22px;height:22px;border-radius:999px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;opacity:.85;">'+(nm?nm.charAt(0).toUpperCase():'•')+'</div>';
+            return '<div class="'+rowC+'" style="flex-direction:column;align-items:center;gap:2px;padding:4px 0;">'+ava+'<div style="font-size:11px;opacity:.9;text-align:center;word-break:break-word;">#'+(i+1)+' '+nm+'</div><div class="'+badgeC+'" style="padding:4px 8px;font-size:11px;">'+r.dmg+'</div></div>';
+          }).join('') : '';
+        }
       }
 
       // Periodic fallback pull as safety net (VPS WS handles main realtime)
@@ -14623,6 +14641,62 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       return false;
     } catch (e) { return false; }
   }
+  // Per-district rewards: holder (держатель) — [gold, kick, knuckle, enema]
+  var DISTRICT_HOLDER_REWARDS = [
+    {gold:30,  kick:10, knuckle:10, enema:10},
+    {gold:35,  kick:10, knuckle:10, enema:10},
+    {gold:40,  kick:10, knuckle:10, enema:10},
+    {gold:45,  kick:10, knuckle:10, enema:10},
+    {gold:50,  kick:10, knuckle:10, enema:10},
+    {gold:55,  kick:10, knuckle:10, enema:10},
+    {gold:60,  kick:10, knuckle:10, enema:10},
+    {gold:65,  kick:10, knuckle:10, enema:10},
+    {gold:70,  kick:10, knuckle:10, enema:10},
+    {gold:80,  kick:10, knuckle:10, enema:10},
+    {gold:90,  kick:10, knuckle:10, enema:10},
+    {gold:100, kick:10, knuckle:10, enema:10}
+  ];
+  // Per-district rewards: fear leader (страшила) — 20 gold + 5 of each for every district
+  var DISTRICT_FEAR_REWARDS = [
+    {gold:20, kick:5, knuckle:5, enema:5},
+    {gold:20, kick:5, knuckle:5, enema:5},
+    {gold:20, kick:5, knuckle:5, enema:5},
+    {gold:20, kick:5, knuckle:5, enema:5},
+    {gold:20, kick:5, knuckle:5, enema:5},
+    {gold:20, kick:5, knuckle:5, enema:5},
+    {gold:20, kick:5, knuckle:5, enema:5},
+    {gold:20, kick:5, knuckle:5, enema:5},
+    {gold:20, kick:5, knuckle:5, enema:5},
+    {gold:20, kick:5, knuckle:5, enema:5},
+    {gold:20, kick:5, knuckle:5, enema:5},
+    {gold:20, kick:5, knuckle:5, enema:5}
+  ];
+  function myHeldDistrictIdx(){
+    try {
+      const leaders = state.districtFearLeaders || {};
+      const me = String(state.playerName||'').trim().toUpperCase();
+      for (const k in leaders) {
+        const top = leaders[k];
+        if (top && String(top.name||'').trim().toUpperCase() === me) return parseInt(k.replace(/\D/g,'')||'0',10)||0;
+      }
+      return -1;
+    } catch (e) { return -1; }
+  }
+  function myStrasilaDistrictIdxForReward(){
+    try {
+      const prevDay = previousUtcDayKey();
+      if (!prevDay) return -1;
+      const cloud = state.districtDailyFearCloudPrev;
+      if (!cloud || cloud.day !== prevDay) return -1;
+      const byDistrict = cloud.byDistrict || {};
+      const me = String(state.playerName||'').trim().toUpperCase();
+      for (const k in byDistrict) {
+        const leader = byDistrict[k];
+        if (leader && String(leader.name||'').trim().toUpperCase() === me) return parseInt(k.replace(/\D/g,'')||'0',10)||0;
+      }
+      return -1;
+    } catch (e) { return -1; }
+  }
   function halturkiNormalize(){
     if (!state.halturki || typeof state.halturki !== 'object') state.halturki = { day:'', arenaTeeth:false, killBoss:false, nightmareDistrict:false, dicePlay:false, havchikSend:false, arenaWin:false, allClaimed:false };
     const today = halturkiDay();
@@ -15532,17 +15606,24 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     var holderClaimed = (state.dailyRewardsHolderDay === rewardDay);
     var isStrasila = amIStrasilaDnyaForReward();
     var isHolder = amIDistrictHolder();
+    var fearIdx = myStrasilaDistrictIdxForReward();
+    var holderIdx = myHeldDistrictIdx();
+    var dNames = districtData();
+    var fearRew = (fearIdx >= 0 && DISTRICT_FEAR_REWARDS[fearIdx]) ? DISTRICT_FEAR_REWARDS[fearIdx] : {gold:20,kick:5,knuckle:5,enema:5};
+    var holderRew = (holderIdx >= 0 && DISTRICT_HOLDER_REWARDS[holderIdx]) ? DISTRICT_HOLDER_REWARDS[holderIdx] : {gold:30,kick:10,knuckle:10,enema:10};
+    var fearDistName = (fearIdx >= 0 && dNames[fearIdx]) ? dNames[fearIdx].name : '';
+    var holderDistName = (holderIdx >= 0 && dNames[holderIdx]) ? dNames[holderIdx].name : '';
     let inner = '<div class="card" style="margin-top:0;">'
       + '<div class="k" style="margin-bottom:8px;">Награды в 18:00 UTC</div>'
       + '<div style="font-size:11px; opacity:.85; margin-bottom:4px;">Награда за предыдущие сутки. Забрать можно с 18:00 UTC до следующих 18:00 UTC (до назначения новых страшил и держателя).</div>'
       + '<div style="font-size:11px; opacity:.75; margin-bottom:10px;">Один игрок может получить только одну награду страшилы, одну награду держателя и одну награду за бизнесы за эти сутки.</div>'
       + '<div style="display:flex; flex-direction:column; gap:10px;">'
       + '<div class="row" style="align-items:center; flex-wrap:wrap; gap:8px;">'
-      + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Страшила дня</span><div style="font-size:11px; opacity:.9; margin-top:2px;">15 <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;vertical-align:middle"> золотых монет + 5 ударов ногой, 5 костетом, 5 клизм</div></div>'
+      + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Страшила района'+(fearDistName ? ' ('+fearDistName+')' : '')+'</span><div style="font-size:11px; opacity:.9; margin-top:2px;">'+fearRew.gold+' <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;vertical-align:middle"> золотых монет + '+fearRew.kick+' ударов ногой, '+fearRew.knuckle+' костетом, '+fearRew.enema+' клизм</div></div>'
       + ((state.districtDailyFearCloudPrev && state.districtDailyFearCloudPrev.day === rewardDay) ? (isStrasila ? (fearClaimed ? '<div class="badge" style="background:rgba(34,197,94,.25); color:#166534;">Получено</div>' : '<button type="button" class="btn btnSmall" id="claimFearDailyBtnModal">ЗАБРАТЬ</button>') : '<div style="font-size:11px; opacity:.7;">Ты не '+genderPast()+' страшилой в те сутки</div>') : '<div style="font-size:11px; opacity:.7;">Загрузка…</div>')
       + '</div>'
       + '<div class="row" style="align-items:center; flex-wrap:wrap; gap:8px;">'
-      + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Держатель района</span><div style="font-size:11px; opacity:.9; margin-top:2px;">30 <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;vertical-align:middle"> золотых монет + 10 ударов ногой, 10 костетом, 10 клизм</div></div>'
+      + '<div style="flex:1; min-width:0;"><span style="font-size:12px; font-weight:700;">Держатель района'+(holderDistName ? ' ('+holderDistName+')' : '')+'</span><div style="font-size:11px; opacity:.9; margin-top:2px;">'+holderRew.gold+' <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:12px;vertical-align:middle"> золотых монет + '+holderRew.kick+' ударов ногой, '+holderRew.knuckle+' костетом, '+holderRew.enema+' клизм</div></div>'
       + (isHolder ? (holderClaimed ? '<div class="badge" style="background:rgba(34,197,94,.25); color:#166534;">Получено</div>' : '<button type="button" class="btn btnSmall" id="claimHolderDailyBtnModal">ЗАБРАТЬ</button>') : '<div style="font-size:11px; opacity:.7;">Ты не держишь район</div>')
       + '</div>';
     if (hasAnyBusiness()) {
@@ -15555,6 +15636,21 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         + (bizClaimed ? '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;text-align:right;"><div class="badge" style="background:rgba(34,197,94,.25); color:#166534;">Получено</div><div style="font-size:10px;opacity:.75;max-width:220px;line-height:1.25;" id="bizRewardColumnTimer">—</div></div>' : '<button type="button" class="btn btnSmall" id="claimBizDailyBtnModal">ЗАБРАТЬ</button>')
         + '</div>';
     }
+    // Per-district reward table
+    inner += '</div></div>';
+    inner += '<div class="card" style="margin-top:10px;">'
+      + '<div class="k" style="margin-bottom:8px;">Награды по районам</div>'
+      + '<div style="font-size:11px; opacity:.75; margin-bottom:6px;">Держатель — награда зависит от района. Страшила — 20 монет + 5 ударов каждого типа для любого района.</div>'
+      + '<div style="display:flex; flex-direction:column; gap:4px;">';
+    for (var _ri=0; _ri<dNames.length; _ri++){
+      var _hr = DISTRICT_HOLDER_REWARDS[_ri] || {gold:30,kick:10,knuckle:10,enema:10};
+      var _fr = DISTRICT_FEAR_REWARDS[_ri] || {gold:20,kick:5,knuckle:5,enema:5};
+      inner += '<div style="font-size:11px; padding:4px 0; border-bottom:1px solid rgba(255,255,255,.08);">'
+        + '<div style="font-weight:700; margin-bottom:2px;">'+((_ri+1))+'. '+dNames[_ri].name+'</div>'
+        + '<div style="opacity:.85;">Держатель: '+_hr.gold+' <img src="голд.png" alt="" class="goldIcon" style="height:11px;vertical-align:middle"> + '+_hr.kick+' ногой, '+_hr.knuckle+' костетом, '+_hr.enema+' клизм</div>'
+        + '<div style="opacity:.75;">Страшила: '+_fr.gold+' <img src="голд.png" alt="" class="goldIcon" style="height:11px;vertical-align:middle"> + '+_fr.kick+' ногой, '+_fr.knuckle+' костетом, '+_fr.enema+' клизм</div>'
+        + '</div>';
+    }
     inner += '</div></div>';
     body.innerHTML = inner;
     try {
@@ -15564,18 +15660,20 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         if (!dk) { toast('Награда ещё недоступна','lose'); return; }
         if (state.dailyRewardsFearDay === dk) { toast('Уже получено за те сутки','lose'); return; }
         if (!amIStrasilaDnyaForReward()) { toast('Ты не '+genderPast()+' страшилой дня в те сутки','lose'); return; }
+        var fIdx = myStrasilaDistrictIdxForReward();
+        var fRew = (fIdx >= 0 && DISTRICT_FEAR_REWARDS[fIdx]) ? DISTRICT_FEAR_REWARDS[fIdx] : {gold:20,kick:5,knuckle:5,enema:5};
         state.dailyRewardsFearDay = dk;
-        state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + 15);
-        try { logCurrency('gold', 15, 'Страшила дня'); } catch (e0) {}
+        state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + fRew.gold);
+        try { logCurrency('gold', fRew.gold, 'Страшила района'); } catch (e0) {}
         if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
-        state.bosses.hitStocks.kick = Math.min(999999, (parseInt(state.bosses.hitStocks.kick||0,10)||0) + 5);
-        state.bosses.hitStocks.knuckle = Math.min(999999, (parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + 5);
-        state.bosses.hitStocks.enema = Math.min(999999, (parseInt(state.bosses.hitStocks.enema||0,10)||0) + 5);
+        state.bosses.hitStocks.kick = Math.min(999999, (parseInt(state.bosses.hitStocks.kick||0,10)||0) + fRew.kick);
+        state.bosses.hitStocks.knuckle = Math.min(999999, (parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + fRew.knuckle);
+        state.bosses.hitStocks.enema = Math.min(999999, (parseInt(state.bosses.hitStocks.enema||0,10)||0) + fRew.enema);
         save();
         renderDistricts();
         renderDistrictRewardsModal();
         renderHUD();
-        toast('Награда страшилы дня: +15 '+TOAST_GOLD_IMG+' золотых монет, +5 ударов каждого типа','win');
+        toast('Награда страшилы: +'+fRew.gold+' '+TOAST_GOLD_IMG+' монет, +'+fRew.kick+' ударов каждого типа','win');
         haptic('light');
       };
     } catch (e0) {}
@@ -15586,17 +15684,20 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         if (!dk) { toast('Награда ещё недоступна','lose'); return; }
         if (state.dailyRewardsHolderDay === dk) { toast('Уже получено за те сутки','lose'); return; }
         if (!amIDistrictHolder()) { toast('Ты не держишь район','lose'); return; }
+        var hIdx = myHeldDistrictIdx();
+        var hRew = (hIdx >= 0 && DISTRICT_HOLDER_REWARDS[hIdx]) ? DISTRICT_HOLDER_REWARDS[hIdx] : {gold:30,kick:10,knuckle:10,enema:10};
         state.dailyRewardsHolderDay = dk;
-        state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + 30);
-        try { logCurrency('gold', 30, 'Держатель района'); } catch (e0) {}
+        state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + hRew.gold);
+        try { logCurrency('gold', hRew.gold, 'Держатель района'); } catch (e0) {}
         if (!state.bosses.hitStocks) state.bosses.hitStocks = { kick:0, knuckle:0, enema:0 };
-        state.bosses.hitStocks.kick = Math.min(999999, (parseInt(state.bosses.hitStocks.kick||0,10)||0) + 10);
-        state.bosses.hitStocks.knuckle = Math.min(999999, (parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + 10);
-        state.bosses.hitStocks.enema = Math.min(999999, (parseInt(state.bosses.hitStocks.enema||0,10)||0) + 10);
+        state.bosses.hitStocks.kick = Math.min(999999, (parseInt(state.bosses.hitStocks.kick||0,10)||0) + hRew.kick);
+        state.bosses.hitStocks.knuckle = Math.min(999999, (parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + hRew.knuckle);
+        state.bosses.hitStocks.enema = Math.min(999999, (parseInt(state.bosses.hitStocks.enema||0,10)||0) + hRew.enema);
         save();
         renderDistricts();
+        renderDistrictRewardsModal();
         renderHUD();
-        toast('Награда держателя района: +30 '+TOAST_GOLD_IMG+' золотых монет, +10 ударов каждого типа','win');
+        toast('Награда держателя: +'+hRew.gold+' '+TOAST_GOLD_IMG+' монет, +'+hRew.kick+' ударов каждого типа','win');
         haptic('light');
       };
     } catch (e1) {}
