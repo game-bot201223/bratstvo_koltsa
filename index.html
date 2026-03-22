@@ -4920,10 +4920,23 @@ button.btn.charCornerBtn:active{filter:none;}
   function renderConsumables(){
     const ctx = String(state._consCtx||'');
     try { $('consCtx').textContent = (ctx==='arena' ? 'ПОКУПКА' : 'ИСПОЛЬЗОВАНИЕ'); } catch (e) {}
-    try { $('consGold').innerHTML = String(state.gold||0) + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">'; } catch (e) {}
+    try { var _cg = String(state.gold||0) + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">'; var _cgEl = $('consGold'); if (_cgEl && _cgEl.innerHTML !== _cg) _cgEl.innerHTML = _cg; } catch (e) {}
 
     const list = $('consList');
     if (list){
+      // Signature cache: skip full rebuild if consumables data unchanged
+      try {
+        var _cParts = [ctx, String(state.gold||0)];
+        var _cItems = state.consumablesItems || {};
+        CONSUMABLES_DATA.forEach(function(c){ _cParts.push(String(c.id)+':'+(parseInt(_cItems[c.id]||0,10)||0)); });
+        _cParts.push('med:'+(parseInt(state.consumables && state.consumables.med||0,10)||0));
+        _cParts.push('nade:'+(parseInt(state.consumables && state.consumables.nade||0,10)||0));
+        var _cb = state.groupFight && state.groupFight.battle;
+        _cParts.push('bf:'+(_cb?'1':'0'), 'hp:'+(_cb?(parseInt(_cb.myHp||0,10)||0):'0'), 'act:'+(_cb&&_cb.acted?'1':'0'));
+        var _cSig = _cParts.join('|');
+        if (list.__consSig === _cSig) { /* skip shop too if unchanged */ return; }
+        list.__consSig = _cSig;
+      } catch (_eConsSig) {}
       list.innerHTML = '';
 
       if (ctx === 'battle') {
@@ -5049,6 +5062,16 @@ button.btn.charCornerBtn:active{filter:none;}
     const list = $('inventoryList');
     if (!list) return;
     const items = state.consumablesItems || {};
+    // Signature cache: skip full rebuild if inventory data unchanged
+    try {
+      var _invParts = [];
+      CONSUMABLES_DATA.forEach(function(c){ _invParts.push(String(c.id)+':'+(parseInt(items[c.id]||0,10)||0)); });
+      var _b = state.groupFight && state.groupFight.battle;
+      _invParts.push('bf:'+(_b?'1':'0'), 'hp:'+(_b?(parseInt(_b.myHp||0,10)||0):'0'), 'act:'+(_b&&_b.acted?'1':'0'));
+      var _invSig = _invParts.join('|');
+      if (list.__invSig === _invSig) return;
+      list.__invSig = _invSig;
+    } catch (_eInvSig) {}
     list.innerHTML = '';
     const inBattle = !!(state.groupFight && state.groupFight.battle);
     const b = state.groupFight && state.groupFight.battle;
@@ -5161,9 +5184,17 @@ button.btn.charCornerBtn:active{filter:none;}
     toast('Нельзя использовать здесь','lose');
   }
   function renderLavka(){
-    try { $('lavkaGold').innerHTML = (state.gold||0) + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">'; } catch(e){}
+    try { var _lg = (state.gold||0) + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">'; var _lgEl = $('lavkaGold'); if (_lgEl && _lgEl.innerHTML !== _lg) _lgEl.innerHTML = _lg; } catch(e){}
     const grid = $('lavkaGrid');
     if (!grid) return;
+    // Signature cache: skip full rebuild if lavka data unchanged
+    try {
+      var _lavParts = [String(state.gold||0)];
+      CONSUMABLES_DATA.forEach(function(c){ _lavParts.push(String(c.id)+':'+String(c.price||0)); });
+      var _lavSig = _lavParts.join('|');
+      if (grid.__lavSig === _lavSig) return;
+      grid.__lavSig = _lavSig;
+    } catch (_eLavSig) {}
     grid.innerHTML = '';
     CONSUMABLES_DATA.forEach(c=>{
       const btn = document.createElement('button');
@@ -9245,7 +9276,7 @@ button.btn.charCornerBtn:active{filter:none;}
 
     var mainPhoto = $('mainCharacterPhoto');
     var mainWrap = $('mainCharacterWrap');
-    if (mainPhoto) mainPhoto.src = (state.mainCharacterImg && state.mainCharacterImg.trim()) ? state.mainCharacterImg : 'персонаж.png';
+    if (mainPhoto) { var _src = (state.mainCharacterImg && state.mainCharacterImg.trim()) ? state.mainCharacterImg : 'персонаж.png'; if (mainPhoto.getAttribute('src') !== _src) mainPhoto.src = _src; }
     if (mainWrap) mainWrap.classList.toggle('hasCustomImg', !!(state.mainCharacterImg && state.mainCharacterImg.trim()));
 
     (function(){ const e=Math.floor(state.energy||0); const em=Math.floor(state.energyMax||0); $('energy').textContent = e>=1000 ? Math.floor(e/1000)+'к' : String(e); $('energyMax').textContent = em>=1000 ? Math.floor(em/1000)+'к' : String(em); })();
@@ -9309,8 +9340,16 @@ button.btn.charCornerBtn:active{filter:none;}
   function renderFriends(){
     const row = $('friendsRow');
     if (!row) return;
-    row.innerHTML = '';
     const list = getBratkiList();
+    // Signature cache: skip full rebuild if friends data unchanged
+    try {
+      var _fParts = list.map(function(f){ var fc = brosMergeCloudIntoFriend(f); return String(fc.name||'')+':'+(fc.lvl||1)+':'+(fc.power||0)+':'+(fc.photo_url||brosPhotoFor(fc.name)||''); });
+      _fParts.push('g:'+String(state.gender||'m'));
+      var _fSig = _fParts.join('|');
+      if (row.__fSig === _fSig) return;
+      row.__fSig = _fSig;
+    } catch (_eFSig) {}
+    row.innerHTML = '';
     if (!list.length){
       const d = document.createElement('div');
       d.className = 'friendCard';
@@ -9730,6 +9769,14 @@ button.btn.charCornerBtn:active{filter:none;}
   function renderArenaPetShop(){
     const wrap = $('arenaPetShop');
     if (!wrap) return;
+    // Signature cache: skip full rebuild if pet data unchanged
+    try {
+      var _pParts = [String(state.gold||0), String(state.activePetId||0)];
+      PETS.forEach(function(p){ _pParts.push(String(p.id)+':'+(state.petsOwned[String(p.id)]?'1':'0')); });
+      var _pSig = _pParts.join('|');
+      if (wrap.__petSig === _pSig) return;
+      wrap.__petSig = _pSig;
+    } catch (_ePetSig) {}
     wrap.innerHTML = '';
     PETS.forEach(p=>{
       const owned = !!state.petsOwned[String(p.id)];
@@ -11179,11 +11226,20 @@ button.btn.charCornerBtn:active{filter:none;}
   }
   function renderGym(){
     const gs = $('gymSilver');
-    if (gs) gs.innerHTML = fmt4(state.silver||0) + ' <img src="сильвер.png" alt="Серебро" class="silverIcon">';
+    if (gs) { var _gt = fmt4(state.silver||0) + ' <img src="сильвер.png" alt="Серебро" class="silverIcon">'; if (gs.innerHTML !== _gt) gs.innerHTML = _gt; }
     const mult = [1,10,100,1000].indexOf(state.gymMult) >= 0 ? state.gymMult : 1;
     state.gymMult = mult;
     $('gymPetBonus').textContent = Math.round(gymBonusPct()*100) + '%';
     const box = $('gymList');
+    // Signature cache: skip full rebuild if gym data unchanged
+    try {
+      var _gymParts = [String(mult), String(Math.round(gymBonusPct()*100))];
+      GYM_STATS.forEach(function(s){ _gymParts.push(s.key + ':' + String(Math.max(1, parseInt(state.gym[s.key]||1,10)||1))); });
+      _gymParts.push('s:' + String(state.silver||0));
+      var _gymSig = _gymParts.join('|');
+      if (box && box.__gymSig === _gymSig) return;
+      if (box) box.__gymSig = _gymSig;
+    } catch (_eGymSig) {}
     let total = 0;
     let totalGym = 0;
     let html = '<div class="statGrid">';
@@ -11507,6 +11563,13 @@ button.btn.charCornerBtn:active{filter:none;}
   };
   function renderShop(){
     const box = $('shopList');
+    // Signature cache: skip full rebuild if shop data unchanged
+    try {
+      var _shopParts = [String(state.gold||0), String(state.tooth||0), String(state.shopX2?1:0), String(isVipActive()?1:0), String(promoActive()?1:0), String(promoUsed()?1:0)];
+      var _shopSig = _shopParts.join('|');
+      if (box && box.__shopSig === _shopSig) return;
+      if (box) box.__shopSig = _shopSig;
+    } catch (_eShopSig) {}
     let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
     if (IS_DEV && SHOP_X2_FORCE==='AUTO'){
       html += '<div class="row" style="align-items:center"><div class="k">x2 SHOP</div><button type="button" class="btn btnSmall" id="shopX2Btn">'+(state.shopX2?'ВКЛ':'ВЫКЛ')+'</button></div>';
@@ -12861,7 +12924,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
 
   function bfShopRender(){
     try {
-      $('bfShopGold').innerHTML = String(state.gold||0) + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
+      var _bsg = String(state.gold||0) + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">'; var _bsgEl = $('bfShopGold'); if (_bsgEl && _bsgEl.innerHTML !== _bsg) _bsgEl.innerHTML = _bsg;
     } catch (e) {}
 
     try {
@@ -14184,7 +14247,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     const price = $('dicePriceVal');
     if (price){
       const cost = mult;
-      price.innerHTML = cost+' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
+      var _dp = cost+' <img src="голд.png" alt="Золотые монеты" class="goldIcon">'; if (price.innerHTML !== _dp) price.innerHTML = _dp;
     }
     const m1 = $('diceMult1');
     const m5 = $('diceMult5');
@@ -15397,7 +15460,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
           bank.textContent = '—';
           addBtn.style.display = 'none';
         } else {
-          bank.innerHTML = String(parseInt(myClan.bankGold||0,10)||0) + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
+          var _bk = String(parseInt(myClan.bankGold||0,10)||0) + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">'; if (bank.innerHTML !== _bk) bank.innerHTML = _bk;
           addBtn.style.display = '';
           addBtn.onclick = ()=>clanBankAdd();
         }
@@ -15571,6 +15634,28 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     const data = districtData();
     const dayBox = (state.districtDailyFearCloud && state.districtDailyFearCloud.byDistrict) ? state.districtDailyFearCloud.byDistrict : ((state.districtDailyFear && state.districtDailyFear.byDistrict) ? state.districtDailyFear.byDistrict : null);
     const districtTotalClears = getTotalDistrictClears();
+
+    // Signature cache: skip full rebuild if district data unchanged
+    try {
+      var _dParts = [String(districtTotalClears), String(state.gender||'m')];
+      for (var _di=0;_di<data.length;_di++){
+        var _fk='D'+String(_di);
+        var _tf = (state.districtFear && state.districtFear[_fk]) ? String(parseInt(state.districtFear[_fk]||0,10)||0) : '0';
+        var _top = (state.districtFearLeaders && state.districtFearLeaders[_fk]) ? state.districtFearLeaders[_fk] : null;
+        var _tn = _top && _top.name ? String(_top.name) : '';
+        var _tp = _top && _top.photo ? String(_top.photo) : '';
+        var _tFear = _top ? String(parseInt(_top.fear||0,10)||0) : '0';
+        var _dayR = dayBox && dayBox[_fk] ? dayBox[_fk] : null;
+        var _dn = _dayR && _dayR.name ? String(_dayR.name) : '';
+        var _dp = _dayR && _dayR.photo ? String(_dayR.photo) : '';
+        var _dFear = _dayR ? String(parseInt(_dayR.fear||0,10)||0) : '0';
+        var _gk = (state.districtGateBossKilled && state.districtGateBossKilled[_di]) ? '1' : '0';
+        _dParts.push(_fk+':'+_tf+':'+_tn+':'+_tp+':'+_tFear+':'+_dn+':'+_dp+':'+_dFear+':'+_gk);
+      }
+      var _dSig = _dParts.join('|');
+      if (box.__distSig === _dSig) return;
+      box.__distSig = _dSig;
+    } catch (_eDistSig) {}
 
     const bizCol = $('districtBizRewardColumn');
     if (bizCol) {
@@ -15914,8 +15999,8 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       const b = $('dnDiff');
       const enEl = $('dnEnergy');
       const _e = Math.floor(state.energy||0); const _em = Math.floor(state.energyMax||400);
-      if (enEl) enEl.innerHTML = '⚡ ' + fmtEnergy(_e) + '/' + fmtEnergy(_em);
-      try { const _reb = $('dnEnergyRefillBtn'); if (_reb) { const _rc = Math.ceil(_em/10); _reb.title = 'Восстановить 100% энергии за '+_rc+' золотых монет'; const _lbl = _reb.querySelector('.energyRefillLabel'); if (_lbl) _lbl.innerHTML = _rc + ' <img src="голд.png" alt="" class="goldIcon" style="height:12px;width:auto;vertical-align:middle">'; } } catch(e_rb){}
+      if (enEl) { var _enH = '⚡ ' + fmtEnergy(_e) + '/' + fmtEnergy(_em); if (enEl.innerHTML !== _enH) enEl.innerHTML = _enH; }
+      try { const _reb = $('dnEnergyRefillBtn'); if (_reb) { const _rc = Math.ceil(_em/10); _reb.title = 'Восстановить 100% энергии за '+_rc+' золотых монет'; const _lbl = _reb.querySelector('.energyRefillLabel'); if (_lbl) { var _rlH = _rc + ' <img src="голд.png" alt="" class="goldIcon" style="height:12px;width:auto;vertical-align:middle">'; if (_lbl.innerHTML !== _rlH) _lbl.innerHTML = _rlH; } } } catch(e_rb){}
       if (t) t.textContent = nm.toUpperCase();
       if (b) {
         // На странице кошмара: страх за текущие сутки + сколько раз район был пройден
