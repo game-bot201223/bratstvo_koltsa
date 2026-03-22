@@ -16141,6 +16141,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     return isVipActive() ? 0.5 : ENERGY_REGEN_MIN_BASE;
   }
   function tickEnergy(){
+    if (!state.lastEnergyTs) state.lastEnergyTs = now();
     const ts = parseInt(state.lastEnergyTs||0,10) || now();
     const diff = Math.max(0, now() - ts);
     const per = energyRegenMinutes()*60*1000;
