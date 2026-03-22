@@ -14677,11 +14677,15 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     try {
       const leaders = state.districtFearLeaders || {};
       const me = String(state.playerName||'').trim().toUpperCase();
+      let best = -1;
       for (const k in leaders) {
         const top = leaders[k];
-        if (top && String(top.name||'').trim().toUpperCase() === me) return parseInt(k.replace(/\D/g,'')||'0',10)||0;
+        if (top && String(top.name||'').trim().toUpperCase() === me) {
+          const idx = parseInt(k.replace(/\D/g,'')||'0',10)||0;
+          if (idx > best) best = idx;
+        }
       }
-      return -1;
+      return best;
     } catch (e) { return -1; }
   }
   function myStrasilaDistrictIdxForReward(){
@@ -14692,11 +14696,15 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       if (!cloud || cloud.day !== prevDay) return -1;
       const byDistrict = cloud.byDistrict || {};
       const me = String(state.playerName||'').trim().toUpperCase();
+      let best = -1;
       for (const k in byDistrict) {
         const leader = byDistrict[k];
-        if (leader && String(leader.name||'').trim().toUpperCase() === me) return parseInt(k.replace(/\D/g,'')||'0',10)||0;
+        if (leader && String(leader.name||'').trim().toUpperCase() === me) {
+          const idx = parseInt(k.replace(/\D/g,'')||'0',10)||0;
+          if (idx > best) best = idx;
+        }
       }
-      return -1;
+      return best;
     } catch (e) { return -1; }
   }
   function halturkiNormalize(){
