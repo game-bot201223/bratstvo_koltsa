@@ -3924,7 +3924,7 @@ button.btn.charCornerBtn:active{filter:none;}
     <div class="sheetHead">
       <button class="iconBtn" data-close="mDistricts">‹</button>
       <div class="title">РАЙОНЫ</div>
-      <div id="districtMedalsHeader" style="flex:1;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:3px;overflow:hidden;min-width:0;padding:0 6px;"></div>
+      <div id="districtMedalsHeader" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;overflow:hidden;min-width:0;padding:0 4px;"></div>
       <div style="width:48px;display:flex;justify-content:flex-end;align-items:center;">
         <button type="button" class="havchikBtn" id="havchikBtn" aria-label="Хавчик" title="Хавчик — энергия от братков и к браткам"><img src="хав.jpeg" alt="Хавчик"></button>
       </div>
@@ -15604,15 +15604,21 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         const mhEl = $('districtMedalsHeader');
         if (mhEl) {
           const classes = ['bossMedalBronze','bossMedalSilver','bossMedalGold','bossMedalPurple','bossMedalMythic'];
-          let mh = '';
+          let medals = '';
           for (let i = 0; i < 5; i++) {
             const unlocked = districtTotalClears >= DISTRICT_MEDAL_THRESHOLDS[i];
             const imgSrc = DISTRICT_MEDAL_IMAGES[i] || '';
             const ttl = (DISTRICT_MEDAL_NAMES[i] || 'Медаль') + ' (' + DISTRICT_MEDAL_THRESHOLDS[i] + ' прохождений районов)';
-            if (imgSrc) mh += '<div class="bossMedal ' + classes[i] + (unlocked ? '' : ' bossMedalLocked') + '" title="' + ttl + '" style="width:28px;height:28px;"><img src="' + imgSrc.replace(/"/g,'&quot;') + '" alt=""></div>';
-            else mh += '<div class="bossMedal ' + classes[i] + (unlocked ? '' : ' bossMedalLocked') + '" title="' + ttl + '" style="width:28px;height:28px;"></div>';
+            if (imgSrc) medals += '<div class="bossMedal ' + classes[i] + (unlocked ? '' : ' bossMedalLocked') + '" title="' + ttl + '" style="width:24px;height:24px;"><img src="' + imgSrc.replace(/"/g,'&quot;') + '" alt=""></div>';
+            else medals += '<div class="bossMedal ' + classes[i] + (unlocked ? '' : ' bossMedalLocked') + '" title="' + ttl + '" style="width:24px;height:24px;"></div>';
           }
-          mhEl.innerHTML = mh;
+          let nextThresh = null;
+          for (let i = 0; i < DISTRICT_MEDAL_THRESHOLDS.length; i++) {
+            if (districtTotalClears < DISTRICT_MEDAL_THRESHOLDS[i]) { nextThresh = DISTRICT_MEDAL_THRESHOLDS[i]; break; }
+          }
+          const progText = nextThresh != null ? (districtTotalClears + '/' + nextThresh) : (districtTotalClears + ' ✓');
+          mhEl.innerHTML = '<div style="display:flex;flex-direction:row;align-items:center;justify-content:center;gap:2px;">' + medals + '</div>'
+            + '<div style="font-size:9px;color:#aaa;line-height:1;margin-top:1px;">' + progText + '</div>';
         }
       } catch (eMh) {}
       try {
@@ -16078,7 +16084,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     const xps   = [10, 20, 20, 30, 30, 40, 50];
     const fears = [1,  2,  2,  3,  3,  4,  5];
     const i = clamp(parseInt(idx||0,10)||0, 0, costs.length - 1);
-    return { cost: costs[i], xp: xps[i], fear: fears[i], gold: 0, max: 1 };
+    return { cost: costs[i], xp: xps[i], fear: fears[i], gold: 0, max: 5 };
   }
   function districtTaskDo(dIdx, tIdx){
     try {
