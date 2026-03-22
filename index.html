@@ -7953,6 +7953,7 @@ button.btn.charCornerBtn:active{filter:none;}
               console.log('[sessionStart] Применяем состояние с сервера - есть прогресс');
               var prevState2 = state;
               state = Object.assign({}, defaults, s2);
+              if (!state.energyMax || state.energyMax < 400) state.energyMax = 400;
               mergeBossFreeUsedState(state, prevState2);
               if (keepSettings) state.settings = keepSettings;
               try {
@@ -8484,6 +8485,7 @@ button.btn.charCornerBtn:active{filter:none;}
   } catch (e0) {}
   // normalize (пол игрока: все надписи в игре зависят от state.gender, должен быть всегда 'm' или 'f')
   if (!state.settings || typeof state.settings !== 'object') state.settings = Object.assign({}, defaults.settings);
+  if (!state.energyMax || state.energyMax < 400) { state.energyMax = 400; }
   if (state.gender !== 'f' && state.gender !== 'm') state.gender = getGenderFromTelegram() || 'm';
   function ensureGender(){ if (state.gender !== 'f' && state.gender !== 'm') state.gender = getGenderFromTelegram() || 'm'; }
   if (typeof state.totalXp !== 'number') state.totalXp = 0;
