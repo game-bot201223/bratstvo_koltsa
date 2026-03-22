@@ -12,7 +12,7 @@
 <meta name="edge-proxy-base" content="" />
 <title>Братство Кольца — Mobile TG Edition</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- supabase-js removed: realtime now via VPS WebSocket -->
 <script>
   // Supabase connection injected into the page globals.
   // Client code reads these values from `window`.
@@ -5038,7 +5038,8 @@ button.btn.charCornerBtn:active{filter:none;}
     if (kind==='med') state.consumables.med = (parseInt(state.consumables.med||0,10)||0) + 1;
     if (kind==='nade') state.consumables.nade = (parseInt(state.consumables.nade||0,10)||0) + 1;
     save();
-    renderAll();
+    renderHUD();
+    renderArena();
     renderConsumables();
     toast('Ты '+genderBought(),'win');
     haptic('light');
@@ -5097,7 +5098,7 @@ button.btn.charCornerBtn:active{filter:none;}
       state.consumablesBuffs[c.stat] = now() + 4 * 60 * 60 * 1000;
       save();
       renderInventory();
-      renderAll();
+      renderHUD();
       toast('Ты '+genderActivated()+': '+c.name+' на 4 ч (в ГБ)','win');
       haptic('light');
       return;
@@ -5123,7 +5124,7 @@ button.btn.charCornerBtn:active{filter:none;}
       save();
       renderBattle();
       renderInventory();
-      renderAll();
+      renderHUD();
       toast('Ты '+genderUsed(),'win');
       haptic('light');
       return;
@@ -5151,7 +5152,7 @@ button.btn.charCornerBtn:active{filter:none;}
       save();
       renderBattle();
       renderInventory();
-      renderAll();
+      renderHUD();
       toast('Ты '+genderUsed(),'win');
       haptic('light');
       return;
@@ -5192,7 +5193,7 @@ button.btn.charCornerBtn:active{filter:none;}
     save();
     renderLavka();
     renderInventory();
-    renderAll();
+    renderHUD();
     toast('Ты '+genderBought()+': '+c.name,'win');
     haptic('light');
   }
@@ -5668,7 +5669,7 @@ button.btn.charCornerBtn:active{filter:none;}
     { name:'Назгул', img:'назгул.png', hp:1000000000 }            // 12: 1b
   ];
   // Награда за победу над боссом района (один раз навсегда). Индекс = номер района (1 = 2-й район).
-  const DISTRICT_GATE_REWARDS = [ 0, 400, 600, 900, 1200, 1500, 1800, 2000, 2200, 2500, 2800, 3000 ];
+  const DISTRICT_GATE_REWARDS = [ null, {tooth:5000,xp:500}, {tooth:8000,xp:800}, {tooth:12000,xp:1200}, {tooth:20000,xp:2000}, {tooth:40000,xp:4000}, {tooth:60000,xp:6000}, {tooth:80000,xp:8000}, {tooth:100000,xp:10000}, {tooth:200000,xp:20000}, {tooth:700000,xp:70000}, {tooth:1000000,xp:100000} ];
   function districtGateBoss(idx){
     const i = clamp(parseInt(idx||0,10)||0, 1, DISTRICT_GATE_BOSSES.length-1);
     return DISTRICT_GATE_BOSSES[i] || null;
@@ -5681,7 +5682,7 @@ button.btn.charCornerBtn:active{filter:none;}
       const idx = districtIdxFromBossId(bossId);
       const boss = districtGateBoss(idx);
       if (!boss) return null;
-      return { id: bossId, name: boss.name, img: boss.img, emoji: '👹', maxHP: boss.hp || 50000 };
+      return { id: bossId, name: boss.name, img: boss.img, emoji: '', maxHP: boss.hp || 50000 };
     }
     return BOSSES.find(x=>x.id==bossId) || null;
   }
@@ -5835,9 +5836,9 @@ button.btn.charCornerBtn:active{filter:none;}
     try { setOverlay(); } catch (e) {}
     try { updateBackButton(); } catch (e) {}
     firstRunSeed();
-    toast('Сброшено','lose');
     save();
     renderAll();
+    toast('Сброшено','lose');
   }
 
 
@@ -6068,21 +6069,10 @@ button.btn.charCornerBtn:active{filter:none;}
   let __sbRealtimeClient = null;
   let __bfRealtimeChannels = {};
   let __bfRealtimeOwners = [];
-  let __bfRealtimeState = 'idle';
+  let __bfRealtimeState = 'connected';
   let __bfRealtimeLastEventTs = 0;
-  function sbRealtimeClient(){
-    try {
-      if (__sbRealtimeClient) return __sbRealtimeClient;
-      const g = window && window.supabase ? window.supabase : null;
-      const createClient = g && typeof g.createClient === 'function' ? g.createClient : null;
-      if (!createClient || !SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
-      __sbRealtimeClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-        realtime: { params: { eventsPerSecond: 20 } },
-        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
-      });
-      return __sbRealtimeClient;
-    } catch (e) { return null; }
-  }
+  // Supabase Realtime заменён на VPS WebSocket (wsConnect/wsHandleEvent)
+  function sbRealtimeClient(){ return null; }
   function bfRealtimeOwnerIds(){
     try {
       const ids = [];
@@ -6152,74 +6142,23 @@ button.btn.charCornerBtn:active{filter:none;}
       }
       try { state.bosses.cloudPullTs = now(); } catch (e1) {}
       __bfRealtimeLastEventTs = now();
+      // Point DOM update — only HP bar and numbers, no full re-render
       try {
         const m = $('mBossFight');
         if (m && m.classList.contains('show') && String(state.bosses.activeFightId||'') === String(bossId)) {
-          bfRender(bossId);
-        } else {
-          const mb = $('mBoss');
-          if (mb && mb.classList.contains('show')) renderBosses();
+          var hpFill = $('bfHpBarFill'), hpIn = $('bfHpBarIn');
+          var isDistrict = typeof isDistrictBossId === 'function' && isDistrictBossId(bossId);
+          if (hpFill && maxHp) hpFill.style.width = Math.max(0, Math.min(100, (hp / maxHp) * 100)) + '%';
+          if (hpIn && maxHp) hpIn.textContent = isDistrict ? (fmt4(hp) + ' / ' + fmt4(maxHp)) : (hp + ' / ' + maxHp);
+          // If boss died (hp <= 0), do a full render to show reward
+          if (hp <= 0) try { bfRender(bossId); } catch(_){}
         }
       } catch (e2) {}
     } catch (e) {}
   }
-  function bfRealtimeSubscribeOwners(force){
-    try {
-      const ownerIds = bfRealtimeOwnerIds();
-      if (!ownerIds.length) return false;
-      const nextKey = ownerIds.slice().sort().join(',');
-      const prevKey = (__bfRealtimeOwners || []).slice().sort().join(',');
-      if (!force && prevKey === nextKey && __bfRealtimeChannels && Object.keys(__bfRealtimeChannels).length) return true;
-      bfRealtimeUnsubscribeAll();
-      const client = sbRealtimeClient();
-      if (!client) return false;
-      const nextChannels = {};
-      ownerIds.forEach(function(ownerTgId){
-        try {
-          const channelName = 'boss-fights-' + ownerTgId;
-          const ch = client.channel(channelName);
-          ch.on('postgres_changes', {
-            event: '*',
-            schema: 'public',
-            table: 'player_boss_fights',
-            filter: 'owner_tg_id=eq.' + ownerTgId
-          }, function(payload){
-            try {
-              const row = payload && payload.new && typeof payload.new === 'object' && Object.keys(payload.new).length ? payload.new : (payload && payload.old ? payload.old : null);
-              bfRealtimeApplyServerFightRow(row);
-            } catch (e0) {}
-          });
-          ch.subscribe(function(status){
-            try {
-              __bfRealtimeState = String(status || '');
-              if (status === 'SUBSCRIBED') __bfRealtimeLastEventTs = now();
-            } catch (e1) {}
-          });
-          nextChannels[ownerTgId] = ch;
-        } catch (e2) {}
-      });
-      __bfRealtimeChannels = nextChannels;
-      __bfRealtimeOwners = ownerIds.slice();
-      return Object.keys(nextChannels).length > 0;
-    } catch (e) { return false; }
-  }
-  function bfRealtimeUnsubscribeAll(){
-    try {
-      const client = __sbRealtimeClient;
-      const all = __bfRealtimeChannels && typeof __bfRealtimeChannels === 'object' ? __bfRealtimeChannels : {};
-      __bfRealtimeChannels = {};
-      __bfRealtimeOwners = [];
-      __bfRealtimeState = 'idle';
-      if (client) {
-        Object.keys(all).forEach(function(k){
-          try {
-            const ch = all[k];
-            if (ch) client.removeChannel(ch).catch(function(){});
-          } catch (e0) {}
-        });
-      }
-    } catch (e) {}
-  }
+  // Realtime теперь через VPS WebSocket — подписка не нужна
+  function bfRealtimeSubscribeOwners(force){ __bfRealtimeState = 'connected'; return true; }
+  function bfRealtimeUnsubscribeAll(){ __bfRealtimeChannels = {}; __bfRealtimeOwners = []; }
   function isAdmin(){
     if (!ADMIN_TG_ID) return false;
     return myTgUserId() === ADMIN_TG_ID;
@@ -6504,6 +6443,8 @@ button.btn.charCornerBtn:active{filter:none;}
       n === 'join_group_fight' ||
       n === 'get_player' ||
       n === 'top_players_list' ||
+      n === 'district_leader_upsert' ||
+      n === 'district_daily_leader_upsert' ||
       n === 'district_leaders_list' ||
       n === 'district_daily_leaders_list' ||
       n === 'havchik_inbox_pull' ||
@@ -6513,7 +6454,24 @@ button.btn.charCornerBtn:active{filter:none;}
       n === 'boss_fights_list' ||
       n === 'admin_get_player' ||
       n === 'admin_update_player' ||
-      n === 'admin_grant_all'
+      n === 'admin_grant_all' ||
+      n === 'admin_get_clan' ||
+      n === 'admin_update_clan' ||
+      n === 'admin_full_restart' ||
+      n === 'find_arena_opponent' ||
+      n === 'get_players_by_names' ||
+      n === 'boss_fight_get' ||
+      n === 'havchik_claim' ||
+      n === 'havchik_send' ||
+      n === 'stars_create_invoice' ||
+      n === 'clan_accept' ||
+      n === 'clan_apply' ||
+      n === 'clan_cancel_apply' ||
+      n === 'clan_chat_send' ||
+      n === 'clan_chat_clear' ||
+      n === 'clan_leave' ||
+      n === 'clan_reject' ||
+      n === 'delete_clan'
     );
   }
   // --- Серверная пакетная синхронизация ---
@@ -7911,8 +7869,8 @@ button.btn.charCornerBtn:active{filter:none;}
       if (__hydratedFromGetPlayer) {
         try { __sessionEstablished = true; } catch (e0) {}
         try { __cloudSaveUnlocked = true; } catch (eU) {}
-        try { renderAll(); } catch (e2) {}
         try { save(); } catch (eS) {}
+        try { renderAll(); } catch (e2) {}
         return;
       }
       const r = await sbFnCall('session_start', { initData: tgInitData() });
@@ -8268,8 +8226,9 @@ button.btn.charCornerBtn:active{filter:none;}
       if (isVipActive()){ toast('VIP уже активен','lose'); return; }
       state.vip = true;
       state.vipUntil = nowTs + VIP_MS;
-      toast('VIP активирован на 7 дней','win');
       save();
+      renderHUD();
+      toast('VIP активирован на 7 дней','win');
     } },
   ];
 
@@ -8296,18 +8255,18 @@ button.btn.charCornerBtn:active{filter:none;}
 
   const BOSS_HELP_CAP_FEDOR = 500;
   const BOSSES = [
-    { id:1, name:'Фёдор', emoji:'🦈', img:'фёдор.png', maxHP:2500, reward:{ xp:50, tooth:100, gold:0 } },
-    { id:2, name:'Гиви', emoji:'🧨', img:'гиви.png', maxHP:10000, reward:{ xp:100, tooth:500, gold:0 } },
-    { id:3, name:'Логоваз', emoji:'🦴', img:'логоваз.png', maxHP:50000, reward:{ xp:200, tooth:800, gold:0 } },
-    { id:4, name:'Теодед', emoji:'🪓', img:'теодед.png', maxHP:300000, reward:{ xp:500, tooth:1600, gold:0 } },
-    { id:5, name:'Фарамир', emoji:'🔥', img:'фарамир.png', maxHP:1000000, reward:{ xp:1000, tooth:3000, gold:0 } },
-    { id:6, name:'Паучиха', emoji:'🕷️', img:'паучиха.png', maxHP:6000000, reward:{ xp:2000, tooth:5000, gold:0 } },
-    { id:7, name:'Боря Мем', emoji:'🌪️', img:'борямем.png', maxHP:15000000, reward:{ xp:5000, tooth:8000, gold:0 } },
-    { id:8, name:'Сарумян', emoji:'🧿', img:'сарумян.png', maxHP:60000000, reward:{ xp:10000, tooth:12000, gold:0 } },
-    { id:9, name:'Дроворуб', emoji:'🪵', img:'дроворуб.png', maxHP:125000000, reward:{ xp:20000, tooth:20000, gold:0 } },
-    { id:10, name:'Пендальф', emoji:'🧙', img:'пендальф.png', maxHP:300000000, reward:{ xp:50000, tooth:50000, gold:0 } },
-    { id:11, name:'Элронд Вечноправ', emoji:'🗡️', img:'элрондвечноправ.png', maxHP:600000000, reward:{ xp:70000, tooth:100000, gold:0 } },
-    { id:12, name:'Барлог', emoji:'🗡️', img:'бар.png', maxHP:1000000000, reward:{ xp:100000, tooth:200000, gold:0 } }
+    { id:1, name:'Фёдор', emoji:'', img:'фёдор.png', maxHP:2500, reward:{ xp:50, tooth:100, gold:0 } },
+    { id:2, name:'Гиви', emoji:'', img:'гиви.png', maxHP:10000, reward:{ xp:100, tooth:500, gold:0 } },
+    { id:3, name:'Логоваз', emoji:'', img:'логоваз.png', maxHP:50000, reward:{ xp:200, tooth:800, gold:0 } },
+    { id:4, name:'Теодед', emoji:'', img:'теодед.png', maxHP:300000, reward:{ xp:500, tooth:1600, gold:0 } },
+    { id:5, name:'Фарамир', emoji:'', img:'фарамир.png', maxHP:1000000, reward:{ xp:1000, tooth:3000, gold:0 } },
+    { id:6, name:'Паучиха', emoji:'', img:'паучиха.png', maxHP:6000000, reward:{ xp:2000, tooth:5000, gold:0 } },
+    { id:7, name:'Боря Мем', emoji:'', img:'борямем.png', maxHP:15000000, reward:{ xp:5000, tooth:8000, gold:0 } },
+    { id:8, name:'Сарумян', emoji:'', img:'сарумян.png', maxHP:60000000, reward:{ xp:10000, tooth:12000, gold:0 } },
+    { id:9, name:'Дроворуб', emoji:'', img:'дроворуб.png', maxHP:125000000, reward:{ xp:20000, tooth:20000, gold:0 } },
+    { id:10, name:'Пендальф', emoji:'', img:'пендальф.png', maxHP:300000000, reward:{ xp:50000, tooth:50000, gold:0 } },
+    { id:11, name:'Элронд Вечноправ', emoji:'', img:'элрондвечноправ.png', maxHP:600000000, reward:{ xp:70000, tooth:100000, gold:0 } },
+    { id:12, name:'Барлог', emoji:'', img:'бар.png', maxHP:1000000000, reward:{ xp:100000, tooth:200000, gold:0 } }
   ];
   const BOSS_MEDAL_IMAGES = {
     1: ['федям.jpg','федяс.jpg','федяз.jpg','федяп.jpg','федял.jpg'],
@@ -9211,7 +9170,7 @@ button.btn.charCornerBtn:active{filter:none;}
       setOverlay();
       updateBackButton();
       try { save(); } catch (e0) {}
-      try { renderAll(); } catch (e1) {}
+      try { renderHUD(); renderBosses(); } catch (e1) {}
     }
   }
   function hideTop(){
@@ -9661,7 +9620,7 @@ button.btn.charCornerBtn:active{filter:none;}
           hideModal('mBattleRes');
           hideModal('mBattle');
           openScreen('mArena');
-          renderAll();
+          renderHUD(); renderArena();
         };
       }
       showModal('mBattleRes');
@@ -9723,7 +9682,7 @@ button.btn.charCornerBtn:active{filter:none;}
     try { logCurrency('gold', -cost, 'Сброс кулдауна арены'); } catch (e0) {}
     state.arena.cdUntil = now();
     save();
-    renderAll();
+    renderHUD(); renderArena();
     toast('Кулдаун сброшен','win');
     haptic('light');
   }
@@ -9742,8 +9701,7 @@ button.btn.charCornerBtn:active{filter:none;}
       if (resetBtn){
         resetBtn.style.display = '';
         const cost = isVipActive() ? 5 : 15;
-        resetBtn.textContent = 'Сброс за '+cost+' ';
-        resetBtn.innerHTML = 'Сброс за '+cost+' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
+        if (resetBtn._lc !== cost) { resetBtn.innerHTML = 'Сброс за '+cost+' <img src="голд.png" alt="Золотые монеты" class="goldIcon">'; resetBtn._lc = cost; }
         resetBtn.disabled = ((state.gold||0) < cost);
       }
     } else {
@@ -9809,10 +9767,10 @@ button.btn.charCornerBtn:active{filter:none;}
           state.petsOwned[String(p.id)] = true;
           state.activePetId = p.id;
           feedAdd('Куплен питомец ' + p.emoji + ' ' + p.name,'PET');
+          save();
+          renderHUD(); renderArenaPetShop();
           toast('Питомец куплен','win');
           haptic('medium');
-          save();
-          renderAll();
         };
         card.appendChild(buy);
       }
@@ -9829,10 +9787,10 @@ button.btn.charCornerBtn:active{filter:none;}
           state.activePetId = 0;
           state.petsOwned = {};
           feedAdd('Продан питомец ' + p.emoji + ' ' + p.name + ' (+'+back+' золотых монет)','PET');
+          save();
+          renderHUD(); renderArenaPetShop();
           toast('Питомец продан','win');
           haptic('light');
-          save();
-          renderAll();
         };
         card.appendChild(sell);
       }
@@ -9852,7 +9810,7 @@ button.btn.charCornerBtn:active{filter:none;}
       // лёгкий лок от дабл-тапов, реальный кулдаун выставится по завершении боя
       state.arena.cdUntil = t0 + 1200;
       save();
-      renderAll();
+      renderArena();
     } catch (e9) {}
     // энергия больше не участвует в боях арены
 
@@ -10105,7 +10063,7 @@ button.btn.charCornerBtn:active{filter:none;}
       state.arena.cdUntil = now() + arenaCdMs();
       __arenaFightLockUntil = now() + 500;
       save();
-      renderAll();
+      renderHUD(); renderArena(); renderGymStatsColumn(); renderArenaStatsColumn();
     }
 
     const statsSum = (function(){
@@ -10320,7 +10278,7 @@ button.btn.charCornerBtn:active{filter:none;}
 
     const joined = !!state.gf1010.joined && (parseInt(state.gf1010.startTs||0,10)||0) === startTs;
     $('gf10Start').textContent = gfFmt(startTs);
-    $('gf10Cost').innerHTML = cost + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
+    { var _el3 = $('gf10Cost'); if (_el3 && _el3._lc !== cost) { _el3.innerHTML = cost + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">'; _el3._lc = cost; } }
 
     // placeholder: local counter until backend
     state.gf1010.gathered = clamp(parseInt(state.gf1010.gathered||0,10)||0, 0, 999);
@@ -10366,11 +10324,11 @@ button.btn.charCornerBtn:active{filter:none;}
     state.gf1010.gathered = (parseInt(state.gf1010.gathered||0,10)||0) + 1;
     state.gf1010.fight = { round:1, turnLeft:10, myTarget:'', targets:[], log:[] };
 
-    toast('Заявка подана','win');
-    haptic('medium');
     save();
     gf1010Render();
     renderHUD();
+    toast('Заявка подана','win');
+    haptic('medium');
   }
 
   function gf1010Leave(){
@@ -10379,11 +10337,11 @@ button.btn.charCornerBtn:active{filter:none;}
     state.gf1010.joined = false;
     state.gf1010.startTs = 0;
     state.gf1010.costPaid = 0;
-    toast('Заявка отменена','lose');
-    haptic('light');
     save();
     gf1010Render();
     renderHUD();
+    toast('Заявка отменена','lose');
+    haptic('light');
   }
 
   function gf1010EnsureTargets(){
@@ -10403,9 +10361,9 @@ button.btn.charCornerBtn:active{filter:none;}
   function gf1010PickTarget(id){
     state.gf1010.fight.myTarget = id;
     try { $('gf10Target').textContent = id; } catch (e) {}
-    haptic('light');
     save();
     gf1010RenderFight();
+    haptic('light');
   }
 
   function gf1010RenderFight(){
@@ -10452,7 +10410,7 @@ button.btn.charCornerBtn:active{filter:none;}
 
     // Group modal
     $('gfStart').textContent = gfFmt(startTs);
-    $('gfCost').innerHTML = cost + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
+    { var _el = $('gfCost'); if (_el && _el._lc !== cost) { _el.innerHTML = cost + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">'; _el._lc = cost; } }
 
     const st = $('gfStatus');
     const enterBtn = $('gfEnter');
@@ -10478,7 +10436,7 @@ button.btn.charCornerBtn:active{filter:none;}
     const joinOpen = (nowTs >= (startTs - 60*1000)) && (nowTs < startTs);
     const joined = !!state.groupFight.joined && (parseInt(state.groupFight.startTs||0,10)||0) === startTs;
     $('gfJoinStart').textContent = gfFmt(startTs);
-    $('gfJoinCost').innerHTML = cost + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">';
+    { var _el2 = $('gfJoinCost'); if (_el2 && _el2._lc !== cost) { _el2.innerHTML = cost + ' <img src="голд.png" alt="Золотые монеты" class="goldIcon">'; _el2._lc = cost; } }
     $('gfJoinLeft').textContent = fmtMMSS(Math.max(0, startTs - nowTs));
     const b = $('gfJoinBtn');
     b.disabled = !joinOpen || joined;
@@ -10559,9 +10517,10 @@ button.btn.charCornerBtn:active{filter:none;}
           state.groupFight.resolvedTs = 0;
           state.groupFight.battle = null;
           feedAdd('Заявка в групповой бой подана. Старт: '+gfFmt(startTs)+' UTC','GF');
+          save();
+          renderHUD(); renderArena();
           toast('Заявка подана','win');
           haptic('medium');
-          save();
         }).catch((e)=>{
           try {
             const msg = String((e && (e.message||e.name)) || e || 'err').replace(/\s+/g,' ').trim();
@@ -10570,7 +10529,7 @@ button.btn.charCornerBtn:active{filter:none;}
         });
       }
     } catch (e3) {}
-    renderAll();
+    renderHUD(); renderArena();
   }
 
   async function gfFetchEntries(startTs){
@@ -10610,10 +10569,10 @@ button.btn.charCornerBtn:active{filter:none;}
       state.groupFight.resolvedTs = now();
       state.groupFight.battle = null;
       feedAdd('Групповой бой отменён (нет участников). Возврат: +'+refund+' золотых монет','GF');
+      save();
+      renderHUD(); renderArena();
       toast('Бой отменён, золотые монеты возвращены','lose');
       haptic('light');
-      save();
-      renderAll();
       return true;
     } catch (e) { return false; }
   }
@@ -10973,9 +10932,9 @@ button.btn.charCornerBtn:active{filter:none;}
       state.groupFight.resolvedTs = now();
       // keep battle for view until close
       feedAdd('Победа в групповом бою!','GF');
-      toast('Ты '+genderWon(),'win');
       save();
-      renderAll();
+      renderHUD(); renderBattle();
+      toast('Ты '+genderWon(),'win');
       haptic('heavy');
       gfShowBattleResult(true);
       return;
@@ -11102,9 +11061,9 @@ button.btn.charCornerBtn:active{filter:none;}
       state.groupFight.startTs = 0;
       state.groupFight.resolvedTs = now();
       feedAdd('Поражение в групповом бою.','GF');
-      toast('Ты '+genderLost(),'lose');
       save();
-      renderAll();
+      renderHUD(); renderBattle();
+      toast('Ты '+genderLost(),'lose');
       gfShowBattleResult(false);
     }
   }
@@ -11294,15 +11253,15 @@ button.btn.charCornerBtn:active{filter:none;}
         state.silver -= cost;
         state.gym[key] = baseVal + mult;
         feedAdd('Тренировка: '+key+' → '+(baseVal+mult),'GYM');
-        toast('Прокачано','win');
         save();
-        renderAll();
+        renderHUD(); renderGym(); renderGymStatsColumn();
         try {
           const topModal = $('mTop');
           if (topModal && topModal.classList.contains('show') && __topLastKind === 'WEALTH'){
             renderTop100('WEALTH');
           }
         } catch (e1) {}
+        toast('Прокачано','win');
         haptic('light');
       };
     });
@@ -11395,10 +11354,10 @@ button.btn.charCornerBtn:active{filter:none;}
       promoMarkUsed();
       const txt = promoRewardText(r);
       feedAdd('Промокод: '+txt,'SHOP');
-      toast(txt || 'Готово','win');
       save();
-      renderAll();
+      renderHUD();
       if ($('mShop').classList.contains('show')) renderShop();
+      toast(txt || 'Готово','win');
       haptic('light');
     } catch (e) {}
   }
@@ -11424,7 +11383,7 @@ button.btn.charCornerBtn:active{filter:none;}
     if (btn) {
       btn.onclick = function(){
         hideModal('mStarsReward');
-        renderAll();
+        renderHUD();
         toast(amount > 0 ? 'Награда получена! +'+amount+' золотых монет' : 'Награда получена!','win');
         haptic('medium');
       };
@@ -11636,7 +11595,7 @@ button.btn.charCornerBtn:active{filter:none;}
           if (typeof it.apply==='function') it.apply();
         }
         save();
-        renderAll();
+        renderHUD(); renderShop();
         haptic('light');
       };
     });
@@ -11887,7 +11846,7 @@ button.btn.charCornerBtn:active{filter:none;}
       const idx = districtIdxFromBossId(id);
       const boss = districtGateBoss(idx);
       if (!boss) return null;
-      const maxHp = boss.maxHP||1;
+      const maxHp = boss.hp||boss.maxHP||1;
       let f = bfGetFight(id);
       if (!f || f.districtIdx !== idx){
         const curHp = (state.districtGateBossFight && state.districtGateBossFight.districtIdx === idx) ? (parseInt(state.districtGateBossFight.hp||0,10)||0) : maxHp;
@@ -11901,7 +11860,7 @@ button.btn.charCornerBtn:active{filter:none;}
           const st = rec && typeof rec === 'object' ? (parseInt(rec.startTs||0,10)||0) : 0;
           _freeUsed0 = !!(used && st && st === startTs);
         } catch (e02) { _freeUsed0 = false; }
-        f = { districtIdx: idx, hp: curHp, maxHp: maxHp, startTs: startTs, expiresTs: startTs + districtExpiresIn, dmgLog: [], dmgTop: {}, freeUsed: _freeUsed0 };
+        f = { districtIdx: idx, hp: curHp, maxHp: maxHp, startTs: startTs, expiresTs: startTs + 8*60*60*1000, dmgLog: [], dmgTop: {}, freeUsed: _freeUsed0 };
         bfSetFight(id, f);
       }
       return f;
@@ -12351,12 +12310,11 @@ button.btn.charCornerBtn:active{filter:none;}
           const imgPath = encodeURI(String(b.img));
           const testImg = new Image();
           testImg.onload = ()=>{ pic.textContent = ''; pic.style.backgroundImage = 'url("'+imgPath+'")'; };
-          testImg.onerror = ()=>{ pic.style.backgroundImage = ''; pic.textContent = b.emoji; };
+          testImg.onerror = ()=>{ pic.style.backgroundImage = ''; pic.textContent = ''; };
           testImg.src = b.img;
-          pic.textContent = b.emoji;
-          pic.style.backgroundImage = '';
+          if (!pic.style.backgroundImage || pic.style.backgroundImage === 'none') { pic.textContent = ''; }
         } else {
-          pic.textContent = b.emoji;
+          pic.textContent = '';
           pic.style.backgroundImage = '';
         }
       }
@@ -12494,7 +12452,7 @@ button.btn.charCornerBtn:active{filter:none;}
         save();
         try { void serverPushNow(); } catch (e0) {}
         if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
-        renderAll();
+        renderHUD();
         haptic('light');
         try { delete window.__bfHitLock[lk]; } catch (e0) {}
         return;
@@ -12550,7 +12508,7 @@ button.btn.charCornerBtn:active{filter:none;}
         save();
         try { void serverPushNow(); } catch (e0) {}
         if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
-        renderAll();
+        renderHUD();
         haptic('light');
       }).catch(()=>{}).finally(()=>{ try { delete window.__bfHitLock[lk]; } catch (e0) {} });
     };
@@ -12598,7 +12556,7 @@ button.btn.charCornerBtn:active{filter:none;}
         bfCheckWin(bossId);
         save();
         if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
-        renderAll();
+        renderHUD();
         haptic('light');
         try { delete window.__bfHitLock[lk]; } catch (e0) {}
         return;
@@ -12609,7 +12567,7 @@ button.btn.charCornerBtn:active{filter:none;}
           if (r && typeof r === 'object' && r.skipped) {
             try { bossFightsCloudPullMaybe(true); } catch (e0) {}
             try { bfRender(bossId); } catch (e1) {}
-            try { renderAll(); } catch (e2) {}
+            try { renderHUD(); } catch (e2) {}
             return;
           }
         } catch (e0) {}
@@ -12657,7 +12615,7 @@ button.btn.charCornerBtn:active{filter:none;}
         save();
         try { void serverPushNow(); } catch (e0) {}
         if ((parseInt(ff.hp||0,10)||0) > 0) bfRender(bossId);
-        renderAll();
+        renderHUD();
         haptic('light');
       }).catch(()=>{}).finally(()=>{ try { delete window.__bfHitLock[lk]; } catch (e0) {} });
     }
@@ -12841,13 +12799,11 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         }).join('') : '';
       }
 
-      // Near-realtime help pull while fight UI is open.
+      // Periodic fallback pull as safety net (VPS WS handles main realtime)
       try {
         const tNow = now();
-        const rtCount = __bfRealtimeChannels && typeof __bfRealtimeChannels === 'object' ? Object.keys(__bfRealtimeChannels).length : 0;
-        const needFallbackPull = !rtCount || (__bfRealtimeState !== 'SUBSCRIBED' && (__bfRealtimeState !== 'CHANNEL_ERROR'));
-        const staleRealtime = !!(rtCount && __bfRealtimeState === 'SUBSCRIBED' && __bfRealtimeLastEventTs && (tNow - __bfRealtimeLastEventTs) >= 15000);
-        if ((needFallbackPull || staleRealtime) && (!__bfHelpPullTs || (tNow - __bfHelpPullTs) >= BF_HELP_PULL_EVERY_MS)) {
+        const stale = __bfRealtimeLastEventTs && (tNow - __bfRealtimeLastEventTs) >= 10000;
+        if (stale && (!__bfHelpPullTs || (tNow - __bfHelpPullTs) >= BF_HELP_PULL_EVERY_MS)) {
           __bfHelpPullTs = tNow;
           bossHelpPullOnce().catch(()=>{});
           try { bossFightsCloudPullMaybe(true); } catch (e10) {}
@@ -12866,20 +12822,28 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       const tLoop = ()=>{
         try {
           if (!__bfRealtimeRun) return;
-          try {
-            const rtCount = __bfRealtimeChannels && typeof __bfRealtimeChannels === 'object' ? Object.keys(__bfRealtimeChannels).length : 0;
-            if ((!rtCount || __bfRealtimeState === 'CHANNEL_ERROR' || __bfRealtimeState === 'TIMED_OUT' || __bfRealtimeState === 'CLOSED') && myTgUserId()) {
-              bfRealtimeSubscribeOwners(true);
-            }
-          } catch (eRt) {}
           try { bfRealtimeRenderLocal(); } catch (e1) {}
-          __bfRealtimeT = setTimeout(tLoop, 1);
+          __bfRealtimeT = setTimeout(tLoop, 250);
         } catch (e2) {}
       };
       const rafLoop = ()=>{
         try {
           if (!__bfRealtimeRun) return;
-          try { bfRealtimeRenderLocal(); } catch (e3) {}
+          // rAF: only lightweight timer + HP bar update (no innerHTML rebuilds)
+          try {
+            const m0 = $('mBossFight');
+            if (m0 && m0.classList.contains('show')) {
+              const bid0 = state && state.bosses ? state.bosses.activeFightId : 0;
+              if (bid0) {
+                const f0 = bfGetFight(bid0);
+                if (f0) {
+                  const left0 = Math.max(0, (parseInt(f0.expiresTs||0,10)||0) - now());
+                  const t0 = $('bfTimer');
+                  if (t0) t0.textContent = left0>0 ? ('ВРЕМЯ: ' + fmtHHMMSS(left0)) : 'ВРЕМЯ: 00:00:00';
+                }
+              }
+            }
+          } catch (e3) {}
           __bfRealtimeRaf = requestAnimationFrame(rafLoop);
         } catch (e4) {}
       };
@@ -12932,12 +12896,12 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     if (kind==='kick') state.bosses.hitStocks.kick = clamp((parseInt(state.bosses.hitStocks.kick||0,10)||0) + q, 0, 999999);
     if (kind==='knuckle') state.bosses.hitStocks.knuckle = clamp((parseInt(state.bosses.hitStocks.knuckle||0,10)||0) + q, 0, 999999);
     if (kind==='enema') state.bosses.hitStocks.enema = clamp((parseInt(state.bosses.hitStocks.enema||0,10)||0) + q, 0, 999999);
-    toast('Ты '+genderBought()+': +'+q,'win');
     save();
     bfShopRender();
     const bid = state.bosses && state.bosses.activeFightId;
     if (bid) bfRender(bid);
-    renderAll();
+    renderHUD();
+    toast('Ты '+genderBought()+': +'+q,'win');
   }
 
   function bfShowResult(bossId, win){
@@ -12950,12 +12914,11 @@ const BF_HELP_PULL_EVERY_MS = 3000;
           const imgPath = encodeURI(String(b.img));
           const testImg = new Image();
           testImg.onload = ()=>{ pic.textContent = ''; pic.style.backgroundImage = 'url("'+imgPath+'")'; };
-          testImg.onerror = ()=>{ pic.style.backgroundImage = ''; pic.textContent = b.emoji; };
+          testImg.onerror = ()=>{ pic.style.backgroundImage = ''; pic.textContent = ''; };
           testImg.src = b.img;
-          pic.textContent = b.emoji;
-          pic.style.backgroundImage = '';
+          if (!pic.style.backgroundImage || pic.style.backgroundImage === 'none') { pic.textContent = ''; }
         } else {
-          pic.textContent = b.emoji;
+          pic.textContent = '';
           pic.style.backgroundImage = '';
         }
       }
@@ -13021,7 +12984,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     try { hideModal('mBfShop'); } catch (e) {}
     try { hideModal('mBossFight'); } catch (e) {}
 
-    try { renderAll(); } catch (e) {}
+    try { renderHUD(); renderBosses(); } catch (e) {}
     showModal('mBossFightRes');
 
     if (claimBtn){
@@ -13081,7 +13044,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
               hideModal('mBossFightRes');
               while (stack.length) hideModal(stack[stack.length-1]);
               renderBosses();
-              renderAll();
+              renderHUD();
               haptic('heavy');
               return;
             }
@@ -13128,7 +13091,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
                 } catch (e0) {}
                 try { hideModal('mBossFightRes'); } catch (e1) {}
                 try { bfRender(bossId); } catch (e3) {}
-                try { renderAll(); } catch (e4) {}
+                try { renderHUD(); } catch (e4) {}
                 toast('Босс ещё жив (HP '+String(hp)+')','lose');
                 return;
               }
@@ -13159,13 +13122,13 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       state.districtGateBossFight = null;
       state.bosses.activeFightId = 0;
 
-      const mult = DISTRICT_GATE_REWARDS[idx] || 0;
-      state.bosses.pendingDistrictReward = mult > 0 ? { idx: idx, mult: mult } : null;
+      const rew = DISTRICT_GATE_REWARDS[idx] || null;
+      state.bosses.pendingDistrictReward = rew ? { idx: idx, tooth: rew.tooth||0, xp: rew.xp||0 } : null;
 
       save();
       try { hideModal('mBfShop'); } catch (e0) {}
       try { hideModal('mBossFight'); } catch (e1) {}
-      if (mult > 0) {
+      if (rew) {
         showModal('mDistrictGateReward');
         renderDistrictGateRewardModal();
       } else {
@@ -13173,7 +13136,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       }
       haptic('heavy');
       if ($('mDistricts') && $('mDistricts').classList.contains('show')) renderDistricts();
-      renderAll();
+      renderHUD();
       return;
     }
     const b = BOSSES.find(x=>x.id===bossId);
@@ -13360,7 +13323,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         openScreen('mDistricts');
         renderDistricts();
       } catch (e2) {}
-      renderAll();
+      renderHUD();
       return;
     }
     const b = BOSSES.find(x=>x.id===bossId);
@@ -13492,14 +13455,13 @@ const BF_HELP_PULL_EVERY_MS = 3000;
             window.__ignoreOverlayClickOnce = true;
             showModal('mBossFight');
             hideModal('mBossAttack');
-            bfRender(id);
             save();
+            bfRender(id);
+            renderBosses();
+            renderHUD();
             // Подтянуть серверное состояние уже после успешного локального открытия боя.
             try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
             try { bossHelpPullOnce(); } catch (eHelp) {}
-
-            renderBosses();
-            renderHUD();
             haptic('light');
           }).catch(()=>{ toast('СЕРВЕР: ERR','lose'); });
           return;
@@ -13522,9 +13484,8 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         showModal('mBossFight');
         hideModal('mBossAttack');
         bfEnsureFight(id);
-        bfRender(id);
         save();
-
+        bfRender(id);
         renderBosses();
         renderHUD();
         haptic('light');
@@ -13557,10 +13518,10 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         if ((state.gold||0) < price){ toast('Нужно '+price+' золотых монет '+TOAST_GOLD_IMG,'lose'); return; }
         state.gold -= price;
         bossAccessRingAdd(id, 1);
-        toast('+1','win');
         save();
         renderBossAttackModal(state.bosses.pendingAttackId||selectedId);
-        renderAll();
+        renderHUD();
+        toast('+1','win');
       };
     });
 
@@ -13654,8 +13615,8 @@ const BF_HELP_PULL_EVERY_MS = 3000;
           window.__ignoreOverlayClickOnce = true;
           hideModal('mBossAttack');
           showModal('mBossFight');
-          bfRender(id);
           save();
+          bfRender(id);
           // Подтягиваем облако уже после успешного открытия боя.
           try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
           try { bossHelpPullOnce(); } catch (eHelp) {}
@@ -13680,8 +13641,8 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       window.__ignoreOverlayClickOnce = true;
       hideModal('mBossAttack');
       showModal('mBossFight');
-      bfRender(id);
       save();
+      bfRender(id);
       try { bossFightsCloudPullMaybe(true); } catch (ePull) {}
       try { bossHelpPullOnce(); } catch (eHelp) {}
     };
@@ -13731,7 +13692,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       try { bossFightsCloudPullMaybe(true); } catch (e1) {}
       save();
       try { void serverPushNow(); } catch (e0) {}
-      renderAll();
+      renderHUD(); renderBosses();
       if ((parseInt(bossHp(id)||0,10)||0) <= 0) {
         toast('Ты '+genderWon()+'. Забери награду.','win');
         haptic('heavy');
@@ -13863,7 +13824,6 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         let halturkiBonus = 0;
         try { halturkiBonus = markHalturkiDone('arenaTeeth', 100, true); } catch (e) {}
         save();
-        renderAll();
         renderHUD();
         toast('+' + (100 + halturkiBonus) + ' '+TOAST_TOOTH_IMG + (halturkiBonus ? ' (задание)' : ''),'win');
         haptic('light');
@@ -13993,7 +13953,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         + '<div style="height:10px"></div>'
         + '<div class="bossRow">'
         + '<div class="bossMiniWrap">'
-        + '<div class="bossMini'+(parseInt(b.id||0,10)===1 ? ' bossMiniContain' : '')+'" style="'+(b.img?('background-image:url(\''+encodeURI(String(b.img))+'\');'):'')+'">'+(b.img?'':b.emoji)+'</div>'
+        + '<div class="bossMini'+(parseInt(b.id||0,10)===1 ? ' bossMiniContain' : '')+'" style="'+(b.img?('background-image:url(\''+encodeURI(String(b.img))+'\');'):'')+'">'+'</div>'
         + (lwPhoto ? ('<img class="bossWinnerAva" src="'+String(lwPhoto).replace(/"/g,'&quot;')+'" alt="" />') : '')
         + '</div>'
         + '<div class="bossRightCol">'
@@ -14677,7 +14637,13 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     }
   }
 
-  function renderAll(){
+  // ─── Global render throttle (leading + trailing, 300ms) ───
+  var __renderAllPending = false;
+  var __renderAllTimer = null;
+  var __renderAllLastTs = 0;
+  var __RENDER_THROTTLE_MS = 300;
+
+  function _renderAllImpl(){
     renderParchmentPanelMedals();
     renderHUD();
     renderFriends();
@@ -14711,6 +14677,26 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         renderTop100('WEALTH');
       }
     } catch (e) {}
+  }
+
+  function renderAll(){
+    var ts = now();
+    if (ts - __renderAllLastTs >= __RENDER_THROTTLE_MS) {
+      __renderAllLastTs = ts;
+      __renderAllPending = false;
+      if (__renderAllTimer) { clearTimeout(__renderAllTimer); __renderAllTimer = null; }
+      try { _renderAllImpl(); } catch (e) {}
+    } else {
+      __renderAllPending = true;
+      if (!__renderAllTimer) {
+        __renderAllTimer = setTimeout(function(){
+          __renderAllTimer = null;
+          __renderAllPending = false;
+          __renderAllLastTs = now();
+          try { _renderAllImpl(); } catch (e) {}
+        }, __RENDER_THROTTLE_MS - (ts - __renderAllLastTs));
+      }
+    }
   }
 
   function clanLevelFromDmg(dmg){
@@ -15806,17 +15792,16 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       const list = $('dgrRewardList');
       const btn = $('dgrClaimBtn');
       if (!list) return;
-      if (!p || typeof p !== 'object' || !p.idx || p.mult <= 0) {
+      if (!p || typeof p !== 'object' || !p.idx || ((p.tooth||0) <= 0 && (p.xp||0) <= 0)) {
         list.innerHTML = '<div style="opacity:.8; font-size:12px">Нет награды</div>';
         if (btn) { btn.onclick = ()=>{ try { hideModal('mDistrictGateReward'); } catch (e) {} }; btn.disabled = false; }
         return;
       }
-      const mult = parseInt(p.mult||0,10)||0;
+      const tooth = parseInt(p.tooth||0,10)||0;
+      const xp = parseInt(p.xp||0,10)||0;
       list.innerHTML = ''
-        + '<div class="row"><div class="k">Опыт</div><div class="badge">+'+fmt4(mult)+' XP</div></div>'
-        + '<div class="row"><div class="k">Золотые зубы</div><div class="badge">+'+fmt4(mult)+' <img src="зуб.png" alt="" class="toothIcon" style="height:14px;vertical-align:middle"></div></div>'
-        + '<div class="row"><div class="k">Страх (район)</div><div class="badge">+'+fmt4(mult)+' <img src="страх.png" alt="" class="fearIcon" style="height:14px;vertical-align:middle"></div></div>'
-        + '<div class="row"><div class="k">Золотые монеты</div><div class="badge">+'+fmt4(mult)+' <img src="голд.png" alt="" class="goldIcon" style="height:14px;vertical-align:middle"></div></div>';
+        + (tooth > 0 ? '<div class="row"><div class="k">Золотые зубы</div><div class="badge">+'+fmt4(tooth)+' <img src="зуб.png" alt="" class="toothIcon" style="height:14px;vertical-align:middle"></div></div>' : '')
+        + (xp > 0 ? '<div class="row"><div class="k">Опыт</div><div class="badge">+'+fmt4(xp)+' XP</div></div>' : '');
       if (btn) {
         btn.disabled = false;
         btn.onclick = ()=>{ districtGateRewardClaim(); };
@@ -15826,30 +15811,23 @@ const BF_HELP_PULL_EVERY_MS = 3000;
   function districtGateRewardClaim(){
     try {
       const p = state.bosses && state.bosses.pendingDistrictReward;
-      if (!p || typeof p !== 'object' || !p.idx || p.mult <= 0) {
+      if (!p || typeof p !== 'object' || !p.idx || ((p.tooth||0) <= 0 && (p.xp||0) <= 0)) {
         try { hideModal('mDistrictGateReward'); } catch (e) {}
         return;
       }
       const idx = p.idx;
-      const mult = parseInt(p.mult||0,10)||0;
-      addXp(mult);
-      state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + mult);
-      state.gold = Math.min(CURRENCY_CAP, (parseInt(state.gold||0,10)||0) + mult);
-      const bk = 'D' + String(idx);
-      if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
-      state.districtFear[bk] = Math.max(0, (parseInt(state.districtFear[bk]||0,10)||0) + mult);
-      try {
-        districtFearLeaderUpdate(idx);
-        districtDailyFearAdd(idx, mult);
-      } catch (e1) {}
-      if (mult > 0) { try { logCurrency('tooth', mult, 'Босс района'); } catch (e0) {} try { logCurrency('gold', mult, 'Босс района'); } catch (e0) {} }
+      const tooth = parseInt(p.tooth||0,10)||0;
+      const xp = parseInt(p.xp||0,10)||0;
+      if (xp > 0) addXp(xp);
+      if (tooth > 0) state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + tooth);
+      if (tooth > 0) { try { logCurrency('tooth', tooth, 'Босс района'); } catch (e0) {} }
       state.bosses.pendingDistrictReward = null;
       save();
       try { hideModal('mDistrictGateReward'); } catch (e) {}
-      toast('Награда получена: +'+mult+' XP, +'+mult+' зубов, +'+mult+' страха, +'+fmt4(mult)+' золотых монет','win');
+      toast('Награда получена: +'+fmt4(tooth)+' зубов, +'+fmt4(xp)+' XP','win');
       haptic('medium');
       if ($('mDistricts') && $('mDistricts').classList.contains('show')) renderDistricts();
-      renderAll();
+      renderHUD();
     } catch (e) {}
   }
   function renderDistrictGateBoss(){
@@ -15905,19 +15883,19 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         if (!state.districtGateBossKilled || typeof state.districtGateBossKilled !== 'object') state.districtGateBossKilled = {};
         state.districtGateBossKilled[idx] = true;
         state.districtGateBossFight = null;
-        const mult = DISTRICT_GATE_REWARDS[idx] || 0;
-        state.bosses.pendingDistrictReward = mult > 0 ? { idx: idx, mult: mult } : null;
+        const rew = DISTRICT_GATE_REWARDS[idx] || null;
+        state.bosses.pendingDistrictReward = rew ? { idx: idx, tooth: rew.tooth||0, xp: rew.xp||0 } : null;
         save();
         try { const mm = $('mDistrictGateBoss'); if (mm) mm.classList.remove('show'); } catch (e) {}
         renderDistricts();
-        if (mult > 0) {
+        if (rew) {
           showModal('mDistrictGateReward');
           renderDistrictGateRewardModal();
         } else {
         toast('Босс побеждён! Район открыт.','win');
         }
         haptic('medium');
-        renderAll();
+        renderHUD(); renderDistricts();
         return;
       }
       save();
@@ -16229,9 +16207,9 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         state.groupFight.resolvedTs = now();
         // keep battle for view until close
         feedAdd('Победа в групповом бою!','GF');
-        toast('Ты '+genderWon(),'win');
         save();
-        renderAll();
+        renderHUD(); renderBattle();
+        toast('Ты '+genderWon(),'win');
         haptic('heavy');
         gfShowBattleResult(true);
         return;
@@ -16258,10 +16236,10 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       state.groupFight.startTs = 0;
       state.groupFight.resolvedTs = now();
       feedAdd('Победа в групповом бою!','GF');
+      save();
+      renderHUD(); renderBattle();
       toast('Ты '+genderWon(),'win');
       haptic('heavy');
-      save();
-      renderAll();
       gfShowBattleResult(true);
       return;
     }
@@ -16321,7 +16299,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         dnc.onclick = ()=>{
           hideModal('mDistrictNightmare');
           openScreen('mDistricts');
-          renderAll();
+          renderDistricts(); renderHUD();
           haptic('light');
         };
       }
@@ -16333,7 +16311,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         bcl.onclick = ()=>{
           hideModal('mBattle');
           openScreen('mArena');
-          renderAll();
+          renderArena(); renderHUD();
           haptic('light');
         };
       }
@@ -16360,7 +16338,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       hideTop();
     };
 
-    const sb = $('settingsBtn'); if (sb) { sb.style.display = (typeof isAdmin === 'function' && isAdmin()) ? '' : 'none'; sb.onclick = ()=>{ showModal('mSettings'); var ac = $('adminCard'); if (ac) ac.style.display = (typeof isAdmin === 'function' && isAdmin()) ? '' : 'none'; renderAll(); haptic('light'); }; }
+    const sb = $('settingsBtn'); if (sb) { sb.style.display = (typeof isAdmin === 'function' && isAdmin()) ? '' : 'none'; sb.onclick = ()=>{ showModal('mSettings'); var ac = $('adminCard'); if (ac) ac.style.display = (typeof isAdmin === 'function' && isAdmin()) ? '' : 'none'; renderHUD(); haptic('light'); }; }
     $('shopBtn').onclick = ()=>{
       showModal('mShop');
       renderShop();
@@ -16551,7 +16529,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       }
       openScreen('mDistricts');
       renderDistricts();
-      if (state.bosses && state.bosses.pendingDistrictReward && state.bosses.pendingDistrictReward.mult > 0) {
+      if (state.bosses && state.bosses.pendingDistrictReward && ((state.bosses.pendingDistrictReward.tooth||0) > 0 || (state.bosses.pendingDistrictReward.xp||0) > 0)) {
         try { showModal('mDistrictGateReward'); renderDistrictGateRewardModal(); } catch (e1) {}
       }
       haptic('light');
@@ -16627,7 +16605,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       if (img.complete) setRatio(); else img.onload = setRatio;
     })();
     try {
-      const pa = $('ploshchadArena'); if (pa) pa.onclick = ()=>{ openScreen('mArena'); renderAll(); haptic('light'); };
+      const pa = $('ploshchadArena'); if (pa) pa.onclick = ()=>{ openScreen('mArena'); renderArena(); renderHUD(); haptic('light'); };
       const ph = $('ploshchadHallOfFame'); if (ph) ph.onclick = ()=>{ showModal('mTop'); renderTop100('LVL'); haptic('light'); };
       const pg = $('ploshchadGym'); if (pg) pg.onclick = ()=>{ showModal('mGym'); renderGym(); renderArenaPetShop(); haptic('light'); };
       const ps = $('ploshchadShop'); if (ps) ps.onclick = ()=>{ showModal('mLavka'); renderLavka(); haptic('light'); };
@@ -16706,7 +16684,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
           save();
           hideModal('mBattle');
           openScreen('mArena');
-          renderAll();
+          renderHUD(); renderArena();
         };
       }
     } catch (e) {}
@@ -16818,7 +16796,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
             state.playerName = next;
             try { renameEverywhere(prev, next); } catch (e9) {}
             save();
-            renderAll();
+            renderHUD(); renderParchmentPanelMedals();
             haptic('light');
             try { __srvLastSent = now(); } catch (e0) {}
             // Второй немедленный сейв: гарантия, что state JSON на сервере = новый ник (очередь VPS уже сброшена force_immediate).
@@ -16832,7 +16810,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
             if (/name_taken/i.test(msg)) {
               state.playerName = prev;
               save();
-              renderAll();
+              renderHUD(); renderParchmentPanelMedals();
               toast('Имя занято','lose');
               return;
             }
@@ -16845,7 +16823,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       // Local-only: apply immediately.
       state.playerName = next;
       save();
-      renderAll();
+      renderHUD(); renderParchmentPanelMedals();
       haptic('light');
     };
 
@@ -17090,7 +17068,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
                 state.clan.name = nm;
               }
               save();
-              try { renderAll(); } catch (eR0) {}
+              try { renderClans(); renderHUD(); } catch (eR0) {}
             } catch (eLocal) {}
             try { clansCloudPull().catch(()=>{}); } catch (e0) {}
           } else {
@@ -17940,22 +17918,31 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       } else if (msg.type === 'boss_update') {
         try {
           var d = msg.data;
-          if (d) {
-            var hpEl = $('bossHpVal'), hpBar = $('bossHpBar'), hpMaxEl = $('bossHpMax');
-            var hp = parseInt(d.hp||d.current_hp||0,10)||0;
-            var hpMax = parseInt(d.max_hp||d.hpMax||0,10)||0;
-            if (hpEl && hp) hpEl.textContent = fmt4(hp);
-            if (hpMaxEl && hpMax) hpMaxEl.textContent = fmt4(hpMax);
-            if (hpBar && hpMax) hpBar.style.width = Math.max(0,Math.min(100,(hp/hpMax)*100)) + '%';
+          if (d && d.fight && typeof d.fight === 'object') {
+            try { bfRealtimeApplyServerFightRow(d.fight); } catch(_){}
+          } else if (d) {
+            var hpFill2 = $('bfHpBarFill'), hpIn2 = $('bfHpBarIn');
+            var hp2 = parseInt(d.hp||d.current_hp||0,10)||0;
+            var hpMax2 = parseInt(d.max_hp||d.hpMax||0,10)||0;
+            if (hpFill2 && hpMax2) hpFill2.style.width = Math.max(0,Math.min(100,(hp2/hpMax2)*100)) + '%';
+            if (hpIn2 && hpMax2) hpIn2.textContent = fmt4(hp2) + ' / ' + fmt4(hpMax2);
           }
         } catch(_){}
       } else if (msg.type === 'clan_msg' || msg.type === 'clan_msg_any') {
         try {
           var cm = $('clanChatModal');
-          if (cm && cm.classList && cm.classList.contains('show') && typeof renderClanChatModal==='function') renderClanChatModal();
+          if (cm && cm.classList && cm.classList.contains('show') && typeof renderClanChatModal==='function') {
+            if (!wsHandleEvent._clanT) { renderClanChatModal(); wsHandleEvent._clanT = setTimeout(function(){ wsHandleEvent._clanT = null; }, 500); }
+            else if (!wsHandleEvent._clanP) { wsHandleEvent._clanP = setTimeout(function(){ wsHandleEvent._clanP = null; try { renderClanChatModal(); } catch(_){} }, 500); }
+          }
         } catch(_){}
       } else if (msg.type === 'group_fight_update') {
-        try { if (typeof renderGroupFight==='function') renderGroupFight(); } catch(_){}
+        try {
+          if (typeof renderGroupFight==='function') {
+            if (!wsHandleEvent._gfT) { renderGroupFight(); wsHandleEvent._gfT = setTimeout(function(){ wsHandleEvent._gfT = null; }, 500); }
+            else if (!wsHandleEvent._gfP) { wsHandleEvent._gfP = setTimeout(function(){ wsHandleEvent._gfP = null; try { renderGroupFight(); } catch(_){} }, 500); }
+          }
+        } catch(_){}
       } else if (msg.type === 'ping') {
         try { if (__ws && __ws.readyState===WebSocket.OPEN) __ws.send(JSON.stringify({type:'pong'})); } catch(_){}
       }
