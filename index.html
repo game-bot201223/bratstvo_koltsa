@@ -3590,11 +3590,11 @@ button.btn.charCornerBtn:active{filter:none;}
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start;">
           <div>
             <div class="row"><div class="k">ЛОГ УРОНА</div></div>
-            <div style="margin-top:10px; display:flex; flex-direction:row; flex-wrap:wrap; gap:8px; max-height:280px; overflow-y:auto; padding-right:6px; justify-content:center;" id="bfLog"></div>
+            <div style="margin-top:10px; display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto; padding-right:6px;" id="bfLog"></div>
           </div>
           <div>
             <div class="row"><div class="k">ТОП УРОНА</div></div>
-            <div style="margin-top:10px; display:flex; flex-direction:row; flex-wrap:wrap; gap:8px; max-height:280px; overflow-y:auto; padding-right:6px; justify-content:center;" id="bfTop"></div>
+            <div style="margin-top:10px; display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto; padding-right:6px;" id="bfTop"></div>
           </div>
         </div>
       </div>
@@ -8813,44 +8813,48 @@ button.btn.charCornerBtn:active{filter:none;}
     ['Оружейный завод','Лагерь орков','Склад ресурсов','Темная кузница'],
     ['Главная крепость','Башня Саурона','Черная сокровищница','Тронный зал']
   ];
-  const BIZ_MAX_LVL = 5;
+  const BIZ_MAX_LVL = 10;
   const BIZ_LVL_COSTS = [
-    50000,
-    150000,
-    500000,
-    1500000,
-    5000000
+    50000, 100000, 200000, 500000, 1000000,
+    2000000, 4000000, 6000000, 8000000, 10000000
   ];
+  const BIZ0_MAX_LVL = 5;
+  const BIZ0_LVL_COSTS = [100000, 500000, 2000000, 6000000, 10000000];
 
-  const BIZ2_FEAR_PER_LVL = [200,400,600,800,1000,1200,1400,1600,1800,2000];
+  const BIZ2_FEAR_PER_LVL = [20,40,60,80,100,120,140,160,180,200];
   const BIZ3_PCT_PER_LVL = [0.005,0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05];
   const BIZ4_MAX_LVL = 5;
-  const BIZ4_GOLD_PER_LVL = [1,2,3,4,5]; // ежедневный доход золотом за уровень
-  const BIZ4_LVL_COSTS = [10000000,50000000,100000000,150000000,200000000]; // цена улучшения для золотого бизнеса
+  const BIZ4_GOLD_PER_LVL = [1,2,3,4,5];
+  const BIZ4_LVL_COSTS = [100000, 500000, 2000000, 6000000, 10000000];
 
   function bizKey(dIdx, bIdx){
     return 'D' + String(dIdx) + 'B' + String(bIdx);
+  }
+  function bizMaxLvlFor(bIdx){
+    if (bIdx===0) return BIZ0_MAX_LVL;
+    if (bIdx===3) return BIZ4_MAX_LVL;
+    return BIZ_MAX_LVL;
   }
   function bizLvl(dIdx, bIdx){
     try {
       const k = bizKey(dIdx, bIdx);
       const v = state.districtBizLvls && typeof state.districtBizLvls === 'object' ? state.districtBizLvls[k] : 0;
-      return clamp(parseInt(v||0,10)||0, 0, BIZ_MAX_LVL);
+      return clamp(parseInt(v||0,10)||0, 0, bizMaxLvlFor(bIdx));
     } catch (e) { return 0; }
   }
   function bizSetLvl(dIdx, bIdx, lvl){
     if (!state.districtBizLvls || typeof state.districtBizLvls !== 'object') state.districtBizLvls = {};
-    let newLvl = clamp(parseInt(lvl||0,10)||0, 0, BIZ_MAX_LVL);
-    if (bIdx===3) newLvl = clamp(newLvl, 0, BIZ4_MAX_LVL);
+    let newLvl = clamp(parseInt(lvl||0,10)||0, 0, bizMaxLvlFor(bIdx));
     state.districtBizLvls[bizKey(dIdx, bIdx)] = newLvl;
     if (newLvl >= 1 && !state.districtBizFirstPurchaseTs) state.districtBizFirstPurchaseTs = now();
   }
   function bizCostNext(lvl, bIdx){
-    const isGoldBiz = (bIdx===3);
-    const maxLvlForThis = isGoldBiz ? BIZ4_MAX_LVL : BIZ_MAX_LVL;
+    const maxLvlForThis = bizMaxLvlFor(bIdx);
     const nxt = clamp((parseInt(lvl||0,10)||0) + 1, 1, maxLvlForThis);
     let c = 0;
-    if (isGoldBiz){
+    if (bIdx===0){
+      c = BIZ0_LVL_COSTS[nxt-1];
+    } else if (bIdx===3){
       c = BIZ4_LVL_COSTS[nxt-1];
     } else {
       c = BIZ_LVL_COSTS[nxt-1];
@@ -8963,8 +8967,7 @@ button.btn.charCornerBtn:active{filter:none;}
       for (let i=0;i<4;i++){
         const bn = list[i] ? String(list[i]) : ('Бизнес '+(i+1));
         const lvl = bizLvl(id, i);
-        const isGoldBiz = (i===3);
-        const maxLvlForThis = isGoldBiz ? BIZ4_MAX_LVL : BIZ_MAX_LVL;
+        const maxLvlForThis = bizMaxLvlFor(i);
         const maxed = lvl >= maxLvlForThis;
         const cost = maxed ? 0 : bizCostNext(lvl, i);
         const hasCost = cost>0;
@@ -9007,8 +9010,7 @@ button.btn.charCornerBtn:active{filter:none;}
           const dd = clamp(parseInt(parts[0]||'0',10)||0, 0, 11);
           const bb = clamp(parseInt(parts[1]||'0',10)||0, 0, 3);
           const cur = bizLvl(dd, bb);
-          const isGoldBiz = (bb===3);
-          const maxLvlForThis = isGoldBiz ? BIZ4_MAX_LVL : BIZ_MAX_LVL;
+          const maxLvlForThis = bizMaxLvlFor(bb);
           if (cur>=maxLvlForThis){ toast('Уже максимум','lose'); return; }
           const cost = bizCostNext(cur, bb);
           if (!(cost>0)){ toast('Скоро','lose'); return; }
@@ -12742,7 +12744,7 @@ button.btn.charCornerBtn:active{filter:none;}
       const isPlayer = String(e.who||'').trim() === playerNameForLog;
       const rowC = isPlayer ? 'row bfBfPlayerLine' : 'row';
       const badgeC = isPlayer ? 'badge bfBfPlayerBadge' : 'badge';
-      return '<div class="'+rowC+'" style="flex-direction:column;align-items:center;gap:2px;padding:4px 0;">'+bfMiniAvatarHtml(e.who)+'<div style="font-size:11px;opacity:.9;text-align:center;word-break:break-word;">'+String(e.who)+'</div><div class="'+badgeC+'" style="padding:4px 8px;font-size:11px;">'+String(e.dmg)+'</div></div>';
+      return '<div class="'+rowC+'" style="flex-direction:column;align-items:flex-start;gap:2px;padding:4px 0;"><div style="display:flex;align-items:center;gap:6px;">'+bfMiniAvatarHtml(e.who)+'<div style="font-size:11px;opacity:.9;word-break:break-word;">'+String(e.who)+'</div></div><div class="'+badgeC+'" style="padding:3px 8px;font-size:11px;margin-left:28px;">'+String(e.dmg)+'</div></div>';
     }).join('') : '');
 
     const top = $('bfTop');
@@ -12766,7 +12768,7 @@ button.btn.charCornerBtn:active{filter:none;}
       const isPlayerTop = String(r.who||'').trim() === playerNameForLog;
       const rowC = isPlayerTop ? 'row bfBfPlayerLine' : 'row';
       const badgeC = isPlayerTop ? 'badge bfBfPlayerBadge' : 'badge';
-      return '<div class="'+rowC+'" style="flex-direction:column;align-items:center;gap:2px;padding:4px 0;">'+bfMiniAvatarHtml(r.who)+'<div style="font-size:11px;opacity:.9;text-align:center;word-break:break-word;">#'+(i+1)+' '+r.who+'</div><div class="'+badgeC+'" style="padding:4px 8px;font-size:11px;">'+r.dmg+'</div></div>';
+      return '<div class="'+rowC+'" style="flex-direction:column;align-items:flex-start;gap:2px;padding:4px 0;"><div style="display:flex;align-items:center;gap:6px;">'+bfMiniAvatarHtml(r.who)+'<div style="font-size:11px;opacity:.9;word-break:break-word;">#'+(i+1)+' '+r.who+'</div></div><div class="'+badgeC+'" style="padding:3px 8px;font-size:11px;margin-left:28px;">'+r.dmg+'</div></div>';
     }).join('') : '');
   }
 
@@ -12831,7 +12833,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
             const nm = String(e.who||'');
             const ph = brosPhotoFor(nm);
             const ava = ph ? '<div style="width:22px;height:22px;border-radius:999px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.18);background-image:url(\''+String(ph).replace(/'/g,'%27')+'\');background-size:cover;background-position:center;"></div>' : '<div style="width:22px;height:22px;border-radius:999px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;opacity:.85;">'+(nm?nm.charAt(0).toUpperCase():'•')+'</div>';
-            return '<div class="'+rowC+'" style="flex-direction:column;align-items:center;gap:2px;padding:4px 0;">'+ava+'<div style="font-size:11px;opacity:.9;text-align:center;word-break:break-word;">'+nm+'</div><div class="'+badgeC+'" style="padding:4px 8px;font-size:11px;">'+String(e.dmg)+'</div></div>';
+            return '<div class="'+rowC+'" style="flex-direction:column;align-items:flex-start;gap:2px;padding:4px 0;"><div style="display:flex;align-items:center;gap:6px;">'+ava+'<div style="font-size:11px;opacity:.9;word-break:break-word;">'+nm+'</div></div><div class="'+badgeC+'" style="padding:3px 8px;font-size:11px;margin-left:28px;">'+String(e.dmg)+'</div></div>';
           }).join('') : '';
         }
       }
@@ -12875,7 +12877,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
             const nm = String(r.who||'');
             const ph = brosPhotoFor(nm);
             const ava = ph ? '<div style="width:22px;height:22px;border-radius:999px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.18);background-image:url(\''+String(ph).replace(/'/g,'%27')+'\');background-size:cover;background-position:center;"></div>' : '<div style="width:22px;height:22px;border-radius:999px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;opacity:.85;">'+(nm?nm.charAt(0).toUpperCase():'•')+'</div>';
-            return '<div class="'+rowC+'" style="flex-direction:column;align-items:center;gap:2px;padding:4px 0;">'+ava+'<div style="font-size:11px;opacity:.9;text-align:center;word-break:break-word;">#'+(i+1)+' '+nm+'</div><div class="'+badgeC+'" style="padding:4px 8px;font-size:11px;">'+r.dmg+'</div></div>';
+            return '<div class="'+rowC+'" style="flex-direction:column;align-items:flex-start;gap:2px;padding:4px 0;"><div style="display:flex;align-items:center;gap:6px;">'+ava+'<div style="font-size:11px;opacity:.9;word-break:break-word;">#'+(i+1)+' '+nm+'</div></div><div class="'+badgeC+'" style="padding:3px 8px;font-size:11px;margin-left:28px;">'+r.dmg+'</div></div>';
           }).join('') : '';
         }
       }
