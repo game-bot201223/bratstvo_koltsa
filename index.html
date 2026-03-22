@@ -3190,7 +3190,7 @@ button.btn.charCornerBtn:active{filter:none;}
 <!-- Подтверждение покупки энергии (блок 100×100, видно на главной) -->
 <div class="modal modalMini modalEnergyRefillConfirm" id="mEnergyRefillConfirm" role="dialog" aria-modal="true">
   <div class="sheet">
-    <div style="text-align:center;">Энергия за 20 <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:10px;vertical-align:middle">?</div>
+    <div style="text-align:center;" id="energyRefillConfirmText">Энергия за 20 <img src="голд.png" alt="Золотые монеты" class="goldIcon" style="height:10px;vertical-align:middle">?</div>
     <div class="energyRefillConfirmBtns">
       <button type="button" class="btn" id="energyRefillConfirmYes">Да</button>
       <button type="button" class="btn" id="energyRefillConfirmNo">Нет</button>
@@ -8390,8 +8390,8 @@ button.btn.charCornerBtn:active{filter:none;}
     silver:2000,
     tooth:2000,
     rings:0,
-    energy:100,
-    energyMax:100,
+    energy:400,
+    energyMax:400,
     lastEnergyTs: now(),
     nextWinBonus:0,
     settings:{ sound:true, haptics:true, reduced:false },
@@ -8666,9 +8666,10 @@ button.btn.charCornerBtn:active{filter:none;}
     while (state.xp >= xpNeed(state.level)) {
       state.xp -= xpNeed(state.level);
       state.level += 1;
-      state.energy = clamp(Math.floor(state.energyMax||100), 0, Math.floor(state.energyMax||100));
+      state.energyMax = (state.energyMax||400) + 1;
+      state.energy = clamp(Math.floor(state.energyMax), 0, Math.floor(state.energyMax));
       state.lastEnergyTs = now();
-      toast('Уровень повышен: ' + state.level,'win');
+      toast('Уровень повышен: ' + state.level + ' · energyMax +1','win');
       haptic('heavy');
     }
   }
@@ -8758,16 +8759,29 @@ button.btn.charCornerBtn:active{filter:none;}
     try {
       const id = clamp(parseInt(dIdx||0,10)||0, 0, 11);
       if (!districtAllTasksDone(id)) return;
-      const rewardTable = [300,400,600,900,1200,1500,1800,2000,2200,2500,2800,3000];
-      const mult = rewardTable[id] ?? 300;
+      const DISTRICT_REWARDS = [
+        { tooth:300,  xp:60,   fear:100 },
+        { tooth:500,  xp:100,  fear:100 },
+        { tooth:800,  xp:160,  fear:100 },
+        { tooth:1000, xp:200,  fear:100 },
+        { tooth:1500, xp:300,  fear:100 },
+        { tooth:2000, xp:400,  fear:100 },
+        { tooth:2500, xp:500,  fear:100 },
+        { tooth:3000, xp:600,  fear:100 },
+        { tooth:3500, xp:700,  fear:100 },
+        { tooth:4000, xp:800,  fear:100 },
+        { tooth:4500, xp:900,  fear:100 },
+        { tooth:5000, xp:1000, fear:100 }
+      ];
+      const rew = DISTRICT_REWARDS[id] || DISTRICT_REWARDS[0];
       const bk = 'D'+String(id);
 
-      addXp(mult);
-      state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + mult);
-      try { logCurrency('tooth', mult, 'Прохождение района'); } catch (e0) {}
+      addXp(rew.xp);
+      state.tooth = Math.min(CURRENCY_CAP, (parseInt(state.tooth||0,10)||0) + rew.tooth);
+      try { logCurrency('tooth', rew.tooth, 'Прохождение района'); } catch (e0) {}
       const curFear = Math.max(0, (state.districtFear && state.districtFear[bk]) ? (parseInt(state.districtFear[bk]||0,10)||0) : 0);
       if (!state.districtFear || typeof state.districtFear !== 'object') state.districtFear = {};
-      state.districtFear[bk] = curFear + mult;
+      state.districtFear[bk] = curFear + rew.fear;
 
       try {
         if (!state.districtClearedEver || typeof state.districtClearedEver !== 'object') state.districtClearedEver = {};
@@ -8779,7 +8793,7 @@ button.btn.charCornerBtn:active{filter:none;}
 
       try {
         districtFearLeaderUpdate(id);
-        districtDailyFearAdd(id, mult);
+        districtDailyFearAdd(id, rew.fear);
       } catch (e1) {}
 
       // Сбросить счётчики задач района для нового цикла фарма.
@@ -8788,8 +8802,8 @@ button.btn.charCornerBtn:active{filter:none;}
       if (!state.districtClearedBannerTs || typeof state.districtClearedBannerTs !== 'object') state.districtClearedBannerTs = {};
       state.districtClearedBannerTs[bk] = now();
 
-      toast('НАГРАДА: +'+mult+' XP, +'+mult+' '+TOAST_TOOTH_IMG+', +'+mult+' '+TOAST_FEAR_IMG,'win');
-      feedAdd('Награда района: +'+mult+' XP, +'+mult+' зол. зубов, +'+mult+' страха','SYS');
+      toast('НАГРАДА: +'+rew.xp+' XP, +'+rew.tooth+' '+TOAST_TOOTH_IMG+', +'+rew.fear+' '+TOAST_FEAR_IMG,'win');
+      feedAdd('Награда района: +'+rew.xp+' XP, +'+rew.tooth+' зол. зубов, +'+rew.fear+' страха','SYS');
       haptic('heavy');
     } catch (e) {}
   }
@@ -8808,18 +8822,13 @@ button.btn.charCornerBtn:active{filter:none;}
     ['Оружейный завод','Лагерь орков','Склад ресурсов','Темная кузница'],
     ['Главная крепость','Башня Саурона','Черная сокровищница','Тронный зал']
   ];
-  const BIZ_MAX_LVL = 10;
+  const BIZ_MAX_LVL = 5;
   const BIZ_LVL_COSTS = [
     50000,
     150000,
     500000,
     1500000,
-    5000000,
-    10000000,
-    30000000,
-    50000000,
-    80000000,
-    120000000
+    5000000
   ];
 
   const BIZ2_FEAR_PER_LVL = [200,400,600,800,1000,1200,1400,1600,1800,2000];
@@ -8878,11 +8887,11 @@ button.btn.charCornerBtn:active{filter:none;}
   }
   function bizSyncEnergyMax(){
     try {
-      const want = bizTotalLvl(0) * 1;
+      const want = bizTotalLvl(0) * 10;
       const cur = Math.max(0, Math.floor(state._bizEnergyApplied||0));
       const delta = want - cur;
       if (delta!==0){
-        state.energyMax = Math.max(1, Math.floor(state.energyMax||100) + delta);
+        state.energyMax = Math.max(400, Math.floor(state.energyMax||400) + delta);
         state._bizEnergyApplied = want;
         state.energy = clamp(Math.floor(state.energy||0), 0, state.energyMax);
       }
@@ -9279,8 +9288,7 @@ button.btn.charCornerBtn:active{filter:none;}
     if (mainPhoto) mainPhoto.src = (state.mainCharacterImg && state.mainCharacterImg.trim()) ? state.mainCharacterImg : 'персонаж.png';
     if (mainWrap) mainWrap.classList.toggle('hasCustomImg', !!(state.mainCharacterImg && state.mainCharacterImg.trim()));
 
-    $('energy').textContent = String(Math.floor(state.energy||0));
-    $('energyMax').textContent = String(Math.floor(state.energyMax||0));
+    (function(){ const e=Math.floor(state.energy||0); const em=Math.floor(state.energyMax||0); $('energy').textContent = e>=1000 ? Math.floor(e/1000)+'к' : String(e); $('energyMax').textContent = em>=1000 ? Math.floor(em/1000)+'к' : String(em); })();
 
     try {
       const vipBtn = $('vipInfoBtn');
@@ -15927,7 +15935,9 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       const d = $('dnDesc');
       const b = $('dnDiff');
       const enEl = $('dnEnergy');
-      if (enEl) enEl.innerHTML = '⚡ ' + Math.floor(state.energy||0) + '/' + Math.floor(state.energyMax||100);
+      const _e = Math.floor(state.energy||0); const _em = Math.floor(state.energyMax||400);
+      if (enEl) enEl.innerHTML = '⚡ ' + fmtEnergy(_e) + '/' + fmtEnergy(_em);
+      try { const _reb = $('dnEnergyRefillBtn'); if (_reb) { const _rc = Math.ceil(_em/10); _reb.title = 'Восстановить 100% энергии за '+_rc+' золотых монет'; const _lbl = _reb.querySelector('.energyRefillLabel'); if (_lbl) _lbl.innerHTML = _rc + ' <img src="голд.png" alt="" class="goldIcon" style="height:12px;width:auto;vertical-align:middle">'; } } catch(e_rb){}
       if (t) t.textContent = nm.toUpperCase();
       if (b) {
         // На странице кошмара: страх за текущие сутки + сколько раз район был пройден
@@ -15964,19 +15974,19 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         h += '<div style="margin-top:4px; font-size:12px; opacity:.85; line-height:1.35; width:100%;">Ты кошмаришь район. Выбирай задание и выполняй за ⚡ энергию.</div>';
         h += '</div>';
 
-        const rewardTable = [300,400,600,900,1200,1500,1800,2000,2200,2500,2800,3000];
-        const mult = rewardTable[i] ?? 300;
+        const _DREWARDS = [{tooth:300,xp:60,fear:100},{tooth:500,xp:100,fear:100},{tooth:800,xp:160,fear:100},{tooth:1000,xp:200,fear:100},{tooth:1500,xp:300,fear:100},{tooth:2000,xp:400,fear:100},{tooth:2500,xp:500,fear:100},{tooth:3000,xp:600,fear:100},{tooth:3500,xp:700,fear:100},{tooth:4000,xp:800,fear:100},{tooth:4500,xp:900,fear:100},{tooth:5000,xp:1000,fear:100}];
+        const rew = _DREWARDS[i] || _DREWARDS[0];
         const bk = 'D'+String(i);
         const allDone = districtAllTasksDone(i);
         const bannerTs = (state.districtClearedBannerTs && state.districtClearedBannerTs[bk]) ? parseInt(state.districtClearedBannerTs[bk],10)||0 : 0;
         const showRewardReceivedBanner = bannerTs && (now() - bannerTs <= 3000);
         if (allDone){
           h += '<div style="margin-top:12px; margin-bottom:12px; padding:12px; border-radius:14px; background:linear-gradient(145deg, rgba(34,197,94,.4), rgba(22,163,74,.35)); border:1px solid rgba(34,197,94,.55); font-weight:900; letter-spacing:1px; font-size:13px;">';
-          h += '✅ Все задания выполнены! Награда: +'+mult+' XP, +'+mult+' <img src="зуб.png" alt="" class="toothIcon" style="height:14px;vertical-align:middle">, +'+mult+' <img src="страх.png" alt="" class="fearIcon" style="height:14px;vertical-align:middle">';
+          h += '✅ Все задания выполнены! Награда: +'+rew.xp+' XP, +'+rew.tooth+' <img src="зуб.png" alt="" class="toothIcon" style="height:14px;vertical-align:middle">, +'+rew.fear+' <img src="страх.png" alt="" class="fearIcon" style="height:14px;vertical-align:middle">';
           h += '</div>';
         } else if (showRewardReceivedBanner){
           h += '<div id="dnRewardBanner" style="margin-top:12px; margin-bottom:12px; padding:12px; border-radius:14px; background:linear-gradient(145deg, rgba(34,197,94,.4), rgba(22,163,74,.35)); border:1px solid rgba(34,197,94,.55); font-weight:900; letter-spacing:1px; font-size:13px;">';
-          h += '✅ Район пройден. Награда получена: +'+mult+' XP, +'+mult+' <img src="зуб.png" alt="" class="toothIcon" style="height:14px;vertical-align:middle">, +'+mult+' <img src="страх.png" alt="" class="fearIcon" style="height:14px;vertical-align:middle">';
+          h += '✅ Район пройден. Награда получена: +'+rew.xp+' XP, +'+rew.tooth+' <img src="зуб.png" alt="" class="toothIcon" style="height:14px;vertical-align:middle">, +'+rew.fear+' <img src="страх.png" alt="" class="fearIcon" style="height:14px;vertical-align:middle">';
           h += '</div>';
         }
 
@@ -16068,73 +16078,11 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     } catch (e) { return false; }
   }
   function districtTaskMeta(diff, idx, dIdx){
-    // Ширский край (район 1): фиксированный набор стоимостей, награда жёстко привязана к энергии.
-    // 1 энергия = 1 XP = 1 страх.
-    if (dIdx===0){
-      const costArr = [2,6,8,10,14,16,20];
-      const cost = costArr[idx] || costArr[costArr.length-1] || 2;
-      const xp = cost;
-      const fear = cost;
-      const gold = 0;
-      const max = 5;
-      return { cost, gold, xp, fear, max };
-    }
-
-    // Брийские земли (район 2): 1 энергия = 1 XP = 1 страх.
-    if (dIdx===1){
-      const costArr = [4,8,10,14,18,20,26];
-      const cost = costArr[idx] ?? costArr[costArr.length-1] ?? 4;
-      const xp = cost;
-      const fear = cost;
-      const gold = 0;
-      const max = 5;
-      return { cost, gold, xp, fear, max };
-    }
-
-    const totals = [380,500,800,1000,1400,1600,2000,2200,2400,2600,2800,3000];
-    const total = totals[clamp(parseInt(dIdx||0,10)||0, 0, 11)] || 500;
-
-    // 7 tasks * 10 levels => total per district
-    const sumNeed = Math.max(7, Math.round(total / 10));
-
-    const tpl = [2,6,8,10,14,16,20];
-    const tplSum = 76;
-    const factor = sumNeed / tplSum;
-    let arr = tpl.map(v=>Math.max(1, Math.round(v * factor)));
-
-    // Make costs even for nicer numbers; keep total sumNeed by rebalancing in steps of 2.
-    // sumNeed is even for our district totals; if it ever becomes odd, we keep a minimal safe adjustment.
-    try {
-      arr = arr.map(v=>{
-        const n = Math.max(2, Math.floor(v||0));
-        return (n % 2 === 0) ? n : (n + 1);
-      });
-    } catch (e0) {}
-    let curSum = arr.reduce((a,b)=>a+b,0);
-    let delta = sumNeed - curSum;
-    let j = 0;
-    while (delta !== 0 && j < 500){
-      const p = j % arr.length;
-      if (delta > 0){
-        const step = (Math.abs(delta) >= 2) ? 2 : 1;
-        arr[p] += step;
-        delta -= step;
-      } else {
-        const step = (Math.abs(delta) >= 2) ? 2 : 1;
-        if (arr[p] > step){
-          arr[p] -= step;
-          delta += step;
-        }
-      }
-      j++;
-    }
-
-    const cost = arr[idx] || arr[arr.length-1] || 1;
-    const gold = 0;
-    const xp = cost;
-    const fear = cost;
-    const max = 10;
-    return { cost:cost, gold:gold, xp:xp, fear:fear, max:max };
+    const costs = [10, 20, 20, 30, 30, 40, 50];
+    const xps   = [10, 20, 20, 30, 30, 40, 50];
+    const fears = [1,  2,  2,  3,  3,  4,  5];
+    const i = clamp(parseInt(idx||0,10)||0, 0, costs.length - 1);
+    return { cost: costs[i], xp: xps[i], fear: fears[i], gold: 0, max: 1 };
   }
   function districtTaskDo(dIdx, tIdx){
     try {
@@ -16190,8 +16138,9 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     } catch (e) {}
   }
 
-  // --- Energy regen (VIP: 1 energy per 1 min, иначе 1 per 2 min)
-  const ENERGY_REGEN_MIN_BASE = 2;
+  // --- Energy regen: 1 энергия в 1 минуту (VIP: без изменений — тоже 1 мин)
+  const ENERGY_REGEN_MIN_BASE = 1;
+  function fmtEnergy(v){ const n = Math.floor(v||0); return n >= 1000 ? Math.floor(n/1000)+'к' : String(n); }
   function energyRegenMinutes(){
     return isVipActive() ? 1 : ENERGY_REGEN_MIN_BASE;
   }
@@ -16546,10 +16495,12 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       if (dnEb) dnEb.onclick = ()=>{ doEnergyRefillClick(); };
       function doEnergyRefillClick(){
         const gold = Math.floor(state.gold||0);
-        const maxE = Math.floor(state.energyMax||100);
+        const maxE = Math.floor(state.energyMax||400);
         const curE = Math.floor(state.energy||0);
+        const refillCost = Math.ceil(maxE / 10);
         if (curE >= maxE){ toast('Энергия уже полная','gold'); haptic('light'); return; }
-        if (gold < 20){ toast('Нужно 20 золотых монет '+TOAST_GOLD_IMG,'lose'); haptic('light'); return; }
+        if (gold < refillCost){ toast('Нужно '+refillCost+' золотых монет '+TOAST_GOLD_IMG,'lose'); haptic('light'); return; }
+        try { const ct = $('energyRefillConfirmText'); if (ct) ct.innerHTML = 'Энергия за '+refillCost+' <img src="голд.png" alt="" class="goldIcon" style="height:10px;vertical-align:middle">?'; } catch(e_ct){}
         showModal('mEnergyRefillConfirm');
         haptic('light');
       }
@@ -16557,10 +16508,11 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       const noBtn = $('energyRefillConfirmNo');
       if (yesBtn) yesBtn.onclick = ()=>{
         const gold = Math.floor(state.gold||0);
-        const maxE = Math.floor(state.energyMax||100);
-        if (gold < 20){ toast('Нужно 20 золотых монет '+TOAST_GOLD_IMG,'lose'); hideModal('mEnergyRefillConfirm'); return; }
-        state.gold = gold - 20;
-        try { logCurrency('gold', -20, 'Восстановление энергии'); } catch (e0) {}
+        const maxE = Math.floor(state.energyMax||400);
+        const refillCost = Math.ceil(maxE / 10);
+        if (gold < refillCost){ toast('Нужно '+refillCost+' золотых монет '+TOAST_GOLD_IMG,'lose'); hideModal('mEnergyRefillConfirm'); return; }
+        state.gold = gold - refillCost;
+        try { logCurrency('gold', -refillCost, 'Восстановление энергии'); } catch (e0) {}
         state.energy = maxE;
         save();
         renderHUD();
