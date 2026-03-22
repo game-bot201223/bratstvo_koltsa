@@ -16163,7 +16163,8 @@ const BF_HELP_PULL_EVERY_MS = 3000;
   }
   function energyTimerText(){
     if ((state.energy||0) >= state.energyMax) return 'MAX';
-    const ts = parseInt(state.lastEnergyTs||0,10) || now();
+    if (!state.lastEnergyTs) state.lastEnergyTs = now();
+    const ts = state.lastEnergyTs;
     const per = energyRegenMinutes()*60*1000;
     const next = ts + per;
     return fmtMMSS(Math.max(0, next - now()));
@@ -17755,6 +17756,18 @@ const BF_HELP_PULL_EVERY_MS = 3000;
           state = Object.assign({}, defaults, ps);
           if (!state.energyMax || state.energyMax < 400) state.energyMax = 400;
           if (!state.lastEnergyTs) state.lastEnergyTs = now();
+          // Merge task progress from localStorage (handles refresh before cloud save)
+          try {
+            const _lb = restoreFromLocalBackup();
+            if (_lb && _lb.districtTaskCounts && typeof _lb.districtTaskCounts === 'object') {
+              if (!state.districtTaskCounts || typeof state.districtTaskCounts !== 'object') state.districtTaskCounts = {};
+              Object.keys(_lb.districtTaskCounts).forEach(function(k){
+                const cv = parseInt(state.districtTaskCounts[k]||0,10)||0;
+                const lv = parseInt(_lb.districtTaskCounts[k]||0,10)||0;
+                if (lv > cv) state.districtTaskCounts[k] = lv;
+              });
+            }
+          } catch (_eLbMerge) {}
           mergeBossFreeUsedState(state, prevState3);
           ensureGender();
           // Колонка players.name — источник правды для ника (state JSON может отставать из-за батча upsert).
