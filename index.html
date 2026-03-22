@@ -5929,9 +5929,9 @@ button.btn.charCornerBtn:active{filter:none;}
   let __srvSendT = 0;
   let __srvLastSent = 0;
   let __srvEnabled = true;
-  const MIN_CLOUD_SAVE_INTERVAL_MS = 5000;
+  const MIN_CLOUD_SAVE_INTERVAL_MS = 1000;
   let __srvLastMarkTs = 0;
-  const SAVE_MARK_THROTTLE_MS = 800;
+  const SAVE_MARK_THROTTLE_MS = 0;
   let __dbgOn = false;
   let __dbgFreeze = false;
   /** Состояние уже загружено в boot() через get_player — не дублировать session_start. */
