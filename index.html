@@ -8669,10 +8669,7 @@ button.btn.charCornerBtn:active{filter:none;}
     while (state.xp >= xpNeed(state.level)) {
       state.xp -= xpNeed(state.level);
       state.level += 1;
-      state.energyMax = (state.energyMax||400) + 1;
-      state.energy = clamp(Math.floor(state.energyMax), 0, Math.floor(state.energyMax));
-      state.lastEnergyTs = now();
-      toast('Уровень повышен: ' + state.level + ' · energyMax +1','win');
+      toast('Уровень повышен: ' + state.level,'win');
       haptic('heavy');
     }
   }
@@ -17577,6 +17574,8 @@ const BF_HELP_PULL_EVERY_MS = 3000;
           if (ps0) {
             var prevState0 = state;
             state = Object.assign({}, defaults, ps0);
+            if (!state.energyMax || state.energyMax < 400) state.energyMax = 400;
+            if (!state.lastEnergyTs) state.lastEnergyTs = now();
             mergeBossFreeUsedState(state, prevState0);
             try {
               const rn0 = result && result.player && result.player.name != null ? String(result.player.name).trim().slice(0,18) : '';
@@ -17596,6 +17595,8 @@ const BF_HELP_PULL_EVERY_MS = 3000;
               savePlayerToCache(fresh.player);
               var prevState1 = state;
               state = Object.assign({}, defaults, fresh.player.state);
+              if (!state.energyMax || state.energyMax < 400) state.energyMax = 400;
+              if (!state.lastEnergyTs) state.lastEnergyTs = now();
               mergeBossFreeUsedState(state, prevState1);
               try {
                 const rn1 = fresh && fresh.player && fresh.player.name != null ? String(fresh.player.name).trim().slice(0,18) : '';
