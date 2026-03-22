@@ -16129,6 +16129,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
       } catch (e3) {}
 
       save();
+      try { serverPushNow(); } catch (ePush) {}
       renderHUD();
       if ($('mDistricts') && $('mDistricts').classList.contains('show')) renderDistricts();
       renderDistrictNightmare();
@@ -17752,6 +17753,8 @@ const BF_HELP_PULL_EVERY_MS = 3000;
           try { __cloudSaveUnlocked = true; } catch (eU) {}
           var prevState3 = state;
           state = Object.assign({}, defaults, ps);
+          if (!state.energyMax || state.energyMax < 400) state.energyMax = 400;
+          if (!state.lastEnergyTs) state.lastEnergyTs = now();
           mergeBossFreeUsedState(state, prevState3);
           ensureGender();
           // Колонка players.name — источник правды для ника (state JSON может отставать из-за батча upsert).
@@ -17798,6 +17801,8 @@ const BF_HELP_PULL_EVERY_MS = 3000;
             if (localBackup) {
               console.log('Using local backup as fallback');
               state = Object.assign({}, defaults, localBackup);
+              if (!state.energyMax || state.energyMax < 400) state.energyMax = 400;
+              if (!state.lastEnergyTs) state.lastEnergyTs = now();
               ensureGender();
               __hydratedFromGetPlayer = true;
               try { __cloudSaveUnlocked = true; } catch (eU) {}
