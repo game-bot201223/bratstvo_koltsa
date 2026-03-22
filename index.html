@@ -8317,6 +8317,25 @@ button.btn.charCornerBtn:active{filter:none;}
   function getMedalThresholdsForBoss(/* bid */){
     return BOSS_MEDAL_THRESHOLDS_DEFAULT;
   }
+  const DISTRICT_MEDAL_IMAGES = ['1 стм.jpg','2 стс.jpg','3 стз.jpg','4 стп.jpg','5 стми.jpg'];
+  const DISTRICT_MEDAL_THRESHOLDS = [10, 50, 200, 500, 1000];
+  const DISTRICT_MEDAL_NAMES = ['Бронзовая','Серебряная','Золотая','Пурпурная','Мифическая'];
+  function getTotalDistrictClears(){
+    try {
+      const counts = (state && state.districtClearedCount && typeof state.districtClearedCount === 'object') ? state.districtClearedCount : {};
+      let total = 0;
+      for (const k in counts) total += Math.max(0, parseInt(counts[k]||0,10)||0);
+      return total;
+    } catch (e) { return 0; }
+  }
+  function getDistrictMedalTopIndex(totalClears){
+    const total = Math.max(0, parseInt(totalClears||0,10)||0);
+    let topIndex = -1;
+    for (let i = 0; i < DISTRICT_MEDAL_THRESHOLDS.length; i++) {
+      if (total >= DISTRICT_MEDAL_THRESHOLDS[i]) topIndex = i;
+    }
+    return topIndex;
+  }
   const ARMOR_TIER_IMAGES = {
     0: ['чах1.PNG', 'чах2.PNG', 'чах3.PNG'],
     1: ['об1.png', 'об2.PNG', 'об3.PNG'],
@@ -14473,6 +14492,11 @@ const BF_HELP_PULL_EVERY_MS = 3000;
           }
         });
       }
+      const districtTopIndex = getDistrictMedalTopIndex(getTotalDistrictClears());
+      if (districtTopIndex >= 0) {
+        const districtImg = DISTRICT_MEDAL_IMAGES[districtTopIndex] || DISTRICT_MEDAL_IMAGES[0];
+        list.push({ img: districtImg, title: 'Районы — ' + DISTRICT_MEDAL_NAMES[districtTopIndex] + ' медаль' });
+      }
     } catch (e) {}
     const wrap = $('parchmentPanelMedals');
     const panel = $('parchmentPanel');
@@ -15551,6 +15575,7 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     let html = '';
     const data = districtData();
     const dayBox = (state.districtDailyFearCloud && state.districtDailyFearCloud.byDistrict) ? state.districtDailyFearCloud.byDistrict : ((state.districtDailyFear && state.districtDailyFear.byDistrict) ? state.districtDailyFear.byDistrict : null);
+    const districtTotalClears = getTotalDistrictClears();
 
     const bizCol = $('districtBizRewardColumn');
     if (bizCol) {
@@ -15561,7 +15586,31 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         + '<div style="font-size:11px; opacity:.82; line-height:1.35; margin-top:4px;">Выдача за прошлые сутки. Подробности — в модалке.</div>'
         + '</div>'
         + '<button type="button" class="btn btnSmall districtBtn" id="districtRewardsOpenBtn">НАГРАДЫ</button>'
-        + '</div></div>';
+        + '</div>'
+        + '<div style="margin-top:10px; display:flex; flex-direction:column; gap:4px; min-width:0;">'
+        + '<div class="bossMedalsRow" style="margin-top:0; max-width:100%; overflow-x:auto; overflow-y:hidden; padding-bottom:2px;">'
+        + (function(){
+            const classes = ['bossMedalBronze','bossMedalSilver','bossMedalGold','bossMedalPurple','bossMedalMythic'];
+            let s = '';
+            for (let i = 0; i < 5; i++) {
+              const unlocked = districtTotalClears >= DISTRICT_MEDAL_THRESHOLDS[i];
+              const imgSrc = DISTRICT_MEDAL_IMAGES[i] || '';
+              const title = (DISTRICT_MEDAL_NAMES[i] || 'Медаль') + ' (' + DISTRICT_MEDAL_THRESHOLDS[i] + ' прохождений районов)';
+              if (imgSrc) s += '<div class="bossMedal ' + classes[i] + (unlocked ? '' : ' bossMedalLocked') + '" title="' + title + '"><img src="' + imgSrc.replace(/"/g,'&quot;') + '" alt=""></div>';
+              else s += '<div class="bossMedal ' + classes[i] + (unlocked ? '' : ' bossMedalLocked') + '" title="' + title + '"></div>';
+            }
+            return s;
+          })()
+        + '</div>'
+        + '<div class="bossWinsCount">Пройдено районов: ' + districtTotalClears + ' · ' + (function(){
+            let nextThreshold = null;
+            for (let i = 0; i < DISTRICT_MEDAL_THRESHOLDS.length; i++) {
+              if (districtTotalClears < DISTRICT_MEDAL_THRESHOLDS[i]) { nextThreshold = DISTRICT_MEDAL_THRESHOLDS[i]; break; }
+            }
+            return nextThreshold != null ? (districtTotalClears + '/' + nextThreshold) : (districtTotalClears + ' (все медали)');
+          })() + '</div>'
+        + '</div>'
+        + '</div>';
       try {
         const openR = $('districtRewardsOpenBtn');
         if (openR) openR.onclick = ()=>{ renderDistrictRewardsModal(); showModal('mDistrictRewards'); haptic('light'); };
