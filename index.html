@@ -16138,11 +16138,11 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     } catch (e) {}
   }
 
-  // --- Energy regen: 1 энергия в 1 минуту (VIP: без изменений — тоже 1 мин)
+  // --- Energy regen: 1 энергия в 1 минуту (VIP: 30 сек = 0.5 мин)
   const ENERGY_REGEN_MIN_BASE = 1;
   function fmtEnergy(v){ const n = Math.floor(v||0); return n >= 1000 ? Math.floor(n/1000)+'к' : String(n); }
   function energyRegenMinutes(){
-    return isVipActive() ? 1 : ENERGY_REGEN_MIN_BASE;
+    return isVipActive() ? 0.5 : ENERGY_REGEN_MIN_BASE;
   }
   function tickEnergy(){
     const ts = parseInt(state.lastEnergyTs||0,10) || now();
