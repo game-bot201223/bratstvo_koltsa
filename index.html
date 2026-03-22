@@ -3924,9 +3924,10 @@ button.btn.charCornerBtn:active{filter:none;}
     <div class="sheetHead">
       <button class="iconBtn" data-close="mDistricts">‹</button>
       <div class="title">РАЙОНЫ</div>
+      <div id="districtMedalsHeader" style="flex:1;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:3px;overflow:hidden;min-width:0;padding:0 6px;"></div>
       <div style="width:48px;display:flex;justify-content:flex-end;align-items:center;">
-      <button type="button" class="havchikBtn" id="havchikBtn" aria-label="Хавчик" title="Хавчик — энергия от братков и к браткам"><img src="хав.jpeg" alt="Хавчик"></button>
-    </div>
+        <button type="button" class="havchikBtn" id="havchikBtn" aria-label="Хавчик" title="Хавчик — энергия от братков и к браткам"><img src="хав.jpeg" alt="Хавчик"></button>
+      </div>
     </div>
     <div class="sheetBody" id="districtsSheetBody">
       <div id="districtBizRewardColumn" style="margin-top:0;"></div>
@@ -15597,30 +15598,23 @@ const BF_HELP_PULL_EVERY_MS = 3000;
         + '</div>'
         + '<button type="button" class="btn btnSmall districtBtn" id="districtRewardsOpenBtn">НАГРАДЫ</button>'
         + '</div>'
-        + '<div style="margin-top:10px; display:flex; flex-direction:column; gap:4px; min-width:0;">'
-        + '<div class="bossMedalsRow" style="margin-top:0; max-width:100%; overflow-x:auto; overflow-y:hidden; padding-bottom:2px;">'
-        + (function(){
-            const classes = ['bossMedalBronze','bossMedalSilver','bossMedalGold','bossMedalPurple','bossMedalMythic'];
-            let s = '';
-            for (let i = 0; i < 5; i++) {
-              const unlocked = districtTotalClears >= DISTRICT_MEDAL_THRESHOLDS[i];
-              const imgSrc = DISTRICT_MEDAL_IMAGES[i] || '';
-              const title = (DISTRICT_MEDAL_NAMES[i] || 'Медаль') + ' (' + DISTRICT_MEDAL_THRESHOLDS[i] + ' прохождений районов)';
-              if (imgSrc) s += '<div class="bossMedal ' + classes[i] + (unlocked ? '' : ' bossMedalLocked') + '" title="' + title + '"><img src="' + imgSrc.replace(/"/g,'&quot;') + '" alt=""></div>';
-              else s += '<div class="bossMedal ' + classes[i] + (unlocked ? '' : ' bossMedalLocked') + '" title="' + title + '"></div>';
-            }
-            return s;
-          })()
-        + '</div>'
-        + '<div class="bossWinsCount">Пройдено районов: ' + districtTotalClears + ' · ' + (function(){
-            let nextThreshold = null;
-            for (let i = 0; i < DISTRICT_MEDAL_THRESHOLDS.length; i++) {
-              if (districtTotalClears < DISTRICT_MEDAL_THRESHOLDS[i]) { nextThreshold = DISTRICT_MEDAL_THRESHOLDS[i]; break; }
-            }
-            return nextThreshold != null ? (districtTotalClears + '/' + nextThreshold) : (districtTotalClears + ' (все медали)');
-          })() + '</div>'
-        + '</div>'
         + '</div>';
+      // Медали в шапку
+      try {
+        const mhEl = $('districtMedalsHeader');
+        if (mhEl) {
+          const classes = ['bossMedalBronze','bossMedalSilver','bossMedalGold','bossMedalPurple','bossMedalMythic'];
+          let mh = '';
+          for (let i = 0; i < 5; i++) {
+            const unlocked = districtTotalClears >= DISTRICT_MEDAL_THRESHOLDS[i];
+            const imgSrc = DISTRICT_MEDAL_IMAGES[i] || '';
+            const ttl = (DISTRICT_MEDAL_NAMES[i] || 'Медаль') + ' (' + DISTRICT_MEDAL_THRESHOLDS[i] + ' прохождений районов)';
+            if (imgSrc) mh += '<div class="bossMedal ' + classes[i] + (unlocked ? '' : ' bossMedalLocked') + '" title="' + ttl + '" style="width:28px;height:28px;"><img src="' + imgSrc.replace(/"/g,'&quot;') + '" alt=""></div>';
+            else mh += '<div class="bossMedal ' + classes[i] + (unlocked ? '' : ' bossMedalLocked') + '" title="' + ttl + '" style="width:28px;height:28px;"></div>';
+          }
+          mhEl.innerHTML = mh;
+        }
+      } catch (eMh) {}
       try {
         const openR = $('districtRewardsOpenBtn');
         if (openR) openR.onclick = ()=>{ renderDistrictRewardsModal(); showModal('mDistrictRewards'); haptic('light'); };
