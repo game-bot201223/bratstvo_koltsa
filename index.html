@@ -8979,9 +8979,9 @@ button.btn.charCornerBtn:active{filter:none;}
         const hasCost = cost>0;
         let eff = '—';
         if (i===0){
-          const curAdd = lvl*1;
-          const nextAdd = (lvl+1)*1;
-          eff = '+1 к максимуму энергии за уровень (сейчас +' + curAdd + (maxed?')':(', следующий: +' + nextAdd + ')'));
+          const curAdd = lvl*10;
+          const nextAdd = (lvl+1)*10;
+          eff = '+10 к максимуму энергии за уровень (сейчас +' + curAdd + (maxed?')':(', следующий: +' + nextAdd + ')'));
         } else if (i===1){
           const addFear = lvl>0 ? (BIZ2_FEAR_PER_LVL[lvl-1]||0) : 0;
           const nextFear = maxed ? addFear : (BIZ2_FEAR_PER_LVL[lvl]||addFear);
