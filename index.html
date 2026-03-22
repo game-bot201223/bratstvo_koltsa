@@ -3066,6 +3066,7 @@ button.btn.charCornerBtn:active{filter:none;}
         <div class="xpText" id="xpText">0 / 0 XP</div>
       </div>
       <div class="lvl" id="playerLevel">УР. 1</div>
+      <div id="onlineBadge" style="font-size:10px;color:#7fb87f;opacity:.85;margin-top:2px;"></div>
     </div>
 
     <div class="heroGrid">
@@ -17903,7 +17904,67 @@ const BF_HELP_PULL_EVERY_MS = 3000;
     } catch (e0) {}
   }
 
+  // ───── WebSocket real-time client ─────
+  var __ws = null, __wsReconnTimer = null;
+
+  function wsConnect(){
+    try {
+      if (__ws && (__ws.readyState === WebSocket.OPEN || __ws.readyState === WebSocket.CONNECTING)) return;
+      var wsUrl = (SUPABASE_URL||'').replace(/^https/,'wss').replace(/^http/,'ws') + '/ws';
+      __ws = new WebSocket(wsUrl);
+      __ws.onopen = function(){
+        if (__wsReconnTimer){ clearTimeout(__wsReconnTimer); __wsReconnTimer = null; }
+        try { __ws.send(JSON.stringify({ type:'auth', initData: tgInitData(), clanId: (typeof clanFindMyClanId==='function' ? clanFindMyClanId() : '') || '' })); } catch(_){}
+      };
+      __ws.onmessage = function(e){
+        try { wsHandleEvent(JSON.parse(e.data)); } catch(_){}
+      };
+      __ws.onclose = function(){
+        __ws = null;
+        if (!__wsReconnTimer) __wsReconnTimer = setTimeout(function(){ __wsReconnTimer=null; wsConnect(); }, 4000);
+      };
+      __ws.onerror = function(){ try{ __ws && __ws.close(); }catch(_){} };
+    } catch(_){}
+  }
+
+  function wsHandleEvent(msg){
+    try {
+      if (!msg || !msg.type) return;
+      var badge = $('onlineBadge');
+      if (msg.type === 'online_count') {
+        if (badge) badge.textContent = '● ' + (msg.count||0) + ' онлайн';
+      } else if (msg.type === 'auth_ok') {
+        if (badge) badge.textContent = '● ' + (msg.online||0) + ' онлайн';
+        // Update clan subscription after auth
+        try { var cid = typeof clanFindMyClanId==='function' ? clanFindMyClanId() : ''; if (cid && __ws) __ws.send(JSON.stringify({type:'set_clan',clanId:cid})); } catch(_){}
+      } else if (msg.type === 'boss_update') {
+        try {
+          var d = msg.data;
+          if (d) {
+            var hpEl = $('bossHpVal'), hpBar = $('bossHpBar'), hpMaxEl = $('bossHpMax');
+            var hp = parseInt(d.hp||d.current_hp||0,10)||0;
+            var hpMax = parseInt(d.max_hp||d.hpMax||0,10)||0;
+            if (hpEl && hp) hpEl.textContent = fmt4(hp);
+            if (hpMaxEl && hpMax) hpMaxEl.textContent = fmt4(hpMax);
+            if (hpBar && hpMax) hpBar.style.width = Math.max(0,Math.min(100,(hp/hpMax)*100)) + '%';
+          }
+        } catch(_){}
+      } else if (msg.type === 'clan_msg' || msg.type === 'clan_msg_any') {
+        try {
+          var cm = $('clanChatModal');
+          if (cm && cm.classList && cm.classList.contains('show') && typeof renderClanChatModal==='function') renderClanChatModal();
+        } catch(_){}
+      } else if (msg.type === 'group_fight_update') {
+        try { if (typeof renderGroupFight==='function') renderGroupFight(); } catch(_){}
+      } else if (msg.type === 'ping') {
+        try { if (__ws && __ws.readyState===WebSocket.OPEN) __ws.send(JSON.stringify({type:'pong'})); } catch(_){}
+      }
+    } catch(_){}
+  }
+  // ─────────────────────────────────────
+
   startLoading();
+  setTimeout(function(){ try{ wsConnect(); }catch(_){} }, 2500);
 })();
 </script>
 </body>
