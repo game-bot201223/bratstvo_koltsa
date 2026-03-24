@@ -1,0 +1,5 @@
+TELEGRAM_BOT_TOKEN=REPLACE_WITH_BOT_TOKEN
+ADMIN_TG_IDS=8794843839
+# Optional offsite target (rclone remote), e.g.:
+# OFFSITE_TARGET=b2:your-bucket/bratstvo_koltsa
+OFFSITE_TARGET=
