@@ -1,0 +1,35 @@
+[Unit]
+Description=Bratstvo game backend
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/bratstvo_koltsa/backend
+EnvironmentFile=/opt/bratstvo_koltsa/backend/.env
+Environment=STRICT_AUTH=0
+Environment=ALLOW_ANON_WHITELIST=1
+Environment=INIT_DATA_MAX_AGE_SECONDS=900
+Environment=GAME_BACKEND_HOST=127.0.0.1
+Environment=GAME_BACKEND_PORT=8081
+Environment=DB_POOL_MIN=2
+Environment=DB_POOL_MAX=20
+ExecStart=/usr/bin/python3 /opt/bratstvo_koltsa/backend/game_backend.py
+Restart=always
+RestartSec=2
+User=postgres
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+ProtectKernelModules=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+UMask=0077
+ReadWritePaths=/opt/bratstvo_koltsa /var/log /tmp
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
